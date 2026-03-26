@@ -75,6 +75,10 @@ const linkClass = (active: boolean) => active
             <span class="material-symbols-outlined sidebar-icon-sm">cloud_download</span>
             <span>Importar Natura</span>
           </a>
+          <a href="/inventario/productos" class={linkClass(isActive('/inventario/productos'))}>
+            <span class="material-symbols-outlined sidebar-icon-sm">edit_note</span>
+            <span>Admin Catálogo</span>
+          </a>
         </div>
       )}
       <a href="/clientes" class={linkClass(isSection('/clientes'))}>
