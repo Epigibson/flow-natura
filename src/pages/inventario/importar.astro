@@ -117,8 +117,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       showStatus(result, `✅ ${data.length} productos cargados de ${file.name}`, false);
       renderPreview();
       enableStep('step-import');
-    } catch (err: any) {
-      showStatus(result, 'Error leyendo archivo: ' + err.message, true);
+    } catch (err: unknown) {
+      showStatus(result, 'Error leyendo archivo: ' + (err instanceof Error ? err.message : 'Unknown error'), true);
     }
   });
 

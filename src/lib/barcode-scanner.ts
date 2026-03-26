@@ -132,8 +132,8 @@ export class NativeBarcodeScanner {
         },
         audio: false,
       });
-    } catch (err: any) {
-      this.options.onError?.('No se pudo acceder a la cámara: ' + (err?.message || err));
+    } catch (err: unknown) {
+      this.options.onError?.('No se pudo acceder a la cámara: ' + (err instanceof Error ? err.message : String(err)));
       return;
     }
 
@@ -252,9 +252,9 @@ export class NativeBarcodeScanner {
         }
       );
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (this.isRunning) {
-        this.options.onError?.('Error del escáner: ' + (err?.message || err));
+        this.options.onError?.('Error del escáner: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
   }

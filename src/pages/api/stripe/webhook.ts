@@ -13,9 +13,10 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     event = stripe.webhooks.constructEvent(body, sig || '', webhookSecret);
-  } catch (err: any) {
-    console.error('Webhook signature verification failed:', err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Webhook signature verification failed:', message);
+    return new Response(`Webhook Error: ${message}`, { status: 400 });
   }
 
   const supabase = getServiceSupabase();
@@ -127,10 +128,11 @@ export const POST: APIRoute = async ({ request }) => {
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Webhook processing error:', err);
+    const message = err instanceof Error ? err.message : 'Unknown error';
     // Still return 200 to prevent Stripe retries on processing errors
-    return new Response(JSON.stringify({ received: true, error: err.message }), {
+    return new Response(JSON.stringify({ received: true, error: message }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

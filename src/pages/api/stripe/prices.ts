@@ -49,7 +49,7 @@ export const GET: APIRoute = async () => {
     const results = await Promise.all(
       validIds.map(([, id]) =>
         stripeClient.prices.retrieve(id).catch(err => {
-          console.error(`Failed to fetch price ${id}:`, err.message);
+          console.error(`Failed to fetch price ${id}:`, err instanceof Error ? err.message : 'Unknown error');
           return null;
         })
       )
@@ -94,9 +94,9 @@ export const GET: APIRoute = async () => {
         'Cache-Control': 'public, max-age=3600',
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Stripe prices error:', err);
-    return new Response(JSON.stringify({ error: err.message || 'Internal error' }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
