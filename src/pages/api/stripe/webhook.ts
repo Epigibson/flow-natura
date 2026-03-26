@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { stripe, getPlanFromPriceId } from '../../../lib/stripe';
+import type { Stripe } from 'stripe';
 import { getServiceSupabase } from '../../../lib/supabase-server';
 
 export const prerender = false;
@@ -48,8 +49,8 @@ export const POST: APIRoute = async ({ request }) => {
                 plan,
                 billing_period: billing,
                 status: 'active',
-                current_period_start: new Date((stripeSubscription as any).current_period_start * 1000).toISOString(),
-                current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
+                current_period_start: new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
+                current_period_end: new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
                 trial_ends_at: null,
                 updated_at: new Date().toISOString(),
               })
@@ -82,8 +83,8 @@ export const POST: APIRoute = async ({ request }) => {
             plan,
             billing_period: billing,
             status: statusMap[subscription.status] || subscription.status,
-            current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            current_period_start: new Date((subscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
+            current_period_end: new Date((subscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
             cancel_at_period_end: subscription.cancel_at_period_end || false,
             updated_at: new Date().toISOString(),
           })
