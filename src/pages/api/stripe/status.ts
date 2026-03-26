@@ -53,9 +53,11 @@ export const GET: APIRoute = async ({ request }) => {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
-  } catch (err: unknown) {
+    
+  } catch (err) {
     console.error('Status check error:', err);
-    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), {
+    const errorMessage = err instanceof Error ? err.message : 'Internal error';
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
