@@ -1,3 +1,4 @@
+import type { BrowserMultiFormatReader } from '@zxing/library';
 /**
  * Native BarcodeDetector scanner with html5-qrcode fallback.
  * Uses the browser's native BarcodeDetector API (Chrome 83+/Android)
@@ -35,7 +36,7 @@ export class NativeBarcodeScanner {
   private lastCodeTime = 0;
   private options: ScannerOptions;
   private useFallback = false;
-  private fallbackScanner: any = null;
+  private fallbackScanner: BrowserMultiFormatReader | null = null;
 
   constructor(options: ScannerOptions) {
     this.options = options;
