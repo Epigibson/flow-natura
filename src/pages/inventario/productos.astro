@@ -1,0 +1,664 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">ADMINISTRACIÓN</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Catálogo de Productos</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Gestiona, edita y organiza todo tu catálogo global.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="btn-toggle-deleted" class="flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all text-sm">
+        <span class="material-symbols-outlined text-lg">visibility</span>
+        <span id="toggle-deleted-label">Mostrar Eliminados</span>
+      </button>
+      <a href="/inventario/nuevo" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+        <span class="material-symbols-outlined text-lg">add_circle</span>
+        Crear Producto
+      </a>
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-3 border border-outline-variant/5">
+      <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary">inventory_2</span>
+      </div>
+      <div>
+        <p id="kpi-total" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-xs text-on-surface-variant font-medium">Productos</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-3 border border-outline-variant/5">
+      <div class="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-secondary">local_offer</span>
+      </div>
+      <div>
+        <p id="kpi-brands" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-xs text-on-surface-variant font-medium">Marcas</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-3 border border-outline-variant/5">
+      <div class="w-11 h-11 rounded-xl bg-tertiary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary">category</span>
+      </div>
+      <div>
+        <p id="kpi-categories" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-xs text-on-surface-variant font-medium">Categorías</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-3 border border-outline-variant/5">
+      <div class="w-11 h-11 rounded-xl bg-green-500/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-green-600">attach_money</span>
+      </div>
+      <div>
+        <p id="kpi-avg-margin" class="text-2xl font-display font-bold text-green-600">—</p>
+        <p class="text-xs text-on-surface-variant font-medium">Margen Prom.</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm flex items-center gap-3 border border-outline-variant/5">
+      <div class="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-red-500">delete_sweep</span>
+      </div>
+      <div>
+        <p id="kpi-deleted" class="text-2xl font-display font-bold text-red-500">0</p>
+        <p class="text-xs text-on-surface-variant font-medium">Eliminados</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Search & Filters -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-6 mb-8 shadow-sm border border-outline-variant/5">
+    <div class="flex flex-wrap gap-3">
+      <div class="flex-1 min-w-[240px] relative">
+        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+        <input id="search" type="text" placeholder="Buscar por nombre, código, marca..."
+          class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-11 pr-4 text-sm focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <select id="filter-brand" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold min-w-[150px]">
+        <option value="all">Todas las marcas</option>
+      </select>
+      <select id="filter-category" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold min-w-[170px]">
+        <option value="all">Todas las categorías</option>
+      </select>
+    </div>
+    <p id="results-count" class="text-xs text-on-surface-variant mt-3 font-bold uppercase tracking-wider"></p>
+  </section>
+
+  <!-- Products Table -->
+  <section class="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-outline-variant/5 overflow-hidden mb-8">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead class="sticky top-0 bg-surface-container-high z-10">
+          <tr class="text-[10px] uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/10 font-bold">
+            <th class="px-4 py-3.5 w-14"></th>
+            <th class="px-4 py-3.5">Producto</th>
+            <th class="px-4 py-3.5">Código</th>
+            <th class="px-4 py-3.5">Marca</th>
+            <th class="px-4 py-3.5">Categoría</th>
+            <th class="px-4 py-3.5 text-right">Costo</th>
+            <th class="px-4 py-3.5 text-right">Precio</th>
+            <th class="px-4 py-3.5 text-right">Margen</th>
+            <th class="px-4 py-3.5 text-center">Pts</th>
+            <th class="px-4 py-3.5 text-center">Estado</th>
+            <th class="px-4 py-3.5 text-center w-32">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="table-body" class="divide-y divide-outline-variant/5"></tbody>
+      </table>
+    </div>
+    <!-- Loading -->
+    <div id="loading" class="text-center py-16">
+      <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+      <p class="text-on-surface-variant mt-3 font-bold">Cargando catálogo...</p>
+    </div>
+    <!-- Empty -->
+    <div id="empty-state" class="text-center py-16 hidden">
+      <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">inventory_2</span>
+      <p class="text-on-surface-variant mt-3 text-lg font-bold">No se encontraron productos.</p>
+    </div>
+  </section>
+
+  <!-- Pagination -->
+  <div id="pagination" class="flex justify-center items-center gap-3 mb-8 hidden">
+    <button id="prev-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
+      <span class="material-symbols-outlined text-sm align-middle">chevron_left</span> Anterior
+    </button>
+    <span id="page-info" class="text-sm text-on-surface-variant font-medium"></span>
+    <button id="next-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
+      Siguiente <span class="material-symbols-outlined text-sm align-middle">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Edit Modal -->
+  <dialog id="edit-modal" class="p-0 rounded-[2rem] shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-2xl bg-transparent">
+    <div class="bg-surface-container-lowest rounded-[2rem] w-full border border-outline-variant/10 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center p-6 pb-0">
+        <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">edit_note</span>
+          Editar Producto
+        </h3>
+        <button id="edit-close" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="p-6 space-y-5">
+        <input type="hidden" id="edit-id" />
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Nombre <span class="text-error">*</span></label>
+            <input type="text" id="edit-name" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
+          </div>
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Código <span class="text-error">*</span></label>
+            <input type="text" id="edit-code" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm font-mono focus:ring-2 focus:ring-primary-container" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-5">
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Marca</label>
+            <input type="text" id="edit-brand" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
+          </div>
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Categoría</label>
+            <select id="edit-category" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container">
+              <option>Perfumería</option>
+              <option>Maquillaje</option>
+              <option>Cuerpo</option>
+              <option>Cabello</option>
+              <option>Rostro</option>
+              <option>Hogar</option>
+              <option>Accesorios</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-5">
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Costo <span class="text-error">*</span></label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-bold text-sm">$</span>
+              <input type="number" step="0.01" id="edit-cost" class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-9 pr-4 text-sm focus:ring-2 focus:ring-primary-container" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Precio <span class="text-error">*</span></label>
+            <div class="relative">
+              <span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold text-sm">$</span>
+              <input type="number" step="0.01" id="edit-price" class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-9 pr-4 text-sm focus:ring-2 focus:ring-primary-container" />
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Puntos</label>
+            <input type="number" id="edit-points" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-bold text-on-surface-variant block mb-1.5">URL de Imagen</label>
+          <input type="url" id="edit-image" placeholder="https://..." class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <div>
+          <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Descripción</label>
+          <textarea id="edit-description" rows="2" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container resize-none"></textarea>
+        </div>
+        <!-- Margin preview -->
+        <div id="edit-margin-preview" class="flex items-center gap-4 bg-green-50 rounded-xl p-4 border border-green-200">
+          <span class="material-symbols-outlined text-green-600">trending_up</span>
+          <div>
+            <p class="text-[10px] text-green-700 uppercase font-bold">Margen de Ganancia</p>
+            <p id="edit-margin-value" class="text-xl font-display font-bold text-green-600">—%</p>
+          </div>
+          <div class="ml-auto text-right">
+            <p class="text-[10px] text-green-700 uppercase font-bold">Ganancia por unidad</p>
+            <p id="edit-profit-value" class="text-xl font-display font-bold text-green-600">$—</p>
+          </div>
+        </div>
+        <div id="edit-error" class="hidden text-error bg-error-container p-3 rounded-xl text-sm font-bold"></div>
+        <div class="flex gap-3 pt-2">
+          <button id="edit-save" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
+            <span class="material-symbols-outlined text-sm">save</span>
+            Guardar Cambios
+          </button>
+          <button id="edit-cancel" class="py-3.5 px-6 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Delete Confirmation Modal -->
+  <dialog id="delete-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full border border-outline-variant/10">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-red-500 text-3xl">delete_forever</span>
+        </div>
+        <h3 class="text-xl font-display font-bold text-on-surface">¿Desactivar producto?</h3>
+        <p id="delete-product-name" class="text-sm text-on-surface-variant mt-2 font-medium"></p>
+      </div>
+      <div class="bg-amber-50 rounded-xl p-4 border border-amber-200 mb-6">
+        <div class="flex items-start gap-3">
+          <span class="material-symbols-outlined text-amber-600 mt-0.5">info</span>
+          <div>
+            <p class="text-sm text-amber-800 font-bold">Borrado lógico</p>
+            <p class="text-xs text-amber-700 mt-1">El producto será desactivado del catálogo pero se conservarán todos los datos históricos. Podrás restaurarlo en cualquier momento.</p>
+          </div>
+        </div>
+      </div>
+      <input type="hidden" id="delete-id" />
+      <div class="flex gap-3">
+        <button id="delete-confirm" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors">
+          <span class="material-symbols-outlined text-sm">delete</span>
+          Sí, desactivar
+        </button>
+        <button id="delete-cancel" class="py-3 px-6 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-green-600 text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span id="toast-msg" class="font-bold text-sm"></span>
+  </div>
+</DashboardLayout>
+
+<style>
+  .row-deleted { opacity: 0.5; }
+  .row-deleted:hover { opacity: 0.8; }
+  .row-deleted td { position: relative; }
+  tbody tr { transition: background-color 0.15s; }
+  tbody tr:hover { background-color: rgba(139, 90, 43, 0.03); }
+  .action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { transform: scale(1.1); }
+  .action-edit { color: var(--color-primary); }
+  .action-edit:hover { background: rgba(139, 90, 43, 0.1); }
+  .action-delete { color: var(--color-error); }
+  .action-delete:hover { background: rgba(179, 38, 30, 0.1); }
+  .action-restore { color: #16a34a; }
+  .action-restore:hover { background: rgba(22, 163, 74, 0.1); }
+</style>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  // ═════════ STATE ═════════
+  let allProducts: any[] = [];
+  let filteredProducts: any[] = [];
+  let showDeleted = false;
+  let currentPage = 1;
+  const PAGE_SIZE = 50;
+
+  // ═════════ ELEMENTS ═════════
+  const tableBody = document.getElementById('table-body')!;
+  const loadingEl = document.getElementById('loading')!;
+  const emptyEl = document.getElementById('empty-state')!;
+  const searchInput = document.getElementById('search') as HTMLInputElement;
+  const filterBrand = document.getElementById('filter-brand') as HTMLSelectElement;
+  const filterCat = document.getElementById('filter-category') as HTMLSelectElement;
+  const toggleDeletedBtn = document.getElementById('btn-toggle-deleted')!;
+  const toggleDeletedLabel = document.getElementById('toggle-deleted-label')!;
+  const pagination = document.getElementById('pagination')!;
+  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+  const pageInfo = document.getElementById('page-info')!;
+
+  // Modals
+  const editModal = document.getElementById('edit-modal') as HTMLDialogElement;
+  const deleteModal = document.getElementById('delete-modal') as HTMLDialogElement;
+
+  // ═════════ AUTH ═════════
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!session) { window.location.href = '/login'; return; }
+    loadProducts();
+  });
+
+  // ═════════ LOAD PRODUCTS ═════════
+  async function loadProducts() {
+    loadingEl.classList.remove('hidden');
+    emptyEl.classList.add('hidden');
+    tableBody.innerHTML = '';
+
+    const { data, error } = await supabase.rpc('list_all_products', {
+      p_include_deleted: true
+    });
+
+    loadingEl.classList.add('hidden');
+
+    if (error) {
+      console.error('Error loading products:', error);
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+
+    allProducts = data || [];
+    populateFilters();
+    updateKPIs();
+    applyFilters();
+  }
+
+  // ═════════ FILTERS ═════════
+  function populateFilters() {
+    const active = allProducts.filter(p => !p.deleted_at);
+    const brands = [...new Set(active.map(p => p.brand).filter(Boolean))].sort() as string[];
+    const cats = [...new Set(active.map(p => p.category).filter(Boolean))].sort() as string[];
+
+    filterBrand.innerHTML = '<option value="all">Todas las marcas</option>';
+    brands.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; filterBrand.appendChild(o); });
+
+    filterCat.innerHTML = '<option value="all">Todas las categorías</option>';
+    cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; filterCat.appendChild(o); });
+  }
+
+  function applyFilters() {
+    const q = searchInput.value.toLowerCase().trim();
+    const brand = filterBrand.value;
+    const cat = filterCat.value;
+
+    filteredProducts = allProducts.filter(p => {
+      if (!showDeleted && p.deleted_at) return false;
+      const ms = !q || p.name?.toLowerCase().includes(q) || p.code?.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q);
+      const mb = brand === 'all' || p.brand === brand;
+      const mc = cat === 'all' || p.category === cat;
+      return ms && mb && mc;
+    });
+
+    currentPage = 1;
+    renderTable();
+  }
+
+  // ═════════ KPIs ═════════
+  function updateKPIs() {
+    const active = allProducts.filter(p => !p.deleted_at);
+    const deleted = allProducts.filter(p => p.deleted_at);
+
+    (document.getElementById('kpi-total') as HTMLElement).textContent = String(active.length);
+    (document.getElementById('kpi-brands') as HTMLElement).textContent = String([...new Set(active.map(p => p.brand).filter(Boolean))].length);
+    (document.getElementById('kpi-categories') as HTMLElement).textContent = String([...new Set(active.map(p => p.category).filter(Boolean))].length);
+    (document.getElementById('kpi-deleted') as HTMLElement).textContent = String(deleted.length);
+
+    // Avg margin
+    const withMargin = active.filter(p => p.price > 0 && p.cost > 0);
+    if (withMargin.length > 0) {
+      const avgMargin = withMargin.reduce((sum, p) => sum + ((p.price - p.cost) / p.price * 100), 0) / withMargin.length;
+      (document.getElementById('kpi-avg-margin') as HTMLElement).textContent = avgMargin.toFixed(0) + '%';
+    }
+  }
+
+  // ═════════ RENDER TABLE ═════════
+  function renderTable() {
+    tableBody.innerHTML = '';
+    const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const page = filteredProducts.slice(start, start + PAGE_SIZE);
+
+    (document.getElementById('results-count') as HTMLElement).textContent = `${filteredProducts.length} productos${showDeleted ? ' (incluyendo eliminados)' : ''}`;
+
+    if (filteredProducts.length === 0) {
+      emptyEl.classList.remove('hidden');
+    } else {
+      emptyEl.classList.add('hidden');
+    }
+
+    // Pagination
+    if (totalPages > 1) {
+      pagination.classList.remove('hidden');
+      pageInfo.textContent = `${currentPage} / ${totalPages}`;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    } else {
+      pagination.classList.add('hidden');
+    }
+
+    page.forEach(p => {
+      const isDeleted = !!p.deleted_at;
+      const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
+      const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
+      const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700'
+        : p.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700'
+          : 'bg-primary/10 text-primary';
+
+      const tr = document.createElement('tr');
+      tr.className = isDeleted ? 'row-deleted' : '';
+      tr.innerHTML = `
+        <td class="px-3 py-2.5">
+          ${p.image_url
+          ? `<img src="${p.image_url}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm" loading="lazy" />`
+          : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-sm text-on-surface-variant/30">spa</span></div>`}
+        </td>
+        <td class="px-4 py-2.5">
+          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1" title="${p.name}">${p.name}</p>
+          ${p.description ? `<p class="text-[10px] text-on-surface-variant/60 truncate max-w-[200px]" title="${p.description}">${p.description}</p>` : ''}
+        </td>
+        <td class="px-4 py-2.5"><span class="text-xs font-mono text-on-surface-variant bg-surface-container-highest px-1.5 py-0.5 rounded">${p.code}</span></td>
+        <td class="px-4 py-2.5"><span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full">${p.brand || '—'}</span></td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant">${p.category || '—'}</td>
+        <td class="px-4 py-2.5 text-right font-mono text-xs">$${(p.cost || 0).toFixed(0)}</td>
+        <td class="px-4 py-2.5 text-right font-mono text-xs font-bold text-primary">$${(p.price || 0).toFixed(0)}</td>
+        <td class="px-4 py-2.5 text-right text-xs font-bold ${marginColor}">${margin}%</td>
+        <td class="px-4 py-2.5 text-center">${p.points ? `<span class="text-[10px] font-bold text-amber-600">${p.points}</span>` : '<span class="text-on-surface-variant/30">—</span>'}</td>
+        <td class="px-4 py-2.5 text-center">
+          ${isDeleted
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-red-100 text-red-600 rounded-full">Eliminado</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Activo</span>`}
+        </td>
+        <td class="px-4 py-2.5 text-center">
+          ${isDeleted
+          ? `<button class="action-btn action-restore" data-restore="${p.id}" title="Restaurar"><span class="material-symbols-outlined text-base">undo</span></button>`
+          : `<button class="action-btn action-edit" data-edit="${p.id}" title="Editar"><span class="material-symbols-outlined text-base">edit</span></button>
+               <button class="action-btn action-delete" data-delete="${p.id}" data-name="${encodeURIComponent(p.name)}" title="Eliminar"><span class="material-symbols-outlined text-base">delete</span></button>`}
+        </td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    bindActions();
+  }
+
+  // ═════════ BIND ROW ACTIONS ═════════
+  function bindActions() {
+    // Edit
+    tableBody.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.edit!;
+        const product = allProducts.find(p => p.id === id);
+        if (!product) return;
+        openEditModal(product);
+      });
+    });
+
+    // Delete
+    tableBody.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = (btn as HTMLElement).dataset.delete!;
+        const name = decodeURIComponent((btn as HTMLElement).dataset.name || '');
+        openDeleteModal(id, name);
+      });
+    });
+
+    // Restore
+    tableBody.querySelectorAll('[data-restore]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = (btn as HTMLElement).dataset.restore!;
+        const { error } = await supabase.rpc('restore_product', { p_product_id: id });
+        if (error) { showToast('Error al restaurar: ' + error.message, true); return; }
+        showToast('¡Producto restaurado! ✅');
+        await loadProducts();
+      });
+    });
+  }
+
+  // ═════════ EDIT MODAL ═════════
+  function openEditModal(product: any) {
+    (document.getElementById('edit-id') as HTMLInputElement).value = product.id;
+    (document.getElementById('edit-name') as HTMLInputElement).value = product.name || '';
+    (document.getElementById('edit-code') as HTMLInputElement).value = product.code || '';
+    (document.getElementById('edit-brand') as HTMLInputElement).value = product.brand || '';
+    (document.getElementById('edit-category') as HTMLSelectElement).value = product.category || 'Perfumería';
+    (document.getElementById('edit-cost') as HTMLInputElement).value = product.cost || '';
+    (document.getElementById('edit-price') as HTMLInputElement).value = product.price || '';
+    (document.getElementById('edit-points') as HTMLInputElement).value = product.points || '';
+    (document.getElementById('edit-image') as HTMLInputElement).value = product.image_url || '';
+    (document.getElementById('edit-description') as HTMLTextAreaElement).value = product.description || '';
+    document.getElementById('edit-error')!.classList.add('hidden');
+    updateMarginPreview();
+    editModal.showModal();
+  }
+
+  function updateMarginPreview() {
+    const cost = parseFloat((document.getElementById('edit-cost') as HTMLInputElement).value) || 0;
+    const price = parseFloat((document.getElementById('edit-price') as HTMLInputElement).value) || 0;
+    const preview = document.getElementById('edit-margin-preview')!;
+    const marginEl = document.getElementById('edit-margin-value')!;
+    const profitEl = document.getElementById('edit-profit-value')!;
+
+    if (price > 0 && cost > 0) {
+      const margin = ((price - cost) / price * 100);
+      const profit = price - cost;
+      marginEl.textContent = margin.toFixed(1) + '%';
+      profitEl.textContent = '$' + profit.toFixed(2);
+
+      const isGood = margin >= 25;
+      preview.className = `flex items-center gap-4 rounded-xl p-4 border ${isGood ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`;
+      const color = isGood ? 'text-green-600' : 'text-amber-600';
+      marginEl.className = `text-xl font-display font-bold ${color}`;
+      profitEl.className = `text-xl font-display font-bold ${color}`;
+    } else {
+      marginEl.textContent = '—%';
+      profitEl.textContent = '$—';
+    }
+  }
+
+  document.getElementById('edit-cost')!.addEventListener('input', updateMarginPreview);
+  document.getElementById('edit-price')!.addEventListener('input', updateMarginPreview);
+
+  document.getElementById('edit-close')!.addEventListener('click', () => editModal.close());
+  document.getElementById('edit-cancel')!.addEventListener('click', () => editModal.close());
+
+  document.getElementById('edit-save')!.addEventListener('click', async () => {
+    const id = (document.getElementById('edit-id') as HTMLInputElement).value;
+    const name = (document.getElementById('edit-name') as HTMLInputElement).value.trim();
+    const code = (document.getElementById('edit-code') as HTMLInputElement).value.trim();
+    const brand = (document.getElementById('edit-brand') as HTMLInputElement).value.trim();
+    const category = (document.getElementById('edit-category') as HTMLSelectElement).value;
+    const cost = parseFloat((document.getElementById('edit-cost') as HTMLInputElement).value);
+    const price = parseFloat((document.getElementById('edit-price') as HTMLInputElement).value);
+    const points = parseInt((document.getElementById('edit-points') as HTMLInputElement).value) || 0;
+    const image_url = (document.getElementById('edit-image') as HTMLInputElement).value.trim() || null;
+    const description = (document.getElementById('edit-description') as HTMLTextAreaElement).value.trim() || null;
+
+    if (!name || !code || !cost || !price) {
+      const errEl = document.getElementById('edit-error')!;
+      errEl.textContent = 'Nombre, código, costo y precio son requeridos.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    const btn = document.getElementById('edit-save') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
+
+    const { error } = await supabase.rpc('update_product', {
+      p_product_id: id,
+      p_name: name,
+      p_code: code,
+      p_brand: brand,
+      p_category: category,
+      p_cost: cost,
+      p_price: price,
+      p_points: points,
+      p_image_url: image_url,
+      p_description: description,
+    });
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar Cambios';
+
+    if (error) {
+      const errEl = document.getElementById('edit-error')!;
+      errEl.textContent = 'Error: ' + error.message;
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    editModal.close();
+    showToast('¡Producto actualizado! ✅');
+    await loadProducts();
+  });
+
+  // ═════════ DELETE MODAL ═════════
+  function openDeleteModal(id: string, name: string) {
+    (document.getElementById('delete-id') as HTMLInputElement).value = id;
+    document.getElementById('delete-product-name')!.textContent = `"${name}" será removido del catálogo activo.`;
+    deleteModal.showModal();
+  }
+
+  document.getElementById('delete-cancel')!.addEventListener('click', () => deleteModal.close());
+
+  document.getElementById('delete-confirm')!.addEventListener('click', async () => {
+    const id = (document.getElementById('delete-id') as HTMLInputElement).value;
+
+    const btn = document.getElementById('delete-confirm') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Eliminando...';
+
+    const { error } = await supabase.rpc('soft_delete_product', { p_product_id: id });
+
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">delete</span> Sí, desactivar';
+
+    if (error) {
+      showToast('Error: ' + error.message, true);
+      return;
+    }
+
+    deleteModal.close();
+    showToast('Producto desactivado correctamente');
+    await loadProducts();
+  });
+
+  // ═════════ TOGGLE DELETED ═════════
+  toggleDeletedBtn.addEventListener('click', () => {
+    showDeleted = !showDeleted;
+    toggleDeletedLabel.textContent = showDeleted ? 'Ocultar Eliminados' : 'Mostrar Eliminados';
+
+    if (showDeleted) {
+      toggleDeletedBtn.className = 'flex items-center gap-2 py-3 px-5 rounded-xl font-bold bg-amber-100 text-amber-700 border-2 border-amber-300 transition-all text-sm';
+    } else {
+      toggleDeletedBtn.className = 'flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all text-sm';
+    }
+
+    applyFilters();
+  });
+
+  // ═════════ FILTER EVENTS ═════════
+  let searchTimer: any;
+  searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilters, 150); });
+  filterBrand.addEventListener('change', applyFilters);
+  filterCat.addEventListener('change', applyFilters);
+
+  // Pagination
+  prevBtn.addEventListener('click', () => { currentPage--; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  nextBtn.addEventListener('click', () => { currentPage++; renderTable(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  // ═════════ TOAST ═════════
+  function showToast(message: string, isError = false) {
+    const toast = document.getElementById('toast')!;
+    const msgEl = document.getElementById('toast-msg')!;
+    msgEl.textContent = message;
+    toast.className = `fixed bottom-6 right-6 ${isError ? 'bg-red-500' : 'bg-green-600'} text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-0 opacity-100 transition-all duration-300 z-50`;
+
+    setTimeout(() => {
+      toast.className = 'fixed bottom-6 right-6 bg-green-600 text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none';
+    }, 3000);
+  }
+</script>
