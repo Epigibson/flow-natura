@@ -94,9 +94,10 @@ export const GET: APIRoute = async () => {
         'Cache-Control': 'public, max-age=3600',
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Stripe prices error:', err);
-    return new Response(JSON.stringify({ error: err.message || 'Internal error' }), {
+    const message = err instanceof Error ? err.message : 'Internal error';
+    return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

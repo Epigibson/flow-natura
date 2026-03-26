@@ -534,8 +534,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         btn.textContent = originalText;
         btn.disabled = false;
       }
-    } catch (err: any) {
-      alert('Error de conexión: ' + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      alert('Error de conexión: ' + message);
       btn.textContent = originalText;
       btn.disabled = false;
     }
@@ -561,8 +562,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         btn.innerHTML = '<span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan';
         btn.disabled = false;
       }
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      alert('Error: ' + message);
       btn.innerHTML = '<span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan';
       btn.disabled = false;
     }
