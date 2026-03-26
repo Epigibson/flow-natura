@@ -139,6 +139,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../lib/supabase';
+  import { esc, sanitizeUrl } from '../lib/security';
 
   const params = new URLSearchParams(window.location.search);
   const consultantId = params.get('c');
@@ -248,18 +249,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const bc = p.brand === 'Avon' ? 'brand-avon' : p.brand === 'Natura' ? 'brand-natura' : 'brand-default';
       const card = document.createElement('div');
       card.className = 'product-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm';
+      const sUrl = esc(sanitizeUrl(p.imageUrl));
       card.innerHTML = `
         <div class="card-media h-44 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden relative">
-          ${p.imageUrl
-            ? `<img src="${p.imageUrl}" alt="${p.name}" class="card-img w-full h-full object-contain p-2" loading="lazy"/>`
+          ${sUrl
+            ? `<img src="${sUrl}" alt="${esc(p.name)}" class="card-img w-full h-full object-contain p-2" loading="lazy"/>`
             : `<span class="material-symbols-outlined text-primary/20 text-6xl">spa</span>`}
-          <span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${bc}">${p.brand || 'General'}</span>
+          <span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${bc}">${esc(p.brand) || 'General'}</span>
           <span class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-on-surface-variant shadow-sm">${p.stock} uds</span>
         </div>
         <div class="card-body p-4">
-          <span class="text-[10px] font-bold uppercase tracking-wider text-primary/70">${p.category || 'General'}</span>
-          <h3 class="font-bold text-on-surface text-sm mt-0.5 leading-tight line-clamp-2" title="${p.name}">${p.name}</h3>
-          <p class="text-[10px] text-on-surface-variant/50 font-mono mt-1">#${p.code}</p>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-primary/70">${esc(p.category) || 'General'}</span>
+          <h3 class="font-bold text-on-surface text-sm mt-0.5 leading-tight line-clamp-2" title="${esc(p.name)}">${esc(p.name)}</h3>
+          <p class="text-[10px] text-on-surface-variant/50 font-mono mt-1">#${esc(p.code)}</p>
           <div class="flex items-center justify-between mt-3">
             <p class="text-xl font-display font-bold text-primary">$${Number(p.price).toFixed(2)}</p>
             <button data-id="${p.id}" data-name="${enc(p.name)}" data-price="${p.price}" data-img="${enc(p.imageUrl)}" class="btn-add-cart flex items-center gap-1 py-2 px-4 rounded-xl font-bold bg-primary text-white text-xs hover:shadow-md">
@@ -339,10 +341,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     cart.forEach((item, idx) => {
       const el = document.createElement('div');
       el.className = 'flex items-center gap-3 py-3 border-b border-surface-container last:border-b-0';
+      const sUrl = esc(sanitizeUrl(item.imageUrl));
       el.innerHTML = `
-        ${item.imageUrl ? `<img src="${item.imageUrl}" class="w-10 h-10 object-contain rounded-lg bg-surface-container shadow-sm"/>` : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
+        ${sUrl ? `<img src="${sUrl}" class="w-10 h-10 object-contain rounded-lg bg-surface-container shadow-sm"/>` : `<div class="div w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
         <div class="flex-1 min-w-0">
-          <p class="font-bold text-on-surface text-sm truncate">${item.name}</p>
+          <p class="font-bold text-on-surface text-sm truncate">${esc(item.name)}</p>
           <p class="text-xs text-on-surface-variant">$${item.price.toFixed(2)} c/u</p>
         </div>
         <div class="flex items-center gap-2">

@@ -157,6 +157,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
 <script>
   import { createClient } from '@supabase/supabase-js';
+  import { esc } from '../lib/security';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -294,7 +295,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           ${topicBadge}
           ${deleteBtn}
         </div>
-        <p class="text-on-surface mb-4 leading-relaxed">${post.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+        <p class="text-on-surface mb-4 leading-relaxed">${esc(post.content)}</p>
         <div class="flex items-center gap-1 pt-4 border-t border-surface-container">
           ${reactionBtns}
           <div class="flex-1"></div>
@@ -472,8 +473,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <span class="font-bold text-[10px]">${initials}</span>
         </div>
         <div class="bg-surface-container-highest rounded-xl px-3 py-2 flex-1">
-          <p class="text-xs font-bold text-on-surface">${c.author_name} <span class="font-normal text-on-surface-variant">${timeAgo(c.created_at)}</span></p>
-          <p class="text-xs text-on-surface mt-0.5">${c.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+          <p class="text-xs font-bold text-on-surface">${esc(c.author_name)} <span class="font-normal text-on-surface-variant">${timeAgo(c.created_at)}</span></p>
+          <p class="text-xs text-on-surface mt-0.5">${esc(c.content)}</p>
         </div>
       </div>`;
     }).join('');
