@@ -534,8 +534,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         btn.textContent = originalText;
         btn.disabled = false;
       }
-    } catch (err: any) {
-      alert('Error de conexión: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error de conexión: ' + (err instanceof Error ? err.message : 'Unknown error'));
       btn.textContent = originalText;
       btn.disabled = false;
     }
@@ -564,9 +564,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
-    } catch (err: any) {
-      alert('Error: ' + err.message);
-      btn.innerHTML = originalHtml;
+    } catch (err: unknown) {
+      alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      btn.innerHTML = '<span class=\"material-symbols-outlined text-sm\">settings</span> Gestionar Plan';
       btn.disabled = false;
     }
   }

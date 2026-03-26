@@ -46,6 +46,12 @@
     letter-spacing: -0.02em;
     color: var(--color-primary);
   }
+
+  /* Dark select option fix */
+  select option {
+    color: #1a1a1a;
+    background: #fff;
+  }
 }
 
 @layer components {
