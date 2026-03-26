@@ -1,0 +1,362 @@
+[
+  {
+    "code": "228047",
+    "catalog_name": "KAIAK URBE",
+    "ean": "7908240844299",
+    "ean_name": "KAIAK Urbe",
+    "match_score": 100,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73573",
+    "catalog_name": "EKOS FRESCOR EAU DE TOILETTE PITANGA 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 67,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "9149",
+    "catalog_name": "REPUESTO FACES POLVO COMPACTO MATTE CASTAÑO 20",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "9009",
+    "catalog_name": "REPUESTO FACES POLVO COMPACTO MATTE CLARO 24",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "9025",
+    "catalog_name": "REPUESTO FACES POLVO COMPACTO MATTE  MEDIO 22",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "259770",
+    "catalog_name": "KIT AVON CARE",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 67,
+    "source": "obf_avon"
+  },
+  {
+    "code": "82509",
+    "catalog_name": "EKOS MARACUYA NÉCTAR HIDRATANTE CORPORAL 400 ML",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 63,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "191129",
+    "catalog_name": "AVON CARE AGUA MICELAR LIMPIADORA FACIAL 3 EN 1 150ML",
+    "ean": "7909189143085",
+    "ean_name": "Agua micelar limpiadora facial",
+    "match_score": 57,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "162093",
+    "catalog_name": "EKOS RF HIDRATANTE CORPORAL 400 ML ANDIROBA ",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "163706",
+    "catalog_name": "EKOS ANDIROBA PULPA HIDRATANTE CORPORAL 400 ML ",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "73572",
+    "catalog_name": "EKOS CASTAÑA FRESCOR EAU DE TOILETTE 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "80936",
+    "catalog_name": "EKOS CASTAÑA PULPA HIDRATANTE CORPORAL 400 ML",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "108633",
+    "catalog_name": "EKOS MARACUYA NÉCTAR HIDRATANTE CORPORAL 200 ML",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "8885",
+    "catalog_name": "FACES POLVO COMPACTO MATTE 6,5 G CASTAÑO 20",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "8848",
+    "catalog_name": "FACES POLVO COMPACTO MATTE 6,5 G CLARO 24",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "8882",
+    "catalog_name": "FACES POLVO COMPACTO MATTE 6,5 G MEDIO 22",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "129797",
+    "catalog_name": "JABONES EN BARRA PURO VEGETAL EXFOLIANTES 4 X 100G C/U",
+    "ean": "7898506877263",
+    "ean_name": "Sabonete puro Vegetal cremoso em Barra",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "55104",
+    "catalog_name": "PINCEL  PRO BASE LÍQUIDA",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73179",
+    "catalog_name": "REPUESTO EKOS MARACUYA NÉCTAR HIDRATANTE CORPORAL 400ML",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "119000",
+    "catalog_name": "REPUESTO EKOS PITANGA FRESCOR EAU DE TOILETTE PITANGA",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "110678",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 12N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110679",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 19N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110680",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 21N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110681",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 27N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110682",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 31N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110684",
+    "catalog_name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 40N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73575",
+    "catalog_name": "FRESCOR EAU DE TOILETTE  PITANGA PRETA 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "80912",
+    "catalog_name": "EKOS UCUUBA PULPA HIDRATANTE CORPORAL 400 ML",
+    "ean": "0818221378118",
+    "ean_name": "Linha Ekos Maracuja Natura - Nectar Hidratante Corporal 400 ML - Natura Ekos -",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "250755",
+    "catalog_name": "KIT AVON CARE MANOS",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "168813",
+    "catalog_name": "AC FW CREMA HIDRATANTE TALONES 80G",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "202897",
+    "catalog_name": "AVON CARE ALMENDRAS 350ML",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "195255",
+    "catalog_name": "AVON CARE CREMA CEREZA 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191109",
+    "catalog_name": "AVON CARE CREMA COCO 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191113",
+    "catalog_name": "AVON CARE CREMA GLICERINA 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191115",
+    "catalog_name": "AVON CARE CREMA JALEA 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "195265",
+    "catalog_name": "AVON CARE CREMA ROSAS 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191092",
+    "catalog_name": "AVON CARE CREMA SANDIA 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191103",
+    "catalog_name": "AVON CARE CREMA TORONJA 1L",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "191155",
+    "catalog_name": "AVON CARE JABON LÍQUIDO 1 LT",
+    "ean": "5059018044365",
+    "ean_name": "avon care",
+    "match_score": 50,
+    "source": "obf_avon"
+  },
+  {
+    "code": "195549",
+    "catalog_name": "COLONIA WILD COUNTRY FREEDOM 75 ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191447",
+    "catalog_name": "LOV|U CREMA PERFUMADA PARA EL CUERPO 90ML",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "259792",
+    "catalog_name": "NUEVO KIT WILD COUNTRY",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "248829",
+    "catalog_name": "KIT WILD COUNTRY ORIGINAL",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191139",
+    "catalog_name": "AVON CARE GEL EXFOLIANTE FACIAL 3 EN 1 100G",
+    "ean": "7909189135905",
+    "ean_name": "Gel exfoliante facial micelar",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195587",
+    "catalog_name": "CREMA PARA PEINAR 150G",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  }
+]

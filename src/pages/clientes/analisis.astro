@@ -1,0 +1,257 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">INTELLIGENCE HUB</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Análisis de Clientes</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Gestiona tu cartera y rastrea abonos pendientes.</p>
+    </div>
+    <a href="/clientes" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Mis Clientes
+    </a>
+  </header>
+
+  <!-- KPI Cards -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Total Clientes</p>
+      <p id="kpi-total-clients" class="text-4xl font-display font-bold text-on-surface">0</p>
+      <p class="text-sm text-secondary font-medium mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">group</span> Cartera activa
+      </p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Con Deuda Activa</p>
+      <p id="kpi-with-debt" class="text-4xl font-display font-bold text-primary">0</p>
+      <p class="text-sm text-primary font-medium mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">warning</span> Requieren seguimiento
+      </p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Total por Cobrar</p>
+      <p id="kpi-total-debt" class="text-4xl font-display font-bold text-error">$0</p>
+      <p class="text-sm text-on-surface-variant mt-2">Saldo pendiente total</p>
+    </div>
+    <div class="bg-secondary-container/30 rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Tasa de Cobro</p>
+      <p id="kpi-collection-rate" class="text-4xl font-display font-bold text-secondary">0%</p>
+      <p class="text-sm text-secondary font-medium mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">trending_up</span> Este mes
+      </p>
+    </div>
+  </section>
+
+  <!-- Client Debt Table -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+        Cartera de Cobranza
+      </h3>
+      <div class="flex items-center gap-3">
+        <button id="filter-all" class="py-2 px-4 rounded-full text-sm font-bold bg-primary text-white transition-colors">Todos</button>
+        <button id="filter-debt" class="py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-primary/10 transition-colors">Con Deuda</button>
+        <button id="filter-clear" class="py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-secondary/10 transition-colors">Al Día</button>
+      </div>
+    </div>
+
+    <div id="clients-table" class="space-y-0">
+      <div id="clients-loading" class="text-center py-12">
+        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+        <p class="text-on-surface-variant mt-2">Analizando cartera...</p>
+      </div>
+      <div id="clients-empty" class="text-center py-12 hidden">
+        <span class="material-symbols-outlined text-5xl text-on-surface-variant">sentiment_satisfied</span>
+        <p class="text-on-surface-variant mt-3 text-lg">No hay clientes con deuda pendiente.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Buyers -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <h3 class="text-2xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">emoji_events</span>
+      Mejores Clientes del Mes
+    </h3>
+    <div id="top-buyers-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div id="top-buyers-loading" class="col-span-full text-center py-8">
+        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const kpiTotalClients = document.getElementById('kpi-total-clients') as HTMLElement;
+  const kpiWithDebt = document.getElementById('kpi-with-debt') as HTMLElement;
+  const kpiTotalDebt = document.getElementById('kpi-total-debt') as HTMLElement;
+  const kpiCollectionRate = document.getElementById('kpi-collection-rate') as HTMLElement;
+  const clientsTable = document.getElementById('clients-table') as HTMLElement;
+  const clientsLoading = document.getElementById('clients-loading') as HTMLElement;
+  const clientsEmpty = document.getElementById('clients-empty') as HTMLElement;
+  const topBuyersList = document.getElementById('top-buyers-list') as HTMLElement;
+  const topBuyersLoading = document.getElementById('top-buyers-loading') as HTMLElement;
+  const filterAll = document.getElementById('filter-all') as HTMLButtonElement;
+  const filterDebt = document.getElementById('filter-debt') as HTMLButtonElement;
+  const filterClear = document.getElementById('filter-clear') as HTMLButtonElement;
+
+  let allClientData: any[] = [];
+
+  async function loadData() {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session) return;
+    const userId = session.session.user.id;
+
+    // Get all customers
+    const { data: customers } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('consultant_id', userId);
+
+    // Get all orders with items
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('*, order_items (*, products (*))')
+      .eq('consultant_id', userId)
+      .neq('payment_method', 'adjustment');
+
+    if (!customers) return;
+
+    kpiTotalClients.textContent = String(customers.length);
+
+    // Process each customer's debt
+    allClientData = customers.map((c: any) => {
+      const custOrders = (orders || []).filter((o: any) => o.customer_id === c.id);
+      let totalSpent = 0;
+      let totalDebt = 0;
+      let totalPaid = 0;
+
+      custOrders.forEach((o: any) => {
+        if (o.status === 'cancelled') return;
+        const amount = Number(o.total_amount);
+        totalSpent += amount;
+
+        if (o.payment_method?.toLowerCase() === 'abonos') {
+          try {
+            const terms = JSON.parse(o.notes || '{}');
+            const enganche = Number(terms.enganche || 0);
+            const cuotas = Number(terms.pagos || 1);
+            const pagados = Number(terms.pagos_completados || 0);
+            const remaining = amount - enganche;
+            const montoCuota = remaining / cuotas;
+            const paid = enganche + (montoCuota * pagados);
+            totalPaid += paid;
+            totalDebt += (amount - paid);
+          } catch(e) { totalPaid += amount; }
+        } else {
+          totalPaid += amount;
+        }
+      });
+
+      return {
+        ...c,
+        totalSpent,
+        totalDebt: Math.max(0, totalDebt),
+        totalPaid,
+        orderCount: custOrders.filter((o: any) => o.status !== 'cancelled').length
+      };
+    });
+
+    // KPIs
+    const withDebt = allClientData.filter(c => c.totalDebt > 0);
+    const totalDebtSum = allClientData.reduce((s, c) => s + c.totalDebt, 0);
+    const totalPaidSum = allClientData.reduce((s, c) => s + c.totalPaid, 0);
+    const totalSpentSum = allClientData.reduce((s, c) => s + c.totalSpent, 0);
+    const collectionRate = totalSpentSum > 0 ? Math.round((totalPaidSum / totalSpentSum) * 100) : 100;
+
+    kpiWithDebt.textContent = String(withDebt.length);
+    kpiTotalDebt.textContent = '$' + totalDebtSum.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    kpiCollectionRate.textContent = collectionRate + '%';
+
+    // Render table
+    clientsLoading.classList.add('hidden');
+    renderClients('all');
+    renderTopBuyers();
+  }
+
+  function renderClients(filter: string) {
+    // Remove old rows
+    clientsTable.querySelectorAll('.client-row').forEach(el => el.remove());
+    clientsEmpty.classList.add('hidden');
+
+    let filtered = [...allClientData];
+    if (filter === 'debt') filtered = filtered.filter(c => c.totalDebt > 0);
+    else if (filter === 'clear') filtered = filtered.filter(c => c.totalDebt === 0);
+
+    filtered.sort((a, b) => b.totalDebt - a.totalDebt);
+
+    if (!filtered.length) {
+      clientsEmpty.classList.remove('hidden');
+      return;
+    }
+
+    filtered.forEach((c: any, idx: number) => {
+      const initial = (c.full_name || 'C').substring(0, 2).toUpperCase();
+      const hasDebt = c.totalDebt > 0;
+      const row = document.createElement('div');
+      row.className = 'client-row flex items-center gap-4 py-5 ' + (idx > 0 ? 'border-t border-surface-container' : '');
+      row.innerHTML = '<div class="w-12 h-12 rounded-full ' + (hasDebt ? 'bg-primary-container/20' : 'bg-secondary-container/30') + ' flex items-center justify-center shrink-0">' +
+        '<span class="font-bold text-sm ' + (hasDebt ? 'text-primary' : 'text-secondary') + '">' + initial + '</span>' +
+        '</div>' +
+        '<div class="flex-1">' +
+          '<h4 class="font-bold text-on-surface">' + c.full_name + '</h4>' +
+          '<p class="text-sm text-on-surface-variant">' + c.orderCount + ' compras • Total: $' + c.totalSpent.toFixed(2) + '</p>' +
+        '</div>' +
+        '<div class="text-right">' +
+          (hasDebt
+            ? '<p class="text-primary font-bold">Deuda: $' + c.totalDebt.toFixed(2) + '</p><p class="text-xs text-error flex items-center gap-1 justify-end"><span class="material-symbols-outlined text-xs">schedule</span> Pendiente</p>'
+            : '<p class="text-secondary font-bold">Al día ✓</p><p class="text-xs text-on-surface-variant">Pagado: $' + c.totalPaid.toFixed(2) + '</p>'
+          ) +
+        '</div>';
+      clientsTable.appendChild(row);
+    });
+  }
+
+  function renderTopBuyers() {
+    topBuyersLoading.classList.add('hidden');
+    const sorted = [...allClientData].sort((a, b) => b.totalSpent - a.totalSpent).slice(0, 3);
+
+    const medals = ['🥇', '🥈', '🥉'];
+    sorted.forEach((c: any, idx: number) => {
+      const card = document.createElement('div');
+      card.className = 'bg-surface-container-low rounded-2xl p-6 text-center';
+      card.innerHTML = '<p class="text-4xl mb-2">' + medals[idx] + '</p>' +
+        '<p class="font-bold text-on-surface text-lg">' + c.full_name + '</p>' +
+        '<p class="text-2xl font-display font-bold text-primary mt-2">$' + c.totalSpent.toLocaleString('es-MX', { minimumFractionDigits: 2 }) + '</p>' +
+        '<p class="text-sm text-on-surface-variant mt-1">' + c.orderCount + ' compras</p>';
+      topBuyersList.appendChild(card);
+    });
+
+    if (!sorted.length) {
+      const empty = document.createElement('p');
+      empty.className = 'col-span-full text-center text-on-surface-variant py-4';
+      empty.textContent = 'Aún no hay suficientes datos.';
+      topBuyersList.appendChild(empty);
+    }
+  }
+
+  // Filters
+  [filterAll, filterDebt, filterClear].forEach(btn => {
+    btn.addEventListener('click', () => {
+      [filterAll, filterDebt, filterClear].forEach(b => {
+        b.className = 'py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-primary/10 transition-colors';
+      });
+      btn.className = 'py-2 px-4 rounded-full text-sm font-bold bg-primary text-white transition-colors';
+      const filter = btn === filterDebt ? 'debt' : btn === filterClear ? 'clear' : 'all';
+      renderClients(filter);
+    });
+  });
+
+  loadData();
+</script>

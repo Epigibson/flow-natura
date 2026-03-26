@@ -1,0 +1,777 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+---
+
+<DashboardLayout>
+  <!-- Header -->
+  <header class="flex justify-between items-center mb-6">
+    <div>
+      <h2
+        class="text-3xl md:text-4xl font-display font-bold text-on-surface flex items-center gap-3"
+      >
+        <span class="material-symbols-outlined text-primary text-3xl"
+          >qr_code_scanner</span
+        >
+        Escáner de Productos
+      </h2>
+      <p class="text-on-surface-variant mt-1">
+        Escanea el código de barras para buscar o agregar productos al
+        inventario.
+      </p>
+    </div>
+    <a
+      href="/inventario"
+      class="flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors text-sm"
+    >
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Inventario
+    </a>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <!-- Scanner Column -->
+    <div class="lg:col-span-2 space-y-4">
+      <!-- Scanner Card -->
+      <div
+        class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/5 overflow-hidden"
+      >
+        <div
+          class="p-4 border-b border-outline-variant/10 flex items-center justify-between"
+        >
+          <h3
+            class="font-display font-bold text-on-surface flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-primary text-lg"
+              >photo_camera</span
+            >
+            Cámara
+          </h3>
+          <div class="flex items-center gap-2">
+            <label
+              class="flex items-center gap-1.5 text-xs text-on-surface-variant cursor-pointer select-none"
+            >
+              <input
+                type="checkbox"
+                id="continuous-mode"
+                class="w-4 h-4 accent-primary rounded"
+              />
+              Modo continuo
+            </label>
+          </div>
+        </div>
+
+        <!-- Camera viewport -->
+        <div
+          id="scanner-container"
+          class="relative bg-black aspect-[4/3] flex items-center justify-center"
+        >
+          <div id="scanner-reader" class="w-full h-full"></div>
+
+          <!-- Overlay when not active -->
+          <div
+            id="scanner-placeholder"
+            class="absolute inset-0 bg-surface-container flex flex-col items-center justify-center gap-4"
+          >
+            <div
+              class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-primary text-4xl"
+                >qr_code_scanner</span
+              >
+            </div>
+            <p class="text-on-surface-variant text-sm font-medium">
+              Presiona iniciar para activar la cámara
+            </p>
+          </div>
+
+          <!-- Scan line animation -->
+          <div
+            id="scan-line"
+            class="absolute left-4 right-4 h-0.5 bg-primary/80 shadow-[0_0_8px_var(--color-primary)] hidden"
+            style="top:30%; animation: scanLine 2s ease-in-out infinite"
+          >
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="p-4 flex gap-3">
+          <button
+            id="btn-start"
+            class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/20 hover:shadow-lg hover:scale-[1.02] transition-all text-sm"
+          >
+            <span class="material-symbols-outlined text-sm">videocam</span>
+            Iniciar Escáner
+          </button>
+          <button
+            id="btn-stop"
+            class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-error/10 text-error hover:bg-error/20 transition-all text-sm hidden"
+          >
+            <span class="material-symbols-outlined text-sm">stop_circle</span>
+            Detener
+          </button>
+        </div>
+      </div>
+
+      <!-- Manual EAN input -->
+      <div
+        class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/5"
+      >
+        <h3
+          class="text-sm font-bold text-on-surface mb-3 flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-secondary text-lg"
+            >keyboard</span
+          >
+          Ingreso manual
+        </h3>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            id="manual-ean"
+            placeholder="Escribe el código EAN..."
+            class="flex-1 bg-surface-container-highest border-none rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary-container font-mono"
+          />
+          <button
+            id="btn-manual"
+            class="px-4 py-2.5 rounded-xl bg-secondary text-white font-bold text-sm hover:scale-[1.02] transition-all"
+          >
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent scans -->
+      <div
+        class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-outline-variant/5"
+      >
+        <h3
+          class="text-sm font-bold text-on-surface mb-3 flex items-center gap-2"
+        >
+          <span class="material-symbols-outlined text-tertiary text-lg"
+            >history</span
+          >
+          Últimos escaneados
+        </h3>
+        <div id="recent-scans" class="space-y-2">
+          <p class="text-xs text-on-surface-variant text-center py-3">
+            Sin escaneos aún
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Column -->
+    <div class="lg:col-span-3 space-y-4">
+      <!-- Scan Result -->
+      <div
+        id="result-panel"
+        class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/5 overflow-hidden hidden"
+      >
+        <!-- Match found -->
+        <div id="result-found" class="hidden">
+          <div
+            class="bg-green-50 p-4 flex items-center gap-3 border-b border-green-100"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-green-600"
+                >check_circle</span
+              >
+            </div>
+            <div>
+              <p class="font-bold text-green-800 text-sm">
+                ¡Producto encontrado!
+              </p>
+              <p class="text-xs text-green-600" id="result-ean-label">EAN: —</p>
+            </div>
+          </div>
+          <div class="p-5">
+            <div class="flex gap-4 items-start">
+              <img
+                id="result-img"
+                src=""
+                alt=""
+                class="w-24 h-24 object-contain bg-white rounded-xl border border-outline-variant/10 hidden"
+              />
+              <div class="flex-1 min-w-0">
+                <p
+                  id="result-brand"
+                  class="text-[10px] font-bold px-2 py-0.5 bg-primary/10 text-primary rounded-full inline-block mb-1"
+                >
+                </p>
+                <h3
+                  id="result-name"
+                  class="text-lg font-bold text-on-surface leading-tight"
+                >
+                </h3>
+                <p
+                  id="result-code"
+                  class="text-xs font-mono text-on-surface-variant mt-1"
+                >
+                </p>
+                <div class="grid grid-cols-3 gap-3 mt-3">
+                  <div>
+                    <p
+                      class="text-[9px] text-on-surface-variant uppercase font-bold"
+                    >
+                      Costo
+                    </p>
+                    <p
+                      id="result-cost"
+                      class="text-sm font-bold text-on-surface"
+                    >
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-[9px] text-on-surface-variant uppercase font-bold"
+                    >
+                      Precio
+                    </p>
+                    <p id="result-price" class="text-sm font-bold text-primary">
+                    </p>
+                  </div>
+                  <div>
+                    <p
+                      class="text-[9px] text-on-surface-variant uppercase font-bold"
+                    >
+                      Puntos
+                    </p>
+                    <p
+                      id="result-points"
+                      class="text-sm font-bold text-amber-600"
+                    >
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Quick add to inventory -->
+            <div
+              class="mt-4 flex items-center gap-3 pt-4 border-t border-outline-variant/10"
+            >
+              <div class="flex items-center gap-2 flex-1">
+                <label
+                  class="text-xs font-bold text-on-surface-variant whitespace-nowrap"
+                  >Cantidad:</label
+                >
+                <div
+                  class="flex items-center bg-surface-container-highest rounded-xl overflow-hidden"
+                >
+                  <button
+                    id="qty-minus"
+                    class="px-3 py-2 hover:bg-primary/10 transition-colors text-on-surface-variant"
+                  >
+                    <span class="material-symbols-outlined text-sm">remove</span
+                    >
+                  </button>
+                  <input
+                    type="number"
+                    id="qty-input"
+                    value="1"
+                    min="1"
+                    max="999"
+                    class="w-14 text-center bg-transparent border-none text-sm font-bold focus:ring-0"
+                  />
+                  <button
+                    id="qty-plus"
+                    class="px-3 py-2 hover:bg-primary/10 transition-colors text-on-surface-variant"
+                  >
+                    <span class="material-symbols-outlined text-sm">add</span>
+                  </button>
+                </div>
+              </div>
+              <button
+                id="btn-add-inventory"
+                class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/20 hover:shadow-lg hover:scale-[1.02] transition-all text-sm"
+              >
+                <span class="material-symbols-outlined text-sm"
+                  >add_shopping_cart</span
+                >
+                Agregar al inventario
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- No match — link product -->
+        <div id="result-link" class="hidden">
+          <div
+            class="bg-amber-50 p-4 flex items-center gap-3 border-b border-amber-100"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center"
+            >
+              <span class="material-symbols-outlined text-amber-600">help</span>
+            </div>
+            <div>
+              <p class="font-bold text-amber-800 text-sm">Código nuevo</p>
+              <p class="text-xs text-amber-600" id="link-ean-label">EAN: —</p>
+            </div>
+          </div>
+          <div class="p-5">
+            <p class="text-sm text-on-surface-variant mb-3">
+              Este código de barras no está vinculado a un producto todavía.
+              Busca el producto y vincúlalo:
+            </p>
+            <div class="flex gap-2 mb-4">
+              <input
+                type="text"
+                id="link-search"
+                placeholder="Buscar producto por nombre o código..."
+                class="flex-1 bg-surface-container-highest border-none rounded-xl py-2.5 px-4 text-sm focus:ring-2 focus:ring-primary-container"
+              />
+            </div>
+            <div
+              id="link-results"
+              class="space-y-2 max-h-[400px] overflow-y-auto"
+            >
+              <p class="text-xs text-on-surface-variant text-center py-4">
+                Escribe para buscar en tu catálogo...
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success toast -->
+      <div
+        id="toast-success"
+        class="fixed bottom-6 right-6 bg-green-600 text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none"
+      >
+        <span class="material-symbols-outlined">check_circle</span>
+        <span id="toast-message" class="font-bold text-sm"
+          >Producto agregado al inventario</span
+        >
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  @keyframes scanLine {
+    0%,
+    100% {
+      top: 25%;
+      opacity: 0.5;
+    }
+    50% {
+      top: 75%;
+      opacity: 1;
+    }
+  }
+  #scanner-reader video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  #scanner-reader {
+    position: relative !important;
+    border: none !important;
+  }
+  #scanner-reader img[alt="Info icon"],
+  #scanner-reader > div:last-child {
+    display: none !important;
+  }
+  /* Hide the built-in file picker, powered-by, etc */
+  #scanner-reader > div > div:nth-child(n + 2) {
+    display: none !important;
+  }
+</style>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+  import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
+
+  let currentUserId = "";
+  let lastScannedEan = "";
+  let currentProductId = "";
+  let allProducts: any[] = [];
+  const recentScans: { ean: string; name: string; time: string }[] = [];
+
+  // Scanner instance
+  let scanner: NativeBarcodeScanner | null = null;
+
+  // Elements
+  const btnStart = document.getElementById("btn-start") as HTMLButtonElement;
+  const btnStop = document.getElementById("btn-stop") as HTMLButtonElement;
+  const btnManual = document.getElementById("btn-manual") as HTMLButtonElement;
+  const manualEan = document.getElementById("manual-ean") as HTMLInputElement;
+  const resultPanel = document.getElementById("result-panel")!;
+  const resultFound = document.getElementById("result-found")!;
+  const resultLink = document.getElementById("result-link")!;
+  const placeholder = document.getElementById("scanner-placeholder")!;
+  const scanLine = document.getElementById("scan-line")!;
+  const continuousMode = document.getElementById(
+    "continuous-mode",
+  ) as HTMLInputElement;
+  const linkSearch = document.getElementById("link-search") as HTMLInputElement;
+  const linkResults = document.getElementById("link-results")!;
+  const btnAddInventory = document.getElementById(
+    "btn-add-inventory",
+  ) as HTMLButtonElement;
+  const qtyInput = document.getElementById("qty-input") as HTMLInputElement;
+  const qtyMinus = document.getElementById("qty-minus") as HTMLButtonElement;
+  const qtyPlus = document.getElementById("qty-plus") as HTMLButtonElement;
+
+  // Auth check
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!session) {
+      window.location.href = "/login";
+    } else {
+      currentUserId = session.user.id;
+      loadAllProducts();
+    }
+  });
+
+  // Load all products for local search (fast UX)
+  async function loadAllProducts() {
+    let from = 0;
+    const BATCH = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from("products")
+        .select(
+          "id, name, code, brand, category, price, cost, points, image_url",
+        )
+        .range(from, from + BATCH - 1);
+      if (error || !data || data.length === 0) break;
+      allProducts = allProducts.concat(data);
+      if (data.length < BATCH) break;
+      from += BATCH;
+    }
+  }
+
+  // ═══════════ SCANNER ═══════════
+  async function startScanner() {
+    lastScannedEan = "";
+    await stopScanner();
+
+    scanner = new NativeBarcodeScanner({
+      targetId: "scanner-reader",
+      onScan: async (code) => {
+        lastScannedEan = code;
+
+        if (continuousMode.checked) {
+          // Allow re-scanning after debounce handled by NativeBarcodeScanner
+        } else {
+          await stopScanner();
+        }
+
+        await processEan(code);
+      },
+      onError: (err) => showToast(err, true),
+    });
+
+    await scanner.start();
+
+    placeholder.classList.add("hidden");
+    scanLine.classList.remove("hidden");
+    btnStart.classList.add("hidden");
+    btnStop.classList.remove("hidden");
+  }
+
+  async function stopScanner() {
+    if (scanner) {
+      await scanner.stop();
+      scanner = null;
+    }
+    placeholder.classList.remove("hidden");
+    scanLine.classList.add("hidden");
+    btnStart.classList.remove("hidden");
+    btnStop.classList.add("hidden");
+  }
+
+  // ═══════════ PROCESS EAN ═══════════
+  async function processEan(ean: string) {
+    ean = ean.trim();
+    if (!ean) return;
+
+    resultPanel.classList.remove("hidden");
+    resultFound.classList.add("hidden");
+    resultLink.classList.add("hidden");
+
+    // Step 1: Check if this EAN is already linked
+    const { data: barcodeData } = await supabase
+      .from("product_barcodes")
+      .select(
+        "product_id, products ( id, name, code, brand, category, price, cost, points, image_url )",
+      )
+      .eq("ean", ean)
+      .maybeSingle();
+
+    if (barcodeData?.products) {
+      // Found! Show product
+      showFoundProduct(ean, barcodeData.products);
+    } else {
+      // Not linked — show linking UI
+      showLinkUI(ean);
+    }
+
+    // Add to recent scans
+    const product = barcodeData?.products as any;
+    const name = product?.name || "Producto no vinculado";
+    addRecentScan(ean, name);
+  }
+
+  // ═══════════ SHOW FOUND PRODUCT ═══════════
+  function showFoundProduct(ean: string, product: any) {
+    resultFound.classList.remove("hidden");
+    resultLink.classList.add("hidden");
+    currentProductId = product.id;
+
+    document.getElementById("result-ean-label")!.textContent = `EAN: ${ean}`;
+    document.getElementById("result-name")!.textContent = product.name;
+    document.getElementById("result-code")!.textContent =
+      `Código: ${product.code}`;
+    document.getElementById("result-brand")!.textContent =
+      product.brand || "Natura";
+    document.getElementById("result-cost")!.textContent =
+      `$${(product.cost || 0).toFixed(0)}`;
+    document.getElementById("result-price")!.textContent =
+      `$${(product.price || 0).toFixed(0)}`;
+    document.getElementById("result-points")!.textContent =
+      `${product.points || 0}`;
+
+    const img = document.getElementById("result-img") as HTMLImageElement;
+    if (product.image_url) {
+      img.src = product.image_url;
+      img.classList.remove("hidden");
+    } else {
+      img.classList.add("hidden");
+    }
+
+    qtyInput.value = "1";
+  }
+
+  // ═══════════ SHOW LINK UI ═══════════
+  function showLinkUI(ean: string) {
+    resultLink.classList.remove("hidden");
+    resultFound.classList.add("hidden");
+    lastScannedEan = ean;
+
+    document.getElementById("link-ean-label")!.textContent = `EAN: ${ean}`;
+    linkSearch.value = "";
+    linkResults.innerHTML =
+      '<p class="text-xs text-on-surface-variant text-center py-4">Escribe para buscar en tu catálogo...</p>';
+    linkSearch.focus();
+  }
+
+  // ═══════════ LOCAL SEARCH ═══════════
+  let searchTimeout: number;
+  linkSearch?.addEventListener("input", () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = window.setTimeout(() => {
+      const query = linkSearch.value.toLowerCase().trim();
+      if (query.length < 2) {
+        linkResults.innerHTML =
+          '<p class="text-xs text-on-surface-variant text-center py-4">Escribe al menos 2 caracteres...</p>';
+        return;
+      }
+
+      const matches = allProducts
+        .filter(
+          (p) =>
+            p.name?.toLowerCase().includes(query) ||
+            p.code?.toLowerCase().includes(query) ||
+            p.brand?.toLowerCase().includes(query),
+        )
+        .slice(0, 20);
+
+      if (matches.length === 0) {
+        linkResults.innerHTML =
+          '<p class="text-xs text-on-surface-variant text-center py-4">Sin resultados</p>';
+        return;
+      }
+
+      linkResults.innerHTML = matches
+        .map(
+          (p) => `
+        <button data-product-id="${p.id}" class="link-product-btn w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-colors text-left group">
+          ${
+            p.image_url
+              ? `<img src="${p.image_url}" alt="" class="w-12 h-12 object-contain rounded-lg bg-white border border-outline-variant/10 flex-shrink-0" />`
+              : `<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-surface-variant/30">spa</span></div>`
+          }
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-on-surface leading-tight line-clamp-1">${p.name}</p>
+            <p class="text-[10px] text-on-surface-variant">${p.brand || "Natura"} · ${p.code} · $${(p.price || 0).toFixed(0)}</p>
+          </div>
+          <span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">link</span>
+        </button>
+      `,
+        )
+        .join("");
+
+      // Attach click handlers
+      linkResults.querySelectorAll(".link-product-btn").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          linkBarcode(btn.getAttribute("data-product-id")!),
+        );
+      });
+    }, 200);
+  });
+
+  // ═══════════ LINK BARCODE TO PRODUCT ═══════════
+  async function linkBarcode(productId: string) {
+    const ean = lastScannedEan;
+    if (!ean || !productId) return;
+
+    // Save to product_barcodes
+    const { error } = await supabase.from("product_barcodes").insert({
+      ean,
+      product_id: productId,
+      created_by: currentUserId,
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        // unique violation
+        showToast("Este código de barras ya está vinculado", true);
+      } else {
+        showToast("Error al vincular: " + error.message, true);
+      }
+      return;
+    }
+
+    showToast("¡Código vinculado correctamente! 🎉");
+
+    // Now show the product card
+    const product = allProducts.find((p) => p.id === productId);
+    if (product) {
+      showFoundProduct(ean, product);
+      addRecentScan(ean, product.name);
+    }
+  }
+
+  // ═══════════ ADD TO INVENTORY ═══════════
+  btnAddInventory?.addEventListener("click", async () => {
+    if (!currentProductId || !currentUserId) return;
+    const qty = parseInt(qtyInput.value) || 1;
+
+    btnAddInventory.disabled = true;
+    btnAddInventory.innerHTML =
+      '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Agregando...';
+
+    // Check if already in inventory
+    const { data: existing } = await supabase
+      .from("inventory")
+      .select("id, quantity")
+      .eq("consultant_id", currentUserId)
+      .eq("product_id", currentProductId)
+      .maybeSingle();
+
+    if (existing) {
+      // Update quantity
+      await supabase
+        .from("inventory")
+        .update({ quantity: (existing.quantity || 0) + qty })
+        .eq("id", existing.id);
+    } else {
+      // Insert new
+      await supabase.from("inventory").insert({
+        consultant_id: currentUserId,
+        product_id: currentProductId,
+        quantity: qty,
+      });
+    }
+
+    btnAddInventory.disabled = false;
+    btnAddInventory.innerHTML =
+      '<span class="material-symbols-outlined text-sm">add_shopping_cart</span> Agregar al inventario';
+
+    const productName =
+      document.getElementById("result-name")!.textContent || "";
+    showToast(`+${qty} ${productName.slice(0, 30)} al inventario ✅`);
+
+    // If continuous mode, reset for next scan
+    if (continuousMode.checked) {
+      lastScannedEan = "";
+      resultPanel.classList.add("hidden");
+    }
+  });
+
+  // ═══════════ QTY CONTROLS ═══════════
+  qtyMinus?.addEventListener("click", () => {
+    const v = parseInt(qtyInput.value) || 1;
+    if (v > 1) qtyInput.value = String(v - 1);
+  });
+  qtyPlus?.addEventListener("click", () => {
+    const v = parseInt(qtyInput.value) || 1;
+    qtyInput.value = String(v + 1);
+  });
+
+  // ═══════════ RECENT SCANS ═══════════
+  function addRecentScan(ean: string, name: string) {
+    const now = new Date().toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    recentScans.unshift({ ean, name, time: now });
+    if (recentScans.length > 8) recentScans.pop();
+    renderRecentScans();
+  }
+
+  function renderRecentScans() {
+    const container = document.getElementById("recent-scans")!;
+    container.innerHTML = recentScans
+      .map(
+        (s) => `
+      <button class="recent-ean-btn w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-surface-container-high/50 transition-colors text-left" data-ean="${s.ean}">
+        <div class="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-tertiary text-sm">barcode</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs font-bold text-on-surface truncate">${s.name}</p>
+          <p class="text-[10px] font-mono text-on-surface-variant">${s.ean}</p>
+        </div>
+        <span class="text-[10px] text-on-surface-variant">${s.time}</span>
+      </button>
+    `,
+      )
+      .join("");
+
+    container.querySelectorAll(".recent-ean-btn").forEach((btn) => {
+      btn.addEventListener("click", () =>
+        processEan(btn.getAttribute("data-ean")!),
+      );
+    });
+  }
+
+  // ═══════════ TOAST ═══════════
+  function showToast(message: string, isError = false) {
+    const toast = document.getElementById("toast-success")!;
+    const msgEl = document.getElementById("toast-message")!;
+    msgEl.textContent = message;
+    toast.className = toast.className.replace(
+      "bg-green-600",
+      isError ? "bg-error" : "bg-green-600",
+    );
+    toast.classList.remove(
+      "translate-y-20",
+      "opacity-0",
+      "pointer-events-none",
+    );
+    toast.classList.add("translate-y-0", "opacity-100");
+
+    setTimeout(() => {
+      toast.classList.add("translate-y-20", "opacity-0", "pointer-events-none");
+      toast.classList.remove("translate-y-0", "opacity-100");
+    }, 3000);
+  }
+
+  // ═══════════ EVENT LISTENERS ═══════════
+  btnStart?.addEventListener("click", startScanner);
+  btnStop?.addEventListener("click", stopScanner);
+
+  btnManual?.addEventListener("click", () => processEan(manualEan.value));
+  manualEan?.addEventListener("keydown", (e: KeyboardEvent) => {
+    if (e.key === "Enter") processEan(manualEan.value);
+  });
+
+  // Cleanup on page leave
+  window.addEventListener("beforeunload", () => {
+    if (scanner?.running) scanner.stop();
+  });
+</script>

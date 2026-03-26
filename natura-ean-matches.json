@@ -1,0 +1,930 @@
+[
+  {
+    "code": "148016",
+    "name": "CREMA NUTRITIVA PARA MANOS CIRUELA Y FLOR DE VAINILLA 50 ML",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "95937",
+    "name": "TODODIA CREMA NUTRITIVA PARA MANOS 50 ML CEREZA Y AVELLANA ",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "97955",
+    "name": "MMBB CREMA PROTECTORA PARA BEBÉ 60 G",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "189398",
+    "name": "KAIAK DES ROLLON URBE 75ML",
+    "ean": "7908240844299",
+    "ean_name": "KAIAK Urbe",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "59374",
+    "name": "CHRONOS JABÓN CREMA HIDRATANTE 115 ML",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73572",
+    "name": "EKOS CASTAÑA FRESCOR EAU DE TOILETTE 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "70981",
+    "name": "EKOS CASTAÑA PULPA EXFOLIANTE PARA MANOS Y PIES 60 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "70983",
+    "name": "EKOS CASTAÑA PULPA HIDRATANTE PARA MANOS 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "69817",
+    "name": "EKOS CASTAÑA PULPA HIDRATANTE PARA PIES 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "112770",
+    "name": "EKOS CREMA PARA PEINAR MURUMURU 150ML",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73573",
+    "name": "EKOS FRESCOR EAU DE TOILETTE PITANGA 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 67,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "134575",
+    "name": "EKOS JABONES EN BARRA PURO VEGETAL CREMOSOS 4X100G",
+    "ean": "7898506877263",
+    "ean_name": "Sabonete puro Vegetal cremoso em Barra",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "80967",
+    "name": "EKOS MARACUYA NÉCTAR PARA MANOS 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116688",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 10N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116689",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 15N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116690",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 19N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116691",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 21N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116692",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 24N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116693",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 27N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116694",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 30N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116695",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 32N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116696",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 35N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "116697",
+    "name": "FACES CORRECTOR CHECK MATTE FACES 10 G 37N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "118910",
+    "name": "FACES GEL BOOSTER HIDRATANTE FACIAL 35 G",
+    "ean": "7899846080665",
+    "ean_name": "Hidratante Facial Natura Homem",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166353",
+    "name": "FACES HIDRATANTE FACIAL MATIFICANTE 50ML",
+    "ean": "7899846080665",
+    "ean_name": "Hidratante Facial Natura Homem",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "8885",
+    "name": "FACES POLVO COMPACTO MATTE 6,5 G CASTAÑO 20",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "8848",
+    "name": "FACES POLVO COMPACTO MATTE 6,5 G CLARO 24",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "8882",
+    "name": "FACES POLVO COMPACTO MATTE 6,5 G MEDIO 22",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73574",
+    "name": "FRESCOR EAU DE TOILETTE 150 ML MARACUYÁ",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 40,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "18403",
+    "name": "FRESCOR EAU DE TOILETTE ISHPINK   150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 40,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "129799",
+    "name": "Jabones en barra puro vegetal cremosos y exfoliantes 4X100G",
+    "ean": "7898506877263",
+    "ean_name": "Sabonete puro Vegetal cremoso em Barra",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "129797",
+    "name": "JABONES EN BARRA PURO VEGETAL EXFOLIANTES 4 X 100G C/U",
+    "ean": "7898506877263",
+    "ean_name": "Sabonete puro Vegetal cremoso em Barra",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "111174",
+    "name": "KAIAK AERO MASC EDT 100ML",
+    "ean": "7908016627569",
+    "ean_name": "Natura Kaiak Aero Deodorant Cologne",
+    "match_score": 40,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "93506",
+    "name": "LABIAL CC HIDRATANTE FPS 25 3,8 G ROSE 2C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "93504",
+    "name": "LABIAL CC HIDRATANTE FPS 25 3,8 G ROUGE 2C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "93505",
+    "name": "LABIAL CC HIDRATANTE FPS 25 3,8 G VIOLETA 6C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "148403",
+    "name": "LUMINA REPUESTO CREMA PARA PEINAR MODELADORA CABELLO RIZADO 300 ML ",
+    "ean": "7909189138517",
+    "ean_name": "Avon Naturales Cabello Aguacate y Macadamia Maxima Hidratación Crema para Peinar",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92786",
+    "name": "MAMÁ Y BEBÉ AGUA DE COLONIA SIN ALCOHOL 100 ML",
+    "ean": "7908132208406",
+    "ean_name": "Natura mamãe e bebê água de colônia sem álcool",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92790",
+    "name": "MAMÁ Y BEBÉ SHAMPOO PARA BEBÉ 200 ML",
+    "ean": "7908132208437",
+    "ean_name": "Shampoo Natura mamãe bebê",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "55104",
+    "name": "PINCEL  PRO BASE LÍQUIDA",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "119000",
+    "name": "REPUESTO EKOS PITANGA FRESCOR EAU DE TOILETTE PITANGA",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "119001",
+    "name": "REPUESTO EKOS PITANGA FRESCOR EAU DE TOILETTE PITANGA PRETA",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 43,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "9149",
+    "name": "REPUESTO FACES POLVO COMPACTO MATTE CASTAÑO 20",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "9009",
+    "name": "REPUESTO FACES POLVO COMPACTO MATTE CLARO 24",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "9025",
+    "name": "REPUESTO FACES POLVO COMPACTO MATTE  MEDIO 22",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110678",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 12N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110679",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 19N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110680",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 21N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110681",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 27N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110682",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 31N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "110684",
+    "name": "REPUESTO UNA POLVO COMPACTO NUDE ME 10 G 40N",
+    "ean": "7908132260534",
+    "ean_name": "Polvo compacto translúcido (repuesto) Faces sport",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "173581",
+    "name": "TODODIA CREMA PARA PEINAR CABELLO RIZADO 280ML",
+    "ean": "7909189138517",
+    "ean_name": "Avon Naturales Cabello Aguacate y Macadamia Maxima Hidratación Crema para Peinar",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "2834",
+    "name": "TODODÍA FRUTAS ROJAS JABONES EN BARRA 5 X 90 G C/U",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108125",
+    "name": "UNA BASE MATTE 30 ML CLARO 10N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108126",
+    "name": "UNA BASE MATTE 30 ML CLARO 12F",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108127",
+    "name": "UNA BASE MATTE 30 ML CLARO 15C",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108128",
+    "name": "UNA BASE MATTE 30 ML CLARO 16F",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108129",
+    "name": "UNA BASE MATTE 30 ML CLARO 19N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "108154",
+    "name": "UNA BASE MATTE 30 ML OSCURO 43N",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92536",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 NUDE 2C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92520",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 ROSE 4C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92531",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 ROUGE 4C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92529",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 ROUGE 8C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92525",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 TERRACOTA 8C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "92530",
+    "name": "UNA LABIAL CC HIDRATANTE FPS 25 VIOLETA 4C",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "73575",
+    "name": "FRESCOR EAU DE TOILETTE  PITANGA PRETA 150 ML",
+    "ean": "0814325001976",
+    "ean_name": "Natura EKOS Pitanga Frescor, 150 ml",
+    "match_score": 50,
+    "source": "upcitemdb"
+  },
+  {
+    "code": "228047",
+    "name": "KAIAK URBE",
+    "ean": "7908240844299",
+    "ean_name": "KAIAK Urbe",
+    "match_score": 100,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "234390",
+    "name": "TODODIA FRUTAS ROJAS",
+    "ean": "4908286631115",
+    "ean_name": "Bálsamo hidratante labial frutas rojas",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "95034",
+    "name": "EKOS PITANGA NÉCTAR PARA MANOS 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "19904",
+    "name": "EKOS TUKUMA PULPA HIDRATANTE PARA MANOS 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "80969",
+    "name": "EKOS UCUUBA PULPA HIDRATANTE PARA MANOS 75 G",
+    "ean": "7899846023723",
+    "ean_name": "Crema hidratante para manos EKOS Castanha",
+    "match_score": 67,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166338",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 10N 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166332",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 12F 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166341",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 15Q 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166329",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 19N 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166330",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 20N 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166340",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 25Q 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166344",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 29N 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "166326",
+    "name": "FACES BASE LIQ MATTE MULTIMIX 32Q 30ML",
+    "ean": "7908371608821",
+    "ean_name": "Faces base líquida matte",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "202879",
+    "name": "AVON CARE 6 EN 1 CREMA HIDRATANTE 100G",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195272",
+    "name": "AVON CARE CREMA CORPORAL JOJOBA 1L",
+    "ean": "7908240820798",
+    "ean_name": "crema Tododia corporal",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "202880",
+    "name": "AVON CARE 6 EN 1 CREMA HIDRATANTE 400G",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "168813",
+    "name": "AC FW CREMA HIDRATANTE TALONES 80G",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "201610",
+    "name": "AGUA MICELAR FACIAL ÁCIDO HIALURÓNICO Y VITAMINA B3 150 ML",
+    "ean": "7909189143085",
+    "ean_name": "Agua micelar limpiadora facial",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191122",
+    "name": "ANEW CREMA HIDRATANTE FACIAL FPS 50 VITAMINA C 50G",
+    "ean": "7909189326013",
+    "ean_name": "crema facial hidratante",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195288",
+    "name": "CLEARSKIN GEL FACIAL EXFOLIANTE PUNTOS NEGROS 75G",
+    "ean": "7909189135905",
+    "ean_name": "Gel exfoliante facial micelar",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "201627",
+    "name": "CLEARSKIN MASCARILLA LIMPIADORA FACIAL 60G",
+    "ean": "7909189143085",
+    "ean_name": "Agua micelar limpiadora facial",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "202914",
+    "name": "COLONIA WILD COUNTRY CLASICO 75ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195549",
+    "name": "COLONIA WILD COUNTRY FREEDOM 75 ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195551",
+    "name": "COLONIA WILD COUNTRY MUSK 75ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195552",
+    "name": "COLONIA WILD COUNTRY NIGHTS 75ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195550",
+    "name": "COLONIA WILD COUNTRY RUSH 75ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "201829",
+    "name": "CREMA SUAVIZANTE PERFUMADA ELEGANTE 172 G",
+    "ean": "7909189037445",
+    "ean_name": "crema suavizante",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "198410",
+    "name": "CREMA SUAVIZANTE PERFUMADA IMARI 172g",
+    "ean": "7909189037445",
+    "ean_name": "crema suavizante",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "185907",
+    "name": "IMARI FREE BODY LOTION 90ML",
+    "ean": "11046240",
+    "ean_name": "Moisture blend body lotion",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191448",
+    "name": "LOV|U CONNECTED CREMA PERFUMADA PARA EL CUERPO 90ML",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 43,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191447",
+    "name": "LOV|U CREMA PERFUMADA PARA EL CUERPO 90ML",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "259792",
+    "name": "NUEVO KIT WILD COUNTRY",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "201644",
+    "name": "ON DUTY DESODORANTE ROLLON CLASICO 84 ML EL Y ELLA",
+    "ean": "7908132273367",
+    "ean_name": "Desodorante Antitraspirante roll-on invisible",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191167",
+    "name": "ON DUTY SPORT DESODORANTE ROLLON 84 ML PARA EL",
+    "ean": "7908132273367",
+    "ean_name": "Desodorante Antitraspirante roll-on invisible",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "198397",
+    "name": "WILD COUNTRY BOOT CLASICO 150ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191492",
+    "name": "WILD COUNTRY CLASICO ROLL ON 50ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "202762",
+    "name": "WILD COUNTRY FREEDOM BOOT 150ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191488",
+    "name": "WILD COUNTRY FREEDOM PARA ÉL 176ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191493",
+    "name": "WILD COUNTRY FREEDOM ROLL ON 50ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191491",
+    "name": "WILD COUNTRY LEGEND PARA ÉL 176ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191496",
+    "name": "WILD COUNTRY LEGEND ROLL ON 50ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191489",
+    "name": "WILD COUNTRY NIGHTS PARA ÉL 176ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191494",
+    "name": "WILD COUNTRY NIGHTS ROLL ON 50ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191490",
+    "name": "WILD COUNTRY RUSH PARA ÉL 176ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191495",
+    "name": "WILD COUNTRY RUSH ROLL ON 50ML",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "248829",
+    "name": "KIT WILD COUNTRY ORIGINAL",
+    "ean": "0094000459166",
+    "ean_name": "Wild country, roll-on deodorant",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191129",
+    "name": "AVON CARE AGUA MICELAR LIMPIADORA FACIAL 3 EN 1 150ML",
+    "ean": "7909189143085",
+    "ean_name": "Agua micelar limpiadora facial",
+    "match_score": 57,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "191139",
+    "name": "AVON CARE GEL EXFOLIANTE FACIAL 3 EN 1 100G",
+    "ean": "7909189135905",
+    "ean_name": "Gel exfoliante facial micelar",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195587",
+    "name": "CREMA PARA PEINAR 150G",
+    "ean": "7909189131075",
+    "ean_name": "Crema depilatoria para el cuerpo",
+    "match_score": 50,
+    "source": "openbeautyfacts"
+  },
+  {
+    "code": "195317",
+    "name": "SENSES CREMA PARA PEINAR AGUACATE 200G",
+    "ean": "7909189138517",
+    "ean_name": "Avon Naturales Cabello Aguacate y Macadamia Maxima Hidratación Crema para Peinar",
+    "match_score": 40,
+    "source": "openbeautyfacts"
+  }
+]

@@ -1,0 +1,24 @@
+---
+import Layout from './Layout.astro';
+import Sidebar from '../components/Sidebar.astro';
+---
+
+<Layout>
+  <div class="min-h-screen bg-surface flex relative overflow-hidden">
+    <Sidebar />
+    <main class="flex-1 w-full px-6 py-10 md:px-16 md:ml-72 overflow-y-auto">
+      <slot />
+    </main>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  // Global Auth Guard for DashboardLayout
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!session) {
+      window.location.href = '/login';
+    }
+  });
+</script>

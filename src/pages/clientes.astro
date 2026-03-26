@@ -1,0 +1,194 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <h2 class="text-4xl md:text-5xl font-display font-medium text-on-surface">Mis Clientes 👥</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Administra a tus clientes y conoce sus preferencias.</p>
+    </div>
+    <button id="btn-nuevo-cliente" class="btn-primary flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+      Nuevo Cliente
+    </button>
+  </header>
+
+  <!-- Search -->
+  <div class="flex gap-4 mb-8">
+    <div class="flex-1 relative">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input type="text" id="search-input" placeholder="Buscar por nombre o teléfono..." class="w-full input-editorial pl-10 bg-surface-container-lowest shadow-sm" />
+    </div>
+  </div>
+
+  <!-- Customers List -->
+  <section class="surface-card shadow-sm border border-outline-variant/20 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-surface-container-low text-on-surface-variant text-sm uppercase tracking-wider">
+            <th class="p-4 font-semibold border-b border-outline-variant/10">Cliente</th>
+            <th class="p-4 font-semibold border-b border-outline-variant/10">Contacto</th>
+            <th class="p-4 font-semibold border-b border-outline-variant/10 hidden md:table-cell">Preferencias</th>
+            <th class="p-4 font-semibold border-b border-outline-variant/10">Registro</th>
+            <th class="p-4 font-semibold border-b border-outline-variant/10 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="customers-tbody" class="divide-y divide-outline-variant/10 text-on-surface">
+          <tr id="empty-state" class="hidden">
+            <td colspan="5" class="p-8 text-center text-on-surface-variant">Aún no tienes clientes registrados. ¡Agrega el primero!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Add Customer Modal -->
+  <dialog id="modal-cliente" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
+    <div class="surface-card p-8 w-full border border-outline-variant/20">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-display font-semibold text-primary">Registrar Cliente</h3>
+        <button id="btn-close-modal" class="text-on-surface-variant hover:text-error transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      
+      <form id="form-cliente" class="space-y-4">
+        <div id="modal-error" class="hidden bg-error-container text-error p-3 rounded-md text-sm"></div>
+
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Nombre Completo</label>
+          <input type="text" name="full_name" required class="w-full input-editorial text-sm" placeholder="Ej. Camila Méndez"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-on-surface-variant mb-1">Teléfono</label>
+            <input type="tel" name="phone" required class="w-full input-editorial text-sm" placeholder="55 1234 5678"/>
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-on-surface-variant mb-1">Correo (Opcional)</label>
+            <input type="email" name="email" class="w-full input-editorial text-sm" placeholder="correo@ejemplo.com"/>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Dirección (Opcional)</label>
+          <input type="text" name="address" class="w-full input-editorial text-sm" placeholder="Calle, Colonia, Ciudad"/>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Preferencias / Notas (Opcional)</label>
+          <textarea name="preferences" rows="3" class="w-full input-editorial text-sm resize-none" placeholder="Le gustan los aromas cítricos, cumple años en marzo..."></textarea>
+        </div>
+
+        <button type="submit" id="btn-submit-cliente" class="w-full btn-primary mt-6">
+          Guardar Cliente
+        </button>
+      </form>
+    </div>
+  </dialog>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const modal = document.getElementById('modal-cliente') as HTMLDialogElement;
+  const btnNuevo = document.getElementById('btn-nuevo-cliente');
+  const btnClose = document.getElementById('btn-close-modal');
+  const formCliente = document.getElementById('form-cliente') as HTMLFormElement;
+  const errorDiv = document.getElementById('modal-error') as HTMLDivElement;
+  const tbody = document.getElementById('customers-tbody') as HTMLElement;
+  const emptyState = document.getElementById('empty-state') as HTMLElement;
+
+  let currentUserId = '';
+
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (session) {
+      currentUserId = session.user.id;
+      loadCustomers();
+    }
+  });
+
+  // Modal logic
+  btnNuevo?.addEventListener('click', () => modal?.showModal());
+  btnClose?.addEventListener('click', () => modal?.close());
+
+  // Form Submit
+  formCliente?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorDiv.classList.add('hidden');
+    
+    const formData = new FormData(formCliente);
+    
+    // El consultant_id debe guardarse asociado al cliente
+    const { error } = await supabase.from('customers').insert([{
+      consultant_id: currentUserId,
+      full_name: formData.get('full_name'),
+      phone: formData.get('phone'),
+      email: formData.get('email') || null,
+      address: formData.get('address') || null,
+      preferences: formData.get('preferences') || null
+    }]);
+
+    if(error) {
+      errorDiv.textContent = error.message;
+      errorDiv.classList.remove('hidden');
+    } else {
+      formCliente.reset();
+      modal.close();
+      loadCustomers(); 
+    }
+  });
+
+  // Load Customers
+  async function loadCustomers() {
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    tbody.innerHTML = '';
+
+    if (!customers || customers.length === 0) {
+      tbody.appendChild(emptyState);
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    emptyState.classList.add('hidden');
+
+    customers.forEach(c => {
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-surface-container-low transition-colors";
+      
+      const initial = c.full_name.charAt(0).toUpperCase();
+      const date = new Date(c.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
+      
+      tr.innerHTML = `
+        <td class="p-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-bold">${initial}</div>
+            <span class="font-semibold">${c.full_name}</span>
+          </div>
+        </td>
+        <td class="p-4 text-sm">
+          <div>${c.phone}</div>
+          <div class="text-xs text-on-surface-variant">${c.email || ''}</div>
+        </td>
+        <td class="p-4 text-sm hidden md:table-cell text-on-surface-variant max-w-xs truncate">${c.preferences || '-'}</td>
+        <td class="p-4 text-sm text-on-surface-variant">${date}</td>
+        <td class="p-4 text-right">
+          <a href="/clientes/perfil?id=${c.id}" class="text-primary hover:text-primary-container font-semibold text-sm">Ver Perfil →</a>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+</script>

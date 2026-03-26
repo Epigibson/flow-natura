@@ -1,0 +1,145 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div class="min-h-screen bg-surface flex relative overflow-hidden">
+    
+    <!-- Left Section: Decorative (Hidden on mobile) -->
+    <div class="hidden md:flex flex-1 bg-surface-container-high relative items-center justify-center p-12">
+      <div class="absolute top-0 left-0 w-80 h-80 bg-secondary-container opacity-20 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/3"></div>
+      
+      <div class="relative z-10 text-center max-w-md">
+        <h1 class="text-5xl font-display font-bold text-primary mb-6">Únete a Flora</h1>
+        <p class="text-xl text-on-surface-variant font-body">
+          Crea tu cuenta de consultora para llevar el control total de tus productos y ventas con estilo.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Section: Register Form -->
+    <div class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center p-8 md:p-16 z-20">
+      <div class="w-full max-w-sm surface-card p-10 shadow-lg border border-outline-variant/20">
+        
+        <div class="mb-8 text-center md:text-left">
+          <h2 class="text-3xl font-display font-semibold text-on-surface">Registro</h2>
+          <p class="text-on-surface-variant mt-2 text-sm">Ingresa tus datos para comenzar</p>
+        </div>
+
+        <form id="register-form" class="space-y-5">
+          <div id="error-message" class="hidden bg-error-container text-error p-3 rounded-md text-sm"></div>
+          <div id="success-message" class="hidden bg-secondary-container text-secondary p-3 rounded-md text-sm">Cuenta creada con éxito. Redirigiendo...</div>
+
+          <div class="space-y-2">
+            <label for="full_name" class="block text-sm font-semibold text-on-surface-variant">Nombre completo</label>
+            <input 
+              type="text" 
+              id="full_name" 
+              name="full_name" 
+              class="w-full input-editorial" 
+              placeholder="Ej. Mariana López" 
+              required
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="natura_code" class="block text-sm font-semibold text-on-surface-variant">Código de Consultora (Obligatorio)</label>
+            <input 
+              type="text" 
+              id="natura_code" 
+              name="natura_code" 
+              class="w-full input-editorial" 
+              placeholder="Ej. 123456" 
+              required
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="email" class="block text-sm font-semibold text-on-surface-variant">Correo</label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="w-full input-editorial" 
+              placeholder="tu@correo.com" 
+              required
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label for="password" class="block text-sm font-semibold text-on-surface-variant">Contraseña</label>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="w-full input-editorial" 
+              placeholder="••••••••" 
+              required
+            />
+          </div>
+
+          <button type="submit" class="w-full btn-primary mt-2" id="submit-btn">
+            Crear mi cuenta
+          </button>
+        </form>
+
+        <div class="mt-8 text-center text-sm text-on-surface-variant">
+          ¿Ya tienes cuenta? <a href="/login" class="font-semibold text-primary hover:underline">Inicia sesión</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const registerForm = document.getElementById('register-form') as HTMLFormElement;
+  const errorDiv = document.getElementById('error-message') as HTMLDivElement;
+  const successDiv = document.getElementById('success-message') as HTMLDivElement;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+
+  registerForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorDiv.classList.add('hidden');
+    successDiv.classList.add('hidden');
+    submitBtn.textContent = 'Procesando...';
+    submitBtn.disabled = true;
+
+    const formData = new FormData(registerForm);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const full_name = formData.get('full_name') as string;
+    const natura_code = formData.get('natura_code') as string;
+
+    // 1. SignUp en Auth Supabase pasando metadata
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name,
+          natura_code
+        }
+      }
+    });
+
+    if (authError) {
+      errorDiv.textContent = authError.message;
+      errorDiv.classList.remove('hidden');
+      submitBtn.textContent = 'Crear mi cuenta';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    if (authData.user) {
+      successDiv.classList.remove('hidden');
+      setTimeout(() => {
+        // Redirigir al inicio 
+        // Nota: Si Supabase pide confirmar email, el Auth Guard de '/' los regresará a '/login'
+        window.location.href = '/';
+      }, 1500);
+    }
+  });
+</script>

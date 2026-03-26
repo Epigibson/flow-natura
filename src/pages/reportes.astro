@@ -1,0 +1,411 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">INTELLIGENCE</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Reportes y Análisis 📊</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Insights profundos de tu negocio con datos en tiempo real.</p>
+    </div>
+    <div class="flex gap-3">
+      <select id="period-select" class="bg-surface-container-lowest rounded-xl py-2.5 px-4 shadow-sm border border-outline-variant/10 text-sm font-bold">
+        <option value="month">Este Mes</option>
+        <option value="3months">Últimos 3 Meses</option>
+        <option value="6months">Últimos 6 Meses</option>
+        <option value="year">Este Año</option>
+        <option value="all">Todo el Historial</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- Revenue Summary -->
+  <section class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
+    <div class="bg-gradient-to-br from-primary/5 to-primary-container/10 rounded-[2rem] p-6 shadow-sm text-center border border-primary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-lg">payments</span>
+      </div>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Ingresos</p>
+      <p id="r-revenue" class="text-2xl font-display font-bold text-on-surface mt-1">—</p>
+    </div>
+    <div class="bg-gradient-to-br from-secondary/5 to-secondary-container/10 rounded-[2rem] p-6 shadow-sm text-center border border-secondary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-secondary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-secondary text-lg">receipt_long</span>
+      </div>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Ventas</p>
+      <p id="r-orders" class="text-2xl font-display font-bold text-secondary mt-1">—</p>
+    </div>
+    <div class="bg-gradient-to-br from-tertiary/5 to-tertiary-container/10 rounded-[2rem] p-6 shadow-sm text-center border border-tertiary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-tertiary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary text-lg">local_offer</span>
+      </div>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Ticket Promedio</p>
+      <p id="r-avg" class="text-2xl font-display font-bold text-primary mt-1">—</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm text-center">
+      <div class="w-10 h-10 mx-auto mb-2 bg-surface-container rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-surface-variant text-lg">group_add</span>
+      </div>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Clientes Nuevos</p>
+      <p id="r-new-clients" class="text-2xl font-display font-bold text-tertiary mt-1">—</p>
+    </div>
+    <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-[2rem] p-6 shadow-sm text-center border border-green-200/30">
+      <div class="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-green-700 text-lg">trending_up</span>
+      </div>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Tasa Cobro</p>
+      <p id="r-collection" class="text-2xl font-display font-bold text-green-700 mt-1">—</p>
+    </div>
+  </section>
+
+  <!-- Charts Grid -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <!-- Daily Revenue Chart -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-display font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-lg">bar_chart</span>
+          Ventas por Día
+        </h3>
+        <span id="daily-insight" class="text-xs text-on-surface-variant font-bold"></span>
+      </div>
+      <div id="daily-chart" class="h-48 flex items-end gap-1"></div>
+      <div id="daily-labels" class="flex gap-1 mt-2"></div>
+      <div id="daily-empty" class="hidden h-48 flex items-center justify-center">
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined text-on-surface-variant/30 text-3xl">bar_chart</span>
+          </div>
+          <p class="text-on-surface-variant font-bold text-sm">Sin datos de ventas aún</p>
+          <p class="text-on-surface-variant/60 text-xs mt-1">Registra tu primera venta para ver el gráfico</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Distribution -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-display font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-lg">donut_small</span>
+          Ventas por Categoría
+        </h3>
+      </div>
+      <div id="category-chart" class="space-y-4"></div>
+      <div id="category-empty" class="hidden py-8">
+        <div class="text-center">
+          <div class="w-16 h-16 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined text-on-surface-variant/30 text-3xl">donut_small</span>
+          </div>
+          <p class="text-on-surface-variant font-bold text-sm">Sin categorías registradas</p>
+          <p class="text-on-surface-variant/60 text-xs mt-1">Las categorías aparecerán al registrar ventas</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Payment Methods + Reorder Suggestions -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-lg font-display font-bold mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary text-lg">account_balance_wallet</span>
+        Métodos de Pago
+      </h3>
+      <div id="payment-chart" class="space-y-5"></div>
+    </div>
+
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-lg font-display font-bold mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">auto_awesome</span>
+        Sugerencias de Reabasto
+      </h3>
+      <p class="text-sm text-on-surface-variant mb-4">Productos que necesitas reabastecer basado en velocidad de venta.</p>
+      <div id="reorder-list" class="space-y-0"></div>
+    </div>
+  </section>
+
+  <!-- Client Reorder Predictions -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <h3 class="text-lg font-display font-bold mb-2 flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">psychology</span>
+      Predicción de Recompra
+    </h3>
+    <p class="text-sm text-on-surface-variant mb-6">Clientes que probablemente necesitan volver a comprar pronto.</p>
+    <div id="reorder-clients" class="space-y-0"></div>
+  </section>
+</DashboardLayout>
+
+<style>
+  .bar-col { transition: all 0.4s cubic-bezier(0.4,0,0.2,1); }
+  .bar-col:hover .bar-fill { filter: brightness(1.15); }
+  .bar-col .bar-tooltip { opacity: 0; transform: translateX(-50%) translateY(4px); transition: all 0.2s; }
+  .bar-col:hover .bar-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .pay-bar { transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+  .cat-bar { transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login'; throw new Error(''); }
+  const userId = session.user.id;
+
+  const periodSelect = document.getElementById('period-select') as HTMLSelectElement;
+
+  async function loadReport() {
+    const now = new Date();
+    let startDate: string;
+    const period = periodSelect.value;
+    switch(period) {
+      case '3months': startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString(); break;
+      case '6months': startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1).toISOString(); break;
+      case 'year': startDate = new Date(now.getFullYear(), 0, 1).toISOString(); break;
+      case 'all': startDate = '2020-01-01'; break;
+      default: startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    }
+
+    const [{ data: orders }, { data: customers }, { data: products }] = await Promise.all([
+      supabase.from('orders').select('*, order_items(*, products(*)), customers(full_name, phone, created_at)').eq('consultant_id', userId).gte('created_at', startDate).order('created_at', { ascending: true }),
+      supabase.from('customers').select('*').eq('consultant_id', userId).gte('created_at', startDate),
+      supabase.from('products').select('*').eq('consultant_id', userId)
+    ]);
+
+    const valid = (orders || []).filter((o: any) => o.status !== 'cancelled');
+    const totalRevenue = valid.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+    const avgTicket = valid.length > 0 ? totalRevenue / valid.length : 0;
+    const abonoOrders = valid.filter((o: any) => o.payment_method === 'abonos');
+    const contadoOrders = valid.filter((o: any) => o.payment_method !== 'abonos');
+    const collectionRate = valid.length > 0 ? ((contadoOrders.length / valid.length) * 100) : 0;
+
+    (document.getElementById('r-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    (document.getElementById('r-orders') as HTMLElement).textContent = String(valid.length);
+    (document.getElementById('r-avg') as HTMLElement).textContent = '$' + avgTicket.toFixed(2);
+    (document.getElementById('r-new-clients') as HTMLElement).textContent = String((customers || []).length);
+    (document.getElementById('r-collection') as HTMLElement).textContent = collectionRate.toFixed(0) + '%';
+
+    // Daily chart (bar chart)
+    const dailyData: Record<string, number> = {};
+    valid.forEach((o: any) => {
+      const day = new Date(o.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+      dailyData[day] = (dailyData[day] || 0) + Number(o.total_amount);
+    });
+    const dailyChart = document.getElementById('daily-chart') as HTMLElement;
+    const dailyLabels = document.getElementById('daily-labels') as HTMLElement;
+    const dailyEmpty = document.getElementById('daily-empty') as HTMLElement;
+    dailyChart.innerHTML = '';
+    dailyLabels.innerHTML = '';
+
+    const days = Object.entries(dailyData).slice(-14);
+    if (!days.length) {
+      dailyChart.classList.add('hidden');
+      dailyLabels.classList.add('hidden');
+      dailyEmpty.classList.remove('hidden');
+    } else {
+      dailyChart.classList.remove('hidden');
+      dailyLabels.classList.remove('hidden');
+      dailyEmpty.classList.add('hidden');
+      const maxDay = Math.max(...days.map(d => d[1]), 1);
+      const bestDay = days.reduce((a, b) => a[1] > b[1] ? a : b);
+      (document.getElementById('daily-insight') as HTMLElement).textContent = `Mejor día: ${bestDay[0]} ($${bestDay[1].toFixed(0)})`;
+      days.forEach(([day, val]) => {
+        const pct = (val / maxDay) * 100;
+        const bar = document.createElement('div');
+        bar.className = 'bar-col flex-1 relative cursor-pointer';
+        bar.style.height = '100%';
+        bar.innerHTML = `
+          <div class="absolute bottom-0 w-full bar-fill rounded-t-lg" style="height:${Math.max(pct, 4)}%; background: linear-gradient(180deg, var(--color-secondary) 0%, var(--color-secondary-container) 100%);"></div>
+          <div class="bar-tooltip absolute -top-9 left-1/2 bg-on-surface text-surface text-xs rounded-lg px-2.5 py-1 whitespace-nowrap shadow-lg font-bold z-10">$${val.toFixed(0)}</div>`;
+        dailyChart.appendChild(bar);
+        const label = document.createElement('div');
+        label.className = 'flex-1 text-center text-[10px] text-on-surface-variant truncate font-bold';
+        label.textContent = day.split(' ')[0];
+        dailyLabels.appendChild(label);
+      });
+    }
+
+    // Category chart
+    const catData: Record<string, number> = {};
+    valid.forEach((o: any) => {
+      (o.order_items || []).forEach((i: any) => {
+        const cat = i.products?.category || 'Sin categoría';
+        catData[cat] = (catData[cat] || 0) + (i.quantity * Number(i.unit_price));
+      });
+    });
+    const catChart = document.getElementById('category-chart') as HTMLElement;
+    const catEmpty = document.getElementById('category-empty') as HTMLElement;
+    catChart.innerHTML = '';
+
+    const cats = Object.entries(catData).sort((a, b) => b[1] - a[1]);
+    if (!cats.length) {
+      catChart.classList.add('hidden');
+      catEmpty.classList.remove('hidden');
+    } else {
+      catChart.classList.remove('hidden');
+      catEmpty.classList.add('hidden');
+      const maxCat = cats[0]?.[1] || 1;
+      const totalCat = cats.reduce((s, [,v]) => s + v, 0);
+      const gradients = [
+        'linear-gradient(90deg, #8B5A2B, #A0522D)',
+        'linear-gradient(90deg, #6B8E23, #8FBC8F)',
+        'linear-gradient(90deg, #CD853F, #D2B48C)',
+        'linear-gradient(90deg, #708090, #778899)',
+        'linear-gradient(90deg, #BC8F8F, #DEB887)'
+      ];
+      cats.forEach(([cat, val], idx) => {
+        const pct = (val / maxCat) * 100;
+        const pctTotal = ((val / totalCat) * 100).toFixed(0);
+        const el = document.createElement('div');
+        el.innerHTML = `
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-bold text-on-surface">${cat}</span>
+            <span class="text-on-surface-variant font-bold">$${val.toFixed(0)} <span class="text-[10px] font-normal">(${pctTotal}%)</span></span>
+          </div>
+          <div class="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden">
+            <div class="cat-bar h-full rounded-full" style="width:0%; background:${gradients[idx % gradients.length]};"></div>
+          </div>`;
+        catChart.appendChild(el);
+        // Animate bar
+        requestAnimationFrame(() => {
+          const bar = el.querySelector('.cat-bar') as HTMLElement;
+          if (bar) bar.style.width = pct + '%';
+        });
+      });
+    }
+
+    // Payment methods
+    const payChart = document.getElementById('payment-chart') as HTMLElement;
+    payChart.innerHTML = '';
+    const contadoRev = contadoOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+    const abonoRev = abonoOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+    const totalPay = contadoRev + abonoRev || 1;
+
+    [
+      { name: 'Contado', icon: 'payments', val: contadoRev, count: contadoOrders.length, gradient: 'linear-gradient(90deg, #6B8E23, #8FBC8F)' },
+      { name: 'Abonos', icon: 'calendar_month', val: abonoRev, count: abonoOrders.length, gradient: 'linear-gradient(90deg, #8B5A2B, #CD853F)' }
+    ].forEach(m => {
+      const pct = (m.val / totalPay) * 100;
+      const el = document.createElement('div');
+      el.className = 'bg-surface-container-low/30 rounded-2xl p-4';
+      el.innerHTML = `
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-on-surface-variant text-lg">${m.icon}</span>
+            </div>
+            <div>
+              <p class="font-bold text-on-surface text-sm">${m.name}</p>
+              <p class="text-[10px] text-on-surface-variant">${m.count} transacciones</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-on-surface">$${m.val.toFixed(0)}</p>
+            <p class="text-[10px] text-on-surface-variant font-bold">${pct.toFixed(0)}%</p>
+          </div>
+        </div>
+        <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="pay-bar h-full rounded-full" style="width:0%; background:${m.gradient};"></div>
+        </div>`;
+      payChart.appendChild(el);
+      requestAnimationFrame(() => {
+        const bar = el.querySelector('.pay-bar') as HTMLElement;
+        if (bar) bar.style.width = pct + '%';
+      });
+    });
+
+    // Reorder suggestions
+    const reorderEl = document.getElementById('reorder-list') as HTMLElement;
+    reorderEl.innerHTML = '';
+    const prodSales: Record<string, { name: string; sold: number; stock: number }> = {};
+    valid.forEach((o: any) => {
+      (o.order_items || []).forEach((i: any) => {
+        const pid = i.product_id;
+        if (!prodSales[pid]) prodSales[pid] = { name: i.products?.name || '?', sold: 0, stock: 0 };
+        prodSales[pid].sold += i.quantity;
+      });
+    });
+    (products || []).forEach((p: any) => { if (prodSales[p.id]) prodSales[p.id].stock = p.stock; });
+    const needReorder = Object.entries(prodSales).filter(([, d]) => d.stock <= d.sold * 0.3).sort((a, b) => a[1].stock - b[1].stock).slice(0, 5);
+    if (!needReorder.length) {
+      reorderEl.innerHTML = `
+        <div class="text-center py-6">
+          <div class="w-14 h-14 mx-auto bg-green-100 rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined text-green-600 text-2xl">check_circle</span>
+          </div>
+          <p class="text-green-700 font-bold text-sm">Stock saludable</p>
+          <p class="text-on-surface-variant/60 text-xs mt-1">Todos tus productos tienen inventario suficiente</p>
+        </div>`;
+    } else {
+      needReorder.forEach(([, d], idx) => {
+        const el = document.createElement('div');
+        el.className = 'flex items-center gap-3 py-3.5' + (idx > 0 ? ' border-t border-surface-container' : '');
+        el.innerHTML = `
+          <div class="w-9 h-9 rounded-xl ${d.stock <= 0 ? 'bg-red-100' : 'bg-amber-100'} flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined ${d.stock <= 0 ? 'text-red-600' : 'text-amber-600'} text-lg">inventory_2</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-on-surface text-sm">${d.name}</p>
+            <p class="text-xs text-on-surface-variant">Vendidos: ${d.sold} | Stock: ${d.stock}</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full ${d.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">${d.stock <= 0 ? 'Agotado' : 'Reabastecer'}</span>`;
+        reorderEl.appendChild(el);
+      });
+    }
+
+    // Reorder predictions (clients)
+    const clientsEl = document.getElementById('reorder-clients') as HTMLElement;
+    clientsEl.innerHTML = '';
+    const clientOrders: Record<string, { name: string; lastOrder: Date; avgDays: number; orders: Date[] }> = {};
+    valid.forEach((o: any) => {
+      const cid = o.customer_id;
+      const name = o.customers?.full_name || 'Cliente';
+      if (!clientOrders[cid]) clientOrders[cid] = { name, lastOrder: new Date(o.created_at), avgDays: 30, orders: [] };
+      clientOrders[cid].orders.push(new Date(o.created_at));
+      if (new Date(o.created_at) > clientOrders[cid].lastOrder) clientOrders[cid].lastOrder = new Date(o.created_at);
+    });
+    Object.values(clientOrders).forEach(c => {
+      if (c.orders.length >= 2) {
+        c.orders.sort((a, b) => a.getTime() - b.getTime());
+        let totalGap = 0;
+        for (let i = 1; i < c.orders.length; i++) totalGap += (c.orders[i].getTime() - c.orders[i-1].getTime()) / (1000 * 60 * 60 * 24);
+        c.avgDays = totalGap / (c.orders.length - 1);
+      }
+    });
+    const predictions = Object.entries(clientOrders)
+      .map(([cid, c]) => ({ cid, ...c, daysSince: (now.getTime() - c.lastOrder.getTime()) / (1000 * 60 * 60 * 24) }))
+      .filter(c => c.daysSince > c.avgDays * 0.8)
+      .sort((a, b) => (b.daysSince / b.avgDays) - (a.daysSince / a.avgDays))
+      .slice(0, 5);
+
+    if (!predictions.length) {
+      clientsEl.innerHTML = `
+        <div class="text-center py-8">
+          <div class="w-14 h-14 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined text-on-surface-variant/30 text-2xl">psychology</span>
+          </div>
+          <p class="text-on-surface-variant font-bold text-sm">Sin predicciones disponibles</p>
+          <p class="text-on-surface-variant/60 text-xs mt-1">Se necesitan más datos históricos de ventas</p>
+        </div>`;
+    } else {
+      predictions.forEach((c, idx) => {
+        const overdue = c.daysSince > c.avgDays;
+        const el = document.createElement('a');
+        el.href = '/clientes/perfil?id=' + c.cid;
+        el.className = 'flex items-center gap-4 py-3.5 hover:bg-surface-container-low/50 rounded-xl px-3 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
+        el.innerHTML = `
+          <div class="w-10 h-10 rounded-xl ${overdue ? 'bg-red-100' : 'bg-amber-100'} flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined ${overdue ? 'text-red-600' : 'text-amber-600'} text-lg">${overdue ? 'notifications_active' : 'schedule'}</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-bold text-on-surface text-sm">${c.name}</h4>
+            <p class="text-xs text-on-surface-variant">Última compra hace ${Math.round(c.daysSince)} días (promedio: ${Math.round(c.avgDays)} días)</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full ${overdue ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">${overdue ? '⚠️ Vencido' : '🔜 Pronto'}</span>`;
+        clientsEl.appendChild(el);
+      });
+    }
+  }
+
+  periodSelect.addEventListener('change', loadReport);
+  loadReport();
+</script>

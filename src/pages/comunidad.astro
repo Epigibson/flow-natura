@@ -1,0 +1,605 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Feed Column -->
+    <div class="lg:col-span-2">
+      <header class="mb-8">
+        <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">COMMUNITY HUB</p>
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Comunidad Natura Flow</h2>
+        <p class="text-on-surface-variant mt-2 text-lg">Conecta con otras consultoras, comparte consejos y celebra logros.</p>
+      </header>
+
+      <!-- Topic Filters -->
+      <div class="flex flex-wrap gap-2 mb-6">
+        <button class="topic-filter active text-xs font-bold px-4 py-2 rounded-full bg-primary text-white transition-all" data-topic="all">
+          <span class="material-symbols-outlined text-xs align-middle mr-0.5">apps</span> Todo
+        </button>
+        <button class="topic-filter text-xs font-bold px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 transition-all" data-topic="logro">
+          🏆 Logros
+        </button>
+        <button class="topic-filter text-xs font-bold px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 transition-all" data-topic="tip">
+          💡 Tips
+        </button>
+        <button class="topic-filter text-xs font-bold px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 transition-all" data-topic="pregunta">
+          ❓ Preguntas
+        </button>
+        <button class="topic-filter text-xs font-bold px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 transition-all" data-topic="motivacion">
+          💪 Motivación
+        </button>
+      </div>
+
+      <!-- Post Creation -->
+      <section class="bg-surface-container-lowest rounded-[2rem] p-6 mb-6 shadow-sm">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center shrink-0 shadow-sm" id="user-avatar">
+            <span class="material-symbols-outlined text-primary">person</span>
+          </div>
+          <div class="flex-1">
+            <textarea id="post-input" rows="3" placeholder="¿Qué quieres compartir con la comunidad? 💬"
+              class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container resize-none text-sm"></textarea>
+            <div class="flex items-center justify-between mt-3">
+              <div class="flex items-center gap-1">
+                <button class="tag-btn flex items-center gap-1 text-xs py-1.5 px-3 rounded-full text-on-surface-variant border border-outline-variant/10 hover:bg-primary/5 hover:text-primary transition-all" data-tag="logro">
+                  🏆 Logro
+                </button>
+                <button class="tag-btn flex items-center gap-1 text-xs py-1.5 px-3 rounded-full text-on-surface-variant border border-outline-variant/10 hover:bg-primary/5 hover:text-primary transition-all" data-tag="tip">
+                  💡 Tip
+                </button>
+                <button class="tag-btn flex items-center gap-1 text-xs py-1.5 px-3 rounded-full text-on-surface-variant border border-outline-variant/10 hover:bg-primary/5 hover:text-primary transition-all" data-tag="pregunta">
+                  ❓ Pregunta
+                </button>
+                <button class="tag-btn flex items-center gap-1 text-xs py-1.5 px-3 rounded-full text-on-surface-variant border border-outline-variant/10 hover:bg-primary/5 hover:text-primary transition-all" data-tag="motivacion">
+                  💪 Motivación
+                </button>
+              </div>
+              <button id="btn-post" class="flex items-center gap-2 py-2.5 px-6 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md shadow-primary/20 text-sm">
+                <span class="material-symbols-outlined text-sm">send</span> Publicar
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Loading State -->
+      <div id="feed-loading" class="flex flex-col items-center justify-center py-16">
+        <span class="material-symbols-outlined text-4xl text-primary animate-spin mb-3">refresh</span>
+        <p class="text-on-surface-variant text-sm">Cargando comunidad...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="feed-empty" class="hidden flex flex-col items-center justify-center py-16 text-center">
+        <span class="text-6xl mb-4">💬</span>
+        <h3 class="font-display font-bold text-xl text-on-surface mb-2">¡Sé la primera en publicar!</h3>
+        <p class="text-on-surface-variant text-sm max-w-sm">La comunidad está empezando. Comparte un tip, celebra un logro o haz una pregunta.</p>
+      </div>
+
+      <!-- Feed -->
+      <section class="space-y-5" id="feed"></section>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="space-y-6">
+      <!-- Community Stats -->
+      <div class="bg-gradient-to-br from-primary/10 via-secondary/5 to-tertiary/10 rounded-[2rem] p-6 shadow-sm relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -translate-y-12 translate-x-12"></div>
+        <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2 relative z-10">
+          <span class="material-symbols-outlined text-primary">groups</span>
+          Stats de la Comunidad
+        </h3>
+        <div class="grid grid-cols-2 gap-3 relative z-10">
+          <div class="bg-white/50 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-primary" id="stat-consultoras">-</p>
+            <p class="text-[10px] text-on-surface-variant font-bold uppercase">Consultoras</p>
+          </div>
+          <div class="bg-white/50 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-secondary" id="stat-posts">-</p>
+            <p class="text-[10px] text-on-surface-variant font-bold uppercase">Posts</p>
+          </div>
+          <div class="bg-white/50 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-tertiary" id="stat-reactions">-</p>
+            <p class="text-[10px] text-on-surface-variant font-bold uppercase">Reacciones</p>
+          </div>
+          <div class="bg-white/50 backdrop-blur-sm rounded-xl p-3 text-center">
+            <p class="text-xl font-display font-bold text-on-surface" id="stat-comments">-</p>
+            <p class="text-[10px] text-on-surface-variant font-bold uppercase">Comentarios</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Contributors -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+        <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">military_tech</span>
+          Top Contribuidoras
+        </h3>
+        <div class="space-y-3" id="top-contributors">
+          <p class="text-sm text-on-surface-variant text-center py-4">Cargando...</p>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+        <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary">link</span>
+          Recursos
+        </h3>
+        <div class="space-y-2">
+          <a href="/mentoria" class="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-primary/5 transition-colors group">
+            <span class="material-symbols-outlined text-primary text-lg">school</span>
+            <span class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Mentoría</span>
+          </a>
+          <a href="/logros" class="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-primary/5 transition-colors group">
+            <span class="material-symbols-outlined text-secondary text-lg">emoji_events</span>
+            <span class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Logros</span>
+          </a>
+          <a href="/soporte" class="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-primary/5 transition-colors group">
+            <span class="material-symbols-outlined text-tertiary text-lg">support_agent</span>
+            <span class="text-sm font-bold text-on-surface group-hover:text-primary transition-colors">Soporte</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</DashboardLayout>
+
+<style>
+  .post-card { transition: all 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .btn-react { transition: all 0.15s; cursor: pointer; }
+  .btn-react:active { transform: scale(0.9); }
+  .btn-react.reacted { font-weight: bold; }
+  .tag-btn.selected { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+  .comment-section { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .comment-section.open { max-height: 500px; overflow-y: auto; }
+</style>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  const feed = document.getElementById('feed')!;
+  const feedLoading = document.getElementById('feed-loading')!;
+  const feedEmpty = document.getElementById('feed-empty')!;
+  const btnPost = document.getElementById('btn-post') as HTMLButtonElement;
+  const postInput = document.getElementById('post-input') as HTMLTextAreaElement;
+  let selectedTag = '';
+  let currentTopic = 'all';
+  let currentUserId = '';
+  let currentUserName = '';
+  let userReactions: Set<string> = new Set(); // "postId:type"
+
+  const topicLabels: Record<string, string> = {
+    logro: '🏆 Logro', tip: '💡 Tip', pregunta: '❓ Pregunta', motivacion: '💪 Motivación', general: '💬 General'
+  };
+  const topicColors: Record<string, string> = {
+    logro: 'bg-secondary-container/30 text-secondary',
+    tip: 'bg-primary-container/20 text-primary',
+    pregunta: 'bg-tertiary-container/20 text-tertiary',
+    motivacion: 'bg-purple-100 text-purple-700',
+    general: 'bg-surface-container-highest text-on-surface-variant',
+  };
+
+  // Get current user
+  async function getCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    currentUserId = user.id;
+
+    // Get profile name
+    const { data: profile } = await supabase
+      .from('consultant_profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+
+    currentUserName = profile?.full_name || user.email?.split('@')[0] || 'Consultora';
+
+    // Update avatar
+    const initials = currentUserName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+    const avatar = document.getElementById('user-avatar');
+    if (avatar) {
+      avatar.innerHTML = `<span class="font-bold text-sm text-primary">${initials}</span>`;
+    }
+
+    return user;
+  }
+
+  // Load user's reactions
+  async function loadUserReactions() {
+    if (!currentUserId) return;
+    const { data } = await supabase
+      .from('community_reactions')
+      .select('post_id, reaction_type')
+      .eq('user_id', currentUserId);
+
+    userReactions = new Set((data || []).map((r: any) => `${r.post_id}:${r.reaction_type}`));
+  }
+
+  // Time ago helper
+  function timeAgo(date: string): string {
+    const diff = Date.now() - new Date(date).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Justo ahora';
+    if (mins < 60) return `hace ${mins} min`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `hace ${hours}h`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `hace ${days}d`;
+    return new Date(date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+  }
+
+  // Generate avatar color from name
+  function avatarGradient(name: string): string {
+    const colors = [
+      'from-amber-200 to-amber-100',
+      'from-primary/20 to-primary-container/30',
+      'from-purple-200 to-pink-100',
+      'from-green-200 to-emerald-100',
+      'from-blue-200 to-sky-100',
+      'from-rose-200 to-red-100',
+      'from-orange-200 to-yellow-100',
+    ];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  }
+
+  // Render a single post
+  function renderPost(post: any): string {
+    const initials = post.author_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+    const gradient = avatarGradient(post.author_name);
+    const isOwn = post.author_id === currentUserId;
+
+    const reactionBtns = ['love', 'fire', 'clap', 'save'].map(type => {
+      const icons: Record<string, [string, string]> = {
+        love: ['🤍', '❤️'], fire: ['🔥', '🔥'], clap: ['👏', '👏'], save: ['🔖', '🔖']
+      };
+      const hoverColors: Record<string, string> = {
+        love: 'hover:bg-red-50 hover:text-red-500',
+        fire: 'hover:bg-amber-50 hover:text-amber-600',
+        clap: 'hover:bg-blue-50 hover:text-blue-500',
+        save: 'hover:bg-green-50 hover:text-green-600',
+      };
+      const count = post[`${type}_count`] || 0;
+      const reacted = userReactions.has(`${post.id}:${type}`);
+      const icon = reacted ? icons[type][1] : icons[type][0];
+      return `<button class="btn-react flex items-center gap-1.5 text-sm py-1.5 px-3 rounded-xl text-on-surface-variant ${hoverColors[type]} transition-all ${reacted ? 'reacted' : ''}" data-type="${type}" data-post="${post.id}">
+        <span class="react-icon">${icon}</span> <span class="react-count">${count}</span>
+      </button>`;
+    }).join('');
+
+    const topicBadge = post.topic !== 'general'
+      ? `<span class="px-3 py-1 rounded-full text-xs font-bold ${topicColors[post.topic] || ''}">${topicLabels[post.topic] || post.topic}</span>`
+      : '';
+
+    const deleteBtn = isOwn
+      ? `<button class="btn-delete-post text-xs text-on-surface-variant/50 hover:text-red-500 py-1.5 px-2 rounded-xl hover:bg-red-50 transition-all ml-2" data-post="${post.id}"><span class="material-symbols-outlined text-sm">delete</span></button>`
+      : '';
+
+    return `
+      <article class="post-card bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all" data-topic="${post.topic}" data-post-id="${post.id}">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
+            <span class="font-bold text-sm">${initials}</span>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-bold text-on-surface">${post.author_name}</h4>
+            <p class="text-xs text-on-surface-variant">${timeAgo(post.created_at)}</p>
+          </div>
+          ${topicBadge}
+          ${deleteBtn}
+        </div>
+        <p class="text-on-surface mb-4 leading-relaxed">${post.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+        <div class="flex items-center gap-1 pt-4 border-t border-surface-container">
+          ${reactionBtns}
+          <div class="flex-1"></div>
+          <button class="btn-toggle-comments flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors py-1.5 px-3 rounded-xl hover:bg-primary/5" data-post="${post.id}">
+            <span class="material-symbols-outlined text-base">chat_bubble</span> <span class="comment-count-label">${post.comment_count || 0}</span>
+          </button>
+        </div>
+        <!-- Comments Section -->
+        <div class="comment-section mt-4" id="comments-${post.id}">
+          <div class="space-y-3 comments-list"></div>
+          <div class="flex items-center gap-2 mt-3 pt-3 border-t border-surface-container">
+            <input type="text" class="comment-input flex-1 bg-surface-container-highest rounded-lg py-2 px-3 text-xs focus:ring-1 focus:ring-primary-container" placeholder="Escribe un comentario..." data-post="${post.id}">
+            <button class="btn-send-comment text-xs py-2 px-3 rounded-lg bg-primary text-white font-bold hover:scale-[1.02] transition-all" data-post="${post.id}">
+              <span class="material-symbols-outlined text-sm">send</span>
+            </button>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  // Load feed posts
+  async function loadFeed() {
+    feedLoading.classList.remove('hidden');
+    feedEmpty.classList.add('hidden');
+    feed.innerHTML = '';
+
+    let query = supabase
+      .from('community_posts_with_stats')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    if (currentTopic !== 'all') {
+      query = query.eq('topic', currentTopic);
+    }
+
+    const { data: posts, error } = await query;
+
+    feedLoading.classList.add('hidden');
+
+    if (error) {
+      console.error('Error loading posts:', error);
+      feed.innerHTML = `<div class="text-center py-12"><p class="text-on-surface-variant">Error al cargar posts. ¿Ya ejecutaste la migración SQL?</p><p class="text-xs text-on-surface-variant/50 mt-2">${error.message}</p></div>`;
+      return;
+    }
+
+    if (!posts || posts.length === 0) {
+      feedEmpty.classList.remove('hidden');
+      return;
+    }
+
+    feed.innerHTML = posts.map(renderPost).join('');
+    bindPostEvents();
+  }
+
+  // Bind events to dynamically created posts
+  function bindPostEvents() {
+    // Reactions
+    feed.querySelectorAll('.btn-react').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!currentUserId) return;
+        const postId = (btn as HTMLElement).dataset.post!;
+        const type = (btn as HTMLElement).dataset.type!;
+        const key = `${postId}:${type}`;
+        const countEl = btn.querySelector('.react-count') as HTMLElement;
+        const iconEl = btn.querySelector('.react-icon') as HTMLElement;
+        const icons: Record<string, [string, string]> = {
+          love: ['🤍', '❤️'], fire: ['🔥', '🔥'], clap: ['👏', '👏'], save: ['🔖', '🔖']
+        };
+
+        if (userReactions.has(key)) {
+          // Remove reaction
+          await supabase.from('community_reactions').delete()
+            .eq('post_id', postId).eq('user_id', currentUserId).eq('reaction_type', type);
+          userReactions.delete(key);
+          btn.classList.remove('reacted');
+          countEl.textContent = String(Math.max(0, parseInt(countEl.textContent || '0') - 1));
+          if (type === 'love') iconEl.textContent = icons.love[0];
+        } else {
+          // Add reaction
+          await supabase.from('community_reactions').insert({
+            post_id: postId, user_id: currentUserId, reaction_type: type
+          });
+          userReactions.add(key);
+          btn.classList.add('reacted');
+          countEl.textContent = String(parseInt(countEl.textContent || '0') + 1);
+          if (type === 'love') iconEl.textContent = icons.love[1];
+        }
+      });
+    });
+
+    // Toggle comments
+    feed.querySelectorAll('.btn-toggle-comments').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const postId = (btn as HTMLElement).dataset.post!;
+        const section = document.getElementById(`comments-${postId}`);
+        if (!section) return;
+        const isOpen = section.classList.contains('open');
+        if (isOpen) {
+          section.classList.remove('open');
+        } else {
+          section.classList.add('open');
+          await loadComments(postId);
+        }
+      });
+    });
+
+    // Send comment
+    feed.querySelectorAll('.btn-send-comment').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const postId = (btn as HTMLElement).dataset.post!;
+        const input = feed.querySelector(`.comment-input[data-post="${postId}"]`) as HTMLInputElement;
+        const text = input?.value.trim();
+        if (!text || !currentUserId) return;
+
+        input.value = '';
+        const { error } = await supabase.from('community_comments').insert({
+          post_id: postId, author_id: currentUserId, author_name: currentUserName, content: text
+        });
+        if (!error) {
+          await loadComments(postId);
+          // Update comment count label
+          const label = feed.querySelector(`[data-post-id="${postId}"] .comment-count-label`);
+          if (label) label.textContent = String(parseInt(label.textContent || '0') + 1);
+        }
+      });
+    });
+
+    // Enter key on comment input
+    feed.querySelectorAll('.comment-input').forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if ((e as KeyboardEvent).key === 'Enter') {
+          const postId = (input as HTMLElement).dataset.post!;
+          const sendBtn = feed.querySelector(`.btn-send-comment[data-post="${postId}"]`) as HTMLElement;
+          sendBtn?.click();
+        }
+      });
+    });
+
+    // Delete post
+    feed.querySelectorAll('.btn-delete-post').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const postId = (btn as HTMLElement).dataset.post!;
+        if (!confirm('¿Eliminar este post?')) return;
+        await supabase.from('community_posts').delete().eq('id', postId);
+        const article = feed.querySelector(`[data-post-id="${postId}"]`);
+        if (article) article.remove();
+        loadSidebarStats();
+      });
+    });
+  }
+
+  // Load comments for a post
+  async function loadComments(postId: string) {
+    const section = document.getElementById(`comments-${postId}`);
+    if (!section) return;
+    const list = section.querySelector('.comments-list')!;
+
+    const { data: comments } = await supabase
+      .from('community_comments')
+      .select('*')
+      .eq('post_id', postId)
+      .order('created_at', { ascending: true });
+
+    if (!comments || comments.length === 0) {
+      list.innerHTML = '<p class="text-xs text-on-surface-variant text-center py-2">Sin comentarios aún</p>';
+      return;
+    }
+
+    list.innerHTML = comments.map((c: any) => {
+      const initials = c.author_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+      const gradient = avatarGradient(c.author_name);
+      return `<div class="flex items-start gap-2">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0">
+          <span class="font-bold text-[10px]">${initials}</span>
+        </div>
+        <div class="bg-surface-container-highest rounded-xl px-3 py-2 flex-1">
+          <p class="text-xs font-bold text-on-surface">${c.author_name} <span class="font-normal text-on-surface-variant">${timeAgo(c.created_at)}</span></p>
+          <p class="text-xs text-on-surface mt-0.5">${c.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Sidebar stats
+  async function loadSidebarStats() {
+    const { count: postCount } = await supabase.from('community_posts').select('*', { count: 'exact', head: true });
+    const { count: reactionCount } = await supabase.from('community_reactions').select('*', { count: 'exact', head: true });
+    const { count: commentCount } = await supabase.from('community_comments').select('*', { count: 'exact', head: true });
+
+    // Count unique authors
+    const { data: authors } = await supabase.from('community_posts').select('author_id');
+    const uniqueAuthors = new Set((authors || []).map((a: any) => a.author_id)).size;
+
+    document.getElementById('stat-consultoras')!.textContent = String(uniqueAuthors || 0);
+    document.getElementById('stat-posts')!.textContent = String(postCount || 0);
+    document.getElementById('stat-reactions')!.textContent = String(reactionCount || 0);
+    document.getElementById('stat-comments')!.textContent = String(commentCount || 0);
+  }
+
+  // Top contributors
+  async function loadTopContributors() {
+    const container = document.getElementById('top-contributors')!;
+    const { data: posts } = await supabase.from('community_posts').select('author_id, author_name');
+
+    if (!posts || posts.length === 0) {
+      container.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">Aún no hay contribuidoras</p>';
+      return;
+    }
+
+    // Count posts per author
+    const counts: Record<string, { name: string; count: number }> = {};
+    for (const p of posts) {
+      if (!counts[p.author_id]) counts[p.author_id] = { name: p.author_name, count: 0 };
+      counts[p.author_id].count++;
+    }
+
+    const sorted = Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 3);
+    const medals = ['🥇', '🥈', '🥉'];
+
+    container.innerHTML = sorted.map((c, i) => {
+      const initials = c.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+      const gradient = avatarGradient(c.name);
+      return `<div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
+          <span class="font-bold text-xs">${initials}</span>
+        </div>
+        <div class="flex-1">
+          <p class="font-bold text-sm text-on-surface">${c.name}</p>
+          <p class="text-[10px] text-on-surface-variant">${c.count} posts</p>
+        </div>
+        <span class="text-lg">${medals[i]}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Tag selection for new posts
+  document.querySelectorAll('.tag-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tag = (btn as HTMLElement).dataset.tag!;
+      if (selectedTag === tag) {
+        selectedTag = '';
+        btn.classList.remove('selected');
+      } else {
+        document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+        selectedTag = tag;
+        btn.classList.add('selected');
+      }
+    });
+  });
+
+  // Topic filter
+  document.querySelectorAll('.topic-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentTopic = (btn as HTMLElement).dataset.topic!;
+      document.querySelectorAll('.topic-filter').forEach(b => {
+        b.className = 'topic-filter text-xs font-bold px-4 py-2 rounded-full bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 transition-all';
+      });
+      btn.className = 'topic-filter active text-xs font-bold px-4 py-2 rounded-full bg-primary text-white transition-all';
+      loadFeed();
+    });
+  });
+
+  // New post
+  btnPost.addEventListener('click', async () => {
+    const text = postInput.value.trim();
+    if (!text || !currentUserId) return;
+
+    btnPost.disabled = true;
+    btnPost.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Publicando...';
+
+    const { error } = await supabase.from('community_posts').insert({
+      author_id: currentUserId,
+      author_name: currentUserName,
+      content: text,
+      topic: selectedTag || 'general',
+    });
+
+    btnPost.disabled = false;
+    btnPost.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Publicar';
+
+    if (error) {
+      console.error('Error creating post:', error);
+      alert('Error al publicar: ' + error.message);
+      return;
+    }
+
+    postInput.value = '';
+    selectedTag = '';
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('selected'));
+
+    // Refresh feed and stats
+    await loadFeed();
+    loadSidebarStats();
+    loadTopContributors();
+  });
+
+  // Init
+  async function init() {
+    await getCurrentUser();
+    await loadUserReactions();
+    await loadFeed();
+    loadSidebarStats();
+    loadTopContributors();
+  }
+
+  init();
+</script>

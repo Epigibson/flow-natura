@@ -1,0 +1,333 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <!-- Header (dynamic) -->
+  <header id="profile-header" class="mb-10">
+    <a href="/clientes" class="text-primary font-bold text-sm flex items-center gap-1 mb-4 hover:underline">
+      <span class="material-symbols-outlined text-sm">arrow_back</span> Mis Clientes
+    </a>
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-6">
+        <div id="avatar" class="w-20 h-20 rounded-full bg-primary-container/20 flex items-center justify-center text-primary text-3xl font-display font-bold shadow-md"></div>
+        <div>
+          <h2 id="client-name" class="text-4xl font-display font-bold text-on-surface">Cargando...</h2>
+          <p id="client-since" class="text-on-surface-variant mt-1"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btn-whatsapp" class="flex items-center gap-2 py-2 px-5 rounded-xl font-bold bg-secondary text-white hover:scale-[1.02] transition-all shadow-md">
+          <span class="material-symbols-outlined text-sm">chat</span> WhatsApp
+        </button>
+        <button id="btn-edit" class="flex items-center gap-2 py-2 px-5 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-colors">
+          <span class="material-symbols-outlined text-sm">edit</span> Editar
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Total Comprado</p>
+      <p id="kpi-total-spent" class="text-3xl font-display font-bold text-on-surface">$0</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Compras</p>
+      <p id="kpi-orders" class="text-3xl font-display font-bold text-secondary">0</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Deuda Pendiente</p>
+      <p id="kpi-debt" class="text-3xl font-display font-bold text-primary">$0</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Última Compra</p>
+      <p id="kpi-last-order" class="text-lg font-bold text-on-surface">—</p>
+    </div>
+  </section>
+
+  <!-- Main content grid -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Contact Info -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">person</span>
+        Información de Contacto
+      </h3>
+      <div class="space-y-4" id="contact-info">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-on-surface-variant">phone</span>
+          <div>
+            <p class="text-xs text-on-surface-variant">Teléfono</p>
+            <p id="info-phone" class="font-bold text-on-surface">—</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-on-surface-variant">email</span>
+          <div>
+            <p class="text-xs text-on-surface-variant">Correo</p>
+            <p id="info-email" class="font-bold text-on-surface">—</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-on-surface-variant">location_on</span>
+          <div>
+            <p class="text-xs text-on-surface-variant">Dirección</p>
+            <p id="info-address" class="font-bold text-on-surface">—</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 pt-6 border-t border-surface-container">
+        <h4 class="text-sm font-bold text-on-surface-variant uppercase tracking-wider mb-2">Preferencias / Notas</h4>
+        <p id="info-preferences" class="text-on-surface text-sm italic">Sin notas.</p>
+      </div>
+    </div>
+
+    <!-- Purchase History -->
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">receipt_long</span>
+        Historial de Compras
+      </h3>
+      <div id="orders-list" class="space-y-0">
+        <div id="orders-loading" class="text-center py-12">
+          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          <p class="text-on-surface-variant mt-2">Cargando historial...</p>
+        </div>
+        <div id="orders-empty" class="text-center py-12 hidden">
+          <span class="material-symbols-outlined text-5xl text-on-surface-variant">shopping_bag</span>
+          <p class="text-on-surface-variant mt-3 text-lg">Este cliente aún no tiene compras.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Favorite Products -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">favorite</span>
+      Productos Favoritos
+    </h3>
+    <div id="fav-products" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div id="fav-loading" class="col-span-full text-center py-8">
+        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Edit Modal -->
+  <dialog id="edit-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full border border-outline-variant/20">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-2xl font-display font-semibold text-primary">Editar Cliente</h3>
+        <button id="btn-close-edit" class="text-on-surface-variant hover:text-error transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <form id="edit-form" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Nombre Completo</label>
+          <input type="text" id="edit-name" required class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-on-surface-variant mb-1">Teléfono</label>
+            <input type="tel" id="edit-phone" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-on-surface-variant mb-1">Correo</label>
+            <input type="email" id="edit-email" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Dirección</label>
+          <input type="text" id="edit-address" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-on-surface-variant mb-1">Preferencias / Notas</label>
+          <textarea id="edit-prefs" rows="3" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container resize-none"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
+          Guardar Cambios
+        </button>
+      </form>
+    </div>
+  </dialog>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const params = new URLSearchParams(window.location.search);
+  const clientId = params.get('id');
+  if (!clientId) window.location.href = '/clientes';
+
+  const nameEl = document.getElementById('client-name') as HTMLElement;
+  const sinceEl = document.getElementById('client-since') as HTMLElement;
+  const avatarEl = document.getElementById('avatar') as HTMLElement;
+  const phoneEl = document.getElementById('info-phone') as HTMLElement;
+  const emailEl = document.getElementById('info-email') as HTMLElement;
+  const addressEl = document.getElementById('info-address') as HTMLElement;
+  const prefsEl = document.getElementById('info-preferences') as HTMLElement;
+  const kpiSpent = document.getElementById('kpi-total-spent') as HTMLElement;
+  const kpiOrders = document.getElementById('kpi-orders') as HTMLElement;
+  const kpiDebt = document.getElementById('kpi-debt') as HTMLElement;
+  const kpiLast = document.getElementById('kpi-last-order') as HTMLElement;
+  const ordersList = document.getElementById('orders-list') as HTMLElement;
+  const ordersLoading = document.getElementById('orders-loading') as HTMLElement;
+  const ordersEmpty = document.getElementById('orders-empty') as HTMLElement;
+  const favProducts = document.getElementById('fav-products') as HTMLElement;
+  const favLoading = document.getElementById('fav-loading') as HTMLElement;
+  const btnWhatsapp = document.getElementById('btn-whatsapp') as HTMLButtonElement;
+  const btnEdit = document.getElementById('btn-edit') as HTMLButtonElement;
+  const editModal = document.getElementById('edit-modal') as HTMLDialogElement;
+  const btnCloseEdit = document.getElementById('btn-close-edit') as HTMLButtonElement;
+  const editForm = document.getElementById('edit-form') as HTMLFormElement;
+
+  let clientData: any = null;
+
+  async function loadProfile() {
+    const { data: client } = await supabase.from('customers').select('*').eq('id', clientId).single();
+    if (!client) { window.location.href = '/clientes'; return; }
+    clientData = client;
+
+    nameEl.textContent = client.full_name;
+    avatarEl.textContent = client.full_name.substring(0, 2).toUpperCase();
+    sinceEl.textContent = 'Cliente desde ' + new Date(client.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long' });
+    phoneEl.textContent = client.phone || 'No registrado';
+    emailEl.textContent = client.email || 'No registrado';
+    addressEl.textContent = client.address || 'No registrada';
+    prefsEl.textContent = client.preferences || 'Sin notas registradas.';
+
+    // Edit form prefill
+    (document.getElementById('edit-name') as HTMLInputElement).value = client.full_name || '';
+    (document.getElementById('edit-phone') as HTMLInputElement).value = client.phone || '';
+    (document.getElementById('edit-email') as HTMLInputElement).value = client.email || '';
+    (document.getElementById('edit-address') as HTMLInputElement).value = client.address || '';
+    (document.getElementById('edit-prefs') as HTMLTextAreaElement).value = client.preferences || '';
+
+    // WhatsApp
+    btnWhatsapp.addEventListener('click', () => {
+      const phone = (client.phone || '').replace(/\D/g, '');
+      if (phone) window.open('https://wa.me/52' + phone, '_blank');
+      else alert('Este cliente no tiene teléfono registrado.');
+    });
+
+    // Load orders
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('*, order_items (*, products (*))')
+      .eq('customer_id', clientId)
+      .neq('payment_method', 'adjustment')
+      .order('created_at', { ascending: false });
+
+    ordersLoading.classList.add('hidden');
+
+    if (!orders || !orders.length) {
+      ordersEmpty.classList.remove('hidden');
+      kpiSpent.textContent = '$0';
+      kpiOrders.textContent = '0';
+      kpiDebt.textContent = '$0';
+      kpiLast.textContent = 'Sin compras';
+    } else {
+      let totalSpent = 0;
+      let totalDebt = 0;
+      const productCount: Record<string, { name: string; qty: number }> = {};
+
+      orders.forEach((o: any, idx: number) => {
+        if (o.status === 'cancelled') return;
+        const amount = Number(o.total_amount);
+        totalSpent += amount;
+
+        // Calculate debt for abonos
+        if (o.payment_method?.toLowerCase() === 'abonos') {
+          try {
+            const terms = JSON.parse(o.notes || '{}');
+            const enganche = Number(terms.enganche || 0);
+            const cuotas = Number(terms.pagos || 1);
+            const pagados = Number(terms.pagos_completados || 0);
+            const remaining = amount - enganche;
+            const montoCuota = remaining / cuotas;
+            const paid = enganche + (montoCuota * pagados);
+            totalDebt += Math.max(0, amount - paid);
+          } catch(e) {}
+        }
+
+        // Track favorite products
+        (o.order_items || []).forEach((item: any) => {
+          const pid = item.product_id;
+          const name = item.products?.name || 'Producto';
+          if (!productCount[pid]) productCount[pid] = { name, qty: 0 };
+          productCount[pid].qty += item.quantity;
+        });
+
+        // Render order row
+        const d = new Date(o.created_at);
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-4 py-5 ' + (idx > 0 ? 'border-t border-surface-container' : '');
+        const statusLabel = o.status === 'cancelled' ? 'Cancelada' : (o.payment_method === 'abonos' ? 'Abonos' : 'Pagada');
+        const statusColor = o.status === 'cancelled' ? 'text-error bg-error-container/10' : (o.payment_method === 'abonos' ? 'text-primary bg-primary-container/10' : 'text-secondary bg-secondary-container/10');
+        const items = (o.order_items || []).map((i: any) => (i.products?.name || 'Producto') + ' x' + i.quantity).join(', ');
+
+        row.innerHTML = '<div class="flex-1">' +
+          '<div class="flex items-center gap-2 mb-1">' +
+            '<h4 class="font-bold text-on-surface">Folio #' + String(o.id).slice(-6).toUpperCase() + '</h4>' +
+            '<span class="px-2 py-0.5 rounded-full text-xs font-bold ' + statusColor + '">' + statusLabel + '</span>' +
+          '</div>' +
+          '<p class="text-sm text-on-surface-variant">' + items + '</p>' +
+          '<p class="text-xs text-on-surface-variant mt-1">' + d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + '</p>' +
+          '</div>' +
+          '<div class="text-right">' +
+            '<p class="font-bold text-on-surface text-lg">$' + amount.toFixed(2) + '</p>' +
+            '<a href="/ventas/detalle?id=' + o.id + '" class="text-primary text-sm font-bold hover:underline">Ver detalle →</a>' +
+          '</div>';
+        ordersList.appendChild(row);
+      });
+
+      const validOrders = orders.filter((o: any) => o.status !== 'cancelled');
+      kpiSpent.textContent = '$' + totalSpent.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+      kpiOrders.textContent = String(validOrders.length);
+      kpiDebt.textContent = totalDebt > 0 ? '$' + totalDebt.toFixed(2) : '$0';
+      kpiLast.textContent = new Date(validOrders[0]?.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+
+      // Favorite products
+      favLoading.classList.add('hidden');
+      const sorted = Object.entries(productCount).sort((a, b) => b[1].qty - a[1].qty).slice(0, 4);
+      if (!sorted.length) {
+        const empty = document.createElement('p');
+        empty.className = 'col-span-full text-center text-on-surface-variant py-4';
+        empty.textContent = 'Sin datos suficientes.';
+        favProducts.appendChild(empty);
+      } else {
+        sorted.forEach(([pid, data]) => {
+          const card = document.createElement('div');
+          card.className = 'bg-surface-container-low rounded-2xl p-5 text-center';
+          card.innerHTML = '<span class="material-symbols-outlined text-primary text-3xl mb-2">favorite</span>' +
+            '<p class="font-bold text-on-surface">' + data.name + '</p>' +
+            '<p class="text-sm text-primary font-bold mt-1">' + data.qty + ' unidades</p>';
+          favProducts.appendChild(card);
+        });
+      }
+    }
+  }
+
+  // Edit
+  btnEdit.addEventListener('click', () => editModal.showModal());
+  btnCloseEdit.addEventListener('click', () => editModal.close());
+  editForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.from('customers').update({
+      full_name: (document.getElementById('edit-name') as HTMLInputElement).value,
+      phone: (document.getElementById('edit-phone') as HTMLInputElement).value,
+      email: (document.getElementById('edit-email') as HTMLInputElement).value || null,
+      address: (document.getElementById('edit-address') as HTMLInputElement).value || null,
+      preferences: (document.getElementById('edit-prefs') as HTMLTextAreaElement).value || null,
+    }).eq('id', clientId);
+    if (error) alert('Error: ' + error.message);
+    else window.location.reload();
+  });
+
+  loadProfile();
+</script>

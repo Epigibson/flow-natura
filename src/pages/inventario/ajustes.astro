@@ -1,0 +1,782 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">GESTIÓN DE STOCK</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Ajustes de Inventario</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Gestiona entradas, salidas y correcciones de stock.</p>
+    </div>
+    <a href="/inventario" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Volver al Inventario
+    </a>
+  </header>
+
+  <!-- Mode Tabs: Individual vs Batch -->
+  <div class="flex gap-2 mb-6">
+    <button id="tab-individual" class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all">
+      <span class="material-symbols-outlined text-lg">edit_note</span>
+      Individual
+    </button>
+    <button id="tab-batch" class="flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all">
+      <span class="material-symbols-outlined text-lg">playlist_add</span>
+      Masivo
+    </button>
+  </div>
+
+  <!-- ===================== INDIVIDUAL MODE ===================== -->
+  <section id="section-individual" class="bg-surface-container-lowest rounded-[2rem] p-8 mb-8 shadow-sm">
+    <h3 class="text-2xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">tune</span>
+      Ajuste Individual
+    </h3>
+
+    <!-- Adjustment type selector -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <button data-type="increase" class="adj-type-btn active flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-green-500 bg-green-50 text-green-700 font-bold transition-all">
+        <span class="material-symbols-outlined text-2xl">add_circle</span>
+        <span class="text-sm">Entrada</span>
+        <span class="text-[10px] font-normal opacity-70">Agregar stock</span>
+      </button>
+      <button data-type="decrease" class="adj-type-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-outline-variant/20 bg-surface-container text-on-surface-variant font-bold hover:border-outline-variant/40 transition-all">
+        <span class="material-symbols-outlined text-2xl">remove_circle</span>
+        <span class="text-sm">Salida</span>
+        <span class="text-[10px] font-normal opacity-70">Restar stock</span>
+      </button>
+      <button data-type="correction" class="adj-type-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-outline-variant/20 bg-surface-container text-on-surface-variant font-bold hover:border-outline-variant/40 transition-all">
+        <span class="material-symbols-outlined text-2xl">sync_alt</span>
+        <span class="text-sm">Corrección</span>
+        <span class="text-[10px] font-normal opacity-70">Cantidad exacta</span>
+      </button>
+    </div>
+
+    <!-- Selected product card -->
+    <div id="selected-product" class="mb-6 hidden">
+      <div class="flex items-center gap-4 bg-primary/5 rounded-2xl p-4 border border-primary/15">
+        <img id="sel-img" src="" alt="" class="w-16 h-16 object-contain rounded-xl bg-white shadow-sm" />
+        <div class="flex-1">
+          <p id="sel-name" class="font-bold text-on-surface"></p>
+          <p class="text-xs text-on-surface-variant mt-0.5">
+            <span id="sel-brand"></span> · Cód: <span id="sel-code" class="font-mono"></span> · <span id="sel-category"></span>
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-wider">Stock actual</p>
+          <p id="sel-stock" class="text-2xl font-display font-bold text-primary"></p>
+        </div>
+        <button id="btn-change-product" class="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors" title="Cambiar">
+          <span class="material-symbols-outlined">swap_horiz</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Product Picker -->
+    <div id="product-picker" class="mb-6 border border-outline-variant/15 rounded-2xl overflow-hidden shadow-sm">
+      <div class="p-3 border-b border-outline-variant/10 flex flex-wrap gap-2 bg-surface-container-high/30">
+        <div class="flex-1 min-w-[200px] relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+          <input id="ps-search" type="text" placeholder="Buscar por nombre, código o marca..."
+            class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-9 pr-3 text-sm focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <select id="ps-brand" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-3 text-xs font-bold">
+          <option value="all">Todas las marcas</option>
+        </select>
+        <select id="ps-category" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-3 text-xs font-bold max-w-[180px]">
+          <option value="all">Todas las categorías</option>
+        </select>
+      </div>
+      <div id="ps-list" class="max-h-[320px] overflow-y-auto">
+        <div class="p-8 text-center text-on-surface-variant">
+          <span class="material-symbols-outlined animate-spin text-xl">refresh</span>
+          <p class="text-sm mt-2">Cargando productos...</p>
+        </div>
+      </div>
+      <div class="px-4 py-2 border-t border-outline-variant/10 bg-surface-container-high/20">
+        <p id="ps-count" class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider"></p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div>
+        <label id="qty-label" class="text-sm font-semibold text-on-surface-variant block mb-2">Cantidad a agregar</label>
+        <input id="adjust-qty" type="number" min="0" value="1"
+          class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-2xl font-bold text-center focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Motivo</label>
+        <select id="adjust-reason" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4">
+          <option value="restock">Reposición / Compra</option>
+          <option value="return">Devolución de cliente</option>
+          <option value="damaged">Envase dañado</option>
+          <option value="demo">Demostración</option>
+          <option value="personal">Uso personal</option>
+          <option value="incentive">Incentivo cliente</option>
+          <option value="count">Conteo cíclico</option>
+          <option value="expired">Producto vencido</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Notas (opcional)</label>
+        <input id="adjust-notes" type="text" placeholder="Descripción breve..."
+          class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4" />
+      </div>
+    </div>
+
+    <div id="preview-change" class="hidden mb-6 p-4 rounded-xl border-2 border-dashed"></div>
+
+    <button id="btn-submit-adjust" class="flex items-center gap-2 py-3 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all disabled:opacity-50 disabled:scale-100">
+      <span class="material-symbols-outlined">check_circle</span>
+      Registrar Ajuste
+    </button>
+    <div id="submit-result" class="hidden mt-4 py-3 px-4 rounded-xl text-sm font-bold"></div>
+  </section>
+
+  <!-- ===================== BATCH MODE ===================== -->
+  <section id="section-batch" class="hidden mb-8">
+    <!-- Batch type + reason -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-6">
+      <h3 class="text-2xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">playlist_add</span>
+        Ajuste Masivo
+      </h3>
+      <p class="text-on-surface-variant text-sm mb-6">Selecciona múltiples productos, define las cantidades y aplica todo con un solo clic.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="text-sm font-semibold text-on-surface-variant block mb-2">Tipo de Ajuste</label>
+          <select id="batch-type" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 font-bold">
+            <option value="increase">🟢 Entrada — Agregar stock</option>
+            <option value="decrease">🔴 Salida — Restar stock</option>
+            <option value="correction">🟡 Corrección — Cantidad exacta</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-on-surface-variant block mb-2">Motivo general</label>
+          <select id="batch-reason" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4">
+            <option value="restock">Reposición / Compra</option>
+            <option value="return">Devolución</option>
+            <option value="damaged">Producto dañado</option>
+            <option value="demo">Demostración</option>
+            <option value="personal">Uso personal</option>
+            <option value="count">Conteo cíclico</option>
+            <option value="expired">Producto vencido</option>
+            <option value="other">Otro</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-semibold text-on-surface-variant block mb-2">Notas generales (opcional)</label>
+          <input id="batch-notes" type="text" placeholder="Ej: Inventario físico marzo..."
+            class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch product selector -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-6">
+      <h4 class="text-lg font-bold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-lg">add_box</span>
+        Agregar Productos al Lote
+      </h4>
+
+      <div class="flex flex-wrap gap-2 mb-3">
+        <div class="flex-1 min-w-[200px] relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+          <input id="batch-search" type="text" placeholder="Buscar producto para agregar al lote..."
+            class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 pl-9 pr-3 text-sm focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <select id="batch-brand-filter" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-3 text-xs font-bold">
+          <option value="all">Todas las marcas</option>
+        </select>
+        <select id="batch-cat-filter" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-3 text-xs font-bold max-w-[180px]">
+          <option value="all">Todas las categorías</option>
+        </select>
+      </div>
+
+      <div id="batch-product-list" class="max-h-[280px] overflow-y-auto rounded-xl border border-outline-variant/10"></div>
+      <p id="batch-ps-count" class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider mt-2"></p>
+    </div>
+
+    <!-- Batch queue -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h4 class="text-lg font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-lg">shopping_cart</span>
+          Lote de Ajustes
+          <span id="batch-badge" class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">0</span>
+        </h4>
+        <button id="btn-clear-batch" class="text-xs text-error font-bold hover:underline hidden">Limpiar todo</button>
+      </div>
+
+      <div id="batch-queue" class="space-y-0">
+        <div id="batch-empty" class="text-center py-8 text-on-surface-variant">
+          <span class="material-symbols-outlined text-3xl text-on-surface-variant/30">inbox</span>
+          <p class="text-sm mt-2">Haz clic en los productos de arriba para agregarlos al lote.</p>
+        </div>
+      </div>
+
+      <!-- Batch summary & submit -->
+      <div id="batch-summary" class="hidden mt-6 pt-6 border-t border-outline-variant/10">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex gap-6">
+            <div>
+              <p class="text-[10px] text-on-surface-variant uppercase font-bold">Productos</p>
+              <p id="batch-sum-count" class="text-2xl font-display font-bold text-on-surface">0</p>
+            </div>
+            <div>
+              <p class="text-[10px] text-on-surface-variant uppercase font-bold">Total unidades</p>
+              <p id="batch-sum-units" class="text-2xl font-display font-bold text-primary">0</p>
+            </div>
+          </div>
+          <button id="btn-submit-batch" class="flex items-center gap-2 py-3 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all disabled:opacity-50 disabled:scale-100">
+            <span class="material-symbols-outlined">rocket_launch</span>
+            Aplicar Todo
+          </button>
+        </div>
+        <div id="batch-progress" class="hidden">
+          <div class="w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+            <div id="batch-progress-bar" class="h-full bg-primary rounded-full transition-all duration-300" style="width:0%"></div>
+          </div>
+          <p id="batch-progress-text" class="text-xs text-on-surface-variant mt-1 text-center"></p>
+        </div>
+        <div id="batch-result" class="hidden mt-4 py-3 px-4 rounded-xl text-sm font-bold"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Activity Log -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-2xl font-display font-bold text-on-surface mb-6">Actividad Reciente</h3>
+      <div id="adjustments-list" class="space-y-0">
+        <div id="adjustments-loading" class="text-center py-12">
+          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          <p class="text-on-surface-variant mt-2">Cargando ajustes...</p>
+        </div>
+        <div id="adjustments-empty" class="text-center py-12 hidden">
+          <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">inventory_2</span>
+          <p class="text-on-surface-variant mt-3 text-lg">No hay ajustes registrados aún.</p>
+        </div>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">monitoring</span>
+        Resumen del Mes
+      </h3>
+      <div class="space-y-6">
+        <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Total Ajustes</p><p id="kpi-month-count" class="text-4xl font-display font-bold text-on-surface">0</p></div>
+        <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Entradas</p><p id="kpi-increases" class="text-2xl font-display font-bold text-green-600">+0 uds</p></div>
+        <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Salidas</p><p id="kpi-decreases" class="text-2xl font-display font-bold text-red-500">-0 uds</p></div>
+        <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Motivo más Frecuente</p><p id="kpi-top-reason" class="text-lg font-bold text-on-surface">—</p></div>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<style>
+  .ps-item { cursor: pointer; transition: background-color 0.15s; }
+  .ps-item:hover { background-color: rgba(139, 90, 43, 0.04); }
+  .ps-item.selected { background-color: rgba(139, 90, 43, 0.08); border-left: 3px solid var(--color-primary); }
+  .stock-pill { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 700; }
+  .stock-pill.has-stock { background: #dcfce7; color: #15803d; }
+  .stock-pill.no-stock { background: #f3f4f6; color: #9ca3af; }
+  .batch-q-item { animation: slideIn 0.2s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  // ===== SHARED STATE =====
+  const reasonLabels: Record<string, string> = {
+    restock: 'Reposición', return: 'Devolución', damaged: 'Envase dañado',
+    demo: 'Demostración', personal: 'Uso personal', incentive: 'Incentivo cliente',
+    count: 'Conteo cíclico', expired: 'Producto vencido', other: 'Otro'
+  };
+  const reasonIcons: Record<string, string> = {
+    restock: 'add_shopping_cart', return: 'undo', damaged: 'broken_image',
+    demo: 'mic', personal: 'favorite', incentive: 'stars',
+    count: 'calculate', expired: 'event_busy', other: 'more_horiz'
+  };
+
+  let inventoryCache: any[] = [];
+  let userId = '';
+
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!session) { window.location.href = '/login'; return; }
+    userId = session.user.id;
+    loadInventory();
+    loadAdjustments();
+  });
+
+  async function loadInventory() {
+    let all: any[] = [];
+    let from = 0;
+    const BATCH = 1000;
+    while (true) {
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('id, quantity, product_id, products ( id, name, code, brand, category, image_url, price )')
+        .eq('consultant_id', userId)
+        .range(from, from + BATCH - 1);
+      if (error || !data || data.length === 0) break;
+      all = all.concat(data);
+      if (data.length < BATCH) break;
+      from += BATCH;
+    }
+    inventoryCache = all;
+    populateAllFilters();
+    renderProductList();
+    renderBatchProductList();
+  }
+
+  function populateAllFilters() {
+    const brands = [...new Set(inventoryCache.map((i: any) => i.products?.brand).filter(Boolean))].sort();
+    const cats = [...new Set(inventoryCache.map((i: any) => i.products?.category).filter(Boolean))].sort();
+
+    [document.getElementById('ps-brand'), document.getElementById('batch-brand-filter')].forEach(sel => {
+      if (!sel) return;
+      (sel as HTMLSelectElement).innerHTML = '<option value="all">Todas las marcas</option>';
+      brands.forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
+    });
+    [document.getElementById('ps-category'), document.getElementById('batch-cat-filter')].forEach(sel => {
+      if (!sel) return;
+      (sel as HTMLSelectElement).innerHTML = '<option value="all">Todas las categorías</option>';
+      cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+    });
+  }
+
+  function filterProducts(searchId: string, brandId: string, catId: string) {
+    const q = (document.getElementById(searchId) as HTMLInputElement).value.toLowerCase().trim();
+    const brand = (document.getElementById(brandId) as HTMLSelectElement).value;
+    const cat = (document.getElementById(catId) as HTMLSelectElement).value;
+    return inventoryCache.filter((inv: any) => {
+      const p = inv.products;
+      const ms = !q || p?.name?.toLowerCase().includes(q) || p?.code?.toLowerCase().includes(q) || p?.brand?.toLowerCase().includes(q);
+      const mb = brand === 'all' || p?.brand === brand;
+      const mc = cat === 'all' || p?.category === cat;
+      return ms && mb && mc;
+    });
+  }
+
+  function productItemHTML(inv: any, extraRight = '') {
+    const p = inv.products;
+    const bc = p?.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700' : p?.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary/10 text-primary';
+    return `
+      ${p?.image_url ? `<img src="${p.image_url}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-on-surface text-xs leading-tight truncate">${p?.name || '—'}</p>
+        <div class="flex items-center gap-1.5 mt-0.5">
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${bc}">${p?.brand || '—'}</span>
+          <span class="text-[10px] text-on-surface-variant truncate">${p?.category || ''}</span>
+          <span class="text-[10px] font-mono text-on-surface-variant/50">#${p?.code || ''}</span>
+        </div>
+      </div>
+      <div class="shrink-0 flex items-center gap-2">
+        <span class="stock-pill ${inv.quantity > 0 ? 'has-stock' : 'no-stock'}">${inv.quantity} uds</span>
+        ${extraRight}
+      </div>`;
+  }
+
+  // ===== TAB SWITCHING =====
+  const tabIndividual = document.getElementById('tab-individual')!;
+  const tabBatch = document.getElementById('tab-batch')!;
+  const sectionIndividual = document.getElementById('section-individual')!;
+  const sectionBatch = document.getElementById('section-batch')!;
+
+  tabIndividual.addEventListener('click', () => {
+    sectionIndividual.classList.remove('hidden'); sectionBatch.classList.add('hidden');
+    tabIndividual.className = 'flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all';
+    tabBatch.className = 'flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all';
+  });
+  tabBatch.addEventListener('click', () => {
+    sectionBatch.classList.remove('hidden'); sectionIndividual.classList.add('hidden');
+    tabBatch.className = 'flex items-center gap-2 px-6 py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 transition-all';
+    tabIndividual.className = 'flex items-center gap-2 px-6 py-3 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all';
+  });
+
+  // ========================
+  //  INDIVIDUAL MODE LOGIC
+  // ========================
+  let adjustmentType: 'increase' | 'decrease' | 'correction' = 'increase';
+  let selectedProduct: any = null;
+
+  const typeStyles: Record<string, { b: string; bg: string; t: string }> = {
+    increase: { b: 'border-green-500', bg: 'bg-green-50', t: 'text-green-700' },
+    decrease: { b: 'border-red-500', bg: 'bg-red-50', t: 'text-red-700' },
+    correction: { b: 'border-amber-500', bg: 'bg-amber-50', t: 'text-amber-700' },
+  };
+
+  document.querySelectorAll('.adj-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = (btn as HTMLElement).dataset.type as any;
+      adjustmentType = type;
+      document.querySelectorAll('.adj-type-btn').forEach(b => {
+        const t = (b as HTMLElement).dataset.type!;
+        const s = typeStyles[t];
+        b.className = t === type
+          ? `adj-type-btn active flex flex-col items-center gap-2 p-4 rounded-2xl border-2 ${s.b} ${s.bg} ${s.t} font-bold transition-all`
+          : `adj-type-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-outline-variant/20 bg-surface-container text-on-surface-variant font-bold hover:border-outline-variant/40 transition-all`;
+      });
+      const ql = document.getElementById('qty-label')!;
+      if (type === 'increase') ql.textContent = 'Cantidad a agregar';
+      else if (type === 'decrease') ql.textContent = 'Cantidad a restar';
+      else ql.textContent = 'Cantidad correcta (nueva)';
+      updatePreview();
+    });
+  });
+
+  // Product list (individual)
+  let renderPage = 0;
+  function renderProductList() {
+    const list = document.getElementById('ps-list')!;
+    const filtered = filterProducts('ps-search', 'ps-brand', 'ps-category');
+    renderPage = 0;
+    list.innerHTML = '';
+    if (filtered.length === 0) { list.innerHTML = '<div class="p-6 text-center text-on-surface-variant text-sm">No se encontraron productos.</div>'; }
+    const page = filtered.slice(0, 50);
+    page.forEach((inv: any) => {
+      const div = document.createElement('div');
+      div.className = `ps-item flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/5 ${selectedProduct?.id === inv.id ? 'selected' : ''}`;
+      div.innerHTML = productItemHTML(inv);
+      div.addEventListener('click', () => doSelectProduct(inv));
+      list.appendChild(div);
+    });
+    if (filtered.length > 50) {
+      const more = document.createElement('div');
+      more.className = 'p-3 text-center cursor-pointer hover:bg-primary/5';
+      more.innerHTML = `<p class="text-xs font-bold text-primary">+${filtered.length - 50} productos más</p>`;
+      more.addEventListener('click', () => { renderPage++; const next = filtered.slice(renderPage * 50, (renderPage + 1) * 50); next.forEach((inv: any) => { const d = document.createElement('div'); d.className = 'ps-item flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/5'; d.innerHTML = productItemHTML(inv); d.addEventListener('click', () => doSelectProduct(inv)); list.insertBefore(d, more); }); if ((renderPage + 1) * 50 >= filtered.length) more.remove(); else more.innerHTML = `<p class="text-xs font-bold text-primary">+${filtered.length - (renderPage + 1) * 50} más</p>`; });
+      list.appendChild(more);
+    }
+    document.getElementById('ps-count')!.textContent = `${filtered.length} productos`;
+  }
+
+  let sTimer: any;
+  document.getElementById('ps-search')!.addEventListener('input', () => { clearTimeout(sTimer); sTimer = setTimeout(renderProductList, 150); });
+  document.getElementById('ps-brand')!.addEventListener('change', renderProductList);
+  document.getElementById('ps-category')!.addEventListener('change', renderProductList);
+
+  function doSelectProduct(inv: any) {
+    selectedProduct = inv;
+    const p = inv.products;
+    document.getElementById('product-picker')!.classList.add('hidden');
+    const sel = document.getElementById('selected-product')!;
+    sel.classList.remove('hidden');
+    const img = document.getElementById('sel-img') as HTMLImageElement;
+    if (p?.image_url) { img.src = p.image_url; img.style.display = ''; } else img.style.display = 'none';
+    (document.getElementById('sel-name') as HTMLElement).textContent = p?.name || '';
+    (document.getElementById('sel-brand') as HTMLElement).textContent = p?.brand || '';
+    (document.getElementById('sel-code') as HTMLElement).textContent = p?.code || '';
+    (document.getElementById('sel-category') as HTMLElement).textContent = p?.category || '';
+    (document.getElementById('sel-stock') as HTMLElement).textContent = String(inv.quantity);
+    const qtyInput = document.getElementById('adjust-qty') as HTMLInputElement;
+    if (adjustmentType === 'correction') qtyInput.value = String(inv.quantity); else qtyInput.value = '1';
+    updatePreview();
+  }
+
+  document.getElementById('btn-change-product')!.addEventListener('click', () => {
+    selectedProduct = null;
+    document.getElementById('selected-product')!.classList.add('hidden');
+    document.getElementById('product-picker')!.classList.remove('hidden');
+    document.getElementById('preview-change')!.classList.add('hidden');
+    renderProductList();
+  });
+
+  document.getElementById('adjust-qty')!.addEventListener('input', updatePreview);
+
+  function updatePreview() {
+    const el = document.getElementById('preview-change')!;
+    if (!selectedProduct) { el.classList.add('hidden'); return; }
+    const cur = selectedProduct.quantity;
+    const qty = parseInt((document.getElementById('adjust-qty') as HTMLInputElement).value) || 0;
+    let nq: number, diff: number;
+    if (adjustmentType === 'increase') { nq = cur + qty; diff = qty; }
+    else if (adjustmentType === 'decrease') { nq = Math.max(0, cur - qty); diff = -Math.min(qty, cur); }
+    else { nq = qty; diff = qty - cur; }
+    const ds = diff >= 0 ? `+${diff}` : `${diff}`;
+    const dc = diff > 0 ? 'text-green-600' : diff < 0 ? 'text-red-500' : 'text-amber-600';
+    const bc = diff > 0 ? 'border-green-200 bg-green-50/50' : diff < 0 ? 'border-red-200 bg-red-50/50' : 'border-amber-200 bg-amber-50/50';
+    el.className = `mb-6 p-4 rounded-xl border-2 border-dashed ${bc}`;
+    el.innerHTML = `<div class="flex items-center justify-between"><div class="flex items-center gap-6"><div class="text-center"><p class="text-[10px] text-on-surface-variant uppercase font-bold">Antes</p><p class="text-3xl font-display font-bold text-on-surface">${cur}</p></div><span class="material-symbols-outlined text-3xl ${dc}">trending_flat</span><div class="text-center"><p class="text-[10px] text-on-surface-variant uppercase font-bold">Después</p><p class="text-3xl font-display font-bold ${dc}">${nq}</p></div></div><div class="text-right"><p class="text-3xl font-display font-bold ${dc}">${ds}</p><p class="text-[10px] text-on-surface-variant font-bold uppercase">unidades</p></div></div>`;
+    el.classList.remove('hidden');
+  }
+
+  // Individual submit
+  document.getElementById('btn-submit-adjust')!.addEventListener('click', async () => {
+    if (!selectedProduct) { alert('Selecciona un producto primero.'); return; }
+    const qty = parseInt((document.getElementById('adjust-qty') as HTMLInputElement).value);
+    const cur = selectedProduct.quantity;
+    let nq: number, rq: number;
+    if (adjustmentType === 'increase') { if (qty < 1) { alert('Mínimo 1.'); return; } nq = cur + qty; rq = qty; }
+    else if (adjustmentType === 'decrease') { if (qty < 1) { alert('Mínimo 1.'); return; } if (qty > cur) { alert(`Solo hay ${cur} uds.`); return; } nq = cur - qty; rq = -qty; }
+    else { if (qty < 0) { alert('No puede ser negativo.'); return; } nq = qty; rq = qty - cur; }
+
+    const btn = document.getElementById('btn-submit-adjust') as HTMLButtonElement;
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Registrando...';
+    try {
+      const { error: e1 } = await supabase.from('inventory_adjustments').insert({ consultant_id: userId, product_id: selectedProduct.product_id, adjustment_type: adjustmentType, quantity: rq, previous_quantity: cur, reason: (document.getElementById('adjust-reason') as HTMLSelectElement).value, notes: (document.getElementById('adjust-notes') as HTMLInputElement).value || null });
+      if (e1) throw e1;
+      const { error: e2 } = await supabase.from('inventory').update({ quantity: nq }).eq('id', selectedProduct.id);
+      if (e2) throw e2;
+      const lbl = adjustmentType === 'increase' ? `+${qty}` : adjustmentType === 'decrease' ? `-${qty}` : `→ ${qty}`;
+      showMsg('submit-result', `✅ ${lbl} uds de ${selectedProduct.products?.name}`, false);
+      selectedProduct = null; document.getElementById('selected-product')!.classList.add('hidden');
+      document.getElementById('product-picker')!.classList.remove('hidden');
+      document.getElementById('preview-change')!.classList.add('hidden');
+      (document.getElementById('adjust-qty') as HTMLInputElement).value = '1';
+      (document.getElementById('adjust-notes') as HTMLInputElement).value = '';
+      loadInventory(); loadAdjustments();
+    } catch (e: any) { showMsg('submit-result', '❌ ' + (e.message || 'Error'), true); }
+    btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Registrar Ajuste';
+  });
+
+  function showMsg(id: string, msg: string, err: boolean) {
+    const el = document.getElementById(id)!;
+    el.textContent = msg;
+    el.className = 'mt-4 py-3 px-4 rounded-xl text-sm font-bold ' + (err ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
+    el.classList.remove('hidden');
+  }
+
+  // ========================
+  //  BATCH MODE LOGIC
+  // ========================
+  interface BatchItem { invId: string; productId: string; name: string; brand: string; code: string; imageUrl: string; currentQty: number; adjustQty: number; }
+  let batchQueue: BatchItem[] = [];
+
+  function renderBatchProductList() {
+    const list = document.getElementById('batch-product-list')!;
+    const filtered = filterProducts('batch-search', 'batch-brand-filter', 'batch-cat-filter');
+    list.innerHTML = '';
+    if (filtered.length === 0) { list.innerHTML = '<div class="p-6 text-center text-on-surface-variant text-sm">No se encontraron productos.</div>'; }
+    const page = filtered.slice(0, 50);
+    page.forEach((inv: any) => {
+      const inQueue = batchQueue.some(b => b.invId === inv.id);
+      const div = document.createElement('div');
+      div.className = `ps-item flex items-center gap-3 px-4 py-2.5 border-b border-outline-variant/5 ${inQueue ? 'selected' : ''}`;
+      const btnHTML = inQueue
+        ? `<span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ En lote</span>`
+        : `<span class="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full cursor-pointer hover:bg-primary/20">+ Agregar</span>`;
+      div.innerHTML = productItemHTML(inv, btnHTML);
+      if (!inQueue) {
+        div.addEventListener('click', () => addToBatch(inv));
+      }
+      list.appendChild(div);
+    });
+    if (filtered.length > 50) {
+      const more = document.createElement('div');
+      more.className = 'p-3 text-center cursor-pointer hover:bg-primary/5';
+      more.innerHTML = `<p class="text-xs font-bold text-primary">+${filtered.length - 50} más</p>`;
+      list.appendChild(more);
+    }
+    document.getElementById('batch-ps-count')!.textContent = `${filtered.length} productos`;
+  }
+
+  let bsTimer: any;
+  document.getElementById('batch-search')!.addEventListener('input', () => { clearTimeout(bsTimer); bsTimer = setTimeout(renderBatchProductList, 150); });
+  document.getElementById('batch-brand-filter')!.addEventListener('change', renderBatchProductList);
+  document.getElementById('batch-cat-filter')!.addEventListener('change', renderBatchProductList);
+
+  function addToBatch(inv: any) {
+    if (batchQueue.some(b => b.invId === inv.id)) return;
+    const bType = (document.getElementById('batch-type') as HTMLSelectElement).value;
+    batchQueue.push({
+      invId: inv.id,
+      productId: inv.product_id,
+      name: inv.products?.name || '—',
+      brand: inv.products?.brand || '',
+      code: inv.products?.code || '',
+      imageUrl: inv.products?.image_url || '',
+      currentQty: inv.quantity,
+      adjustQty: bType === 'correction' ? inv.quantity : 1,
+    });
+    renderBatchQueue();
+    renderBatchProductList();
+  }
+
+  function renderBatchQueue() {
+    const queue = document.getElementById('batch-queue')!;
+    const emptyEl = document.getElementById('batch-empty')!;
+    const summary = document.getElementById('batch-summary')!;
+    const badge = document.getElementById('batch-badge')!;
+    const clearBtn = document.getElementById('btn-clear-batch')!;
+
+    queue.querySelectorAll('.batch-q-item').forEach(e => e.remove());
+    badge.textContent = String(batchQueue.length);
+
+    if (batchQueue.length === 0) {
+      emptyEl.classList.remove('hidden'); summary.classList.add('hidden'); clearBtn.classList.add('hidden');
+      return;
+    }
+    emptyEl.classList.add('hidden'); summary.classList.remove('hidden'); clearBtn.classList.remove('hidden');
+
+    const bType = (document.getElementById('batch-type') as HTMLSelectElement).value;
+    const qtyLabel = bType === 'increase' ? 'Agregar' : bType === 'decrease' ? 'Restar' : 'Nuevo stock';
+
+    batchQueue.forEach((item, idx) => {
+      const row = document.createElement('div');
+      row.className = 'batch-q-item flex items-center gap-3 py-3 ' + (idx > 0 ? 'border-t border-outline-variant/10' : '');
+      row.innerHTML = `
+        ${item.imageUrl ? `<img src="${item.imageUrl}" class="w-9 h-9 rounded-lg object-contain bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-9 h-9 rounded-lg bg-surface-container shrink-0"></div>`}
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-xs text-on-surface truncate">${item.name}</p>
+          <p class="text-[10px] text-on-surface-variant">${item.brand} #${item.code} · Stock: ${item.currentQty}</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <label class="text-[10px] text-on-surface-variant font-bold">${qtyLabel}:</label>
+          <input type="number" min="0" value="${item.adjustQty}" data-idx="${idx}"
+            class="batch-qty-input w-16 bg-surface-container-highest border-none rounded-lg py-1.5 px-2 text-center text-sm font-bold focus:ring-2 focus:ring-primary-container" />
+          <button data-remove="${idx}" class="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-red-100 hover:text-red-600 text-on-surface-variant transition-colors">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>
+      `;
+      queue.appendChild(row);
+    });
+
+    // Event listeners for qty inputs and remove buttons
+    queue.querySelectorAll('.batch-qty-input').forEach(inp => {
+      inp.addEventListener('input', (e) => {
+        const idx = parseInt((e.target as HTMLElement).dataset.idx!);
+        batchQueue[idx].adjustQty = parseInt((e.target as HTMLInputElement).value) || 0;
+        updateBatchSummary();
+      });
+    });
+    queue.querySelectorAll('[data-remove]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idx = parseInt((e.currentTarget as HTMLElement).dataset.remove!);
+        batchQueue.splice(idx, 1);
+        renderBatchQueue();
+        renderBatchProductList();
+      });
+    });
+
+    updateBatchSummary();
+  }
+
+  function updateBatchSummary() {
+    const bType = (document.getElementById('batch-type') as HTMLSelectElement).value;
+    let totalUnits = 0;
+    batchQueue.forEach(item => {
+      if (bType === 'increase') totalUnits += item.adjustQty;
+      else if (bType === 'decrease') totalUnits += item.adjustQty;
+      else totalUnits += Math.abs(item.adjustQty - item.currentQty);
+    });
+    (document.getElementById('batch-sum-count') as HTMLElement).textContent = String(batchQueue.length);
+    (document.getElementById('batch-sum-units') as HTMLElement).textContent = String(totalUnits);
+  }
+
+  document.getElementById('btn-clear-batch')!.addEventListener('click', () => {
+    batchQueue = [];
+    renderBatchQueue();
+    renderBatchProductList();
+  });
+
+  document.getElementById('batch-type')!.addEventListener('change', () => renderBatchQueue());
+
+  // Batch submit
+  document.getElementById('btn-submit-batch')!.addEventListener('click', async () => {
+    if (batchQueue.length === 0) return;
+    const bType = (document.getElementById('batch-type') as HTMLSelectElement).value as 'increase' | 'decrease' | 'correction';
+    const bReason = (document.getElementById('batch-reason') as HTMLSelectElement).value;
+    const bNotes = (document.getElementById('batch-notes') as HTMLInputElement).value || null;
+
+    const btn = document.getElementById('btn-submit-batch') as HTMLButtonElement;
+    btn.disabled = true;
+    const progress = document.getElementById('batch-progress')!;
+    const progressBar = document.getElementById('batch-progress-bar')!;
+    const progressText = document.getElementById('batch-progress-text')!;
+    progress.classList.remove('hidden');
+
+    let done = 0; let errors = 0;
+
+    for (const item of batchQueue) {
+      const cur = item.currentQty;
+      const qty = item.adjustQty;
+      let nq: number, rq: number;
+
+      if (bType === 'increase') { nq = cur + qty; rq = qty; }
+      else if (bType === 'decrease') { nq = Math.max(0, cur - qty); rq = -Math.min(qty, cur); }
+      else { nq = qty; rq = qty - cur; }
+
+      try {
+        await supabase.from('inventory_adjustments').insert({
+          consultant_id: userId, product_id: item.productId,
+          adjustment_type: bType, quantity: rq, previous_quantity: cur,
+          reason: bReason, notes: bNotes
+        });
+        await supabase.from('inventory').update({ quantity: nq }).eq('id', item.invId);
+      } catch { errors++; }
+
+      done++;
+      const pct = Math.round((done / batchQueue.length) * 100);
+      progressBar.style.width = pct + '%';
+      progressText.textContent = `${done} / ${batchQueue.length} productos procesados...`;
+    }
+
+    progress.classList.add('hidden');
+    const result = document.getElementById('batch-result')!;
+    if (errors === 0) {
+      showMsg('batch-result', `✅ ${done} productos ajustados exitosamente.`, false);
+    } else {
+      showMsg('batch-result', `⚠️ ${done - errors} OK, ${errors} errores.`, true);
+    }
+
+    batchQueue = [];
+    renderBatchQueue();
+    btn.disabled = false;
+    loadInventory();
+    loadAdjustments();
+  });
+
+  // ========================
+  //  ACTIVITY LOG
+  // ========================
+  async function loadAdjustments() {
+    const { data } = await supabase.from('inventory_adjustments').select('*, products ( name, code, brand )').eq('consultant_id', userId).order('created_at', { ascending: false }).limit(50);
+    document.getElementById('adjustments-loading')!.classList.add('hidden');
+    if (!data || data.length === 0) { document.getElementById('adjustments-empty')!.classList.remove('hidden'); return; }
+    document.getElementById('adjustments-empty')!.classList.add('hidden');
+    renderAdjustments(data);
+    calculateKPIs(data);
+  }
+
+  function renderAdjustments(adjs: any[]) {
+    const list = document.getElementById('adjustments-list')!;
+    list.querySelectorAll('.adjust-row').forEach(e => e.remove());
+    adjs.forEach((a: any, i: number) => {
+      const d = new Date(a.created_at); const now = new Date();
+      const isToday = d.toDateString() === now.toDateString();
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      let dl = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }).toUpperCase();
+      if (isToday) dl = 'HOY'; else if (d.toDateString() === y.toDateString()) dl = 'AYER';
+      const tl = d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      const pos = a.quantity > 0;
+      const ql = pos ? `+${a.quantity}` : `${a.quantity}`;
+      const qc = pos ? 'text-green-600' : a.quantity === 0 ? 'text-amber-600' : 'text-red-500';
+      const ic = a.adjustment_type === 'correction' ? 'sync_alt' : (reasonIcons[a.reason] || 'more_horiz');
+      const ib = pos ? 'bg-green-100' : a.adjustment_type === 'correction' ? 'bg-amber-100' : 'bg-red-100';
+      const row = document.createElement('div');
+      row.className = 'adjust-row flex items-center gap-4 py-3.5 ' + (i > 0 ? 'border-t border-surface-container' : '');
+      row.innerHTML = `<div class="w-10 h-10 rounded-xl ${ib} flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-base ${qc}">${ic}</span></div><div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${a.products?.name || 'Producto'}</h4><p class="text-xs text-on-surface-variant">${reasonLabels[a.reason] || a.reason}${a.notes ? ' · ' + a.notes : ''}</p></div><div class="text-right shrink-0"><p class="text-sm font-bold ${qc}">${ql} uds</p><p class="text-[10px] text-on-surface-variant">${dl}, ${tl}</p></div>`;
+      list.appendChild(row);
+    });
+  }
+
+  function calculateKPIs(adjs: any[]) {
+    const now = new Date(); const ms = new Date(now.getFullYear(), now.getMonth(), 1);
+    const ma = adjs.filter((a: any) => new Date(a.created_at) >= ms);
+    (document.getElementById('kpi-month-count') as HTMLElement).textContent = String(ma.length);
+    let ti = 0, td = 0; const rc: Record<string, number> = {};
+    ma.forEach((a: any) => { if (a.quantity > 0) ti += a.quantity; else td += Math.abs(a.quantity); rc[a.reason] = (rc[a.reason] || 0) + 1; });
+    (document.getElementById('kpi-increases') as HTMLElement).textContent = `+${ti} uds`;
+    (document.getElementById('kpi-decreases') as HTMLElement).textContent = `-${td} uds`;
+    let tr = '—', tc = 0;
+    Object.entries(rc).forEach(([r, c]) => { if (c > tc) { tc = c; tr = reasonLabels[r] || r; } });
+    (document.getElementById('kpi-top-reason') as HTMLElement).textContent = tr;
+  }
+</script>

@@ -1,0 +1,250 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="mb-10">
+    <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">CONFIGURACIÓN</p>
+    <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Ajustes de Cuenta ⚙️</h2>
+    <p class="text-on-surface-variant mt-2 text-lg">Personaliza tu experiencia y gestiona tu cuenta.</p>
+  </header>
+
+  <!-- Profile -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">person</span> Mi Perfil</h3>
+    <div id="save-toast" class="hidden mb-4 py-3 px-4 rounded-xl bg-secondary/10 text-secondary font-bold text-sm flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">check_circle</span> ¡Perfil guardado exitosamente!
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Nombre de Consultora</label>
+        <input id="profile-name" type="text" placeholder="Tu nombre completo" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Teléfono WhatsApp</label>
+        <input id="profile-phone" type="tel" placeholder="55 1234 5678" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Nombre del Negocio</label>
+        <input id="profile-business" type="text" placeholder="Ej: Natura con Mariana" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Ciudad / Zona</label>
+        <input id="profile-city" type="text" placeholder="Ej: CDMX Sur" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+    </div>
+    <button id="btn-save-profile" class="mt-6 flex items-center gap-2 py-3 px-8 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md">
+      <span class="material-symbols-outlined text-sm">check</span> Guardar Perfil
+    </button>
+  </section>
+
+  <!-- Change Email -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">email</span> Correo Electrónico</h3>
+    <p class="text-sm text-on-surface-variant mb-4">Tu correo actual: <strong id="current-email" class="text-on-surface"></strong></p>
+    <div class="flex gap-4 items-end">
+      <div class="flex-1">
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Nuevo Correo</label>
+        <input id="new-email" type="email" placeholder="nuevo@correo.com" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <button id="btn-change-email" class="py-3 px-6 rounded-xl font-bold border-2 border-secondary/20 text-secondary hover:bg-secondary/5 transition-colors">Cambiar</button>
+    </div>
+    <div id="email-feedback" class="hidden mt-3 py-2 px-4 rounded-xl text-sm font-bold"></div>
+  </section>
+
+  <!-- Change Password -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">lock</span> Contraseña</h3>
+    <div class="max-w-md space-y-4">
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Nueva Contraseña</label>
+        <input id="new-password" type="password" placeholder="Mínimo 6 caracteres" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Confirmar Contraseña</label>
+        <input id="confirm-password" type="password" placeholder="Repite la contraseña" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <button id="btn-change-password" class="py-3 px-6 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-colors">Actualizar Contraseña</button>
+      <div id="pwd-feedback" class="hidden py-2 px-4 rounded-xl text-sm font-bold"></div>
+    </div>
+  </section>
+
+  <!-- Catalog Link -->
+  <section class="bg-gradient-to-r from-primary/10 to-secondary-container/20 rounded-[2rem] p-8 mb-8 relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-10 translate-x-10"></div>
+    <div class="relative z-10">
+      <h3 class="text-xl font-display font-bold mb-2 flex items-center gap-2"><span class="material-symbols-outlined text-primary">storefront</span> Tu Catálogo Digital</h3>
+      <p class="text-on-surface-variant mb-4">Comparte este link con tus clientes para que vean tus productos disponibles y armen su pedido.</p>
+      <div class="flex items-center gap-3">
+        <input id="catalog-link" type="text" readonly class="flex-1 bg-white/50 rounded-xl py-3 px-4 font-mono text-sm" />
+        <button id="btn-copy-catalog" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all">
+          <span class="material-symbols-outlined text-sm">content_copy</span> Copiar
+        </button>
+        <a id="btn-share-catalog" href="#" target="_blank" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold bg-secondary text-white hover:scale-[1.02] transition-all">
+          <span class="material-symbols-outlined text-sm">chat</span> WhatsApp
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WhatsApp Templates -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">chat</span> Plantillas WhatsApp</h3>
+    <p class="text-on-surface-variant mb-6 text-sm">Plantillas de mensajes pre-armados para tus clientes. Haz clic para copiar.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="templates-grid">
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="cobro">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-primary">payments</span><h4 class="font-bold text-on-surface">Recordatorio de Pago</h4></div>
+        <p class="text-sm text-on-surface-variant">{"Hola {nombre} 👋 Te recuerdo que tu pago de ${monto} vence el {fecha}. ¿Puedo ayudarte con algo? 💚"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="gracias">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-secondary">favorite</span><h4 class="font-bold text-on-surface">Agradecimiento</h4></div>
+        <p class="text-sm text-on-surface-variant">{"¡Hola {nombre}! 🌿 Gracias por tu compra. Espero que disfrutes tus productos Natura. ¡Cualquier duda estoy para ti! 💚"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="promo">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-tertiary">local_offer</span><h4 class="font-bold text-on-surface">Promoción</h4></div>
+        <p class="text-sm text-on-surface-variant">{"¡Hola {nombre}! 🎉 Tengo una promo especial para ti este ciclo. ¿Te mando mi catálogo actualizado? 👉 {catalogo}"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="recompra">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-primary">autorenew</span><h4 class="font-bold text-on-surface">Recompra</h4></div>
+        <p class="text-sm text-on-surface-variant">{"¡Hola {nombre}! 💚 Ya pasó un tiempo desde tu última compra. ¿Te gustaría reabastecer algún producto? Te dejo mi catálogo: {catalogo}"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="entrega">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-secondary">local_shipping</span><h4 class="font-bold text-on-surface">Entrega Lista</h4></div>
+        <p class="text-sm text-on-surface-variant">{"¡Hola {nombre}! 📦 Tu pedido está listo para entregarse. ¿Cuándo te queda bien pasar por él o que te lo lleve? 🚗"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+      <div class="template-card bg-surface-container-low rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all group" data-template="cumple">
+        <div class="flex items-center gap-2 mb-2"><span class="material-symbols-outlined text-tertiary">cake</span><h4 class="font-bold text-on-surface">Cumpleaños</h4></div>
+        <p class="text-sm text-on-surface-variant">{"¡Feliz cumpleaños {nombre}! 🎂🎉 Como regalo especial, tienes un 10% de descuento en tu próxima compra. ¡Disfruta tu día! 💚"}</p>
+        <span class="text-xs text-primary font-bold mt-2 inline-block opacity-0 group-hover:opacity-100 transition-opacity">Clic para copiar →</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Danger Zone -->
+  <section class="bg-error-container/10 rounded-[2rem] p-8 border border-error/20">
+    <h3 class="text-xl font-display font-bold text-error mb-4 flex items-center gap-2"><span class="material-symbols-outlined">warning</span> Zona de Peligro</h3>
+    <div class="flex items-center gap-4">
+      <button id="btn-logout-settings" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold bg-error text-white hover:scale-[1.02] transition-all">
+        <span class="material-symbols-outlined text-sm">logout</span> Cerrar Sesión
+      </button>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login'; throw new Error(''); }
+  const userId = session.user.id;
+
+  // ===== PROFILE =====
+  const profileName = document.getElementById('profile-name') as HTMLInputElement;
+  const profilePhone = document.getElementById('profile-phone') as HTMLInputElement;
+  const profileBusiness = document.getElementById('profile-business') as HTMLInputElement;
+  const profileCity = document.getElementById('profile-city') as HTMLInputElement;
+  const saveToast = document.getElementById('save-toast') as HTMLElement;
+
+  // Load saved values
+  profileName.value = localStorage.getItem('natura_name') || session.user.email?.split('@')[0]?.replace('.', ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || '';
+  profilePhone.value = localStorage.getItem('natura_phone') || '';
+  profileBusiness.value = localStorage.getItem('natura_business') || '';
+  profileCity.value = localStorage.getItem('natura_city') || '';
+
+  document.getElementById('btn-save-profile')!.addEventListener('click', () => {
+    localStorage.setItem('natura_name', profileName.value);
+    localStorage.setItem('natura_phone', profilePhone.value);
+    localStorage.setItem('natura_business', profileBusiness.value);
+    localStorage.setItem('natura_city', profileCity.value);
+
+    // Show toast
+    saveToast.classList.remove('hidden');
+    saveToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => saveToast.classList.add('hidden'), 3000);
+  });
+
+  // ===== EMAIL =====
+  (document.getElementById('current-email') as HTMLElement).textContent = session.user.email || '—';
+
+  document.getElementById('btn-change-email')!.addEventListener('click', async () => {
+    const newEmail = (document.getElementById('new-email') as HTMLInputElement).value.trim();
+    const feedback = document.getElementById('email-feedback') as HTMLElement;
+    if (!newEmail) { showFeedback(feedback, 'Ingresa un correo válido.', true); return; }
+
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    if (error) {
+      showFeedback(feedback, 'Error: ' + error.message, true);
+    } else {
+      showFeedback(feedback, '✓ Se envió un link de confirmación a tu nuevo correo.', false);
+    }
+  });
+
+  // ===== PASSWORD =====
+  document.getElementById('btn-change-password')!.addEventListener('click', async () => {
+    const newPwd = (document.getElementById('new-password') as HTMLInputElement).value;
+    const confirmPwd = (document.getElementById('confirm-password') as HTMLInputElement).value;
+    const feedback = document.getElementById('pwd-feedback') as HTMLElement;
+
+    if (newPwd.length < 6) { showFeedback(feedback, 'La contraseña debe tener al menos 6 caracteres.', true); return; }
+    if (newPwd !== confirmPwd) { showFeedback(feedback, 'Las contraseñas no coinciden.', true); return; }
+
+    const { error } = await supabase.auth.updateUser({ password: newPwd });
+    if (error) {
+      showFeedback(feedback, 'Error: ' + error.message, true);
+    } else {
+      showFeedback(feedback, '✓ Contraseña actualizada correctamente.', false);
+      (document.getElementById('new-password') as HTMLInputElement).value = '';
+      (document.getElementById('confirm-password') as HTMLInputElement).value = '';
+    }
+  });
+
+  function showFeedback(el: HTMLElement, msg: string, isError: boolean) {
+    el.textContent = msg;
+    el.className = 'mt-3 py-2 px-4 rounded-xl text-sm font-bold ' + (isError ? 'bg-error-container/20 text-error' : 'bg-secondary/10 text-secondary');
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+  }
+
+  // ===== CATALOG LINK =====
+  const catalogLink = document.getElementById('catalog-link') as HTMLInputElement;
+  const catalogUrl = window.location.origin + '/catalogo?c=' + userId;
+  catalogLink.value = catalogUrl;
+
+  document.getElementById('btn-copy-catalog')!.addEventListener('click', () => {
+    navigator.clipboard.writeText(catalogUrl);
+    const btn = document.getElementById('btn-copy-catalog') as HTMLButtonElement;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> ¡Copiado!';
+    setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined text-sm">content_copy</span> Copiar'; }, 2000);
+  });
+
+  const shareBtn = document.getElementById('btn-share-catalog') as HTMLAnchorElement;
+  shareBtn.href = 'https://wa.me/?text=' + encodeURIComponent('¡Hola! 🌿 Te comparto mi catálogo Natura:\n' + catalogUrl);
+
+  // ===== TEMPLATES =====
+  document.querySelectorAll('.template-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const text = card.querySelector('p')?.textContent || '';
+      const processed = text.replace('{catalogo}', catalogUrl);
+      navigator.clipboard.writeText(processed);
+      const badge = card.querySelector('span:last-child');
+      if (badge) {
+        badge.textContent = '✓ ¡Copiado!';
+        badge.classList.remove('opacity-0');
+        setTimeout(() => { badge.textContent = 'Clic para copiar →'; badge.classList.add('opacity-0'); }, 2000);
+      }
+    });
+  });
+
+  // ===== LOGOUT =====
+  document.getElementById('btn-logout-settings')!.addEventListener('click', async () => {
+    if (confirm('¿Segura que quieres cerrar sesión?')) {
+      await supabase.auth.signOut();
+      window.location.href = '/login';
+    }
+  });
+</script>

@@ -1,0 +1,594 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <!-- Loading State -->
+  <div id="loading-state" class="flex items-center justify-center py-32">
+    <div class="text-center">
+      <div class="w-12 h-12 mx-auto border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
+      <p class="text-on-surface-variant font-bold">Cargando tu membresía...</p>
+    </div>
+  </div>
+
+  <div id="main-content" class="hidden">
+    <header class="flex justify-between items-center mb-10">
+      <div>
+        <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">SUSCRIPCIÓN</p>
+        <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Mi Membresía</h2>
+        <p class="text-on-surface-variant mt-2 text-lg">Gestiona tu plan y descubre todas las herramientas disponibles.</p>
+      </div>
+    </header>
+
+    <!-- Success/Error alerts -->
+    <div id="alert-success" class="hidden bg-green-50 border border-green-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+      <span class="material-symbols-outlined text-green-600">check_circle</span>
+      <p class="text-green-800 font-bold text-sm">¡Suscripción activada exitosamente! Bienvenida a tu nuevo plan. 🎉</p>
+      <button class="ml-auto text-green-600 hover:text-green-800" onclick="this.parentElement.classList.add('hidden')">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+    <div id="alert-canceled" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+      <span class="material-symbols-outlined text-amber-600">info</span>
+      <p class="text-amber-800 font-bold text-sm">El pago fue cancelado. Puedes intentar de nuevo cuando quieras.</p>
+      <button class="ml-auto text-amber-600 hover:text-amber-800" onclick="this.parentElement.classList.add('hidden')">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Past Due Alert -->
+    <div id="alert-past-due" class="hidden bg-red-50 border-2 border-red-200 rounded-2xl p-5 mb-6 flex items-center gap-4">
+      <div class="w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-red-600 text-xl">warning</span>
+      </div>
+      <div class="flex-1">
+        <p class="text-red-800 font-bold">Pago pendiente</p>
+        <p class="text-red-700 text-sm">Tu último pago no se procesó. Actualiza tu método de pago para mantener tu plan activo.</p>
+      </div>
+      <button id="btn-fix-payment" class="py-2 px-5 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 transition-colors text-sm shrink-0">
+        Corregir Pago
+      </button>
+    </div>
+
+    <!-- Current Plan Banner -->
+    <section id="current-plan-banner" class="bg-gradient-to-r from-primary/10 via-secondary-container/15 to-tertiary/10 rounded-[2rem] p-8 mb-10 relative overflow-hidden shadow-sm">
+      <div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
+      <div class="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full translate-y-10 -translate-x-10"></div>
+      <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+        <div class="w-24 h-24 rounded-2xl bg-white/50 backdrop-blur-sm flex items-center justify-center border-2 border-primary/15 shadow-lg">
+          <span class="text-5xl" id="plan-icon">⏳</span>
+        </div>
+        <div class="flex-1 text-center md:text-left">
+          <div class="flex items-center gap-3 justify-center md:justify-start">
+            <h3 class="text-3xl font-display font-bold text-on-surface" id="plan-name">—</h3>
+            <span class="text-xs font-bold px-3 py-1 rounded-full" id="plan-status-badge">—</span>
+          </div>
+          <p class="text-on-surface-variant mt-1 text-sm" id="plan-desc">Cargando...</p>
+          <div class="flex items-center gap-6 mt-4 justify-center md:justify-start" id="plan-details">
+          </div>
+        </div>
+        <div class="flex flex-col gap-2" id="plan-actions">
+        </div>
+      </div>
+    </section>
+
+    <!-- Trial Banner -->
+    <section id="trial-banner" class="hidden bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-[2rem] p-6 mb-8 border border-amber-200/30 shadow-sm">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center shrink-0">
+          <span class="material-symbols-outlined text-amber-700 text-xl">hourglass_top</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-bold text-on-surface">Periodo de Prueba Gratuita</h4>
+          <p class="text-sm text-on-surface-variant">Te quedan <strong id="trial-days">—</strong> días de prueba. Elige un plan para no perder tu información.</p>
+        </div>
+        <a href="#planes" class="flex items-center gap-2 py-2.5 px-6 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md text-sm">
+          <span class="material-symbols-outlined text-sm">rocket_launch</span> Elegir Plan
+        </a>
+      </div>
+    </section>
+
+    <!-- Usage Stats -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm text-center">
+        <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary text-lg">inventory_2</span>
+        </div>
+        <p id="stat-products" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Productos</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm text-center">
+        <div class="w-10 h-10 mx-auto mb-2 bg-secondary/10 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined text-secondary text-lg">group</span>
+        </div>
+        <p id="stat-clients" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Clientes</p>
+      </div>
+      <div class="bg-surface-container-lowest rounded-2xl p-5 shadow-sm text-center">
+        <div class="w-10 h-10 mx-auto mb-2 bg-tertiary/10 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined text-tertiary text-lg">receipt_long</span>
+        </div>
+        <p id="stat-orders" class="text-2xl font-display font-bold text-on-surface">—</p>
+        <p class="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Ventas</p>
+      </div>
+      <div class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-2xl p-5 shadow-sm text-center border border-green-200/30">
+        <div class="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+          <span class="material-symbols-outlined text-green-700 text-lg">savings</span>
+        </div>
+        <p id="stat-revenue" class="text-2xl font-display font-bold text-green-700">—</p>
+        <p class="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Gestionado</p>
+      </div>
+    </section>
+
+    <!-- Pricing Plans -->
+    <section id="planes" class="mb-10">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">workspace_premium</span>
+          Planes Disponibles
+        </h3>
+        <div class="flex bg-surface-container-highest rounded-xl p-1">
+          <button id="toggle-monthly" class="text-xs font-bold px-4 py-2 rounded-lg bg-primary text-white transition-all">Mensual</button>
+          <button id="toggle-annual" class="text-xs font-bold px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all">Anual <span class="text-[10px] text-secondary">-17%</span></button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Básico -->
+        <div class="plan-card bg-surface-container-lowest rounded-[2rem] p-7 shadow-sm border-2 border-outline-variant/10 hover:shadow-lg transition-all relative" id="card-basico">
+          <div class="text-center mb-6">
+            <span class="text-4xl">🥈</span>
+            <h4 class="font-display font-bold text-xl text-on-surface mt-3">Básico</h4>
+            <p class="text-xs text-on-surface-variant mt-1">Ideal para consultoras que inician</p>
+            <div class="mt-4">
+              <span class="plan-price text-4xl font-display font-bold text-on-surface" data-monthly="79" data-annual-total="660">$79</span>
+              <span class="plan-period text-sm text-on-surface-variant">/mes</span>
+            </div>
+          </div>
+          <ul class="space-y-3 mb-6">
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Inventario y catálogo básico</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Registro de ventas (contado)</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Hasta 50 productos</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Hasta 20 clientes</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Dashboard básico</li>
+            <li class="flex items-start gap-2 text-sm text-on-surface-variant/50"><span class="material-symbols-outlined text-base mt-0.5 shrink-0">remove</span> Sin gestión de abonos</li>
+            <li class="flex items-start gap-2 text-sm text-on-surface-variant/50"><span class="material-symbols-outlined text-base mt-0.5 shrink-0">remove</span> Sin reportes avanzados</li>
+          </ul>
+          <button class="btn-plan w-full py-3 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-all text-sm" data-plan="basico">
+            Elegir Básico
+          </button>
+        </div>
+
+        <!-- Pro -->
+        <div class="plan-card bg-surface-container-lowest rounded-[2rem] p-7 shadow-md border-2 border-primary/30 hover:shadow-xl transition-all relative scale-[1.02]" id="card-pro">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span class="text-xs font-bold px-4 py-1.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30">⭐ MÁS POPULAR</span>
+          </div>
+          <div class="text-center mb-6">
+            <span class="text-4xl">💎</span>
+            <h4 class="font-display font-bold text-xl text-on-surface mt-3">Pro</h4>
+            <p class="text-xs text-on-surface-variant mt-1">Para consultoras con cartera activa</p>
+            <div class="mt-4">
+              <span class="plan-price text-4xl font-display font-bold text-primary" data-monthly="149" data-annual-total="1488">$149</span>
+              <span class="plan-period text-sm text-on-surface-variant">/mes</span>
+            </div>
+          </div>
+          <ul class="space-y-3 mb-6">
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> <strong>Todo lo del Básico</strong> +</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Gestión de cobranza y abonos</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Productos ilimitados</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Clientes ilimitados</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Recordatorios de cobro automáticos</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Importación catálogo Natura/Avon</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Catálogo digital compartible</li>
+            <li class="flex items-start gap-2 text-sm text-on-surface-variant/50"><span class="material-symbols-outlined text-base mt-0.5 shrink-0">remove</span> Sin reportes de ganancias</li>
+          </ul>
+          <button class="btn-plan w-full py-3.5 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md shadow-primary/20 text-sm" data-plan="pro">
+            Elegir Pro
+          </button>
+        </div>
+
+        <!-- Premium -->
+        <div class="plan-card bg-gradient-to-br from-surface-container-lowest to-primary/[0.02] rounded-[2rem] p-7 shadow-sm border-2 border-secondary/15 hover:shadow-lg transition-all relative" id="card-premium">
+          <div class="text-center mb-6">
+            <span class="text-4xl">👑</span>
+            <h4 class="font-display font-bold text-xl text-on-surface mt-3">Premium</h4>
+            <p class="text-xs text-on-surface-variant mt-1">Para consultoras de alto volumen</p>
+            <div class="mt-4">
+              <span class="plan-price text-4xl font-display font-bold text-secondary" data-monthly="249" data-annual-total="2484">$249</span>
+              <span class="plan-period text-sm text-on-surface-variant">/mes</span>
+            </div>
+          </div>
+          <ul class="space-y-3 mb-6">
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> <strong>Todo lo del Pro</strong> +</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Reportes de ganancias detallados</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Predicción de recompra con IA</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Soporte prioritario por WhatsApp</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Mentoría 1 a 1 mensual</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Exportación de datos (Excel/PDF)</li>
+            <li class="flex items-start gap-2 text-sm"><span class="material-symbols-outlined text-secondary text-base mt-0.5 shrink-0">check_circle</span> Acceso anticipado a nuevas funciones</li>
+          </ul>
+          <button class="btn-plan w-full py-3 rounded-xl font-bold border-2 border-secondary/20 text-secondary hover:bg-secondary/5 transition-all text-sm" data-plan="premium">
+            Elegir Premium
+          </button>
+        </div>
+      </div>
+
+      <div id="annual-savings" class="hidden bg-gradient-to-r from-green-50 to-green-100/30 rounded-2xl p-4 mt-4 border border-green-200/30 text-center">
+        <p class="text-sm text-green-800 font-bold">💰 Ahorra hasta <strong>$504 MXN al año</strong> con el plan anual — "Paga 10 meses y llévate 12"</p>
+      </div>
+    </section>
+
+    <!-- Billing History -->
+    <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-10">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">receipt</span>
+        Historial de Pagos
+      </h3>
+      <div id="billing-list">
+        <div class="text-center py-8" id="billing-empty">
+          <div class="w-14 h-14 mx-auto bg-surface-container rounded-2xl flex items-center justify-center mb-3">
+            <span class="material-symbols-outlined text-on-surface-variant/30 text-2xl">receipt_long</span>
+          </div>
+          <p class="text-on-surface-variant font-bold text-sm">Sin historial de pagos</p>
+          <p class="text-on-surface-variant/60 text-xs mt-1">Tu primer recibo aparecerá aquí después de tu primer pago</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">help</span>
+        Preguntas sobre la Suscripción
+      </h3>
+      <div class="space-y-3">
+        <div class="sub-faq rounded-2xl border border-outline-variant/10 hover:border-primary/20 transition-all">
+          <div class="flex justify-between items-center p-5 cursor-pointer group">
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Puedo cancelar en cualquier momento?</h4>
+            <span class="material-symbols-outlined text-on-surface-variant sub-chevron transition-transform text-lg">expand_more</span>
+          </div>
+          <div class="sub-answer hidden px-5 pb-5">
+            <p class="text-on-surface-variant text-sm bg-surface-container-low/50 rounded-xl p-4">Sí, puedes cancelar tu suscripción cuando quieras sin penalización. Tu acceso continuará hasta el final del periodo pagado.</p>
+          </div>
+        </div>
+        <div class="sub-faq rounded-2xl border border-outline-variant/10 hover:border-primary/20 transition-all">
+          <div class="flex justify-between items-center p-5 cursor-pointer group">
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Qué pasa con mis datos si bajo de plan?</h4>
+            <span class="material-symbols-outlined text-on-surface-variant sub-chevron transition-transform text-lg">expand_more</span>
+          </div>
+          <div class="sub-answer hidden px-5 pb-5">
+            <p class="text-on-surface-variant text-sm bg-surface-container-low/50 rounded-xl p-4">Tus datos nunca se pierden. Si bajas de plan, las funciones premium se desactivan pero toda tu información se conserva intacta.</p>
+          </div>
+        </div>
+        <div class="sub-faq rounded-2xl border border-outline-variant/10 hover:border-primary/20 transition-all">
+          <div class="flex justify-between items-center p-5 cursor-pointer group">
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Incluye los 15 días gratis?</h4>
+            <span class="material-symbols-outlined text-on-surface-variant sub-chevron transition-transform text-lg">expand_more</span>
+          </div>
+          <div class="sub-answer hidden px-5 pb-5">
+            <p class="text-on-surface-variant text-sm bg-surface-container-low/50 rounded-xl p-4">¡Sí! Todas las nuevas consultoras reciben 15 días de prueba gratuita con acceso completo. No necesitas tarjeta de crédito.</p>
+          </div>
+        </div>
+        <div class="sub-faq rounded-2xl border border-outline-variant/10 hover:border-primary/20 transition-all">
+          <div class="flex justify-between items-center p-5 cursor-pointer group">
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Cómo cambio de plan (upgrade/downgrade)?</h4>
+            <span class="material-symbols-outlined text-on-surface-variant sub-chevron transition-transform text-lg">expand_more</span>
+          </div>
+          <div class="sub-answer hidden px-5 pb-5">
+            <p class="text-on-surface-variant text-sm bg-surface-container-low/50 rounded-xl p-4">Haz clic en "Gestionar Plan" y se abrirá el portal de pagos donde puedes cambiar, subir o bajar de plan al instante. Los cambios se aplican inmediatamente y se ajusta el cobro proporcional.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</DashboardLayout>
+
+<style>
+  .plan-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .plan-card:hover { transform: translateY(-4px); }
+  .plan-card.current-plan { border-color: rgba(139,90,43,0.3); }
+  .plan-card.current-plan::after {
+    content: '✓ TU PLAN'; position: absolute; top: 12px; right: 12px;
+    font-size: 10px; font-weight: 700; background: rgba(139,90,43,0.1);
+    color: rgba(139,90,43,1); padding: 4px 10px; border-radius: 20px;
+  }
+  .sub-faq.open { border-color: rgba(139,90,43,0.15); background: rgba(139,90,43,0.02); }
+  .sub-faq.open .sub-chevron { transform: rotate(180deg); }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+  import {
+    getUserSubscription,
+    isTrialActive,
+    getTrialDaysLeft,
+    getPlanDisplayName,
+    getPlanPrice,
+    isSubscriptionActive,
+    type Subscription,
+  } from '../lib/subscription';
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login'; throw new Error(''); }
+  const userId = session.user.id;
+  const userEmail = session.user.email;
+
+  // Handle URL params from Stripe redirect
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('success') === 'true') {
+    document.getElementById('alert-success')!.classList.remove('hidden');
+    window.history.replaceState({}, '', '/membresia');
+  }
+  if (params.get('canceled') === 'true') {
+    document.getElementById('alert-canceled')!.classList.remove('hidden');
+    window.history.replaceState({}, '', '/membresia');
+  }
+
+  // Load subscription
+  const sub = await getUserSubscription(userId);
+
+  // Load usage stats
+  const [{ count: productCount }, { count: clientCount }, { count: orderCount }, { data: orders }] = await Promise.all([
+    supabase.from('inventory').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
+    supabase.from('customers').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
+    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
+    supabase.from('orders').select('total_amount').eq('consultant_id', userId).neq('status', 'cancelled'),
+  ]);
+  const totalRevenue = (orders || []).reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+
+  (document.getElementById('stat-products') as HTMLElement).textContent = String(productCount || 0);
+  (document.getElementById('stat-clients') as HTMLElement).textContent = String(clientCount || 0);
+  (document.getElementById('stat-orders') as HTMLElement).textContent = String(orderCount || 0);
+  (document.getElementById('stat-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 0 });
+
+  // Render plan state
+  const planIcons: Record<string, string> = { trial: '⏳', basico: '🥈', pro: '💎', premium: '👑' };
+  const planDescs: Record<string, string> = {
+    trial: 'Acceso completo por tiempo limitado',
+    basico: 'Inventario y ventas básicas',
+    pro: 'Gestión completa de cobranza, abonos y recordatorios',
+    premium: 'Reportes avanzados, IA y soporte prioritario',
+  };
+
+  const currentPlan = sub?.plan || 'trial';
+  const planStatus = sub?.status || 'trialing';
+
+  // Banner
+  (document.getElementById('plan-icon') as HTMLElement).textContent = planIcons[currentPlan] || '⏳';
+  (document.getElementById('plan-name') as HTMLElement).textContent = `Plan ${getPlanDisplayName(currentPlan)}`;
+  (document.getElementById('plan-desc') as HTMLElement).textContent = planDescs[currentPlan] || '';
+
+  // Status badge
+  const badge = document.getElementById('plan-status-badge')!;
+  if (planStatus === 'active') {
+    badge.textContent = 'ACTIVO';
+    badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-green-100 text-green-700';
+  } else if (planStatus === 'trialing') {
+    badge.textContent = 'PRUEBA';
+    badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-700';
+  } else if (planStatus === 'past_due') {
+    badge.textContent = 'PAGO PENDIENTE';
+    badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-red-100 text-red-700';
+    document.getElementById('alert-past-due')!.classList.remove('hidden');
+  } else if (planStatus === 'canceled') {
+    badge.textContent = 'CANCELADO';
+    badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600';
+  } else {
+    badge.textContent = planStatus.toUpperCase();
+    badge.className = 'text-xs font-bold px-3 py-1 rounded-full bg-gray-100 text-gray-600';
+  }
+
+  // Plan details
+  const detailsEl = document.getElementById('plan-details')!;
+  if (isSubscriptionActive(sub) && currentPlan !== 'trial') {
+    const price = getPlanPrice(currentPlan, sub?.billing_period || 'monthly');
+    const periodLabel = sub?.billing_period === 'annual' ? '/mes (anual)' : '/mes';
+    const nextDate = sub?.current_period_end ? new Date(sub.current_period_end).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+
+    detailsEl.innerHTML = `
+      <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Precio</p><p class="text-2xl font-bold text-primary">$${price}<span class="text-sm font-normal text-on-surface-variant">${periodLabel}</span></p></div>
+      <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Próximo Cobro</p><p class="text-lg font-bold text-on-surface">${nextDate}</p></div>
+      ${sub?.cancel_at_period_end ? '<div><p class="text-xs font-bold text-red-600">⚠️ Se cancela al final del periodo</p></div>' : ''}
+    `;
+  } else if (planStatus === 'trialing') {
+    const daysLeft = getTrialDaysLeft(sub);
+    detailsEl.innerHTML = `
+      <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Días Restantes</p><p class="text-2xl font-bold text-amber-600">${daysLeft}</p></div>
+      <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Expira</p><p class="text-lg font-bold text-on-surface">${sub?.trial_ends_at ? new Date(sub.trial_ends_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—'}</p></div>
+    `;
+  } else {
+    detailsEl.innerHTML = '<p class="text-sm text-on-surface-variant">Elige un plan para comenzar a usar Natura Flow</p>';
+  }
+
+  // Trial banner
+  if (planStatus === 'trialing' && isTrialActive(sub)) {
+    document.getElementById('trial-banner')!.classList.remove('hidden');
+    (document.getElementById('trial-days') as HTMLElement).textContent = String(getTrialDaysLeft(sub));
+  }
+
+  // Action buttons
+  const actionsEl = document.getElementById('plan-actions')!;
+  if (sub?.stripe_customer_id && isSubscriptionActive(sub) && currentPlan !== 'trial') {
+    actionsEl.innerHTML = `
+      <button id="btn-manage" class="flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-colors text-sm">
+        <span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan
+      </button>
+    `;
+    document.getElementById('btn-manage')!.addEventListener('click', openPortal);
+  } else if (planStatus === 'canceled' || !isSubscriptionActive(sub)) {
+    actionsEl.innerHTML = `
+      <a href="#planes" class="flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md text-sm">
+        <span class="material-symbols-outlined text-sm">rocket_launch</span> Reactivar Plan
+      </a>
+    `;
+  }
+
+  // Mark current plan card
+  if (isSubscriptionActive(sub) && currentPlan !== 'trial') {
+    const card = document.getElementById(`card-${currentPlan}`);
+    if (card) {
+      card.classList.add('current-plan');
+      const btn = card.querySelector('.btn-plan') as HTMLButtonElement;
+      if (btn) {
+        btn.textContent = 'Plan Actual';
+        btn.disabled = true;
+        btn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    }
+  }
+
+  // Monthly/Annual toggle
+  let isAnnual = false;
+  const toggleMonthly = document.getElementById('toggle-monthly')!;
+  const toggleAnnual = document.getElementById('toggle-annual')!;
+  const annualSavings = document.getElementById('annual-savings')!;
+
+  // Fetch real prices from Stripe
+  let stripePrices: Record<string, { monthly: number; annual_total: number; annual_per_month: number; discount?: number }> | null = null;
+  try {
+    const priceRes = await fetch('/api/stripe/prices');
+    const priceData = await priceRes.json();
+    if (priceData.plans) {
+      stripePrices = priceData.plans;
+      // Populate initial monthly prices from Stripe
+      const planMap: Record<string, string> = { basico: 'card-basico', pro: 'card-pro', premium: 'card-premium' };
+      for (const [plan, prices] of Object.entries(stripePrices!)) {
+        const card = document.getElementById(planMap[plan]);
+        if (!card) continue;
+        const priceEl = card.querySelector('.plan-price') as HTMLElement;
+        if (priceEl) {
+          priceEl.dataset.monthly = String((prices as any).monthly);
+          priceEl.dataset.annualTotal = String((prices as any).annual_total);
+          priceEl.dataset.annualPerMonth = String((prices as any).annual_per_month);
+          priceEl.textContent = '$' + (prices as any).monthly;
+        }
+      }
+      // Update discount percentage in toggle button
+      const avgDiscount = Math.round(Object.values(stripePrices!).reduce((s, p) => s + ((p as any).discount || 0), 0) / Object.keys(stripePrices!).length);
+      toggleAnnual.innerHTML = `Anual <span class="text-[10px] text-secondary">-${avgDiscount}%</span>`;
+    }
+  } catch (e) {
+    console.warn('Could not fetch Stripe prices, using defaults');
+  }
+
+  function updatePricing() {
+    document.querySelectorAll('.plan-price').forEach(el => {
+      const htmlEl = el as HTMLElement;
+      if (isAnnual) {
+        const perMonth = Number(htmlEl.dataset.annualPerMonth) || (Number(htmlEl.dataset.annualTotal) / 12);
+        const rounded = Math.round(perMonth * 100) / 100;
+        htmlEl.textContent = '$' + (rounded % 1 === 0 ? rounded : rounded.toFixed(2));
+      } else {
+        htmlEl.textContent = '$' + htmlEl.dataset.monthly;
+      }
+    });
+    document.querySelectorAll('.plan-period').forEach(el => {
+      (el as HTMLElement).textContent = isAnnual ? '/mes (factura anual)' : '/mes';
+    });
+    annualSavings.classList.toggle('hidden', !isAnnual);
+  }
+
+  toggleMonthly.addEventListener('click', () => {
+    isAnnual = false;
+    toggleMonthly.className = 'text-xs font-bold px-4 py-2 rounded-lg bg-primary text-white transition-all';
+    toggleAnnual.className = 'text-xs font-bold px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all';
+    const discount = stripePrices ? Math.round(Object.values(stripePrices).reduce((s, p) => s + ((p as any).discount || 0), 0) / Object.keys(stripePrices).length) : 17;
+    toggleAnnual.innerHTML = `Anual <span class="text-[10px] text-secondary">-${discount}%</span>`;
+    updatePricing();
+  });
+
+  toggleAnnual.addEventListener('click', () => {
+    isAnnual = true;
+    toggleAnnual.className = 'text-xs font-bold px-4 py-2 rounded-lg bg-primary text-white transition-all';
+    const discount = stripePrices ? Math.round(Object.values(stripePrices).reduce((s, p) => s + ((p as any).discount || 0), 0) / Object.keys(stripePrices).length) : 17;
+    toggleAnnual.innerHTML = `Anual <span class="text-[10px] text-white/80">-${discount}%</span>`;
+    toggleMonthly.className = 'text-xs font-bold px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container transition-all';
+    updatePricing();
+  });
+
+  // Checkout flow
+  async function startCheckout(plan: string) {
+    const btn = document.querySelector(`.btn-plan[data-plan="${plan}"]`) as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Conectando con Stripe...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan,
+          billing_period: isAnnual ? 'annual' : 'monthly',
+          userId,
+          userEmail,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Error al crear sesión de pago');
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
+    } catch (err: any) {
+      alert('Error de conexión: ' + err.message);
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  async function openPortal() {
+    const btn = document.getElementById('btn-manage') as HTMLButtonElement;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Abriendo...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Error al abrir portal');
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan';
+        btn.disabled = false;
+      }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan';
+      btn.disabled = false;
+    }
+  }
+
+  // Bind plan buttons
+  document.querySelectorAll('.btn-plan:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const plan = (btn as HTMLElement).dataset.plan!;
+      startCheckout(plan);
+    });
+  });
+
+  // Fix payment button
+  document.getElementById('btn-fix-payment')?.addEventListener('click', openPortal);
+
+  // FAQ accordion
+  document.querySelectorAll('.sub-faq').forEach(item => {
+    item.querySelector('.cursor-pointer')!.addEventListener('click', () => {
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.sub-faq').forEach(o => { o.classList.remove('open'); o.querySelector('.sub-answer')?.classList.add('hidden'); });
+      if (!wasOpen) { item.classList.add('open'); item.querySelector('.sub-answer')?.classList.remove('hidden'); }
+    });
+  });
+
+  // Done loading
+  document.getElementById('loading-state')!.classList.add('hidden');
+  document.getElementById('main-content')!.classList.remove('hidden');
+</script>

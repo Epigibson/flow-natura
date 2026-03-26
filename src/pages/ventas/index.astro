@@ -1,0 +1,318 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Ventas Realizadas">
+  <div class="max-w-screen-xl mx-auto">
+    <!-- Page Heading (Editorial Style) -->
+    <header class="mb-12">
+      <span class="text-primary-container font-headline font-bold tracking-widest text-xs uppercase mb-2 block">Management Hub</span>
+      <h1 class="text-5xl md:text-6xl font-headline font-extrabold text-on-surface tracking-tighter mb-4">Ventas Realizadas</h1>
+      <p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">Monitorea tu flujo de ingresos, gestiona los abonos pendientes de tus clientes y celebra tus logros de venta mensual.</p>
+    </header>
+
+    <!-- KPI Dashboard (Organic Layering) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div class="bg-surface-container-low p-8 rounded-3xl relative overflow-hidden group">
+        <div class="relative z-10">
+          <p class="text-on-surface-variant font-headline font-medium mb-1">Ventas Totales</p>
+          <h2 class="text-4xl font-headline font-extrabold text-on-surface" id="kpi-total">Cargando...</h2>
+        </div>
+        <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-primary/5 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500">payments</span>
+      </div>
+
+      <div class="bg-surface-container-high p-8 rounded-3xl relative overflow-hidden group">
+        <div class="relative z-10">
+          <p class="text-on-surface-variant font-headline font-medium mb-1">Ventas por Cobrar</p>
+          <h2 class="text-4xl font-headline font-extrabold text-primary" id="kpi-por-cobrar">Cargando...</h2>
+          <p class="mt-4 text-on-surface-variant text-sm font-medium" id="kpi-abonos-count">-- abonos activos registrados</p>
+        </div>
+        <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-primary-container/5 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500">schedule</span>
+      </div>
+
+      <div class="bg-secondary-container p-8 rounded-3xl relative overflow-hidden group shadow-lg shadow-secondary/5">
+        <div class="relative z-10 flex flex-col items-start">
+          <p class="text-on-secondary-container font-headline font-medium mb-1">Nueva Venta</p>
+          <h2 class="text-2xl font-headline font-extrabold text-on-secondary-container mb-4">Registrar Pedido</h2>
+          <a href="/ventas/nueva" class="mt-auto inline-flex items-center gap-2 px-6 py-3 bg-white/50 hover:bg-white/80 transition-colors backdrop-blur-sm rounded-full text-sm font-bold text-on-secondary-container shadow-sm border border-white/40">
+            <span class="material-symbols-outlined text-sm">add_circle</span>
+            Crear Venta
+          </a>
+        </div>
+        <span class="material-symbols-outlined absolute -bottom-4 -right-4 text-9xl text-on-secondary-container/10 select-none pointer-events-none group-hover:scale-110 transition-transform duration-500">point_of_sale</span>
+      </div>
+    </section>
+
+    <!-- Filters & Search Bar -->
+    <section class="flex flex-wrap items-end justify-between gap-6 mb-8">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-headline font-bold text-on-surface-variant ml-1">Periodo</label>
+          <div class="relative">
+            <select class="appearance-none bg-surface-container-highest border-none rounded-2xl py-3 pl-5 pr-12 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary-container min-w-[180px]">
+              <option>Últimos 30 días</option>
+              <option>Este mes</option>
+              <option>Todos los tiempos</option>
+            </select>
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="text-xs font-headline font-bold text-on-surface-variant ml-1">Estado del Pago</label>
+          <div class="flex bg-surface-container-highest p-1 rounded-2xl" id="status-filters">
+            <button id="filter-all" class="px-5 py-2 rounded-xl text-sm font-bold bg-surface-container-lowest text-primary shadow-sm" data-filter="all">Todos</button>
+            <button id="filter-pending" class="px-5 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:text-primary transition-colors" data-filter="pending">Con Deuda</button>
+            <button id="filter-late" class="hidden px-5 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:text-primary transition-colors" data-filter="late">Atrasado</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="relative flex-1 md:w-80">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+          <input id="search-input" class="w-full bg-surface-container-low border-none rounded-2xl py-3 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary-container shadow-[0_4px_12px_rgba(29,26,34,0.03)] transition-shadow" placeholder="Buscar por cliente o folio..." type="text">
+        </div>
+      </div>
+    </section>
+
+    <!-- Sales Table -->
+    <section class="bg-surface-container-lowest rounded-[2.5rem] p-4 md:p-8 shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)]">
+      
+      <div id="loader" class="flex flex-col items-center justify-center py-20 text-primary">
+        <span class="material-symbols-outlined animate-spin text-4xl mb-4">refresh</span>
+        <p class="font-bold">Cargando ventas...</p>
+      </div>
+
+      <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-on-surface-variant text-center">
+        <span class="material-symbols-outlined text-6xl mb-4 opacity-50 text-primary">receipt_long</span>
+        <h3 class="text-xl font-bold font-headline mb-2 text-on-surface">No hay ventas registradas</h3>
+        <p class="max-w-sm">No pudimos encontrar ventas en el periodo seleccionado o tu historial está vacío.</p>
+      </div>
+
+      <div class="overflow-x-auto hidden" id="table-container">
+        <table class="w-full text-left border-separate border-spacing-y-4">
+          <thead class="hidden md:table-header-group">
+            <tr class="text-on-surface-variant font-headline text-xs font-bold uppercase tracking-widest">
+              <th class="px-6 pb-2">Folio & Cliente</th>
+              <th class="px-6 pb-2">Fecha</th>
+              <th class="px-6 pb-2">Monto Total</th>
+              <th class="px-6 pb-2">Método</th>
+              <th class="px-6 pb-2">Estado</th>
+              <th class="px-6 pb-2 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm" id="sales-tbody">
+            <!-- Rendered via JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  async function loadData() {
+    const loader = document.getElementById('loader') as HTMLElement;
+    const emptyState = document.getElementById('empty-state') as HTMLElement;
+    const tableContainer = document.getElementById('table-container') as HTMLElement;
+    const salesTbody = document.getElementById('sales-tbody') as HTMLElement;
+
+    const kpiTotal = document.getElementById('kpi-total') as HTMLElement;
+    const kpiPorCobrar = document.getElementById('kpi-por-cobrar') as HTMLElement;
+    const kpiAbonosCount = document.getElementById('kpi-abonos-count') as HTMLElement;
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    const btnAll = document.getElementById('filter-all') as HTMLButtonElement;
+    const btnPending = document.getElementById('filter-pending') as HTMLButtonElement;
+    
+    let allOrders: any[] = [];
+    let currentFilter = 'all';
+
+    function setFilterButton(activeBtn: HTMLButtonElement) {
+      [btnAll, btnPending].forEach(b => {
+        b.className = 'px-5 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:text-primary transition-colors';
+      });
+      activeBtn.className = 'px-5 py-2 rounded-xl text-sm font-bold bg-surface-container-lowest text-primary shadow-sm';
+    }
+
+    btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
+    btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
+    searchInput.oninput = () => renderTable();
+
+    function renderTable() {
+      const term = searchInput.value.toLowerCase();
+      
+      const filtered = allOrders.filter(o => {
+        const cName = o.customers?.full_name?.toLowerCase() || '';
+        const folio = o.id.split('-')[0].toLowerCase();
+        const matchesSearch = cName.includes(term) || folio.includes(term);
+        
+        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
+        let debt = 0;
+        if (isAbonos && o.notes) {
+          try {
+            const terms = JSON.parse(o.notes);
+            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
+            const montoCuota = remaining / Number(terms.pagos || 1);
+            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+          } catch(e) {}
+        } else if (o.status === 'pending') {
+          debt = Number(o.total_amount);
+        }
+
+        const matchesFilter = currentFilter === 'all' || (currentFilter === 'pending' && debt > 0.01);
+        
+        return matchesSearch && matchesFilter;
+      });
+
+      if (filtered.length === 0) {
+        tableContainer.classList.add('hidden');
+        if(allOrders.length === 0) emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        tableContainer.classList.remove('hidden');
+      }
+
+      // KPIs
+      let totalVentas = 0;
+      let totalCobrar = 0;
+      let abonosActivos = 0;
+
+      allOrders.forEach(o => {
+        const amt = Number(o.total_amount);
+        totalVentas += amt;
+        
+        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
+        let debt = 0;
+        if (isAbonos && o.notes) {
+          try {
+            const terms = JSON.parse(o.notes);
+            const remaining = amt - Number(terms.enganche || 0);
+            const montoCuota = remaining / Number(terms.pagos || 1);
+            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+            if (debt > 0.01) abonosActivos++;
+          } catch(e) {}
+        } else if (o.status === 'pending') {
+          debt = amt;
+          if (isAbonos) abonosActivos++;
+        }
+        totalCobrar += debt;
+      });
+
+      kpiTotal.textContent = `$${totalVentas.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      kpiPorCobrar.textContent = `$${totalCobrar.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      kpiAbonosCount.textContent = `${abonosActivos} abonos activos con deuda`;
+
+      // Render Rows
+      salesTbody.innerHTML = '';
+      filtered.forEach(o => {
+        const tr = document.createElement('tr');
+        tr.className = 'group hover:bg-primary/5 transition-colors duration-200';
+
+        const cName = o.customers?.full_name || 'Cliente Mostrador';
+        const initials = cName.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
+        
+        const dateObj = new Date(o.created_at);
+        const dateStr = dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeStr = dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
+        
+        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
+        let debt = 0;
+        if (isAbonos && o.notes) {
+          try {
+            const terms = JSON.parse(o.notes);
+            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
+            const montoCuota = remaining / Number(terms.pagos || 1);
+            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+          } catch(e) {}
+        } else if (o.status === 'pending') {
+          debt = Number(o.total_amount);
+        }
+
+        const isFullyPaid = debt <= 0.01;
+        const amountStr = Number(o.total_amount).toLocaleString('es-MX', {minimumFractionDigits:2});
+
+        const methodUI = isAbonos 
+          ? `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">history</span>ABONOS</div>`
+          : `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">payments</span>CONTADO</div>`;
+
+        let statusUI = '';
+        if (o.status === 'cancelled') {
+          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="text-xs font-bold text-error">Cancelado</span></div>`;
+        } else if (isFullyPaid) {
+          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-secondary"></span><span class="text-xs font-bold text-on-surface">Pagado</span></div>`;
+        } else {
+          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span><span class="text-xs font-bold text-on-surface">Con Deuda</span></div>`;
+        }
+
+        tr.innerHTML = `
+          <td class="bg-surface rounded-l-3xl px-6 py-6 md:py-4 border-b md:border-b-0 border-outline-variant/10">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-full font-headline ${isAbonos ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'} flex items-center justify-center font-bold">
+                ${initials}
+              </div>
+              <div>
+                <p class="font-headline font-bold text-on-surface text-base">${cName}</p>
+                <p class="text-xs text-on-surface-variant font-mono text-[10px] mt-0.5">ID: ${o.id.split('-')[0].toUpperCase()}</p>
+              </div>
+            </div>
+          </td>
+          <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
+            <p class="font-medium text-on-surface">${dateStr}</p>
+            <p class="text-[10px] text-on-surface-variant uppercase mt-0.5">${timeStr}</p>
+          </td>
+          <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
+            <span class="font-headline font-black text-on-surface text-lg font-mono">$${amountStr}</span>
+            ${debt > 0.01 ? `<p class="text-[10px] text-primary font-bold uppercase mt-0.5">Pendiente: $${debt.toFixed(2)}</p>` : ''}
+          </td>
+          <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
+            ${methodUI}
+          </td>
+          <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
+            ${statusUI}
+          </td>
+          <td class="bg-surface rounded-r-3xl px-6 py-4 text-right border-b md:border-b-0 border-outline-variant/10">
+            <a href="/ventas/detalle?id=${o.id}" class="inline-block text-primary hover:bg-primary/10 p-2 rounded-full transition-colors" title="Ver Detalles">
+              <span class="material-symbols-outlined">visibility</span>
+            </a>
+          </td>
+        `;
+        salesTbody.appendChild(tr);
+      });
+    }
+
+    try {
+      const { data: userResp } = await supabase.auth.getUser();
+      if (!userResp.user) return window.location.href = '/login';
+
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          customers ( full_name )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {  
+        console.error('Error loading orders:', error);
+        return;
+      }
+
+      loader.classList.add('hidden');
+      
+      allOrders = orders || [];
+      renderTable();
+
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadData);
+  } else {
+    loadData();
+  }
+</script>

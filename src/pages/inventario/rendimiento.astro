@@ -1,0 +1,252 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">ANALYTICS</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Rendimiento de Productos</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Descubre cuáles productos generan más ingresos y demanda.</p>
+    </div>
+    <a href="/inventario" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Inventario
+    </a>
+  </header>
+
+  <!-- KPI Summary -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Productos Vendidos</p>
+      <p id="kpi-total-sold" class="text-4xl font-display font-bold text-on-surface">0</p>
+      <p class="text-sm text-on-surface-variant mt-2">Unidades totales</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Ingresos Totales</p>
+      <p id="kpi-total-revenue" class="text-4xl font-display font-bold text-secondary">$0</p>
+      <p class="text-sm text-secondary font-medium mt-2 flex items-center gap-1">
+        <span class="material-symbols-outlined text-sm">payments</span> Acumulado
+      </p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Producto Estrella</p>
+      <p id="kpi-star-product" class="text-lg font-bold text-on-surface truncate">—</p>
+      <p id="kpi-star-qty" class="text-sm text-primary font-medium mt-1">0 unidades</p>
+    </div>
+    <div class="bg-primary-container/15 rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Categoría Top</p>
+      <p id="kpi-top-category" class="text-lg font-bold text-on-surface">—</p>
+      <p id="kpi-top-category-rev" class="text-sm text-primary font-medium mt-1">$0</p>
+    </div>
+  </section>
+
+  <!-- Product Rankings -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+    <!-- Best Sellers -->
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-2xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">trending_up</span>
+        Top Productos por Ventas
+      </h3>
+      <div id="products-ranking" class="space-y-0">
+        <div id="ranking-loading" class="text-center py-12">
+          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          <p class="text-on-surface-variant mt-2">Calculando métricas...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">donut_large</span>
+        Por Categoría
+      </h3>
+      <div id="category-breakdown" class="space-y-4">
+        <div id="category-loading" class="text-center py-8">
+          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Low Performers -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <h3 class="text-2xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-error">trending_down</span>
+      Productos sin Movimiento
+    </h3>
+    <p class="text-on-surface-variant mb-4">Estos productos llevan tiempo sin venderse. Considera ofrecerlos con promoción.</p>
+    <div id="low-performers" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div id="low-loading" class="col-span-full text-center py-8">
+        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  const kpiTotalSold = document.getElementById('kpi-total-sold') as HTMLElement;
+  const kpiTotalRevenue = document.getElementById('kpi-total-revenue') as HTMLElement;
+  const kpiStarProduct = document.getElementById('kpi-star-product') as HTMLElement;
+  const kpiStarQty = document.getElementById('kpi-star-qty') as HTMLElement;
+  const kpiTopCategory = document.getElementById('kpi-top-category') as HTMLElement;
+  const kpiTopCategoryRev = document.getElementById('kpi-top-category-rev') as HTMLElement;
+  const productsRanking = document.getElementById('products-ranking') as HTMLElement;
+  const rankingLoading = document.getElementById('ranking-loading') as HTMLElement;
+  const categoryBreakdown = document.getElementById('category-breakdown') as HTMLElement;
+  const categoryLoading = document.getElementById('category-loading') as HTMLElement;
+  const lowPerformers = document.getElementById('low-performers') as HTMLElement;
+  const lowLoading = document.getElementById('low-loading') as HTMLElement;
+
+  async function loadData() {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session) return;
+    const userId = session.session.user.id;
+
+    // All non-cancelled, non-adjustment orders
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('*, order_items (*, products (*))')
+      .eq('consultant_id', userId)
+      .neq('status', 'cancelled')
+      .neq('payment_method', 'adjustment');
+
+    // All inventory
+    const { data: inventory } = await supabase
+      .from('inventory')
+      .select('*, products (*)')
+      .eq('consultant_id', userId);
+
+    // Aggregate product data
+    const productMap: Record<string, { name: string; category: string; qtySold: number; revenue: number }> = {};
+    const categoryMap: Record<string, { qtySold: number; revenue: number }> = {};
+
+    (orders || []).forEach((o: any) => {
+      (o.order_items || []).forEach((item: any) => {
+        const pid = item.product_id;
+        const name = item.products?.name || 'Producto';
+        const cat = item.products?.category || 'General';
+        const qty = item.quantity;
+        const rev = qty * Number(item.unit_price);
+
+        if (!productMap[pid]) productMap[pid] = { name, category: cat, qtySold: 0, revenue: 0 };
+        productMap[pid].qtySold += qty;
+        productMap[pid].revenue += rev;
+
+        if (!categoryMap[cat]) categoryMap[cat] = { qtySold: 0, revenue: 0 };
+        categoryMap[cat].qtySold += qty;
+        categoryMap[cat].revenue += rev;
+      });
+    });
+
+    const productList = Object.entries(productMap).map(([id, data]) => ({ id, ...data }));
+    productList.sort((a, b) => b.revenue - a.revenue);
+
+    const categoryList = Object.entries(categoryMap).map(([name, data]) => ({ name, ...data }));
+    categoryList.sort((a, b) => b.revenue - a.revenue);
+
+    // KPIs
+    const totalSold = productList.reduce((s, p) => s + p.qtySold, 0);
+    const totalRevenue = productList.reduce((s, p) => s + p.revenue, 0);
+    kpiTotalSold.textContent = totalSold.toLocaleString('es-MX');
+    kpiTotalRevenue.textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    if (productList.length > 0) {
+      kpiStarProduct.textContent = productList[0].name;
+      kpiStarQty.textContent = productList[0].qtySold + ' unidades vendidas';
+    }
+    if (categoryList.length > 0) {
+      kpiTopCategory.textContent = categoryList[0].name;
+      kpiTopCategoryRev.textContent = '$' + categoryList[0].revenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    }
+
+    // Render Rankings
+    rankingLoading.classList.add('hidden');
+    if (!productList.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-center text-on-surface-variant py-8';
+      empty.textContent = 'Registra ventas para ver el análisis de rendimiento.';
+      productsRanking.appendChild(empty);
+    } else {
+      const maxRev = productList[0].revenue;
+      productList.slice(0, 10).forEach((p, idx) => {
+        const pct = maxRev > 0 ? Math.round((p.revenue / maxRev) * 100) : 0;
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-4 py-4 ' + (idx > 0 ? 'border-t border-surface-container' : '');
+        row.innerHTML = '<div class="w-8 h-8 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0">' +
+          '<span class="text-sm font-bold text-primary">' + (idx + 1) + '</span>' +
+          '</div>' +
+          '<div class="flex-1">' +
+            '<div class="flex justify-between mb-1">' +
+              '<h4 class="font-bold text-on-surface text-sm">' + p.name + '</h4>' +
+              '<span class="text-sm font-bold text-secondary">$' + p.revenue.toLocaleString('es-MX', { minimumFractionDigits: 2 }) + '</span>' +
+            '</div>' +
+            '<div class="w-full bg-surface-container-highest rounded-full h-2">' +
+              '<div class="h-2 rounded-full bg-gradient-to-r from-primary to-primary-container transition-all" style="width: ' + pct + '%"></div>' +
+            '</div>' +
+            '<p class="text-xs text-on-surface-variant mt-1">' + p.qtySold + ' unidades • ' + p.category + '</p>' +
+          '</div>';
+        productsRanking.appendChild(row);
+      });
+    }
+
+    // Render Categories
+    categoryLoading.classList.add('hidden');
+    const totalCatRev = categoryList.reduce((s, c) => s + c.revenue, 0);
+    const catColors = ['bg-primary', 'bg-secondary', 'bg-tertiary', 'bg-primary-container', 'bg-secondary-container'];
+    categoryList.forEach((c, idx) => {
+      const pct = totalCatRev > 0 ? Math.round((c.revenue / totalCatRev) * 100) : 0;
+      const card = document.createElement('div');
+      card.className = 'flex items-center gap-3';
+      card.innerHTML = '<div class="w-4 h-4 rounded-full ' + (catColors[idx % catColors.length]) + ' shrink-0"></div>' +
+        '<div class="flex-1">' +
+          '<div class="flex justify-between">' +
+            '<span class="text-sm font-bold text-on-surface">' + c.name + '</span>' +
+            '<span class="text-sm font-bold text-on-surface-variant">' + pct + '%</span>' +
+          '</div>' +
+          '<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">' +
+            '<div class="h-1.5 rounded-full ' + (catColors[idx % catColors.length]) + ' transition-all" style="width: ' + pct + '%"></div>' +
+          '</div>' +
+        '</div>';
+      categoryBreakdown.appendChild(card);
+    });
+
+    if (!categoryList.length) {
+      const empty = document.createElement('p');
+      empty.className = 'text-center text-on-surface-variant py-4 text-sm';
+      empty.textContent = 'Sin datos de categorías aún.';
+      categoryBreakdown.appendChild(empty);
+    }
+
+    // Low Performers
+    lowLoading.classList.add('hidden');
+    const soldIds = new Set(productList.map(p => p.id));
+    const unsold = (inventory || []).filter((inv: any) => !soldIds.has(inv.product_id) && inv.quantity > 0);
+
+    if (!unsold.length) {
+      const empty = document.createElement('p');
+      empty.className = 'col-span-full text-center text-on-surface-variant py-4';
+      empty.textContent = '¡Todos tus productos han tenido movimiento! 🎉';
+      lowPerformers.appendChild(empty);
+    } else {
+      unsold.slice(0, 6).forEach((inv: any) => {
+        const card = document.createElement('div');
+        card.className = 'bg-error-container/10 rounded-2xl p-5';
+        card.innerHTML = '<div class="flex items-center gap-3 mb-3">' +
+          '<span class="material-symbols-outlined text-error">inventory_2</span>' +
+          '<h4 class="font-bold text-on-surface">' + (inv.products?.name || 'Producto') + '</h4>' +
+          '</div>' +
+          '<p class="text-sm text-on-surface-variant">' + (inv.products?.category || 'General') + ' • Stock: ' + inv.quantity + '</p>' +
+          '<a href="/inventario/ajustes" class="text-sm text-primary font-bold mt-2 inline-flex items-center gap-1 hover:underline">' +
+            'Ajustar stock <span class="material-symbols-outlined text-sm">arrow_forward</span></a>';
+        lowPerformers.appendChild(card);
+      });
+    }
+  }
+
+  loadData();
+</script>

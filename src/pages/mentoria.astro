@@ -1,0 +1,643 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <!-- Hero Header with animated gradient -->
+  <header class="relative mb-10 overflow-hidden rounded-[2.5rem] p-10 bg-gradient-to-br from-amber-900/80 via-amber-800/70 to-amber-700/60 shadow-xl">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNCI+PHBhdGggZD0iTTM2IDE0djJoLTJ2LTJoMnptMCA0djJoLTJ2LTJoMnptLTQtNHYyaC0ydi0yaDJ6bTAgNHYyaC0ydi0yaDJ6bS00LTR2MmgtMnYtMmgyek0yOCAxOHYyaC0ydi0yaDJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
+    <div class="absolute top-0 right-0 w-72 h-72 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-20 translate-x-20 blur-3xl"></div>
+    <div class="absolute bottom-0 left-0 w-56 h-56 bg-gradient-to-tr from-amber-400/15 to-transparent rounded-full translate-y-16 -translate-x-16 blur-2xl"></div>
+    
+    <div class="relative z-10">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="inline-flex items-center gap-1.5 text-amber-200/90 font-bold tracking-[0.2em] uppercase text-xs bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+          <span class="material-symbols-outlined text-xs">auto_awesome</span> MENTORING
+        </span>
+      </div>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-2">Centro de Mentoría</h2>
+      <p class="text-amber-100/80 text-lg max-w-xl">Aprende, crece y transforma tu negocio con rutas de aprendizaje personalizadas.</p>
+    </div>
+  </header>
+
+  <!-- Progress Card — Glassmorphism -->
+  <section class="relative mb-10 rounded-[2rem] p-8 overflow-hidden" id="progress-hero">
+    <div class="absolute inset-0 bg-gradient-to-r from-primary/8 via-secondary/5 to-tertiary/8"></div>
+    <div class="absolute inset-0 backdrop-blur-[2px]"></div>
+    <div class="absolute top-0 right-0 w-40 h-40 bg-primary/8 rounded-full -translate-y-16 translate-x-16 blur-xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-32 h-32 bg-secondary/8 rounded-full translate-y-12 blur-xl"></div>
+    
+    <div class="relative z-10 flex flex-col md:flex-row items-center gap-8">
+      <!-- Animated Progress Ring -->
+      <div class="relative w-32 h-32 flex items-center justify-center shrink-0 group">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full animate-pulse-slow"></div>
+        <svg class="w-32 h-32 transform -rotate-90 relative z-10" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="6" fill="none" class="text-surface-container-highest opacity-20" />
+          <circle id="progress-ring" cx="50" cy="50" r="42" stroke="url(#progressGradient)" stroke-width="6" fill="none"
+            stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round" style="transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1); filter: drop-shadow(0 0 6px rgba(180,83,9,0.3));" />
+          <defs>
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color: var(--color-primary)" />
+              <stop offset="100%" style="stop-color: var(--color-secondary)" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="absolute inset-0 flex items-center justify-center z-20">
+          <span id="progress-pct" class="text-3xl font-display font-bold bg-gradient-to-br from-amber-800 to-orange-600 bg-clip-text text-transparent">0%</span>
+        </div>
+      </div>
+      
+      <div class="flex-1 text-center md:text-left">
+        <h3 class="text-2xl font-display font-bold text-on-surface">Tu Progreso de Aprendizaje</h3>
+        <p class="text-on-surface-variant mt-1" id="progress-label">Cargando...</p>
+        <div class="flex items-center gap-8 mt-5 justify-center md:justify-start">
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mb-1 mx-auto shadow-inner">
+              <span id="stat-completed" class="text-xl font-bold text-primary">0</span>
+            </div>
+            <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">Completadas</p>
+          </div>
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-on-surface/10 to-on-surface/5 flex items-center justify-center mb-1 mx-auto shadow-inner">
+              <span id="stat-total" class="text-xl font-bold text-on-surface">0</span>
+            </div>
+            <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">Total</p>
+          </div>
+          <div class="text-center">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-secondary/15 to-secondary/5 flex items-center justify-center mb-1 mx-auto shadow-inner">
+              <span id="stat-sessions" class="text-xl font-bold text-secondary">0</span>
+            </div>
+            <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">Sesiones</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Column: Learning Paths -->
+    <div class="lg:col-span-2">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-amber-600 flex items-center justify-center shadow-lg shadow-primary/20">
+          <span class="material-symbols-outlined text-white text-lg">menu_book</span>
+        </div>
+        <div>
+          <h3 class="text-2xl font-display font-bold text-on-surface">Rutas de Aprendizaje</h3>
+          <p class="text-xs text-on-surface-variant">Expande cada módulo para ver las lecciones</p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="modules-loading" class="flex flex-col items-center justify-center py-20">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center mb-4 animate-pulse">
+          <span class="material-symbols-outlined text-primary text-3xl animate-spin">refresh</span>
+        </div>
+        <p class="text-on-surface-variant text-sm">Cargando módulos...</p>
+      </div>
+
+      <!-- Modules Container -->
+      <div id="modules-container" class="space-y-5"></div>
+    </div>
+
+    <!-- Sidebar: Sessions -->
+    <aside class="space-y-6">
+      <!-- Schedule Session Card -->
+      <div class="bg-surface-container-lowest rounded-[2rem] overflow-hidden shadow-sm border border-surface-container/50">
+        <div class="absolute inset-0 hidden"></div>
+        <div class="absolute inset-0 hidden"></div>
+        <div class="relative z-10 p-6">
+          <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">calendar_month</span>
+            Agendar Sesión 1:1
+          </h3>
+          <div class="space-y-3" id="schedule-form">
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant block mb-1">Fecha</label>
+              <input id="session-date" type="date" class="w-full bg-surface-container-highest border-none rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-primary-container text-sm" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant block mb-1">Horario</label>
+              <select id="session-time" class="w-full bg-surface-container-highest border-none rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-primary-container text-sm">
+                <option value="09:00">09:00 AM</option>
+                <option value="10:00">10:00 AM</option>
+                <option value="11:00">11:00 AM</option>
+                <option value="14:00">02:00 PM</option>
+                <option value="15:00">03:00 PM</option>
+                <option value="16:00">04:00 PM</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant block mb-1">Tema</label>
+              <select id="session-topic" class="w-full bg-surface-container-highest border-none rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-primary-container text-sm">
+                <option value="Estrategias de Venta">Estrategias de Venta</option>
+                <option value="Crecimiento de Equipo">Crecimiento de Equipo</option>
+                <option value="Gestión de Cobranza">Gestión de Cobranza</option>
+                <option value="Marketing Personal">Marketing Personal</option>
+                <option value="Orientación General">Orientación General</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-on-surface-variant block mb-1">Notas (opcional)</label>
+              <textarea id="session-notes" rows="2" placeholder="¿Qué quieres abordar?"
+                class="w-full bg-surface-container-highest border-none rounded-xl py-2.5 px-3 focus:ring-2 focus:ring-primary-container resize-none text-sm"></textarea>
+            </div>
+            <button id="btn-schedule" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/20 hover:shadow-lg hover:scale-[1.02] transition-all text-sm">
+              <span class="material-symbols-outlined text-sm">event_available</span> Agendar Sesión
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming Sessions -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border border-surface-container/50">
+        <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">upcoming</span>
+          Próximas Sesiones
+        </h3>
+        <div id="upcoming-sessions" class="space-y-3">
+          <div class="text-center py-6 text-on-surface-variant" id="no-upcoming">
+            <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
+              <span class="material-symbols-outlined text-primary text-2xl">event_busy</span>
+            </div>
+            <p class="text-sm font-medium">No tienes sesiones agendadas</p>
+            <p class="text-xs mt-1 opacity-70">Agenda una arriba para empezar 🚀</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Past Sessions -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border border-surface-container/50">
+        <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">history</span>
+          Historial
+        </h3>
+        <div id="past-sessions" class="space-y-3">
+          <p class="text-sm text-on-surface-variant text-center py-4">Cargando...</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Lesson Modal -->
+  <div id="lesson-modal" class="fixed inset-0 bg-black/60 backdrop-blur-md z-50 hidden items-center justify-center p-4" style="display:none;">
+    <div class="bg-surface-container-lowest rounded-[2.5rem] max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-surface-container/30 animate-modal-in">
+      <!-- Modal Header with gradient -->
+      <div class="relative p-6 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/8 via-secondary/5 to-tertiary/8"></div>
+        <div class="relative z-10 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-amber-600 flex items-center justify-center shadow-lg shadow-primary/20">
+              <span id="modal-icon" class="material-symbols-outlined text-white text-xl">article</span>
+            </div>
+            <div>
+              <h3 id="modal-title" class="font-display font-bold text-lg text-on-surface"></h3>
+              <p id="modal-duration" class="text-xs text-on-surface-variant"></p>
+            </div>
+          </div>
+          <button id="modal-close" class="w-10 h-10 rounded-full bg-surface-container-highest/80 backdrop-blur-sm flex items-center justify-center hover:bg-surface-container-high transition-all hover:rotate-90">
+            <span class="material-symbols-outlined text-on-surface-variant">close</span>
+          </button>
+        </div>
+      </div>
+      <div id="modal-content" class="px-8 pb-6 overflow-y-auto flex-1 prose prose-sm max-w-none"></div>
+      <div class="p-6 border-t border-surface-container/50 flex items-center justify-between bg-surface-container-lowest/80 backdrop-blur-sm">
+        <span id="modal-status" class="text-sm text-on-surface-variant"></span>
+        <button id="modal-complete" class="flex items-center gap-2 py-3 px-8 rounded-xl font-bold bg-gradient-to-r from-primary to-amber-600 text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:scale-[1.02] transition-all">
+          <span class="material-symbols-outlined text-sm">check_circle</span> Marcar Completada
+        </button>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<style>
+  @keyframes pulse-slow { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.8; } }
+  @keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .animate-pulse-slow { animation: pulse-slow 3s ease-in-out infinite; }
+  .animate-modal-in { animation: modal-in 0.3s cubic-bezier(0.16,1,0.3,1) forwards; }
+
+  .module-card {
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    border: 1px solid transparent;
+  }
+  .module-card:hover {
+    border-color: rgba(180,83,9,0.15);
+    box-shadow: 0 8px 30px -8px rgba(180,83,9,0.12);
+  }
+
+  .lesson-item {
+    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+  }
+  .lesson-item:hover {
+    transform: translateX(6px);
+    background: rgba(180,83,9,0.04);
+  }
+  .lesson-item.completed { opacity: 0.65; }
+  .lesson-item.completed:hover { opacity: 0.85; }
+
+  .tag-btn.selected { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+
+  /* Premium progress bar shimmer */
+  .progress-bar-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-bar-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2.5s infinite;
+  }
+  @keyframes shimmer { 100% { left: 100%; } }
+
+  /* Prose styling */
+  .prose h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--color-on-surface); }
+  .prose h3 { font-size: 1.1rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; color: var(--color-on-surface); }
+  .prose p { margin-bottom: 0.75rem; line-height: 1.7; }
+  .prose ul, .prose ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  .prose li { margin-bottom: 0.3rem; }
+  .prose blockquote { border-left: 3px solid var(--color-primary); padding: 0.75rem 1rem; margin: 1rem 0; background: rgba(180,83,9,0.04); border-radius: 0 0.75rem 0.75rem 0; font-style: italic; color: var(--color-on-surface-variant); }
+  .prose strong { color: var(--color-on-surface); }
+
+  /* Dark select option fix */
+  select option { color: #1a1a1a; background: #fff; }
+</style>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = createClient(supabaseUrl, supabaseKey);
+
+  let currentUserId = '';
+  let completedLessons: Set<string> = new Set();
+  let allLessons: any[] = [];
+
+  const contentTypeIcons: Record<string, string> = {
+    article: 'article', video: 'play_circle', checklist: 'checklist', pdf: 'description'
+  };
+  const moduleGradients: string[] = [
+    'from-amber-700 to-amber-800',
+    'from-amber-600 to-amber-700',
+    'from-amber-700 to-amber-800',
+    'from-amber-600 to-amber-700',
+    'from-amber-700 to-amber-800',
+  ];
+  const moduleBgGradients: string[] = [
+    'from-primary/10 to-primary/3',
+    'from-primary/8 to-primary/2',
+    'from-primary/10 to-primary/3',
+    'from-primary/8 to-primary/2',
+    'from-primary/10 to-primary/3',
+  ];
+
+  // ========== AUTH ==========
+  async function getCurrentUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    currentUserId = user.id;
+    return user;
+  }
+
+  // ========== PROGRESS ==========
+  async function loadProgress() {
+    if (!currentUserId) return;
+    const { data } = await supabase
+      .from('mentorship_progress')
+      .select('lesson_id')
+      .eq('user_id', currentUserId);
+    completedLessons = new Set((data || []).map((p: any) => p.lesson_id));
+  }
+
+  async function toggleLesson(lessonId: string): Promise<boolean> {
+    if (!currentUserId) return false;
+    if (completedLessons.has(lessonId)) {
+      await supabase.from('mentorship_progress').delete()
+        .eq('user_id', currentUserId).eq('lesson_id', lessonId);
+      completedLessons.delete(lessonId);
+      return false;
+    } else {
+      await supabase.from('mentorship_progress').insert({
+        user_id: currentUserId, lesson_id: lessonId
+      });
+      completedLessons.add(lessonId);
+      return true;
+    }
+  }
+
+  function updateProgressUI() {
+    const total = allLessons.length;
+    const completed = completedLessons.size;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    document.getElementById('progress-pct')!.textContent = `${pct}%`;
+    document.getElementById('stat-completed')!.textContent = String(completed);
+    document.getElementById('stat-total')!.textContent = String(total);
+
+    const ring = document.getElementById('progress-ring');
+    const circumference = 264;
+    if (ring) ring.style.setProperty('stroke-dashoffset', String(circumference - (circumference * pct / 100)));
+
+    const label = document.getElementById('progress-label')!;
+    if (pct === 0) label.textContent = '¡Empieza tu primera lección hoy! ✨';
+    else if (pct < 30) label.textContent = '¡Gran inicio! Cada lección cuenta 💪';
+    else if (pct < 60) label.textContent = '¡Vas volando! Más de un tercio completado 🔥';
+    else if (pct < 100) label.textContent = '¡Casi experta! Ya falta poco para el 100% 🚀';
+    else label.textContent = '🎉 ¡100% completado! ¡Eres toda una crack!';
+  }
+
+  // ========== MODULES & LESSONS ==========
+  async function loadModules() {
+    const { data: modules, error } = await supabase
+      .from('mentorship_modules')
+      .select('*')
+      .order('sort_order');
+
+    const modulesLoading = document.getElementById('modules-loading')!;
+    const container = document.getElementById('modules-container')!;
+    modulesLoading.classList.add('hidden');
+
+    if (error || !modules?.length) {
+      container.innerHTML = `<div class="text-center py-16 text-on-surface-variant bg-surface-container-lowest rounded-[2rem] p-8">
+        <div class="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+          <span class="material-symbols-outlined text-primary text-4xl">school</span>
+        </div>
+        <h4 class="font-display font-bold text-lg text-on-surface mb-2">Módulos no encontrados</h4>
+        <p class="text-sm">¿Ya ejecutaste la migración SQL?</p>
+        ${error ? `<p class="text-xs mt-2 opacity-50">${error.message}</p>` : ''}
+      </div>`;
+      return;
+    }
+
+    const { data: lessons } = await supabase
+      .from('mentorship_lessons')
+      .select('*')
+      .order('sort_order');
+
+    allLessons = lessons || [];
+    updateProgressUI();
+
+    const lessonsByModule: Record<string, any[]> = {};
+    for (const l of allLessons) {
+      if (!lessonsByModule[l.module_id]) lessonsByModule[l.module_id] = [];
+      lessonsByModule[l.module_id].push(l);
+    }
+
+    container.innerHTML = modules.map((mod: any, idx: number) => {
+      const modLessons = lessonsByModule[mod.id] || [];
+      const modCompleted = modLessons.filter((l: any) => completedLessons.has(l.id)).length;
+      const modPct = modLessons.length > 0 ? Math.round((modCompleted / modLessons.length) * 100) : 0;
+      const gradient = moduleGradients[idx % moduleGradients.length];
+      const bgGradient = moduleBgGradients[idx % moduleBgGradients.length];
+
+      const lessonsHtml = modLessons.map((lesson: any, lIdx: number) => {
+        const isCompleted = completedLessons.has(lesson.id);
+        const icon = contentTypeIcons[lesson.content_type] || 'article';
+        return `<div class="lesson-item flex items-center gap-3 py-3.5 px-5 ${lIdx > 0 ? 'border-t border-surface-container/30' : ''} ${isCompleted ? 'completed' : ''}" data-lesson="${lesson.id}">
+          <div class="w-9 h-9 rounded-xl ${isCompleted ? 'bg-secondary/10' : `bg-gradient-to-br ${bgGradient}`} flex items-center justify-center shrink-0 transition-all">
+            <span class="material-symbols-outlined text-sm ${isCompleted ? 'text-secondary' : ''}"> ${isCompleted ? 'check_circle' : icon}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h5 class="font-bold text-sm text-on-surface ${isCompleted ? 'line-through decoration-secondary/30' : ''}">${lesson.title}</h5>
+            <p class="text-xs text-on-surface-variant truncate mt-0.5">${lesson.description}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="text-[10px] text-on-surface-variant bg-surface-container-highest/60 px-2 py-0.5 rounded-md">${lesson.duration_minutes} min</span>
+            <span class="material-symbols-outlined text-sm text-on-surface-variant/30">chevron_right</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      const statusLabel = modPct === 100
+        ? '<span class="text-xs font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded-full">✅ Completo</span>'
+        : `<span class="text-sm font-bold text-primary">${modPct}%</span>`;
+
+      return `<div class="module-card bg-surface-container-lowest rounded-[2rem] shadow-sm overflow-hidden">
+        <div class="p-6 relative overflow-hidden">
+          <div class="absolute inset-0 bg-gradient-to-r ${bgGradient} opacity-50"></div>
+          <div class="relative z-10 flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-lg">
+              <span class="material-symbols-outlined text-white text-2xl">${mod.icon}</span>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-display font-bold text-lg text-on-surface">${mod.title}</h4>
+              <p class="text-xs text-on-surface-variant mt-0.5">${mod.description}</p>
+            </div>
+            <div class="text-right shrink-0">
+              ${statusLabel}
+              <p class="text-[10px] text-on-surface-variant mt-1">${modCompleted}/${modLessons.length} lecciones</p>
+            </div>
+          </div>
+          <!-- Progress bar -->
+          <div class="w-full h-1.5 bg-surface-container-highest/40 rounded-full mt-5 overflow-hidden relative z-10">
+            <div class="progress-bar-shimmer h-full bg-gradient-to-r ${gradient} rounded-full transition-all duration-700" style="width:${modPct}%"></div>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest">
+          ${lessonsHtml}
+        </div>
+      </div>`;
+    }).join('');
+
+    container.querySelectorAll('.lesson-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const lessonId = (item as HTMLElement).dataset.lesson!;
+        const lesson = allLessons.find((l: any) => l.id === lessonId);
+        if (lesson) openLessonModal(lesson);
+      });
+    });
+  }
+
+  // ========== LESSON MODAL ==========
+  function simpleMarkdown(md: string): string {
+    return md
+      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
+      .replace(/^- \[ \] (.*$)/gm, '<li style="list-style:none;padding-left:0.5rem;">☐ $1</li>')
+      .replace(/^- \[x\] (.*$)/gm, '<li style="list-style:none;padding-left:0.5rem;">✅ $1</li>')
+      .replace(/^- (.*$)/gm, '<li>$1</li>')
+      .replace(/^(\d+)\. (.*$)/gm, '<li>$2</li>')
+      .replace(/\n{2,}/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+  }
+
+  function openLessonModal(lesson: any) {
+    const modal = document.getElementById('lesson-modal')!;
+    const isCompleted = completedLessons.has(lesson.id);
+
+    document.getElementById('modal-title')!.textContent = lesson.title;
+    document.getElementById('modal-duration')!.textContent = `${lesson.duration_minutes} min • ${lesson.content_type === 'article' ? 'Artículo' : lesson.content_type === 'video' ? 'Video' : lesson.content_type === 'checklist' ? 'Checklist' : 'PDF'}`;
+    (document.getElementById('modal-icon') as HTMLElement).textContent = contentTypeIcons[lesson.content_type] || 'article';
+    document.getElementById('modal-content')!.innerHTML = `<p>${simpleMarkdown(lesson.content)}</p>`;
+    document.getElementById('modal-status')!.textContent = isCompleted ? '✅ Ya completada' : '';
+
+    const completeBtn = document.getElementById('modal-complete') as HTMLButtonElement;
+    completeBtn.innerHTML = isCompleted
+      ? '<span class="material-symbols-outlined text-sm">undo</span> Desmarcar'
+      : '<span class="material-symbols-outlined text-sm">check_circle</span> Marcar Completada';
+
+    completeBtn.onclick = async () => {
+      const nowCompleted = await toggleLesson(lesson.id);
+      updateProgressUI();
+      completeBtn.innerHTML = nowCompleted
+        ? '<span class="material-symbols-outlined text-sm">undo</span> Desmarcar'
+        : '<span class="material-symbols-outlined text-sm">check_circle</span> Marcar Completada';
+      document.getElementById('modal-status')!.textContent = nowCompleted ? '✅ Ya completada' : '';
+      loadModules();
+    };
+
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+  }
+
+  document.getElementById('modal-close')?.addEventListener('click', () => {
+    const modal = document.getElementById('lesson-modal')!;
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+  });
+  document.getElementById('lesson-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('lesson-modal')) {
+      const modal = document.getElementById('lesson-modal')!;
+      modal.style.display = 'none';
+      modal.classList.add('hidden');
+    }
+  });
+
+  // ========== SESSIONS ==========
+  async function loadSessions() {
+    if (!currentUserId) return;
+    const today = new Date().toISOString().split('T')[0];
+
+    const { data: upcoming } = await supabase
+      .from('mentorship_sessions').select('*')
+      .eq('user_id', currentUserId).eq('status', 'scheduled')
+      .gte('session_date', today).order('session_date');
+
+    const upcomingEl = document.getElementById('upcoming-sessions')!;
+    const noUpcoming = document.getElementById('no-upcoming')!;
+    document.getElementById('stat-sessions')!.textContent = String(upcoming?.length || 0);
+
+    if (upcoming && upcoming.length > 0) {
+      noUpcoming.classList.add('hidden');
+      upcomingEl.innerHTML = upcoming.map((s: any) => {
+        const d = new Date(s.session_date + 'T12:00:00');
+        const dateStr = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+        return `<div class="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-primary/5 transition-colors group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-primary text-sm">event</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-sm text-on-surface truncate">${s.topic}</p>
+            <p class="text-[10px] text-on-surface-variant">${dateStr} • ${s.session_time}</p>
+          </div>
+          <button class="btn-cancel-session opacity-0 group-hover:opacity-100 text-xs text-on-surface-variant/50 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-all" data-session="${s.id}" title="Cancelar">
+            <span class="material-symbols-outlined text-sm">close</span>
+          </button>
+        </div>`;
+      }).join('');
+      upcomingEl.querySelectorAll('.btn-cancel-session').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const sessionId = (btn as HTMLElement).dataset.session!;
+          if (!confirm('¿Cancelar esta sesión?')) return;
+          await supabase.from('mentorship_sessions').update({ status: 'canceled' }).eq('id', sessionId);
+          loadSessions();
+        });
+      });
+    } else {
+      noUpcoming.classList.remove('hidden');
+      const children = Array.from(upcomingEl.children);
+      children.forEach(c => { if (c.id !== 'no-upcoming') c.remove(); });
+    }
+
+    const { data: past } = await supabase
+      .from('mentorship_sessions').select('*')
+      .eq('user_id', currentUserId).in('status', ['completed', 'canceled'])
+      .order('session_date', { ascending: false }).limit(5);
+
+    const { data: pastScheduled } = await supabase
+      .from('mentorship_sessions').select('*')
+      .eq('user_id', currentUserId).eq('status', 'scheduled')
+      .lt('session_date', today)
+      .order('session_date', { ascending: false }).limit(5);
+
+    const allPast = [...(past || []), ...(pastScheduled || [])].sort((a, b) =>
+      new Date(b.session_date).getTime() - new Date(a.session_date).getTime()
+    );
+
+    const pastEl = document.getElementById('past-sessions')!;
+    if (allPast.length === 0) {
+      pastEl.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">Sin historial aún</p>';
+    } else {
+      pastEl.innerHTML = allPast.map((s: any) => {
+        const d = new Date(s.session_date + 'T12:00:00');
+        const dateStr = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+        const statusColor = s.status === 'canceled' ? 'text-on-surface-variant' : 'text-secondary';
+        const statusIcon = s.status === 'canceled' ? 'cancel' : 'check_circle';
+        const statusLabel = s.status === 'canceled' ? 'Cancelada' : 'Completada';
+        return `<div class="flex items-center gap-3 py-2">
+          <div class="w-9 h-9 rounded-xl bg-surface-container-highest/60 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined ${statusColor} text-sm">${statusIcon}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-sm text-on-surface truncate">${s.topic}</p>
+            <p class="text-[10px] text-on-surface-variant">${dateStr} • ${s.session_time}</p>
+          </div>
+          <span class="text-[10px] font-bold ${statusColor}">${statusLabel}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  document.getElementById('btn-schedule')?.addEventListener('click', async () => {
+    const date = (document.getElementById('session-date') as HTMLInputElement).value;
+    const time = (document.getElementById('session-time') as HTMLSelectElement).value;
+    const topic = (document.getElementById('session-topic') as HTMLSelectElement).value;
+    const notes = (document.getElementById('session-notes') as HTMLTextAreaElement).value;
+
+    if (!date) { alert('Selecciona una fecha'); return; }
+    if (!currentUserId) { alert('Inicia sesión primero'); return; }
+
+    const btn = document.getElementById('btn-schedule') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Agendando...';
+
+    const { error } = await supabase.from('mentorship_sessions').insert({
+      user_id: currentUserId, session_date: date, session_time: time, topic, notes
+    });
+
+    btn.disabled = false;
+
+    if (error) {
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">event_available</span> Agendar Sesión';
+      alert('Error: ' + error.message);
+      return;
+    }
+
+    (document.getElementById('session-notes') as HTMLTextAreaElement).value = '';
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> ¡Agendada!';
+    btn.classList.add('!bg-secondary', '!text-white');
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">event_available</span> Agendar Sesión';
+      btn.classList.remove('!bg-secondary', '!text-white');
+    }, 2000);
+
+    loadSessions();
+  });
+
+  const dateInput = document.getElementById('session-date') as HTMLInputElement;
+  if (dateInput) dateInput.min = new Date().toISOString().split('T')[0];
+
+  // ========== INIT ==========
+  async function init() {
+    await getCurrentUser();
+    await loadProgress();
+    await loadModules();
+    loadSessions();
+  }
+  init();
+</script>

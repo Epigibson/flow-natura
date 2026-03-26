@@ -1,0 +1,491 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <!-- Progress Header -->
+  <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
+    <div>
+      <h2 class="text-4xl md:text-5xl font-display font-extrabold text-primary tracking-tight">Registro de Venta</h2>
+      <p class="text-sm text-on-surface-variant mt-2 font-body">Completa los 3 pasos para procesar el pedido.</p>
+    </div>
+    <a href="/ventas" class="btn-secondary flex items-center gap-2 h-fit">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Volver
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    
+    <!-- Left Column: Selection Flow -->
+    <div class="lg:col-span-8 space-y-8">
+      
+      <!-- Progress Indicator -->
+      <div class="flex items-center gap-4 px-2 overflow-x-auto no-scrollbar">
+        <div class="flex items-center gap-2 text-primary font-bold whitespace-nowrap">
+          <span class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm">1</span>
+          <span class="font-display">Cliente</span>
+        </div>
+        <div class="h-px w-8 bg-outline-variant opacity-30"></div>
+        <div class="flex items-center gap-2 text-on-surface-variant whitespace-nowrap">
+          <span class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-sm">2</span>
+          <span class="font-display">Productos</span>
+        </div>
+        <div class="h-px w-8 bg-outline-variant opacity-30"></div>
+        <div class="flex items-center gap-2 text-on-surface-variant whitespace-nowrap">
+          <span class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-sm">3</span>
+          <span class="font-display">Pago</span>
+        </div>
+      </div>
+
+      <!-- Step 1: Client Selection -->
+      <section class="bg-surface-container-lowest p-8 rounded-[2rem] shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)] border border-outline-variant/10">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-primary font-display italic">Seleccionar Cliente</h2>
+          <button class="text-secondary font-semibold flex items-center gap-2 text-sm hover:underline">
+            <span class="material-symbols-outlined text-lg">person_add</span>
+            Nuevo Cliente
+          </button>
+        </div>
+        
+        <div class="relative group">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+          <select id="select-customer" class="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-primary-container transition-all text-body appearance-none">
+            <option value="">Cliente Mostrador (Venta Anónima)</option>
+            <!-- JS will populate customers here -->
+          </select>
+        </div>
+      </section>
+
+      <!-- Step 2: Add Products -->
+      <section class="bg-surface-container-low p-8 rounded-[2rem] border border-outline-variant/10">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+          <div>
+            <h2 class="text-2xl font-bold text-on-surface font-display">Añadir Productos</h2>
+            <p class="text-on-surface-variant text-sm">Busca y selecciona para agregar al carrito</p>
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <button class="flex-1 md:flex-none bg-white text-on-surface font-semibold px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm border border-outline-variant/20 hover:bg-surface-container-high transition-all">
+              <span class="material-symbols-outlined">barcode_scanner</span>
+               Escáner
+            </button>
+            <div class="flex-1 md:w-64 relative">
+              <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
+              <input type="text" id="search-products" placeholder="Buscar producto..." class="w-full bg-white border-none rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary-container" />
+            </div>
+          </div>
+        </div>
+        
+        <!-- Products Grid (Bento Style) -->
+        <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <p class="text-on-surface-variant p-4">Cargando productos...</p>
+        </div>
+      </section>
+
+      <!-- Step 3: Payment Configuration -->
+      <section class="bg-surface-container-lowest p-8 rounded-[2rem] border border-outline-variant/10 shadow-sm">
+        <h2 class="text-2xl font-bold text-on-surface font-display mb-6">Método de Pago</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Contado -->
+          <label class="relative flex flex-col p-6 rounded-2xl border-2 border-outline-variant/20 cursor-pointer hover:bg-surface-container-low transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 group">
+            <input type="radio" name="payment_type" id="payment-contado" value="contado" class="sr-only" checked />
+            <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-[:has(:checked)]:text-primary">payments</span>
+            <span class="font-bold text-lg text-on-surface">Contado</span>
+            <span class="text-sm text-on-surface-variant">Pago único inmediato</span>
+            <div class="absolute top-4 right-4 w-6 h-6 border-2 border-outline-variant rounded-full flex items-center justify-center group-[:has(:checked)]:border-primary">
+              <div class="w-3 h-3 bg-primary rounded-full opacity-0 group-[:has(:checked)]:opacity-100 transition-opacity"></div>
+            </div>
+          </label>
+          <!-- Abonos -->
+          <label class="relative flex flex-col p-6 rounded-2xl border-2 border-outline-variant/20 cursor-pointer hover:bg-surface-container-low transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 group">
+            <input type="radio" name="payment_type" id="payment-abonos" value="abonos" class="sr-only" />
+            <span class="material-symbols-outlined text-3xl mb-2 text-on-surface-variant group-[:has(:checked)]:text-primary">calendar_month</span>
+            <span class="font-bold text-lg text-on-surface">Abonos</span>
+            <span class="text-sm text-on-surface-variant">Pagos diferidos programados</span>
+            <div class="absolute top-4 right-4 w-6 h-6 border-2 border-outline-variant rounded-full flex items-center justify-center group-[:has(:checked)]:border-primary">
+              <div class="w-3 h-3 bg-primary rounded-full opacity-0 group-[:has(:checked)]:opacity-100 transition-opacity"></div>
+            </div>
+          </label>
+        </div>
+        
+        <!-- Payment Details (Abonos Configuration - Hidden initially) -->
+        <div id="abonos-config" class="hidden space-y-6 pt-6 mt-6 border-t border-outline-variant/10">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-semibold text-on-surface-variant px-1">Enganche</label>
+              <div class="relative">
+                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+                <input id="enganche-input" type="number" class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-8 pr-4 focus:ring-2 focus:ring-primary-container" placeholder="0.00" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-semibold text-on-surface-variant px-1">Frecuencia</label>
+              <select id="frecuencia-input" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container">
+                <option value="Semanal">Semanal</option>
+                <option value="Quincenal">Quincenal</option>
+                <option value="Mensual">Mensual</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-semibold text-on-surface-variant px-1">Número de pagos</label>
+              <input id="pagos-input" type="number" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" placeholder="4" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right Column: Cart Summary -->
+    <div class="lg:col-span-4 lg:sticky lg:top-8 h-fit">
+      <div class="bg-surface-container-high rounded-[2rem] overflow-hidden flex flex-col shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)] border border-outline-variant/10">
+        <div class="p-6 border-b border-outline-variant/10">
+          <h3 class="text-xl font-extrabold text-on-surface font-display uppercase tracking-tight">Resumen de Venta</h3>
+        </div>
+        
+        <!-- Cart Items Container -->
+        <div id="cart-container" class="p-6 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+          <div class="flex flex-col items-center justify-center py-12 text-on-surface-variant" id="empty-cart-msg">
+            <span class="material-symbols-outlined text-5xl mb-2 opacity-50">shopping_basket</span>
+            <p class="text-sm italic">Tu carrito está vacío</p>
+          </div> 
+        </div>
+
+        <!-- Totals -->
+        <div class="p-8 bg-surface-container-highest space-y-3">
+          <div class="flex justify-between text-on-surface-variant font-body mb-2">
+            <span>Subtotal</span>
+            <span id="cart-subtotal" class="font-semibold">$0.00</span>
+          </div>
+          
+          <div class="flex justify-between text-on-surface-variant font-body mb-2">
+            <span>Descuentos</span>
+            <span class="text-secondary">-$0.00</span>
+          </div>
+          
+          <div class="pt-4 border-t border-outline-variant/20 flex justify-between items-end">
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Total a Pagar</span>
+              <span id="cart-total" class="text-4xl font-extrabold text-primary font-display mt-1">$0.00</span>
+            </div>
+          </div>
+          
+          <div id="checkout-error" class="hidden mt-4 bg-error-container text-error p-3 rounded-md text-sm font-semibold"></div>
+          <div id="checkout-success" class="hidden mt-4 bg-secondary-container text-secondary p-3 rounded-md text-sm font-semibold text-center rounded-xl">¡Venta Registrada Exitosamente!</div>
+
+          <!-- CTA -->
+          <button id="btn-checkout" disabled class="w-full mt-6 bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
+            <span class="material-symbols-outlined">receipt_long</span>
+            Registrar Venta
+          </button>
+          
+          <p class="text-[10px] text-center text-on-surface-variant mt-4 leading-tight">
+            Al confirmar, se generará el registro y se descontará de tu inventario.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+
+  let currentUserId = '';
+  let availableProducts: any[] = [];
+  let cart: any[] = [];
+
+  const productsGrid = document.getElementById('products-grid') as HTMLElement;
+  const selectCustomer = document.getElementById('select-customer') as HTMLSelectElement;
+  const cartContainer = document.getElementById('cart-container') as HTMLElement;
+  const emptyCartMsg = document.getElementById('empty-cart-msg') as HTMLElement;
+  const cartSubtotal = document.getElementById('cart-subtotal') as HTMLElement;
+  const cartTotal = document.getElementById('cart-total') as HTMLElement;
+  const btnCheckout = document.getElementById('btn-checkout') as HTMLButtonElement;
+  const errorDiv = document.getElementById('checkout-error') as HTMLElement;
+  const searchInput = document.getElementById('search-products') as HTMLInputElement;
+  
+  // Payment methods
+  const paymentRadios = document.getElementsByName('payment_type');
+  const abonosConfig = document.getElementById('abonos-config') as HTMLElement;
+  const engancheInput = document.getElementById('enganche-input') as HTMLInputElement;
+  const frecuenciaInput = document.getElementById('frecuencia-input') as HTMLSelectElement;
+  const pagosInput = document.getElementById('pagos-input') as HTMLInputElement;
+
+  paymentRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      if ((e.target as HTMLInputElement).value === 'abonos') {
+        abonosConfig.classList.remove('hidden');
+      } else {
+        abonosConfig.classList.add('hidden');
+      }
+    });
+  });
+
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (session) {
+      currentUserId = session.user.id;
+      loadData();
+    }
+  });
+
+  async function loadData() {
+    // 1. Load customers
+    const { data: customers } = await supabase.from('customers').select('id, full_name').order('full_name');
+    if (customers) {
+      customers.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.full_name;
+        selectCustomer.appendChild(opt);
+      });
+    }
+
+    // 2. Load inventory items instead of global products
+    const { data: inventoryData, error } = await supabase
+      .from('inventory')
+      .select(`
+        quantity,
+        products ( id, name, code, category, price )
+      `)
+      .eq('consultant_id', currentUserId)
+      .gt('quantity', 0); // Only products with stock
+
+    if (inventoryData) {
+      availableProducts = inventoryData.map((inv: any) => ({
+        id: inv.products.id,
+        name: inv.products.name,
+        code: inv.products.code,
+        category: inv.products.category,
+        price: inv.products.price,
+        max_quantity: inv.quantity
+      }));
+      
+      availableProducts.sort((a,b) => a.name.localeCompare(b.name));
+      renderProducts(availableProducts);
+    }
+  }
+
+  function renderProducts(products: any[]) {
+    productsGrid.innerHTML = '';
+    
+    if(products.length === 0) {
+       productsGrid.innerHTML = '<p class="text-on-surface-variant p-4 col-span-full">No tienes productos en inventario con stock disponible.</p>';
+       return;
+    }
+
+    products.forEach(p => {
+      const card = document.createElement('div');
+      card.className = "bg-surface-container-lowest p-5 rounded-2xl flex gap-4 items-center group cursor-pointer hover:shadow-lg transition-all border border-transparent hover:border-primary-container/30 relative overflow-hidden";
+      
+      const categoryColorMap: Record<string, string> = {
+          'Perfumeria': 'bg-secondary-container/50 text-on-secondary-container',
+          'Cuerpo': 'bg-primary-container/20 text-on-primary-container',
+      };
+      const badgeClass = categoryColorMap[p.category] || 'bg-surface-container-high text-on-surface-variant';
+      
+      card.innerHTML = `
+        <div class="w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center shrink-0">
+          <span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${p.category || 'Varios'}</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 class="font-bold text-on-surface leading-tight truncate" title="${p.name}">${p.name}</h4>
+          <p class="text-primary font-bold mt-1">$${p.price.toFixed(2)}</p>
+          <p class="text-xs text-secondary font-medium mt-1">${p.max_quantity} en stock</p>
+        </div>
+        <button class="w-10 h-10 rounded-full bg-primary-container/10 text-primary-container flex items-center justify-center shrink-0 hover:bg-primary hover:text-white transition-colors">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      `;
+      card.addEventListener('click', () => addToCart(p));
+      productsGrid.appendChild(card);
+    });
+  }
+
+  searchInput?.addEventListener('input', (e) => {
+    const qt = (e.target as HTMLInputElement).value.toLowerCase();
+    const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
+    renderProducts(filtered);
+  });
+
+  function addToCart(product: any) {
+    const existing = cart.find(i => i.product_id === product.id);
+    
+    if (existing) {
+      if (existing.quantity < product.max_quantity) {
+        existing.quantity += 1;
+      } else {
+        alert('No tienes suficiente stock para agregar otra unidad.');
+        return;
+      }
+    } else {
+      if (product.max_quantity > 0) {
+        cart.push({
+          product_id: product.id,
+          name: product.name,
+          unit_price: product.price,
+          quantity: 1,
+          max_quantity: product.max_quantity
+        });
+      }
+    }
+    renderCart();
+  }
+
+  function updateQuantity(productId: string, delta: number) {
+    const item = cart.find(i => i.product_id === productId);
+    if (item) {
+      const newQuantity = item.quantity + delta;
+      
+      if (newQuantity <= 0) {
+        cart = cart.filter(i => i.product_id !== productId);
+      } else if (newQuantity <= item.max_quantity) {
+        item.quantity = newQuantity;
+      } else {
+        alert('Has alcanzado el límite de tu stock disponible.');
+      }
+      renderCart();
+    }
+  }
+
+  function renderCart() {
+    if (cart.length === 0) {
+      cartContainer.innerHTML = '';
+      cartContainer.appendChild(emptyCartMsg);
+      btnCheckout.disabled = true;
+      cartSubtotal.textContent = '$0.00';
+      cartTotal.textContent = '$0.00';
+      return;
+    }
+
+    if(emptyCartMsg.parentElement) {
+       emptyCartMsg.remove();
+    }
+    cartContainer.innerHTML = '';
+    
+    let total = 0;
+
+    cart.forEach(item => {
+      const lineTotal = item.unit_price * item.quantity;
+      total += lineTotal;
+
+      const div = document.createElement('div');
+      div.className = "flex gap-4 items-center bg-white p-4 rounded-xl shadow-[0_4px_12px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/10";
+      div.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-on-surface leading-tight truncate" title="${item.name}">${item.name}</p>
+          <div class="flex items-center gap-2 mt-2">
+            <button class="text-primary bg-primary-container/10 hover:bg-primary hover:text-white rounded-md w-7 h-7 flex items-center justify-center font-bold transition-colors" onclick="window.updateQuantity('${item.product_id}', -1)">
+              <span class="material-symbols-outlined text-[16px]">remove</span>
+            </button>
+            <span class="text-xs font-semibold w-6 text-center">${item.quantity}</span>
+            <button class="text-primary bg-primary-container/10 hover:bg-primary hover:text-white rounded-md w-7 h-7 flex items-center justify-center font-bold transition-colors" onclick="window.updateQuantity('${item.product_id}', 1)">
+               <span class="material-symbols-outlined text-[16px]">add</span>
+            </button>
+          </div>
+        </div>
+        <div class="text-right flex flex-col justify-end">
+          <p class="text-sm font-bold text-primary">$${lineTotal.toFixed(2)}</p>
+          <p class="text-[10px] text-on-surface-variant">($${item.unit_price.toFixed(2)} c/u)</p>
+        </div>
+      `;
+      cartContainer.appendChild(div);
+    });
+
+    btnCheckout.disabled = false;
+    cartSubtotal.textContent = `$${total.toFixed(2)}`;
+    cartTotal.textContent = `$${total.toFixed(2)}`;
+  }
+
+  (window as any).updateQuantity = updateQuantity;
+
+  btnCheckout?.addEventListener('click', async () => {
+    if (cart.length === 0) return;
+    
+    btnCheckout.disabled = true;
+    errorDiv.classList.add('hidden');
+
+    let customerId = selectCustomer.value || null;
+
+    // If no customer selected, use or create a "walk-in" customer
+    if (!customerId) {
+      const { data: existing } = await supabase
+        .from('customers')
+        .select('id')
+        .eq('consultant_id', currentUserId)
+        .eq('full_name', 'Cliente Mostrador')
+        .limit(1)
+        .single();
+
+      if (existing) {
+        customerId = existing.id;
+      } else {
+        const { data: newCust } = await supabase
+          .from('customers')
+          .insert({ consultant_id: currentUserId, full_name: 'Cliente Mostrador', phone: '', email: '' })
+          .select('id')
+          .single();
+        customerId = newCust?.id || null;
+      }
+    }
+    const totalAmount = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
+    
+    // Process Payment Method
+    const paymentRadio = document.querySelector('input[name="payment_type"]:checked') as HTMLInputElement;
+    const paymentMethod = paymentRadio ? paymentRadio.value : 'contado';
+    let orderNotes = null;
+    
+    if (paymentMethod === 'abonos') {
+      orderNotes = JSON.stringify({
+        tipo: 'Abonos',
+        enganche: engancheInput.value || '0',
+        frecuencia: frecuenciaInput.value,
+        pagos: pagosInput.value || '1'
+      });
+    }
+
+    const { data: orderData, error: orderError } = await supabase
+      .from('orders')
+      .insert([{
+        consultant_id: currentUserId,
+        customer_id: customerId,
+        total_amount: totalAmount,
+        status: 'delivered',
+        payment_method: paymentMethod,
+        notes: orderNotes
+      }])
+      .select('id')
+      .single();
+
+    if (orderError) {
+      errorDiv.textContent = 'Error: ' + orderError.message;
+      errorDiv.classList.remove('hidden');
+      btnCheckout.disabled = false;
+      return;
+    }
+
+    const itemsToInsert = cart.map(item => ({
+      order_id: orderData.id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price
+    }));
+
+    const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
+
+    if (itemsError) {
+      errorDiv.textContent = 'Error guardando productos: ' + itemsError.message;
+      errorDiv.classList.remove('hidden');
+      btnCheckout.disabled = false;
+      return;
+    }
+
+    document.getElementById('checkout-success')?.classList.remove('hidden');
+    cart = [];
+    renderCart();
+
+    setTimeout(() => {
+      window.location.href = '/ventas';
+    }, 1500);
+  });
+</script>

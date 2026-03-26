@@ -1,0 +1,403 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+      <header class="flex justify-between items-center mb-10">
+        <div>
+          <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Tu Inventario 📦</h2>
+          <p class="text-on-surface-variant mt-2 text-lg">Controla tus productos de pronta entrega y catálogo.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="/inventario/escanear" class="flex items-center gap-2 py-3 px-5 rounded-xl font-bold bg-secondary text-white shadow-md shadow-secondary/20 hover:scale-[1.02] transition-all">
+            <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
+            Escanear
+          </a>
+          <a href="/inventario/nuevo" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+            <span class="material-symbols-outlined text-lg">add_circle</span>
+            Crear Producto
+          </a>
+          <a href="/inventario/alta" class="btn-primary flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+            <span class="material-symbols-outlined text-lg">inventory</span>
+            Alta de Stock
+          </a>
+        </div>
+      </header>
+
+      <!-- Stats Row -->
+      <div id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-outline-variant/5">
+          <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary">inventory_2</span>
+          </div>
+          <div>
+            <p id="stat-total" class="text-2xl font-display font-bold text-on-surface">—</p>
+            <p class="text-xs text-on-surface-variant font-medium">Total productos</p>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-outline-variant/5">
+          <div class="w-11 h-11 rounded-xl bg-secondary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-secondary">local_offer</span>
+          </div>
+          <div>
+            <p id="stat-brands" class="text-2xl font-display font-bold text-on-surface">—</p>
+            <p class="text-xs text-on-surface-variant font-medium">Marcas</p>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-outline-variant/5">
+          <div class="w-11 h-11 rounded-xl bg-tertiary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-tertiary">category</span>
+          </div>
+          <div>
+            <p id="stat-categories" class="text-2xl font-display font-bold text-on-surface">—</p>
+            <p class="text-xs text-on-surface-variant font-medium">Categorías</p>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-2xl p-4 flex items-center gap-3 shadow-sm border border-outline-variant/5">
+          <div class="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary">check_circle</span>
+          </div>
+          <div>
+            <p id="stat-instock" class="text-2xl font-display font-bold text-on-surface">—</p>
+            <p class="text-xs text-on-surface-variant font-medium">En stock</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filter Bar -->
+      <div class="flex flex-wrap gap-3 mb-8">
+        <div class="flex-1 min-w-[200px] relative">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+          <input type="text" id="search-input" placeholder="Buscar por nombre, código o marca..." class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary-container" />
+        </div>
+        <select id="filter-brand" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 w-40 text-sm focus:ring-2 focus:ring-primary-container">
+          <option value="all">Todas las marcas</option>
+        </select>
+        <select id="filter-category" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 w-48 text-sm focus:ring-2 focus:ring-primary-container">
+          <option value="all">Todas las categorías</option>
+        </select>
+        <!-- View Toggle -->
+        <div class="flex bg-surface-container-highest rounded-xl overflow-hidden">
+          <button id="view-grid" class="px-3 py-2 text-primary bg-primary/10" title="Vista cuadrícula">
+            <span class="material-symbols-outlined text-lg">grid_view</span>
+          </button>
+          <button id="view-list" class="px-3 py-2 text-on-surface-variant hover:text-primary transition-colors" title="Vista lista">
+            <span class="material-symbols-outlined text-lg">view_list</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <section id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div class="col-span-full text-center py-12 text-on-surface-variant hidden" id="empty-state">
+          <span class="material-symbols-outlined text-5xl mb-4 text-primary/30">inventory_2</span>
+          <p class="text-lg font-bold">No tienes productos en tu inventario aún.</p>
+          <p class="text-sm mt-2">Ve a <a href="/inventario/importar" class="text-primary font-bold underline">Importar Natura</a> para cargar tu catálogo.</p>
+        </div>
+      </section>
+
+      <!-- List View (hidden by default) -->
+      <section id="list-container" class="hidden">
+        <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/5 overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead class="sticky top-0 bg-surface-container-high z-10">
+              <tr class="text-xs uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/10">
+                <th class="px-4 py-3 w-14"></th>
+                <th class="px-4 py-3">Producto</th>
+                <th class="px-4 py-3">Marca</th>
+                <th class="px-4 py-3">Categoría</th>
+                <th class="px-4 py-3 text-right">Costo</th>
+                <th class="px-4 py-3 text-right">Precio</th>
+                <th class="px-4 py-3 text-right">Margen</th>
+                <th class="px-4 py-3 text-center">Pts</th>
+                <th class="px-4 py-3 text-center">Stock</th>
+              </tr>
+            </thead>
+            <tbody id="list-tbody" class="divide-y divide-outline-variant/5"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pagination -->
+      <div id="pagination" class="flex justify-center items-center gap-3 mt-8 hidden">
+        <button id="prev-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
+          <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
+        </button>
+        <span id="page-info" class="text-sm text-on-surface-variant font-medium"></span>
+        <button id="next-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
+          Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </button>
+      </div>
+
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const container = document.getElementById('products-container') as HTMLElement;
+  const listContainer = document.getElementById('list-container') as HTMLElement;
+  const listTbody = document.getElementById('list-tbody') as HTMLElement;
+  const emptyState = document.getElementById('empty-state') as HTMLElement;
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
+  const filterBrand = document.getElementById('filter-brand') as HTMLSelectElement;
+  const filterCategory = document.getElementById('filter-category') as HTMLSelectElement;
+  const pagination = document.getElementById('pagination') as HTMLElement;
+  const prevBtn = document.getElementById('prev-page') as HTMLButtonElement;
+  const nextBtn = document.getElementById('next-page') as HTMLButtonElement;
+  const pageInfo = document.getElementById('page-info') as HTMLElement;
+  const viewGridBtn = document.getElementById('view-grid') as HTMLButtonElement;
+  const viewListBtn = document.getElementById('view-list') as HTMLButtonElement;
+
+  let currentUser = '';
+  let fullInventory: any[] = [];
+  let filteredInventory: any[] = [];
+  let currentPage = 1;
+  let viewMode: 'grid' | 'list' = 'grid';
+  const PAGE_SIZE = 48;
+
+  // Protect route & Load data
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (!session) {
+      window.location.href = '/login';
+    } else {
+      currentUser = session.user.id;
+      loadProducts(currentUser);
+    }
+  });
+
+  // Load Products (paginated — Supabase limits to 1000 per query)
+  async function loadProducts(consultantId: string) {
+    let allInventory: any[] = [];
+    let from = 0;
+    const BATCH = 1000;
+
+    while (true) {
+      const { data: batch, error } = await supabase
+        .from('inventory')
+        .select(`
+          id,
+          quantity,
+          products ( id, name, code, category, brand, price, cost, points, image_url )
+        `)
+        .eq('consultant_id', consultantId)
+        .range(from, from + BATCH - 1)
+        .order('created_at', { ascending: false });
+
+      if (error) { console.error(error); break; }
+      if (!batch || batch.length === 0) break;
+      allInventory = allInventory.concat(batch);
+      if (batch.length < BATCH) break; // last page
+      from += BATCH;
+    }
+
+    if (allInventory.length === 0) {
+      emptyState.classList.remove('hidden');
+      return;
+    }
+
+    emptyState.classList.add('hidden');
+
+    fullInventory = allInventory.map((item: any) => ({
+      ...item.products,
+      inv_id: item.id,
+      quantity: item.quantity
+    }));
+
+    // Populate filters dynamically
+    populateFilters();
+    updateStats(fullInventory);
+    applyFilters();
+  }
+
+  function populateFilters() {
+    const brands = [...new Set(fullInventory.map(p => p.brand).filter(Boolean))].sort();
+    const categories = [...new Set(fullInventory.map(p => p.category).filter(Boolean))].sort();
+
+    brands.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b; opt.textContent = b;
+      filterBrand.appendChild(opt);
+    });
+
+    categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      filterCategory.appendChild(opt);
+    });
+  }
+
+  function updateStats(items: any[]) {
+    const el = (id: string) => document.getElementById(id) as HTMLElement;
+    el('stat-total').textContent = items.length.toLocaleString();
+    el('stat-brands').textContent = String([...new Set(items.map(p => p.brand).filter(Boolean))].length);
+    el('stat-categories').textContent = String([...new Set(items.map(p => p.category).filter(Boolean))].length);
+    el('stat-instock').textContent = String(items.filter(p => p.quantity > 0).length);
+  }
+
+  function applyFilters() {
+    const query = searchInput.value.toLowerCase();
+    const brand = filterBrand.value;
+    const category = filterCategory.value;
+
+    filteredInventory = fullInventory.filter(p => {
+      const matchSearch = !query ||
+        p.name?.toLowerCase().includes(query) ||
+        p.code?.toLowerCase().includes(query) ||
+        p.brand?.toLowerCase().includes(query);
+      const matchBrand = brand === 'all' || p.brand === brand;
+      const matchCategory = category === 'all' || p.category === category;
+      return matchSearch && matchBrand && matchCategory;
+    });
+
+    currentPage = 1;
+    renderPage();
+  }
+
+  function renderPage() {
+    const totalPages = Math.ceil(filteredInventory.length / PAGE_SIZE);
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = filteredInventory.slice(startIdx, startIdx + PAGE_SIZE);
+
+    if (filteredInventory.length === 0) {
+      emptyState.classList.remove('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+    }
+
+    // Pagination
+    if (totalPages > 1) {
+      pagination.classList.remove('hidden');
+      pageInfo.textContent = `${currentPage} / ${totalPages} (${filteredInventory.length} productos)`;
+      prevBtn.disabled = currentPage <= 1;
+      nextBtn.disabled = currentPage >= totalPages;
+    } else {
+      pagination.classList.add('hidden');
+    }
+
+    if (viewMode === 'grid') {
+      container.classList.remove('hidden');
+      listContainer.classList.add('hidden');
+      renderGridView(pageItems);
+    } else {
+      container.classList.add('hidden');
+      listContainer.classList.remove('hidden');
+      renderListView(pageItems);
+    }
+  }
+
+  // ===== GRID VIEW =====
+  function renderGridView(items: any[]) {
+    container.querySelectorAll('.inv-card').forEach(e => e.remove());
+
+    items.forEach(p => {
+      const card = document.createElement('div');
+      card.className = "inv-card bg-surface-container-lowest rounded-2xl shadow-[0_8px_20px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/8 hover:shadow-lg hover:border-primary/15 transition-all group overflow-hidden";
+
+      const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
+      const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
+      const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700' : p.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary/10 text-primary';
+      const stockBadge = p.quantity > 0
+        ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">${p.quantity} uds</span>`
+        : `<span class="text-[10px] font-bold px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full">Sin stock</span>`;
+
+      const imgSrc = p.image_url || '';
+      const imgEl = imgSrc
+        ? `<img src="${imgSrc}" alt="${p.name}" class="w-full h-40 object-contain bg-white" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+           <div class="w-full h-40 bg-surface-container items-center justify-center hidden"><span class="material-symbols-outlined text-4xl text-on-surface-variant/30">image_not_supported</span></div>`
+        : `<div class="w-full h-40 bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-4xl text-on-surface-variant/30">spa</span></div>`;
+
+      card.innerHTML = `
+        ${imgEl}
+        <div class="p-4 flex flex-col flex-1">
+          <div class="flex justify-between items-start mb-2 gap-2">
+            <span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full whitespace-nowrap">${p.brand || 'Natura'}</span>
+            <div class="flex items-center gap-1.5">
+              ${stockBadge}
+              <span class="text-[10px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">${p.code}</span>
+            </div>
+          </div>
+          <h3 class="text-sm font-bold text-on-surface leading-tight line-clamp-2 mb-2 min-h-[2.5rem]" title="${p.name}">${p.name}</h3>
+          <p class="text-[10px] font-medium text-on-surface-variant mb-3 truncate" title="${p.category || ''}">${p.category || '—'}</p>
+          <div class="mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-outline-variant/10">
+            <div>
+              <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wide">Costo</p>
+              <p class="text-sm font-bold text-on-surface">$${(p.cost || 0).toFixed(0)}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wide">Precio</p>
+              <p class="text-sm font-bold text-primary">$${(p.price || 0).toFixed(0)}</p>
+            </div>
+            <div>
+              <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wide">Margen</p>
+              <p class="text-sm font-bold ${marginColor}">${margin}%</p>
+            </div>
+          </div>
+          ${p.points ? `<div class="flex items-center gap-1 mt-2"><span class="material-symbols-outlined text-xs text-amber-500">stars</span><span class="text-[10px] font-bold text-amber-600">${p.points} pts</span></div>` : ''}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // ===== LIST VIEW =====
+  function renderListView(items: any[]) {
+    listTbody.innerHTML = '';
+
+    items.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-surface-container-low/50 transition-colors';
+
+      const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
+      const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
+      const imgSrc = p.image_url || '';
+
+      tr.innerHTML = `
+        <td class="px-3 py-2">
+          ${imgSrc
+            ? `<img src="${imgSrc}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white" loading="lazy" />`
+            : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-sm text-on-surface-variant/30">spa</span></div>`
+          }
+        </td>
+        <td class="px-4 py-2">
+          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1" title="${p.name}">${p.name}</p>
+          <p class="text-[10px] font-mono text-on-surface-variant">${p.code}</p>
+        </td>
+        <td class="px-4 py-2 text-xs">${p.brand || '—'}</td>
+        <td class="px-4 py-2 text-xs text-on-surface-variant">${p.category || '—'}</td>
+        <td class="px-4 py-2 text-right font-mono text-xs">$${(p.cost || 0).toFixed(0)}</td>
+        <td class="px-4 py-2 text-right font-mono text-xs font-bold text-primary">$${(p.price || 0).toFixed(0)}</td>
+        <td class="px-4 py-2 text-right text-xs font-bold ${marginColor}">${margin}%</td>
+        <td class="px-4 py-2 text-center">${p.points ? `<span class="text-[10px] font-bold text-amber-600">${p.points}</span>` : '—'}</td>
+        <td class="px-4 py-2 text-center">
+          ${p.quantity > 0
+            ? `<span class="text-xs font-bold text-green-600">${p.quantity}</span>`
+            : `<span class="text-xs text-on-surface-variant">0</span>`
+          }
+        </td>
+      `;
+      listTbody.appendChild(tr);
+    });
+  }
+
+  // ===== EVENT LISTENERS =====
+  searchInput?.addEventListener('input', () => applyFilters());
+  filterBrand?.addEventListener('change', () => applyFilters());
+  filterCategory?.addEventListener('change', () => applyFilters());
+
+  prevBtn?.addEventListener('click', () => { currentPage--; renderPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  nextBtn?.addEventListener('click', () => { currentPage++; renderPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+
+  viewGridBtn?.addEventListener('click', () => {
+    viewMode = 'grid';
+    viewGridBtn.className = 'px-3 py-2 text-primary bg-primary/10';
+    viewListBtn.className = 'px-3 py-2 text-on-surface-variant hover:text-primary transition-colors';
+    renderPage();
+  });
+
+  viewListBtn?.addEventListener('click', () => {
+    viewMode = 'list';
+    viewListBtn.className = 'px-3 py-2 text-primary bg-primary/10';
+    viewGridBtn.className = 'px-3 py-2 text-on-surface-variant hover:text-primary transition-colors';
+    renderPage();
+  });
+</script>

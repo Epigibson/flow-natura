@@ -1,0 +1,315 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">GAMIFICATION</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Logros y Badges 🏆</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Celebra tus hitos y sigue desbloqueando recompensas.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl py-2.5 px-5 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary text-lg">military_tech</span>
+        <span id="my-level" class="font-bold text-on-surface text-sm">Bronce</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Bar -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="bg-gradient-to-br from-secondary/5 to-secondary-container/15 rounded-2xl p-5 text-center shadow-sm border border-secondary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-secondary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-secondary text-lg">emoji_events</span>
+      </div>
+      <p id="badge-unlocked" class="text-3xl font-display font-bold text-secondary">—</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Desbloqueados</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-2xl p-5 text-center shadow-sm">
+      <div class="w-10 h-10 mx-auto mb-2 bg-surface-container rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-on-surface-variant text-lg">grid_view</span>
+      </div>
+      <p id="badge-total" class="text-3xl font-display font-bold text-on-surface">18</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Total Badges</p>
+    </div>
+    <div class="bg-gradient-to-br from-primary/5 to-primary-container/15 rounded-2xl p-5 text-center shadow-sm border border-primary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-lg">star</span>
+      </div>
+      <p id="badge-points" class="text-3xl font-display font-bold text-primary">—</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Puntos XP</p>
+    </div>
+    <div class="bg-gradient-to-br from-tertiary/5 to-tertiary-container/15 rounded-2xl p-5 text-center shadow-sm border border-tertiary/5">
+      <div class="w-10 h-10 mx-auto mb-2 bg-tertiary/10 rounded-xl flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary text-lg">local_fire_department</span>
+      </div>
+      <p id="badge-streak" class="text-3xl font-display font-bold text-tertiary">—</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Racha (días)</p>
+    </div>
+  </section>
+
+  <!-- XP Progress to Next Level -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-8">
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary">trending_up</span>
+        <div>
+          <p class="font-bold text-on-surface text-sm">Progreso al Siguiente Nivel</p>
+          <p id="level-desc" class="text-xs text-on-surface-variant">Necesitas más XP para subir</p>
+        </div>
+      </div>
+      <span id="level-target" class="text-sm font-bold text-primary"></span>
+    </div>
+    <div class="w-full h-4 bg-surface-container-highest rounded-full overflow-hidden">
+      <div id="level-bar" class="h-full rounded-full transition-all duration-700 ease-out" style="width:0%; background: linear-gradient(90deg, var(--color-primary)  0%, var(--color-secondary) 100%);"></div>
+    </div>
+    <div class="flex justify-between mt-2">
+      <span id="level-current" class="text-[10px] font-bold text-on-surface-variant">0 XP</span>
+      <span id="level-next" class="text-[10px] font-bold text-on-surface-variant">100 XP</span>
+    </div>
+  </section>
+
+  <!-- Badges Grid -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-display font-bold text-on-surface">Tus Badges</h3>
+      <div class="flex gap-2">
+        <button id="filter-all" class="text-xs font-bold px-3 py-1.5 rounded-full bg-primary text-white">Todos</button>
+        <button id="filter-unlocked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Ganados</button>
+        <button id="filter-locked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Bloqueados</button>
+      </div>
+    </div>
+    <div id="badges-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    </div>
+  </section>
+
+  <!-- Weekly Challenge -->
+  <section class="bg-gradient-to-r from-primary/10 via-secondary-container/15 to-tertiary/10 rounded-[2rem] p-8 mb-8 relative overflow-hidden shadow-sm">
+    <div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full translate-y-10 -translate-x-10"></div>
+    <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-12 h-12 bg-white/50 rounded-2xl flex items-center justify-center shadow-sm backdrop-blur-sm">
+          <span class="material-symbols-outlined text-primary text-2xl">local_fire_department</span>
+        </div>
+        <div>
+          <h3 class="text-xl font-display font-bold text-on-surface">Reto de la Semana</h3>
+          <p class="text-xs text-on-surface-variant">Completa retos para ganar XP extra</p>
+        </div>
+      </div>
+      <p class="text-lg text-on-surface font-bold mb-1" id="challenge-title">Vende 5 productos de cualquier línea</p>
+      <p class="text-sm text-on-surface-variant mb-5" id="challenge-desc">Recompensa: +20 XP y badge "Vendedora de la Semana"</p>
+      <div class="w-full h-5 bg-white/40 rounded-full overflow-hidden mb-2 backdrop-blur-sm shadow-inner">
+        <div id="challenge-bar" class="h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden" style="width: 0%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
+          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
+        </div>
+      </div>
+      <p id="challenge-progress" class="text-sm font-bold text-primary">0/5 completados</p>
+    </div>
+  </section>
+
+  <!-- Leaderboard -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-secondary">leaderboard</span>
+      Ranking del Mes
+    </h3>
+    <div class="space-y-0">
+      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-amber-100/50 to-transparent rounded-2xl px-4 mb-2">
+        <span class="text-2xl">🥇</span>
+        <div class="flex-1"><p class="font-bold text-on-surface">Laura Méndez</p><p class="text-xs text-on-surface-variant">245 XP • 8 badges</p></div>
+        <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full">Diamante</span>
+      </div>
+      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-gray-100/50 to-transparent rounded-2xl px-4 mb-2">
+        <span class="text-2xl">🥈</span>
+        <div class="flex-1"><p class="font-bold text-on-surface">Carmen Rojas</p><p class="text-xs text-on-surface-variant">180 XP • 6 badges</p></div>
+        <span class="text-xs font-bold bg-gray-100 text-gray-700 px-3 py-1 rounded-full">Oro</span>
+      </div>
+      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-orange-100/30 to-transparent rounded-2xl px-4 mb-2">
+        <span class="text-2xl">🥉</span>
+        <div class="flex-1"><p class="font-bold text-on-surface">Ana Torres</p><p class="text-xs text-on-surface-variant">120 XP • 5 badges</p></div>
+        <span class="text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full">Plata</span>
+      </div>
+      <div class="flex items-center gap-4 py-4 bg-primary/5 rounded-2xl px-4 border-2 border-primary/15">
+        <span class="text-lg">📍</span>
+        <div class="flex-1"><p class="font-bold text-primary" id="my-rank-name">Tú</p><p class="text-xs text-on-surface-variant" id="my-rank-stats">— XP • — badges</p></div>
+        <span class="font-bold text-on-surface text-xs bg-primary/10 text-primary px-3 py-1 rounded-full" id="my-rank-level">Bronce</span>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<style>
+  .badge-card { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); position: relative; overflow: hidden; }
+  .badge-card.unlocked:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(139,90,43,0.1); }
+  .badge-card.locked { filter: none; }
+  .badge-card.locked .badge-icon { filter: grayscale(100%); opacity: 0.4; }
+  .badge-card.locked .lock-overlay {
+    position: absolute; inset: 0; background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center;
+    border-radius: inherit; opacity: 0; transition: opacity 0.2s;
+  }
+  .badge-card.locked:hover .lock-overlay { opacity: 1; }
+  .badge-card .badge-glow {
+    position: absolute; top: -20px; right: -20px; width: 60px; height: 60px;
+    background: radial-gradient(circle, var(--color-secondary-container) 0%, transparent 70%);
+    border-radius: 50%; opacity: 0; transition: opacity 0.3s;
+  }
+  .badge-card.unlocked:hover .badge-glow { opacity: 0.5; }
+  .badge-progress { transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+  .animate-shimmer { animation: shimmer 2s infinite; }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login'; throw new Error(''); }
+  const userId = session.user.id;
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay());
+
+  const [{ data: orders }, { data: customers }, { data: inventory }] = await Promise.all([
+    supabase.from('orders').select('*, order_items(*)').eq('consultant_id', userId),
+    supabase.from('customers').select('id').eq('consultant_id', userId),
+    supabase.from('inventory').select('id').eq('consultant_id', userId)
+  ]);
+
+  const totalOrders = (orders || []).filter((o: any) => o.status !== 'cancelled').length;
+  const totalCustomers = (customers || []).length;
+  const totalProducts = (inventory || []).length;
+  const totalRevenue = (orders || []).filter((o: any) => o.status !== 'cancelled').reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+  const monthOrders = (orders || []).filter((o: any) => o.created_at >= startOfMonth && o.status !== 'cancelled').length;
+  const weekOrders = (orders || []).filter((o: any) => new Date(o.created_at) >= startOfWeek && o.status !== 'cancelled').length;
+
+  // Badge definitions with tiers
+  interface Badge { id: string; icon: string; name: string; desc: string; check: boolean; current: number; target: number; tier: string; }
+  const badges: Badge[] = [
+    { id: 'first_sale', icon: '🛒', name: 'Primera Venta', desc: 'Registra tu primera venta', check: totalOrders >= 1, current: Math.min(totalOrders, 1), target: 1, tier: 'ventas' },
+    { id: 'five_sales', icon: '🎯', name: '5 Ventas', desc: 'Alcanza 5 ventas', check: totalOrders >= 5, current: Math.min(totalOrders, 5), target: 5, tier: 'ventas' },
+    { id: 'ten_sales', icon: '🔥', name: '10 Ventas', desc: 'Alcanza 10 ventas', check: totalOrders >= 10, current: Math.min(totalOrders, 10), target: 10, tier: 'ventas' },
+    { id: 'fifty_sales', icon: '💎', name: '50 Ventas', desc: 'Alcanza 50 ventas', check: totalOrders >= 50, current: Math.min(totalOrders, 50), target: 50, tier: 'ventas' },
+    { id: 'hundred_sales', icon: '👑', name: '100 Club', desc: '100 ventas registradas', check: totalOrders >= 100, current: Math.min(totalOrders, 100), target: 100, tier: 'ventas' },
+    { id: 'first_client', icon: '🤗', name: 'Primer Cliente', desc: 'Registra tu primer cliente', check: totalCustomers >= 1, current: Math.min(totalCustomers, 1), target: 1, tier: 'clientes' },
+    { id: 'ten_clients', icon: '👥', name: '10 Clientes', desc: 'Alcanza 10 clientes', check: totalCustomers >= 10, current: Math.min(totalCustomers, 10), target: 10, tier: 'clientes' },
+    { id: 'fifty_clients', icon: '🌐', name: 'Red Sólida', desc: '50 clientes registrados', check: totalCustomers >= 50, current: Math.min(totalCustomers, 50), target: 50, tier: 'clientes' },
+    { id: 'first_product', icon: '📦', name: 'Inventario Iniciado', desc: 'Agrega tu primer producto', check: totalProducts >= 1, current: Math.min(totalProducts, 1), target: 1, tier: 'inventario' },
+    { id: 'rev_1k', icon: '💰', name: '$1,000+', desc: 'Genera $1,000 en ventas', check: totalRevenue >= 1000, current: Math.min(totalRevenue, 1000), target: 1000, tier: 'ingresos' },
+    { id: 'rev_5k', icon: '💵', name: '$5,000+', desc: 'Genera $5,000 en ventas', check: totalRevenue >= 5000, current: Math.min(totalRevenue, 5000), target: 5000, tier: 'ingresos' },
+    { id: 'rev_10k', icon: '🪙', name: '$10,000+', desc: 'Genera $10,000 en ventas', check: totalRevenue >= 10000, current: Math.min(totalRevenue, 10000), target: 10000, tier: 'ingresos' },
+    { id: 'rev_50k', icon: '💸', name: '$50,000+', desc: 'Genera $50,000 en ventas', check: totalRevenue >= 50000, current: Math.min(totalRevenue, 50000), target: 50000, tier: 'ingresos' },
+    { id: 'rev_100k', icon: '🏆', name: 'Club 100K', desc: 'Genera $100,000 en ventas', check: totalRevenue >= 100000, current: Math.min(totalRevenue, 100000), target: 100000, tier: 'ingresos' },
+    { id: 'week_5', icon: '⚡', name: 'Semana 5+', desc: '5 ventas en una semana', check: weekOrders >= 5, current: Math.min(weekOrders, 5), target: 5, tier: 'reto' },
+    { id: 'month_20', icon: '🚀', name: 'Mes Estelar', desc: '20 ventas en un mes', check: monthOrders >= 20, current: Math.min(monthOrders, 20), target: 20, tier: 'reto' },
+    { id: 'catalog', icon: '📸', name: 'Digital', desc: 'Comparte tu catálogo digital', check: totalProducts >= 1, current: Math.min(totalProducts, 1), target: 1, tier: 'social' },
+    { id: 'community', icon: '💬', name: 'Social', desc: 'Publica en la comunidad', check: false, current: 0, target: 1, tier: 'social' },
+  ];
+
+  const unlocked = badges.filter(b => b.check).length;
+  const xp = unlocked * 15 + totalOrders * 5 + totalCustomers * 2;
+
+  // Levels
+  const levels = [
+    { name: 'Bronce', min: 0, max: 50 },
+    { name: 'Plata', min: 50, max: 150 },
+    { name: 'Oro', min: 150, max: 400 },
+    { name: 'Diamante', min: 400, max: 1000 },
+    { name: 'Leyenda', min: 1000, max: 9999 },
+  ];
+  const currentLevel = levels.reduce((lv, l) => xp >= l.min ? l : lv, levels[0]);
+  const nextLevel = levels[levels.indexOf(currentLevel) + 1] || currentLevel;
+  const pctLevel = Math.min(100, ((xp - currentLevel.min) / (nextLevel.max - currentLevel.min)) * 100);
+
+  // Update stats
+  (document.getElementById('badge-unlocked') as HTMLElement).textContent = String(unlocked);
+  (document.getElementById('badge-points') as HTMLElement).textContent = String(xp);
+  (document.getElementById('badge-streak') as HTMLElement).textContent = String(Math.min(monthOrders, 30));
+  (document.getElementById('my-rank-stats') as HTMLElement).textContent = `${xp} XP • ${unlocked} badges`;
+  (document.getElementById('my-level') as HTMLElement).textContent = currentLevel.name;
+  (document.getElementById('my-rank-level') as HTMLElement).textContent = currentLevel.name;
+  (document.getElementById('level-desc') as HTMLElement).textContent = `${currentLevel.name} → ${nextLevel.name}`;
+  (document.getElementById('level-target') as HTMLElement).textContent = `${nextLevel.max - xp} XP restantes`;
+  (document.getElementById('level-current') as HTMLElement).textContent = `${xp} XP`;
+  (document.getElementById('level-next') as HTMLElement).textContent = `${nextLevel.max} XP`;
+  requestAnimationFrame(() => {
+    (document.getElementById('level-bar') as HTMLElement).style.width = pctLevel + '%';
+  });
+
+  // Render badges
+  let badgeFilter: 'all' | 'unlocked' | 'locked' = 'all';
+
+  function renderBadges() {
+    const grid = document.getElementById('badges-grid') as HTMLElement;
+    grid.innerHTML = '';
+    const filtered = badgeFilter === 'all' ? badges : badgeFilter === 'unlocked' ? badges.filter(b => b.check) : badges.filter(b => !b.check);
+
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="col-span-full text-center py-8"><p class="text-on-surface-variant text-sm">${badgeFilter === 'unlocked' ? 'Aún no has desbloqueado badges. ¡Empieza vendiendo!' : 'Ya desbloqueaste todos los badges disponibles. 🏆'}</p></div>`;
+      return;
+    }
+
+    filtered.forEach(b => {
+      const pct = b.target > 0 ? Math.min(100, (b.current / b.target) * 100) : 0;
+      const el = document.createElement('div');
+      el.className = `badge-card rounded-2xl p-5 text-center ${b.check ? 'unlocked bg-gradient-to-br from-secondary-container/20 to-primary-container/10 border-2 border-secondary/15 cursor-default' : 'locked bg-surface-container-low border border-outline-variant/10 cursor-help'}`;
+      el.innerHTML = `
+        <div class="badge-glow"></div>
+        <p class="badge-icon text-4xl mb-3 relative z-[1]">${b.icon}</p>
+        <p class="font-bold text-on-surface text-sm relative z-[1]">${b.name}</p>
+        <p class="text-xs text-on-surface-variant mt-1 relative z-[1]">${b.desc}</p>
+        ${b.check
+          ? '<span class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">check_circle</span> Desbloqueado</span>'
+          : `<div class="mt-3 relative z-[1]">
+              <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="badge-progress h-full bg-primary/40 rounded-full" style="width:0%;"></div>
+              </div>
+              <p class="text-[10px] text-on-surface-variant/60 mt-1 font-bold">${b.current}/${b.target}</p>
+            </div>`
+        }
+        ${!b.check ? '<div class="lock-overlay"><span class="material-symbols-outlined text-on-surface-variant/40 text-2xl">lock</span></div>' : ''}`;
+      grid.appendChild(el);
+
+      // Animate progress bar
+      if (!b.check) {
+        requestAnimationFrame(() => {
+          const bar = el.querySelector('.badge-progress') as HTMLElement;
+          if (bar) bar.style.width = pct + '%';
+        });
+      }
+    });
+  }
+
+  renderBadges();
+
+  // Filter buttons
+  function setFilter(f: 'all' | 'unlocked' | 'locked') {
+    badgeFilter = f;
+    renderBadges();
+    ['filter-all', 'filter-unlocked', 'filter-locked'].forEach(id => {
+      const btn = document.getElementById(id)!;
+      const active = (id === 'filter-' + f);
+      btn.className = active
+        ? 'text-xs font-bold px-3 py-1.5 rounded-full bg-primary text-white'
+        : 'text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors';
+    });
+  }
+  document.getElementById('filter-all')!.addEventListener('click', () => setFilter('all'));
+  document.getElementById('filter-unlocked')!.addEventListener('click', () => setFilter('unlocked'));
+  document.getElementById('filter-locked')!.addEventListener('click', () => setFilter('locked'));
+
+  // Weekly challenge
+  const challengeTarget = 5;
+  const challengeProgress = Math.min(weekOrders, challengeTarget);
+  requestAnimationFrame(() => {
+    (document.getElementById('challenge-bar') as HTMLElement).style.width = ((challengeProgress / challengeTarget) * 100) + '%';
+  });
+  (document.getElementById('challenge-progress') as HTMLElement).textContent = `${challengeProgress}/${challengeTarget} completados`;
+  if (challengeProgress >= challengeTarget) {
+    (document.getElementById('challenge-progress') as HTMLElement).textContent = '🎉 ¡Reto completado! +20 XP';
+    (document.getElementById('challenge-progress') as HTMLElement).classList.add('text-secondary');
+  }
+</script>

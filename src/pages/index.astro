@@ -1,0 +1,440 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <!-- Header -->
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <h2 id="greeting" class="text-4xl md:text-5xl font-display font-medium text-on-surface">¡Hola! ✨</h2>
+      <p id="subtitle" class="text-on-surface-variant mt-2 text-lg">Cargando tu resumen...</p>
+    </div>
+    <div class="flex items-center gap-4">
+      <button id="btn-set-goal" class="flex items-center gap-2 py-2 px-5 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-colors text-sm">
+        <span class="material-symbols-outlined text-sm">flag</span> Mi Meta
+      </button>
+      <button id="btn-export" class="flex items-center gap-2 py-2 px-5 rounded-xl font-bold bg-secondary text-white hover:scale-[1.02] transition-all shadow-md text-sm">
+        <span class="material-symbols-outlined text-sm">download</span> Exportar
+      </button>
+      <div class="h-14 w-14 rounded-full bg-surface-container-lowest shadow-sm border border-outline-variant/30 flex items-center justify-center overflow-hidden">
+        <img id="user-avatar" src="https://api.dicebear.com/8.x/micah/svg?seed=User" alt="Avatar" />
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
+      <span class="text-xs font-bold tracking-widest uppercase text-secondary">Ventas del Ciclo</span>
+      <h3 id="kpi-revenue" class="text-3xl font-display mt-2 text-on-surface">—</h3>
+      <div class="mt-4 w-full h-2 bg-white/50 rounded-full overflow-hidden">
+        <div id="goal-bar" class="h-full bg-secondary rounded-full transition-all" style="width: 0%"></div>
+      </div>
+      <p id="goal-text" class="text-xs text-on-surface-variant mt-2 text-right">Definir meta →</p>
+    </div>
+    <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
+      <span class="text-xs font-bold tracking-widest uppercase text-primary">Ventas del Mes</span>
+      <h3 id="kpi-orders" class="text-3xl font-display mt-2 text-on-surface">—</h3>
+      <a href="/ventas" class="mt-4 text-sm font-semibold text-primary-container hover:underline inline-block">Ver todas →</a>
+    </div>
+    <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
+      <span class="text-xs font-bold tracking-widest uppercase text-error">Cobranza Pendiente</span>
+      <h3 id="kpi-debt" class="text-3xl font-display mt-2 text-error">—</h3>
+      <a href="/clientes/analisis" class="mt-4 text-sm font-semibold text-error hover:underline inline-block">Gestionar →</a>
+    </div>
+    <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
+      <span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">Stock Agotado</span>
+      <h3 id="kpi-outofstock" class="text-3xl font-display mt-2 text-on-surface">—</h3>
+      <a href="/inventario" class="mt-4 text-sm font-semibold text-on-surface-variant hover:underline inline-block">Ver inventario →</a>
+    </div>
+  </section>
+
+  <!-- Main Grid -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+    <!-- Recent Activity -->
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-display font-bold flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">receipt_long</span>
+          Ventas Recientes
+        </h3>
+        <a href="/ventas/nueva" class="btn-primary text-sm px-4 py-2 flex items-center gap-1">
+          <span class="material-symbols-outlined text-sm">add</span> Nueva Venta
+        </a>
+      </div>
+      <div id="recent-orders" class="space-y-0">
+        <div id="orders-loading" class="text-center py-8">
+          <span class="material-symbols-outlined animate-spin text-primary text-2xl">refresh</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions + Top Clients -->
+    <div class="space-y-8">
+      <!-- Quick Actions -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+        <h3 class="text-lg font-display font-bold mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">bolt</span>
+          Acciones Rápidas
+        </h3>
+        <div class="grid grid-cols-2 gap-3">
+          <a href="/ventas/nueva" class="bg-primary/10 rounded-xl p-4 text-center hover:bg-primary/20 transition-colors">
+            <span class="material-symbols-outlined text-primary text-2xl">point_of_sale</span>
+            <p class="text-xs font-bold text-on-surface mt-1">Nueva Venta</p>
+          </a>
+          <a href="/inventario/nuevo" class="bg-secondary-container/20 rounded-xl p-4 text-center hover:bg-secondary-container/30 transition-colors">
+            <span class="material-symbols-outlined text-secondary text-2xl">inventory_2</span>
+            <p class="text-xs font-bold text-on-surface mt-1">Alta Stock</p>
+          </a>
+          <a href="/clientes" class="bg-primary-container/10 rounded-xl p-4 text-center hover:bg-primary-container/20 transition-colors">
+            <span class="material-symbols-outlined text-primary text-2xl">person_add</span>
+            <p class="text-xs font-bold text-on-surface mt-1">Nuevo Cliente</p>
+          </a>
+          <a href="/inventario/ajustes" class="bg-surface-container rounded-xl p-4 text-center hover:bg-surface-container-high transition-colors">
+            <span class="material-symbols-outlined text-on-surface-variant text-2xl">tune</span>
+            <p class="text-xs font-bold text-on-surface mt-1">Ajuste Stock</p>
+          </a>
+        </div>
+      </div>
+
+      <!-- Top Clients -->
+      <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-display font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">stars</span>
+            Top Clientes
+          </h3>
+          <a href="/clientes" class="text-primary text-sm font-bold hover:underline">Ver todos</a>
+        </div>
+        <div id="top-clients" class="space-y-0">
+          <div class="text-center py-4 text-on-surface-variant text-sm">Cargando...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Low Stock Alerts + Reorder Suggestions -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-error">warning</span>
+        Alertas de Stock
+      </h3>
+      <div id="stock-alerts" class="space-y-0">
+        <div class="text-center py-6 text-on-surface-variant text-sm">Cargando...</div>
+      </div>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+      <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">trending_up</span>
+        Productos Más Vendidos
+      </h3>
+      <div id="top-products" class="space-y-0">
+        <div class="text-center py-6 text-on-surface-variant text-sm">Cargando...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Upcoming Payments -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-10">
+    <h3 class="text-xl font-display font-bold mb-6 flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary">schedule</span>
+      Próximos Cobros
+      <span id="cobros-count" class="px-2 py-0.5 rounded-full text-xs font-bold bg-primary-container text-primary"></span>
+    </h3>
+    <div id="upcoming-payments" class="space-y-0">
+      <div class="text-center py-6 text-on-surface-variant text-sm">Cargando...</div>
+    </div>
+  </section>
+
+  <!-- Goal Modal -->
+  <dialog id="goal-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-sm bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full border border-outline-variant/20">
+      <h3 class="text-xl font-display font-bold mb-4">🎯 Meta del Ciclo</h3>
+      <p class="text-sm text-on-surface-variant mb-4">Define tu meta de ventas para este ciclo.</p>
+      <input id="goal-input" type="number" placeholder="Ej: 6000" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container text-2xl font-bold text-center mb-4" />
+      <button id="btn-save-goal" class="w-full py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">Guardar Meta</button>
+      <button id="btn-close-goal" class="w-full py-2 mt-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors">Cancelar</button>
+    </div>
+  </dialog>
+
+  <!-- Export Modal -->
+  <dialog id="export-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl p-8 w-full border border-outline-variant/20">
+      <h3 class="text-xl font-display font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">download</span> Exportar Datos</h3>
+      <div class="space-y-3">
+        <button id="export-ventas-csv" class="w-full text-left flex items-center gap-3 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <span class="material-symbols-outlined text-secondary">table_view</span>
+          <div><p class="font-bold text-on-surface">Ventas (CSV)</p><p class="text-xs text-on-surface-variant">Todas las ventas del ciclo en formato Excel.</p></div>
+        </button>
+        <button id="export-clientes-csv" class="w-full text-left flex items-center gap-3 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <span class="material-symbols-outlined text-secondary">people</span>
+          <div><p class="font-bold text-on-surface">Clientes (CSV)</p><p class="text-xs text-on-surface-variant">Lista completa de clientes.</p></div>
+        </button>
+        <button id="export-inventario-csv" class="w-full text-left flex items-center gap-3 p-4 rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors">
+          <span class="material-symbols-outlined text-secondary">inventory</span>
+          <div><p class="font-bold text-on-surface">Inventario (CSV)</p><p class="text-xs text-on-surface-variant">Stock actual con precios y categorías.</p></div>
+        </button>
+      </div>
+      <button id="btn-close-export" class="w-full py-2 mt-4 text-sm text-on-surface-variant hover:text-on-surface transition-colors">Cerrar</button>
+    </div>
+  </dialog>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { window.location.href = '/login'; throw new Error('No session'); }
+  const userId = session.user.id;
+  const userEmail = session.user.email || 'Consultora';
+
+  // Greeting
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const nameFromEmail = userEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  (document.getElementById('greeting') as HTMLElement).textContent = `${greeting}, ${nameFromEmail}! ✨`;
+  (document.getElementById('user-avatar') as HTMLImageElement).src = `https://api.dicebear.com/8.x/micah/svg?seed=${nameFromEmail}`;
+
+  // ---- LOAD REAL DATA ----
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+  // Fetch all orders this month
+  const { data: orders } = await supabase
+    .from('orders')
+    .select('*, order_items (*, products (*)), customers (full_name)')
+    .eq('consultant_id', userId)
+    .gte('created_at', startOfMonth)
+    .order('created_at', { ascending: false });
+
+  // Fetch all inventory
+  const { data: inventory } = await supabase
+    .from('products')
+    .select('*')
+    .eq('consultant_id', userId);
+
+  // ---- KPIs ----
+  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled');
+  const totalRevenue = validOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+  const outOfStock = (inventory || []).filter((p: any) => p.stock <= 0).length;
+
+  // Calculate pending debt
+  let totalDebt = 0;
+  validOrders.forEach((o: any) => {
+    if (o.payment_method === 'abonos') {
+      try {
+        const t = JSON.parse(o.notes || '{}');
+        const eng = Number(t.enganche || 0);
+        const cuotas = Number(t.pagos || 1);
+        const pagados = Number(t.pagos_completados || 0);
+        const remaining = Number(o.total_amount) - eng;
+        const perCuota = remaining / cuotas;
+        totalDebt += Math.max(0, Number(o.total_amount) - eng - (perCuota * pagados));
+      } catch(e) {}
+    }
+  });
+
+  (document.getElementById('kpi-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
+  (document.getElementById('kpi-orders') as HTMLElement).textContent = String(validOrders.length);
+  (document.getElementById('kpi-debt') as HTMLElement).textContent = totalDebt > 0 ? '$' + totalDebt.toFixed(2) : '$0';
+  (document.getElementById('kpi-outofstock') as HTMLElement).textContent = String(outOfStock);
+
+  // Goal
+  const savedGoal = Number(localStorage.getItem('natura_goal') || '0');
+  const goalText = document.getElementById('goal-text') as HTMLElement;
+  const goalBar = document.getElementById('goal-bar') as HTMLElement;
+  if (savedGoal > 0) {
+    const pct = Math.min(100, (totalRevenue / savedGoal) * 100);
+    goalBar.style.width = pct + '%';
+    goalText.textContent = `Meta: $${savedGoal.toLocaleString()} (${pct.toFixed(0)}%)`;
+  }
+
+  // Subtitle
+  const subtitle = document.getElementById('subtitle') as HTMLElement;
+  const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+  subtitle.textContent = `Faltan ${daysLeft} días para cerrar el ciclo. ${validOrders.length} ventas este mes.`;
+
+  // ---- RECENT ORDERS ----
+  const recentContainer = document.getElementById('recent-orders') as HTMLElement;
+  (document.getElementById('orders-loading') as HTMLElement).classList.add('hidden');
+  const recentOrders = (orders || []).slice(0, 5);
+
+  if (!recentOrders.length) {
+    recentContainer.innerHTML = '<div class="text-center py-8 text-on-surface-variant"><span class="material-symbols-outlined text-4xl">shopping_cart</span><p class="mt-2">Sin ventas este mes. ¡Empieza una!</p></div>';
+  } else {
+    recentOrders.forEach((o: any, idx: number) => {
+      const d = new Date(o.created_at);
+      const items = (o.order_items || []).map((i: any) => i.products?.name || '?').join(', ');
+      const statusLabel = o.status === 'cancelled' ? 'Cancelada' : (o.payment_method === 'abonos' ? 'Abonos' : 'Contado');
+      const statusColor = o.status === 'cancelled' ? 'text-error bg-error-container/10' : (o.payment_method === 'abonos' ? 'text-primary bg-primary-container/10' : 'text-secondary bg-secondary-container/10');
+      const custName = o.customers?.full_name || 'Cliente';
+
+      const row = document.createElement('a');
+      row.href = '/ventas/detalle?id=' + o.id;
+      row.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
+      row.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="font-bold text-primary text-sm">${custName.charAt(0)}</span></div>` +
+        `<div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${custName}</h4><p class="text-xs text-on-surface-variant truncate">${items}</p></div>` +
+        `<div class="text-right shrink-0"><p class="font-bold text-on-surface">$${Number(o.total_amount).toFixed(2)}</p>` +
+        `<span class="px-2 py-0.5 rounded-full text-xs font-bold ${statusColor}">${statusLabel}</span></div>`;
+      recentContainer.appendChild(row);
+    });
+  }
+
+  // ---- TOP CLIENTS ----
+  const topClientsEl = document.getElementById('top-clients') as HTMLElement;
+  const clientSpend: Record<string, { name: string; total: number }> = {};
+  validOrders.forEach((o: any) => {
+    const cid = o.customer_id;
+    const name = o.customers?.full_name || 'Cliente';
+    if (!clientSpend[cid]) clientSpend[cid] = { name, total: 0 };
+    clientSpend[cid].total += Number(o.total_amount);
+  });
+  const sortedClients = Object.entries(clientSpend).sort((a, b) => b[1].total - a[1].total).slice(0, 3);
+  topClientsEl.innerHTML = '';
+  if (!sortedClients.length) {
+    topClientsEl.innerHTML = '<p class="text-center py-4 text-on-surface-variant text-sm">Sin datos aún.</p>';
+  } else {
+    const medals = ['🥇', '🥈', '🥉'];
+    sortedClients.forEach(([cid, data], idx) => {
+      const el = document.createElement('a');
+      el.href = '/clientes/perfil?id=' + cid;
+      el.className = 'flex items-center gap-3 py-3 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
+      el.innerHTML = `<span class="text-lg">${medals[idx]}</span><div class="flex-1"><p class="font-bold text-on-surface text-sm">${data.name}</p></div><p class="font-bold text-primary text-sm">$${data.total.toFixed(2)}</p>`;
+      topClientsEl.appendChild(el);
+    });
+  }
+
+  // ---- STOCK ALERTS ----
+  const alertsEl = document.getElementById('stock-alerts') as HTMLElement;
+  const lowStock = (inventory || []).filter((p: any) => p.stock <= 3).sort((a: any, b: any) => a.stock - b.stock).slice(0, 5);
+  alertsEl.innerHTML = '';
+  if (!lowStock.length) {
+    alertsEl.innerHTML = '<div class="text-center py-6"><span class="material-symbols-outlined text-secondary text-3xl">check_circle</span><p class="text-on-surface-variant mt-2">¡Todo en orden! No hay alertas de stock.</p></div>';
+  } else {
+    lowStock.forEach((p: any, idx: number) => {
+      const el = document.createElement('div');
+      el.className = 'flex items-center gap-3 py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
+      const color = p.stock <= 0 ? 'text-error bg-error-container/10' : 'text-primary bg-primary-container/10';
+      el.innerHTML = `<span class="px-2 py-1 rounded-lg text-xs font-bold ${color}">${p.stock <= 0 ? 'AGOTADO' : p.stock + ' uds'}</span><p class="flex-1 font-bold text-on-surface text-sm">${p.name}</p><span class="text-xs text-on-surface-variant">${p.category || ''}</span>`;
+      alertsEl.appendChild(el);
+    });
+  }
+
+  // ---- TOP PRODUCTS ----
+  const topProdsEl = document.getElementById('top-products') as HTMLElement;
+  const prodSales: Record<string, { name: string; qty: number; rev: number }> = {};
+  validOrders.forEach((o: any) => {
+    (o.order_items || []).forEach((i: any) => {
+      const pid = i.product_id;
+      const name = i.products?.name || 'Producto';
+      if (!prodSales[pid]) prodSales[pid] = { name, qty: 0, rev: 0 };
+      prodSales[pid].qty += i.quantity;
+      prodSales[pid].rev += i.quantity * Number(i.unit_price);
+    });
+  });
+  const sortedProds = Object.entries(prodSales).sort((a, b) => b[1].rev - a[1].rev).slice(0, 5);
+  topProdsEl.innerHTML = '';
+  if (!sortedProds.length) {
+    topProdsEl.innerHTML = '<p class="text-center py-6 text-on-surface-variant text-sm">Sin ventas para analizar.</p>';
+  } else {
+    const maxRev = sortedProds[0][1].rev;
+    sortedProds.forEach(([pid, data], idx) => {
+      const pct = (data.rev / maxRev) * 100;
+      const el = document.createElement('div');
+      el.className = 'py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
+      el.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-bold text-on-surface text-sm">${data.name}</span><span class="text-sm font-bold text-secondary">$${data.rev.toFixed(0)}</span></div>` +
+        `<div class="w-full h-1.5 bg-surface-container-highest rounded-full"><div class="h-full bg-secondary rounded-full" style="width:${pct}%"></div></div>` +
+        `<p class="text-xs text-on-surface-variant mt-1">${data.qty} unidades vendidas</p>`;
+      topProdsEl.appendChild(el);
+    });
+  }
+
+  // ---- UPCOMING PAYMENTS ----
+  const paymentsEl = document.getElementById('upcoming-payments') as HTMLElement;
+  const cobrosCount = document.getElementById('cobros-count') as HTMLElement;
+  const abonoOrders = validOrders.filter((o: any) => o.payment_method === 'abonos');
+  paymentsEl.innerHTML = '';
+  let pendingCobros = 0;
+
+  if (!abonoOrders.length) {
+    paymentsEl.innerHTML = '<div class="text-center py-6"><span class="material-symbols-outlined text-secondary text-3xl">payments</span><p class="text-on-surface-variant mt-2">No hay pagos pendientes.</p></div>';
+  } else {
+    abonoOrders.forEach((o: any, idx: number) => {
+      try {
+        const t = JSON.parse(o.notes || '{}');
+        const eng = Number(t.enganche || 0);
+        const cuotas = Number(t.pagos || 1);
+        const pagados = Number(t.pagos_completados || 0);
+        if (pagados >= cuotas) return;
+        pendingCobros++;
+        const remaining = Number(o.total_amount) - eng;
+        const perCuota = remaining / cuotas;
+        const custName = o.customers?.full_name || 'Cliente';
+        const phone = '';
+
+        const el = document.createElement('a');
+        el.href = '/ventas/detalle?id=' + o.id;
+        el.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
+        el.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-sm">payments</span></div>` +
+          `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${custName}</h4><p class="text-xs text-on-surface-variant">Pago ${pagados + 1} de ${cuotas} • $${perCuota.toFixed(2)}/pago</p></div>` +
+          `<span class="px-3 py-1 rounded-full text-xs font-bold text-primary bg-primary-container/10">Cobrar →</span>`;
+        paymentsEl.appendChild(el);
+      } catch(e) {}
+    });
+  }
+  cobrosCount.textContent = pendingCobros > 0 ? String(pendingCobros) : '';
+
+  // ---- GOAL MODAL ----
+  const goalModal = document.getElementById('goal-modal') as HTMLDialogElement;
+  const goalInput = document.getElementById('goal-input') as HTMLInputElement;
+  document.getElementById('btn-set-goal')!.addEventListener('click', () => { goalInput.value = String(savedGoal || ''); goalModal.showModal(); });
+  document.getElementById('btn-close-goal')!.addEventListener('click', () => goalModal.close());
+  document.getElementById('btn-save-goal')!.addEventListener('click', () => {
+    const val = Number(goalInput.value);
+    if (val > 0) { localStorage.setItem('natura_goal', String(val)); window.location.reload(); }
+  });
+
+  // ---- EXPORT ----
+  const exportModal = document.getElementById('export-modal') as HTMLDialogElement;
+  document.getElementById('btn-export')!.addEventListener('click', () => exportModal.showModal());
+  document.getElementById('btn-close-export')!.addEventListener('click', () => exportModal.close());
+
+  function downloadCSV(filename: string, headers: string[], rows: string[][]) {
+    const bom = '\uFEFF';
+    const csv = bom + headers.join(',') + '\n' + rows.map(r => r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    exportModal.close();
+  }
+
+  document.getElementById('export-ventas-csv')!.addEventListener('click', async () => {
+    const { data } = await supabase.from('orders').select('*, customers (full_name), order_items (*, products (name))').eq('consultant_id', userId).order('created_at', { ascending: false });
+    const rows = (data || []).map((o: any) => {
+      const items = (o.order_items || []).map((i: any) => (i.products?.name || '') + ' x' + i.quantity).join('; ');
+      return [o.id, o.customers?.full_name || '', o.total_amount, o.payment_method, o.status, items, new Date(o.created_at).toLocaleDateString('es-MX')];
+    });
+    downloadCSV('ventas_naturaflow.csv', ['ID', 'Cliente', 'Total', 'Método Pago', 'Estado', 'Productos', 'Fecha'], rows);
+  });
+
+  document.getElementById('export-clientes-csv')!.addEventListener('click', async () => {
+    const { data } = await supabase.from('customers').select('*').eq('consultant_id', userId).order('full_name');
+    const rows = (data || []).map((c: any) => [c.id, c.full_name, c.phone, c.email || '', c.address || '', c.preferences || '', new Date(c.created_at).toLocaleDateString('es-MX')]);
+    downloadCSV('clientes_naturaflow.csv', ['ID', 'Nombre', 'Teléfono', 'Correo', 'Dirección', 'Preferencias', 'Registro'], rows);
+  });
+
+  document.getElementById('export-inventario-csv')!.addEventListener('click', async () => {
+    const { data } = await supabase.from('products').select('*').eq('consultant_id', userId).order('name');
+    const rows = (data || []).map((p: any) => [p.id, p.name, p.category || '', p.price, p.stock, new Date(p.created_at).toLocaleDateString('es-MX')]);
+    downloadCSV('inventario_naturaflow.csv', ['ID', 'Nombre', 'Categoría', 'Precio', 'Stock', 'Registro'], rows);
+  });
+
+  // Confetti if goal reached
+  if (savedGoal > 0 && totalRevenue >= savedGoal) {
+    goalText.textContent = '🎉 ¡META ALCANZADA!';
+    goalText.classList.add('text-secondary', 'font-bold');
+  }
+</script>

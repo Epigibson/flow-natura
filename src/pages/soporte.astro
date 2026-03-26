@@ -1,0 +1,415 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout>
+  <header class="flex justify-between items-center mb-10">
+    <div>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">HELP CENTER</p>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Centro de Soporte 🛟</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">¿Necesitas ayuda? Encuentra respuestas o contacta a nuestro equipo.</p>
+    </div>
+    <button id="btn-new-ticket" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+      <span class="material-symbols-outlined">add</span>
+      Nuevo Ticket
+    </button>
+  </header>
+
+  <!-- Quick Actions -->
+  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+    <a href="https://wa.me/5215512345678?text=Hola%20Natura%20Flow%2C%20necesito%20ayuda" target="_blank"
+      class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-[2rem] p-6 hover:shadow-lg transition-all group cursor-pointer border border-green-200/30 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-24 h-24 bg-green-200/20 rounded-full -translate-y-8 translate-x-8"></div>
+      <div class="relative z-10">
+        <div class="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <span class="material-symbols-outlined text-green-700 text-xl">chat</span>
+        </div>
+        <h3 class="font-bold text-on-surface text-lg">WhatsApp Directo</h3>
+        <p class="text-on-surface-variant text-sm mt-1">Chatea con soporte en tiempo real.</p>
+        <span class="text-green-700 font-bold text-sm mt-3 flex items-center gap-1 group-hover:gap-2 transition-all">
+          Abrir Chat <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </span>
+      </div>
+    </a>
+
+    <div class="bg-gradient-to-br from-primary/5 to-primary-container/10 rounded-[2rem] p-6 border border-primary/5 relative overflow-hidden cursor-pointer hover:shadow-lg transition-all" id="faq-card">
+      <div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-8 translate-x-8"></div>
+      <div class="relative z-10">
+        <div class="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <span class="material-symbols-outlined text-primary text-xl">help</span>
+        </div>
+        <h3 class="font-bold text-on-surface text-lg">Preguntas Frecuentes</h3>
+        <p class="text-on-surface-variant text-sm mt-1">Resuelve dudas comunes sin esperar.</p>
+        <button id="btn-faq" class="text-primary font-bold text-sm mt-3 flex items-center gap-1 hover:gap-2 transition-all">
+          Ver FAQ <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-secondary/5 to-secondary-container/10 rounded-[2rem] p-6 border border-secondary/5 relative overflow-hidden cursor-pointer hover:shadow-lg transition-all">
+      <div class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-8 translate-x-8"></div>
+      <div class="relative z-10">
+        <div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
+          <span class="material-symbols-outlined text-secondary text-xl">school</span>
+        </div>
+        <h3 class="font-bold text-on-surface text-lg">Video Tutoriales</h3>
+        <p class="text-on-surface-variant text-sm mt-1">Aprende a sacar el máximo de la app.</p>
+        <span class="text-secondary font-bold text-sm mt-3 flex items-center gap-1 hover:gap-2 transition-all">
+          Explorar <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- New Ticket Form -->
+  <div id="ticket-form" class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8 hidden">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">confirmation_number</span>
+        Crear Ticket de Soporte
+      </h3>
+      <button id="btn-cancel-ticket" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <label class="text-xs font-bold text-on-surface-variant block mb-2 uppercase tracking-wider">Asunto</label>
+        <input id="ticket-subject" type="text" placeholder="Describe brevemente tu problema..."
+          class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container text-sm" />
+      </div>
+      <div>
+        <label class="text-xs font-bold text-on-surface-variant block mb-2 uppercase tracking-wider">Categoría</label>
+        <select id="ticket-category" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container text-sm">
+          <option value="technical">🔧 Problema técnico</option>
+          <option value="billing">💳 Facturación</option>
+          <option value="orders">📦 Pedidos</option>
+          <option value="account">👤 Mi cuenta</option>
+          <option value="feature">💡 Sugerencia</option>
+          <option value="other">📝 Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div>
+        <label class="text-xs font-bold text-on-surface-variant block mb-2 uppercase tracking-wider">Prioridad</label>
+        <div class="flex gap-2">
+          <label class="priority-option flex-1 cursor-pointer">
+            <input type="radio" name="priority" value="low" class="hidden" checked>
+            <div class="py-2.5 px-4 rounded-xl text-center text-sm font-bold border-2 border-green-200 bg-green-50 text-green-700 transition-all">
+              Baja
+            </div>
+          </label>
+          <label class="priority-option flex-1 cursor-pointer">
+            <input type="radio" name="priority" value="medium" class="hidden">
+            <div class="py-2.5 px-4 rounded-xl text-center text-sm font-bold border-2 border-outline-variant/10 text-on-surface-variant transition-all hover:border-amber-200">
+              Media
+            </div>
+          </label>
+          <label class="priority-option flex-1 cursor-pointer">
+            <input type="radio" name="priority" value="high" class="hidden">
+            <div class="py-2.5 px-4 rounded-xl text-center text-sm font-bold border-2 border-outline-variant/10 text-on-surface-variant transition-all hover:border-red-200">
+              Alta
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="mb-6">
+      <label class="text-xs font-bold text-on-surface-variant block mb-2 uppercase tracking-wider">Descripción</label>
+      <textarea id="ticket-desc" rows="4" placeholder="Explica tu situación con detalle..."
+        class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container text-sm resize-none"></textarea>
+    </div>
+    <div class="flex gap-4">
+      <button id="btn-submit-ticket" class="flex items-center gap-2 py-3 px-8 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+        <span class="material-symbols-outlined text-sm">send</span> Enviar Ticket
+      </button>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div id="faq-section" class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8 hidden">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">quiz</span>
+        Preguntas Frecuentes
+      </h3>
+      <button id="btn-close-faq" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="space-y-3" id="faq-list">
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-sm">inventory_2</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Cómo agrego productos a mi inventario?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Ve a <strong>Inventario y Catálogo → Alta de Stock</strong>. Ahí puedes registrar nuevos productos con su precio, categoría y cantidad inicial. También puedes importar productos directamente desde el catálogo Natura.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-secondary text-sm">calendar_month</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Cómo funciona el pago en abonos?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Al crear una venta, selecciona <strong>"Abonos"</strong> como método de pago. Ingresa el enganche, número de pagos y frecuencia. Podrás cobrar cada abono desde el detalle de venta y darle seguimiento a la cobranza.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-green-700 text-sm">chat</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Cómo envío un ticket digital por WhatsApp?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Ve al detalle de cualquier venta y haz clic en el botón de <strong>WhatsApp</strong>. Se generará un mensaje con el resumen de la compra listo para enviar a tu cliente.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-tertiary text-sm">person</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Puedo editar la información de un cliente?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Sí, ve a <strong>Mis Clientes</strong>, haz clic en el perfil del cliente y presiona <strong>"Editar"</strong> para actualizar su nombre, teléfono y correo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-amber-700 text-sm">sync</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Cómo importo mi catálogo Natura/Avon?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Ve a <strong>Inventario → Importar Catálogo</strong>. Obtén tu token de autenticación de Natura y sube el archivo JSON generado. Los productos se sincronizarán automáticamente con tu inventario.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="faq-item rounded-2xl overflow-hidden border border-outline-variant/10 transition-all hover:border-primary/20">
+        <div class="flex justify-between items-center p-5 cursor-pointer group">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-purple-700 text-sm">tune</span>
+            </div>
+            <h4 class="font-bold text-on-surface text-sm group-hover:text-primary transition-colors">¿Para qué sirven los Ajustes de Inventario?</h4>
+          </div>
+          <span class="material-symbols-outlined text-on-surface-variant faq-chevron transition-transform">expand_more</span>
+        </div>
+        <div class="faq-answer hidden px-5 pb-5 pt-0">
+          <div class="bg-surface-container-low/50 rounded-xl p-4 ml-11">
+            <p class="text-on-surface-variant text-sm leading-relaxed">Los ajustes te permiten registrar <strong>entradas</strong> (compras, devoluciones), <strong>salidas</strong> (demos, muestras, pérdidas) y <strong>correcciones</strong> (cuando el stock real no coincide con el sistema). Puedes hacerlos individualmente o en masa.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tickets List -->
+  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-2xl font-display font-bold text-on-surface flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">list_alt</span>
+        Mis Tickets
+      </h3>
+      <div id="ticket-stats" class="hidden flex items-center gap-3">
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary" id="stat-open">0 abiertos</span>
+        <span class="text-xs font-bold px-3 py-1 rounded-full bg-secondary/10 text-secondary" id="stat-closed">0 cerrados</span>
+      </div>
+    </div>
+    <div id="tickets-list" class="space-y-0">
+      <div id="tickets-empty" class="text-center py-12">
+        <div class="w-16 h-16 mx-auto bg-green-100 rounded-2xl flex items-center justify-center mb-4">
+          <span class="material-symbols-outlined text-green-600 text-3xl">check_circle</span>
+        </div>
+        <p class="text-on-surface font-bold text-lg">¡Todo en orden!</p>
+        <p class="text-on-surface-variant mt-1 text-sm">No tienes tickets de soporte abiertos.</p>
+        <p class="text-on-surface-variant/60 text-xs mt-3">Si necesitas ayuda, crea un ticket o chatea por WhatsApp.</p>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<style>
+  .faq-item { transition: all 0.2s; }
+  .faq-item.open { border-color: rgba(139,90,43,0.15); background: rgba(139,90,43,0.02); }
+  .faq-item.open .faq-chevron { transform: rotate(180deg); }
+  .priority-option input:checked + div { border-width: 2px; font-weight: 700; }
+  .priority-option input[value="low"]:checked + div { border-color: #86efac; background: #f0fdf4; color: #15803d; }
+  .priority-option input[value="medium"]:checked + div { border-color: #fcd34d; background: #fefce8; color: #a16207; }
+  .priority-option input[value="high"]:checked + div { border-color: #fca5a5; background: #fef2f2; color: #b91c1c; }
+  .ticket-row { transition: all 0.2s; }
+  .ticket-row:hover { background: rgba(139,90,43,0.02); }
+</style>
+
+<script>
+  const btnNewTicket = document.getElementById('btn-new-ticket') as HTMLButtonElement;
+  const ticketForm = document.getElementById('ticket-form') as HTMLElement;
+  const btnCancel = document.getElementById('btn-cancel-ticket') as HTMLButtonElement;
+  const btnSubmit = document.getElementById('btn-submit-ticket') as HTMLButtonElement;
+  const btnFaq = document.getElementById('btn-faq') as HTMLButtonElement;
+  const faqCard = document.getElementById('faq-card') as HTMLElement;
+  const faqSection = document.getElementById('faq-section') as HTMLElement;
+  const ticketSubject = document.getElementById('ticket-subject') as HTMLInputElement;
+  const ticketDesc = document.getElementById('ticket-desc') as HTMLTextAreaElement;
+  const ticketsList = document.getElementById('tickets-list') as HTMLElement;
+  const ticketsEmpty = document.getElementById('tickets-empty') as HTMLElement;
+
+  // Toggle form
+  btnNewTicket.addEventListener('click', () => {
+    ticketForm.classList.toggle('hidden');
+    faqSection.classList.add('hidden');
+    if (!ticketForm.classList.contains('hidden')) {
+      ticketForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+  btnCancel.addEventListener('click', () => ticketForm.classList.add('hidden'));
+
+  // FAQ toggle
+  const openFaq = () => {
+    faqSection.classList.toggle('hidden');
+    ticketForm.classList.add('hidden');
+    if (!faqSection.classList.contains('hidden')) {
+      faqSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  btnFaq.addEventListener('click', (e) => { e.stopPropagation(); openFaq(); });
+  faqCard.addEventListener('click', openFaq);
+  document.getElementById('btn-close-faq')!.addEventListener('click', () => faqSection.classList.add('hidden'));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const header = item.querySelector('.flex.cursor-pointer') as HTMLElement;
+    header.addEventListener('click', () => {
+      const answer = item.querySelector('.faq-answer');
+      const wasOpen = item.classList.contains('open');
+
+      // Close all others
+      document.querySelectorAll('.faq-item').forEach(other => {
+        other.classList.remove('open');
+        other.querySelector('.faq-answer')?.classList.add('hidden');
+      });
+
+      // Toggle current
+      if (!wasOpen) {
+        item.classList.add('open');
+        answer?.classList.remove('hidden');
+      }
+    });
+  });
+
+  // Priority selection visual
+  document.querySelectorAll('.priority-option input').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.priority-option div').forEach(div => {
+        div.className = 'py-2.5 px-4 rounded-xl text-center text-sm font-bold border-2 border-outline-variant/10 text-on-surface-variant transition-all';
+      });
+      const checkedRadio = document.querySelector('.priority-option input:checked') as HTMLInputElement;
+      // The CSS handles the styling via :checked + div
+      if (checkedRadio) checkedRadio.dispatchEvent(new Event('change', { bubbles: false }));
+    });
+  });
+
+  // Load tickets from localStorage
+  function loadTickets() {
+    const tickets = JSON.parse(localStorage.getItem('natura_tickets') || '[]');
+    if (tickets.length) {
+      ticketsEmpty.classList.add('hidden');
+      const statsEl = document.getElementById('ticket-stats')!;
+      statsEl.classList.remove('hidden');
+      const openCount = tickets.filter((t: any) => t.status === 'open').length;
+      const closedCount = tickets.filter((t: any) => t.status !== 'open').length;
+      (document.getElementById('stat-open') as HTMLElement).textContent = `${openCount} abiertos`;
+      (document.getElementById('stat-closed') as HTMLElement).textContent = `${closedCount} cerrados`;
+
+      tickets.forEach((t: any, idx: number) => {
+        const row = document.createElement('div');
+        row.className = 'ticket-row flex items-center gap-4 py-4 px-3 rounded-xl' + (idx > 0 ? ' border-t border-surface-container' : '');
+        const isOpen = t.status === 'open';
+        const priorityColors: Record<string, string> = {
+          low: 'bg-green-100 text-green-700',
+          medium: 'bg-amber-100 text-amber-700',
+          high: 'bg-red-100 text-red-700',
+        };
+        const priClass = priorityColors[t.priority || 'low'] || priorityColors.low;
+        row.innerHTML = `
+          <div class="w-10 h-10 rounded-xl ${isOpen ? 'bg-primary/10' : 'bg-secondary/10'} flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined ${isOpen ? 'text-primary' : 'text-secondary'} text-lg">confirmation_number</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-on-surface text-sm truncate">${t.subject}</h4>
+            <p class="text-xs text-on-surface-variant">${t.category} • ${new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          </div>
+          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${priClass} hidden md:inline-block">${(t.priority || 'low') === 'low' ? 'Baja' : t.priority === 'medium' ? 'Media' : 'Alta'}</span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full ${isOpen ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}">${isOpen ? '● Abierto' : '✓ Cerrado'}</span>`;
+        ticketsList.appendChild(row);
+      });
+    }
+  }
+
+  // Submit ticket
+  btnSubmit.addEventListener('click', () => {
+    if (!ticketSubject.value.trim()) {
+      ticketSubject.focus();
+      ticketSubject.classList.add('ring-2', 'ring-error');
+      setTimeout(() => ticketSubject.classList.remove('ring-2', 'ring-error'), 2000);
+      return;
+    }
+    const priority = (document.querySelector('.priority-option input:checked') as HTMLInputElement)?.value || 'low';
+    const tickets = JSON.parse(localStorage.getItem('natura_tickets') || '[]');
+    tickets.unshift({
+      subject: ticketSubject.value,
+      category: (document.getElementById('ticket-category') as HTMLSelectElement).selectedOptions[0].text,
+      desc: ticketDesc.value,
+      priority,
+      date: new Date().toISOString(),
+      status: 'open'
+    });
+    localStorage.setItem('natura_tickets', JSON.stringify(tickets));
+
+    // Success feedback before reload
+    btnSubmit.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> ¡Enviado!';
+    btnSubmit.classList.add('bg-secondary');
+    setTimeout(() => window.location.reload(), 800);
+  });
+
+  loadTickets();
+</script>

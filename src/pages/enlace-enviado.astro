@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout>
+  <div class="min-h-screen bg-surface flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <div class="bg-surface-container-lowest rounded-[2rem] p-10 shadow-xl border border-outline-variant/10 text-center">
+        <div class="w-24 h-24 mx-auto mb-6 bg-secondary-container/30 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-secondary text-5xl">mark_email_read</span>
+        </div>
+        <h1 class="text-3xl font-display font-bold text-on-surface mb-3">¡Enlace Enviado!</h1>
+        <p class="text-on-surface-variant text-lg mb-2">Revisa tu bandeja de entrada.</p>
+        <p id="email-display" class="text-primary font-bold text-lg mb-6"></p>
+        <p class="text-on-surface-variant text-sm mb-8">Si no ves el correo, revisa tu carpeta de spam. El enlace expira en 1 hora.</p>
+
+        <div class="space-y-4">
+          <button id="btn-resend" class="w-full py-4 rounded-xl font-bold bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">refresh</span>
+            Reenviar Enlace
+          </button>
+          <a href="/login" class="w-full py-4 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">login</span>
+            Volver al Login
+          </a>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-8 mt-8">
+        <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+          <span class="material-symbols-outlined text-secondary text-base">check_circle</span>
+          <span>Encriptación de grado bancario</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const emailDisplay = document.getElementById('email-display') as HTMLElement;
+  const btnResend = document.getElementById('btn-resend') as HTMLButtonElement;
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get('email') || '';
+  emailDisplay.textContent = email;
+
+  btnResend.addEventListener('click', async () => {
+    if (!email) return;
+    btnResend.disabled = true;
+    btnResend.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Reenviando...';
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/reset-password'
+    });
+    btnResend.innerHTML = '<span class="material-symbols-outlined">check</span> ¡Enviado de nuevo!';
+    setTimeout(() => {
+      btnResend.disabled = false;
+      btnResend.innerHTML = '<span class="material-symbols-outlined">refresh</span> Reenviar Enlace';
+    }, 5000);
+  });
+</script>

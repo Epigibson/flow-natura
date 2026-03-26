@@ -1,0 +1,297 @@
+---
+const currentPath = Astro.url.pathname;
+
+const isActive = (path: string) => currentPath === path;
+const isSection = (path: string) => currentPath.startsWith(path);
+const linkClass = (active: boolean) => active
+  ? 'sidebar-link active'
+  : 'sidebar-link';
+---
+
+<aside class="w-[17rem] hidden md:flex flex-col fixed top-0 left-0 h-screen z-10 overflow-y-auto sidebar-premium">
+  <!-- Decorative background elements -->
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-20 -right-20 w-60 h-60 bg-primary/5 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-40 -left-10 w-40 h-40 bg-secondary/5 rounded-full blur-2xl"></div>
+  </div>
+
+  <div class="relative z-10 flex flex-col h-full px-6 py-8">
+    <!-- Brand -->
+    <div class="mb-8 px-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-lg shadow-primary/20">
+          <span class="material-symbols-outlined text-white text-xl">spa</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-display font-bold text-on-surface tracking-tight">Natura Flow</h1>
+          <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-[0.2em]">Business Suite</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Card -->
+    <div class="mb-6 px-2 py-3 rounded-2xl bg-gradient-to-r from-primary/8 to-secondary/5 border border-primary/10">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center overflow-hidden">
+          <img id="sidebar-avatar" src="https://api.dicebear.com/8.x/micah/svg?seed=User" alt="Avatar" class="w-full h-full" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p id="sidebar-name" class="text-sm font-bold text-on-surface truncate">Consultora</p>
+          <p class="text-[10px] text-primary font-bold flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-secondary inline-block"></span>
+            Online
+          </p>
+        </div>
+        <button id="btn-logout-sidebar" title="Cerrar sesión" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error transition-all">
+          <span class="material-symbols-outlined text-base">logout</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 space-y-1 font-body overflow-y-auto pr-1 sidebar-nav">
+      <!-- Section: Negocio -->
+      <p class="sidebar-section-label">Negocio</p>
+
+      <a href="/" class={linkClass(isActive('/'))}>
+        <span class="material-symbols-outlined sidebar-icon">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="/inventario" class={linkClass(isSection('/inventario'))}>
+        <span class="material-symbols-outlined sidebar-icon">inventory_2</span>
+        <span>Inventario</span>
+      </a>
+      {isSection('/inventario') && (
+        <div class="sidebar-submenu">
+          <a href="/inventario/ajustes" class={linkClass(isActive('/inventario/ajustes'))}>
+            <span class="material-symbols-outlined sidebar-icon-sm">tune</span>
+            <span>Ajustes de Stock</span>
+          </a>
+          <a href="/inventario/rendimiento" class={linkClass(isActive('/inventario/rendimiento'))}>
+            <span class="material-symbols-outlined sidebar-icon-sm">leaderboard</span>
+            <span>Rendimiento</span>
+          </a>
+          <a href="/inventario/importar" class={linkClass(isActive('/inventario/importar'))}>
+            <span class="material-symbols-outlined sidebar-icon-sm">cloud_download</span>
+            <span>Importar Natura</span>
+          </a>
+        </div>
+      )}
+      <a href="/clientes" class={linkClass(isSection('/clientes'))}>
+        <span class="material-symbols-outlined sidebar-icon">people</span>
+        <span>Mis Clientes</span>
+      </a>
+      {isSection('/clientes') && (
+        <div class="sidebar-submenu">
+          <a href="/clientes/analisis" class={linkClass(isActive('/clientes/analisis'))}>
+            <span class="material-symbols-outlined sidebar-icon-sm">analytics</span>
+            <span>Análisis y Cobranza</span>
+          </a>
+        </div>
+      )}
+      <a href="/ventas" class={linkClass(isSection('/ventas'))}>
+        <span class="material-symbols-outlined sidebar-icon">point_of_sale</span>
+        <span>Ventas</span>
+      </a>
+      <a href="/reportes" class={linkClass(isActive('/reportes'))}>
+        <span class="material-symbols-outlined sidebar-icon">insights</span>
+        <span>Reportes</span>
+      </a>
+
+      <!-- Section: Experiencia -->
+      <p class="sidebar-section-label mt-4">Experiencia</p>
+
+      <a href="/comunidad" class={linkClass(isActive('/comunidad'))}>
+        <span class="material-symbols-outlined sidebar-icon">forum</span>
+        <span>Comunidad</span>
+      </a>
+      <a href="/mentoria" class={linkClass(isActive('/mentoria'))}>
+        <span class="material-symbols-outlined sidebar-icon">school</span>
+        <span>Mentoría</span>
+      </a>
+      <a href="/membresia" class={linkClass(isActive('/membresia'))}>
+        <span class="material-symbols-outlined sidebar-icon">card_membership</span>
+        <span>Membresía</span>
+      </a>
+      <a href="/logros" class={linkClass(isActive('/logros'))}>
+        <span class="material-symbols-outlined sidebar-icon">emoji_events</span>
+        <span>Logros</span>
+      </a>
+
+      <!-- Section: Herramientas -->
+      <p class="sidebar-section-label mt-4">Herramientas</p>
+
+      <a href="/catalogo" class={linkClass(isActive('/catalogo'))}>
+        <span class="material-symbols-outlined sidebar-icon">storefront</span>
+        <span>Catálogo</span>
+      </a>
+      <a href="/soporte" class={linkClass(isActive('/soporte'))}>
+        <span class="material-symbols-outlined sidebar-icon">support_agent</span>
+        <span>Soporte</span>
+      </a>
+      <a href="/ajustes" class={linkClass(isActive('/ajustes'))}>
+        <span class="material-symbols-outlined sidebar-icon">settings</span>
+        <span>Ajustes</span>
+      </a>
+    </nav>
+
+
+  </div>
+</aside>
+
+<style>
+  .sidebar-premium {
+    background: linear-gradient(175deg, var(--color-surface-container-high) 0%, var(--color-surface-container) 50%, var(--color-surface-container-high) 100%);
+    border-right: 1px solid color-mix(in srgb, var(--color-outline-variant) 15%, transparent);
+    backdrop-filter: blur(20px) saturate(1.3);
+  }
+
+  .sidebar-section-label {
+    font-size: 0.625rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-on-surface-variant);
+    padding: 0.5rem 0.75rem 0.25rem;
+    opacity: 0.6;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-on-surface-variant);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+
+  .sidebar-link:hover {
+    background: color-mix(in srgb, var(--color-primary) 6%, transparent);
+    color: var(--color-on-surface);
+    transform: translateX(2px);
+  }
+
+  .sidebar-link.active {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 12%, transparent), color-mix(in srgb, var(--color-primary) 6%, transparent));
+    color: var(--color-primary);
+    font-weight: 700;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  }
+
+  .sidebar-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    border-radius: 0 4px 4px 0;
+    background: var(--color-primary);
+  }
+
+  .sidebar-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-icon-sm {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+
+  .sidebar-submenu {
+    margin-left: 1.75rem;
+    padding-left: 0.75rem;
+    border-left: 2px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
+    space-y: 2px;
+  }
+
+  .sidebar-submenu .sidebar-link {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .sidebar-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 0.875rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, var(--color-secondary)));
+    color: white;
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary) 25%, transparent);
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  }
+
+  .sidebar-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--color-on-surface-variant);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+  }
+
+  .sidebar-logout:hover {
+    background: color-mix(in srgb, var(--color-error) 8%, transparent);
+    color: var(--color-error);
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+  }
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-outline-variant) 30%, transparent);
+    border-radius: 99px;
+  }
+</style>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  // Load user info for sidebar
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (session) {
+      const email = session.user.email || 'Consultora';
+      const name = localStorage.getItem('natura_name') || email.split('@')[0].replace('.', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+      const nameEl = document.getElementById('sidebar-name');
+      const avatarEl = document.getElementById('sidebar-avatar') as HTMLImageElement;
+      if (nameEl) nameEl.textContent = name;
+      if (avatarEl) avatarEl.src = `https://api.dicebear.com/8.x/micah/svg?seed=${name}`;
+    }
+  });
+
+  const btnLogout = document.getElementById('btn-logout-sidebar');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = '/login';
+    });
+  }
+</script>

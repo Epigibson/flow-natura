@@ -1,0 +1,468 @@
+---
+import DashboardLayout from "../../layouts/DashboardLayout.astro";
+---
+
+<DashboardLayout>
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h2
+        class="text-3xl font-extrabold tracking-tight text-primary font-headline"
+      >
+        Gestionar Inventario
+      </h2>
+      <p class="text-sm text-on-surface-variant mt-2">
+        Introduce los datos esenciales para registrar tu stock premium.
+      </p>
+    </div>
+    <a href="/inventario" class="btn-secondary flex items-center gap-2">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Volver
+    </a>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+    <!-- Left Column: Form Details -->
+    <div class="lg:col-span-8 space-y-12">
+      <section>
+        <div class="mb-8">
+          <span
+            class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest rounded-full mb-2"
+            >Información Básica</span
+          >
+          <h3 class="text-2xl font-bold text-on-surface font-headline">
+            Detalles del Producto
+          </h3>
+        </div>
+
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="product_code"
+                >Código / SKU <span class="text-error">*</span></label
+              >
+              <div class="relative">
+                <input
+                  type="text"
+                  id="product_code"
+                  class="w-full px-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container transition-all pr-12"
+                  placeholder="Ej. 123456"
+                />
+                <button
+                  type="button"
+                  id="btn-scan-toggle"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                  title="Escanear código de barras"
+                >
+                  <span class="material-symbols-outlined text-primary text-lg"
+                    >qr_code_scanner</span
+                  >
+                </button>
+              </div>
+              <!-- Inline scanner -->
+              <div
+                id="inline-scanner-wrap"
+                class="hidden mt-2 rounded-xl overflow-hidden border border-outline-variant/10 bg-black"
+              >
+                <div id="inline-scanner" class="w-full" style="height:200px">
+                </div>
+                <div
+                  class="flex justify-between items-center p-2 bg-surface-container"
+                >
+                  <p class="text-[10px] text-on-surface-variant">
+                    Apunta al código de barras
+                  </p>
+                  <button
+                    type="button"
+                    id="btn-scan-close"
+                    class="text-xs font-bold text-error hover:underline"
+                    >Cerrar</button
+                  >
+                </div>
+              </div>
+              <input type="hidden" id="scanned_ean" />
+            </div>
+            <!-- Name Input -->
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="product_name"
+                >Nombre del Producto <span class="text-error">*</span></label
+              >
+              <input
+                type="text"
+                id="product_name"
+                class="w-full px-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container transition-all"
+                placeholder="Ej. Ekos Castanha Hidratante"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6">
+            <!-- Category Select -->
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="category">Categoría</label
+              >
+              <div class="relative">
+                <select
+                  id="category"
+                  class="w-full px-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container appearance-none"
+                >
+                  <option>Perfumería</option>
+                  <option>Maquillaje</option>
+                  <option>Cuerpo</option>
+                  <option>Cabello</option>
+                  <option>Rostro</option>
+                </select>
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50"
+                  >expand_more</span
+                >
+              </div>
+            </div>
+            <!-- Stock Input -->
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="stock"
+                >Stock a Agregar <span class="text-error">*</span></label
+              >
+              <div class="relative">
+                <input
+                  type="number"
+                  id="stock"
+                  class="w-full px-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container"
+                  placeholder="10"
+                  min="1"
+                  value="1"
+                />
+                <span
+                  class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-30"
+                  >inventory</span
+                >
+              </div>
+              <p class="text-xs text-on-surface-variant mt-1 ml-1">
+                Sumará al stock existente si el producto ya está en tu catálogo.
+              </p>
+            </div>
+          </div>
+
+          <!-- Pricing -->
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="cost"
+                >Costo de Consultora <span class="text-error">*</span></label
+              >
+              <div class="relative flex items-center">
+                <span class="absolute left-5 font-bold text-on-surface-variant"
+                  >$</span
+                >
+                <input
+                  type="number"
+                  step="0.01"
+                  id="cost"
+                  class="w-full pl-10 pr-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="price"
+                >Precio de Venta Sugerido <span class="text-error">*</span
+                ></label
+              >
+              <div class="relative flex items-center">
+                <span class="absolute left-5 font-bold text-primary">$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="price"
+                  class="w-full pl-10 pr-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container font-headline text-xl"
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Media & Actions -->
+    <div class="lg:col-span-4 space-y-8">
+      <!-- Media Upload Section -->
+      <div
+        class="bg-surface-container-lowest p-8 rounded-[2.5rem] shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)] border border-surface-container-low"
+      >
+        <label
+          class="block text-sm font-bold text-on-surface-variant mb-6 text-center"
+          >Multimedia del Producto</label
+        >
+        <div
+          class="aspect-square w-full rounded-3xl border-2 border-dashed border-outline-variant bg-surface-container flex flex-col items-center justify-center p-8 group hover:border-primary-container transition-colors cursor-pointer relative overflow-hidden"
+        >
+          <span
+            class="material-symbols-outlined text-5xl text-primary-container mb-4 group-hover:scale-110 transition-transform"
+            >add_a_photo</span
+          >
+          <p class="text-center font-bold text-on-surface tracking-tight">
+            Suelta tus imágenes aquí
+          </p>
+          <p class="text-xs text-on-surface-variant mt-2">
+            MVP: Imágenes gestionadas externamente
+          </p>
+        </div>
+      </div>
+
+      <!-- Feedback Area -->
+      <div
+        id="form-error"
+        class="hidden text-error bg-error-container p-4 rounded-xl text-sm font-semibold"
+      >
+      </div>
+      <div
+        id="form-success"
+        class="hidden text-secondary bg-secondary-container p-4 flex flex-col items-center rounded-xl text-sm font-semibold"
+      >
+        <span class="material-symbols-outlined text-3xl mb-2">check_circle</span
+        >
+        ¡Inventario actualizado correctamente!
+      </div>
+
+      <!-- Action -->
+      <button
+        id="btn-save"
+        class="w-full py-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-2xl font-bold font-headline shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+      >
+        <span class="material-symbols-outlined">save</span>
+        Guardar Producto
+      </button>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+  import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
+
+  let currentUserId = "";
+  let inlineScanner: NativeBarcodeScanner | null = null;
+  let scannedEan = "";
+
+  const codeInput = document.getElementById("product_code") as HTMLInputElement;
+  const nameInput = document.getElementById("product_name") as HTMLInputElement;
+  const categorySelect = document.getElementById(
+    "category",
+  ) as HTMLSelectElement;
+  const stockInput = document.getElementById("stock") as HTMLInputElement;
+  const costInput = document.getElementById("cost") as HTMLInputElement;
+  const priceInput = document.getElementById("price") as HTMLInputElement;
+  const btnSave = document.getElementById("btn-save") as HTMLButtonElement;
+  const errorDiv = document.getElementById("form-error") as HTMLElement;
+  const successDiv = document.getElementById("form-success") as HTMLElement;
+  const btnScanToggle = document.getElementById(
+    "btn-scan-toggle",
+  ) as HTMLButtonElement;
+  const btnScanClose = document.getElementById(
+    "btn-scan-close",
+  ) as HTMLButtonElement;
+  const inlineScannerWrap = document.getElementById(
+    "inline-scanner-wrap",
+  ) as HTMLElement;
+  const scannedEanInput = document.getElementById(
+    "scanned_ean",
+  ) as HTMLInputElement;
+
+  supabase.auth.getSession().then(({ data: { session } }: any) => {
+    if (session) {
+      currentUserId = session.user.id;
+    }
+  });
+
+  // ═══════════ INLINE SCANNER ═══════════
+  async function startInlineScanner() {
+    await stopInlineScanner();
+    inlineScannerWrap.classList.remove("hidden");
+
+    inlineScanner = new NativeBarcodeScanner({
+      targetId: "inline-scanner",
+      onScan: async (code) => {
+        codeInput.value = code;
+        scannedEan = code;
+        scannedEanInput.value = code;
+        await stopInlineScanner();
+      },
+    });
+
+    await inlineScanner.start();
+  }
+
+  async function stopInlineScanner() {
+    if (inlineScanner) {
+      await inlineScanner.stop();
+      inlineScanner = null;
+    }
+    inlineScannerWrap.classList.add("hidden");
+  }
+
+  btnScanToggle?.addEventListener("click", () => {
+    if (inlineScannerWrap.classList.contains("hidden")) {
+      startInlineScanner();
+    } else {
+      stopInlineScanner();
+    }
+  });
+
+  btnScanClose?.addEventListener("click", () => stopInlineScanner());
+
+  btnSave?.addEventListener("click", async () => {
+    errorDiv.classList.add("hidden");
+    successDiv.classList.add("hidden");
+
+    const code = codeInput.value.trim();
+    const name = nameInput.value.trim();
+    const category = categorySelect.value;
+    const qty = parseInt(stockInput.value) || 0;
+    const cost = parseFloat(costInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+
+    if (!code || !name || qty < 1 || cost <= 0 || price <= 0) {
+      errorDiv.textContent =
+        "Por favor completa todos los campos requeridos con valores válidos.";
+      errorDiv.classList.remove("hidden");
+      return;
+    }
+
+    btnSave.disabled = true;
+    btnSave.innerHTML =
+      '<span class="material-symbols-outlined animate-spin">sync</span> Guardando...';
+
+    // 1. Check if product already exists globally by code
+    let productId = null;
+    const { data: existingProduct, error: queryError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("code", code)
+      .maybeSingle();
+
+    if (queryError) {
+      showError("Error verificando producto: " + queryError.message);
+      return;
+    }
+
+    if (existingProduct) {
+      productId = existingProduct.id;
+    } else {
+      // Create new global product
+      const { data: newProd, error: insertProdError } = await supabase
+        .from("products")
+        .insert([
+          {
+            code,
+            name,
+            category,
+            price,
+            cost,
+          },
+        ])
+        .select("id")
+        .single();
+
+      if (insertProdError) {
+        showError(
+          "Error registrando producto nuevo: " + insertProdError.message,
+        );
+        return;
+      }
+      productId = newProd.id;
+
+      // Auto-link barcode if it was scanned
+      if (scannedEan) {
+        await supabase
+          .from("product_barcodes")
+          .insert({
+            ean: scannedEan,
+            product_id: productId,
+            created_by: currentUserId,
+          })
+          .then(() => {});
+      }
+    }
+
+    // 2. Check if consultant already has inventory of this product
+    const { data: existingInv, error: invQueryError } = await supabase
+      .from("inventory")
+      .select("id, quantity")
+      .eq("consultant_id", currentUserId)
+      .eq("product_id", productId)
+      .maybeSingle();
+
+    if (invQueryError) {
+      showError("Error verificando inventario: " + invQueryError.message);
+      return;
+    }
+
+    if (existingInv) {
+      // Update quantity (add to existing)
+      const { error: updateInvError } = await supabase
+        .from("inventory")
+        .update({
+          quantity: existingInv.quantity + qty,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", existingInv.id);
+
+      if (updateInvError)
+        return showError("Error sumando inventario: " + updateInvError.message);
+    } else {
+      // Insert new inventory link
+      const { error: insertInvError } = await supabase
+        .from("inventory")
+        .insert([
+          {
+            consultant_id: currentUserId,
+            product_id: productId,
+            quantity: qty,
+          },
+        ]);
+
+      if (insertInvError)
+        return showError("Error creando inventario: " + insertInvError.message);
+    }
+
+    // Success
+    successDiv.classList.remove("hidden");
+    // Clear inputs except category
+    codeInput.value = "";
+    nameInput.value = "";
+    stockInput.value = "1";
+    costInput.value = "";
+    priceInput.value = "";
+    scannedEan = "";
+    scannedEanInput.value = "";
+
+    resetBtn();
+
+    setTimeout(() => {
+      successDiv.classList.add("hidden");
+    }, 4000);
+  });
+
+  function showError(msg: string) {
+    errorDiv.textContent = msg;
+    errorDiv.classList.remove("hidden");
+    resetBtn();
+  }
+
+  function resetBtn() {
+    btnSave.disabled = false;
+    btnSave.innerHTML =
+      '<span class="material-symbols-outlined">save</span> Guardar Producto';
+  }
+</script>
