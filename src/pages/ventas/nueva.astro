@@ -190,6 +190,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { esc } from '../../lib/security';
 
   let currentUserId = '';
   let availableProducts: any[] = [];
@@ -286,10 +287,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       
       card.innerHTML = `
         <div class="w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center shrink-0">
-          <span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${p.category || 'Varios'}</span>
+          <span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${esc(p.category) || 'Varios'}</span>
         </div>
         <div class="flex-1 min-w-0">
-          <h4 class="font-bold text-on-surface leading-tight truncate" title="${p.name}">${p.name}</h4>
+          <h4 class="font-bold text-on-surface leading-tight truncate" title="${esc(p.name)}">${esc(p.name)}</h4>
           <p class="text-primary font-bold mt-1">$${p.price.toFixed(2)}</p>
           <p class="text-xs text-secondary font-medium mt-1">${p.max_quantity} en stock</p>
         </div>
@@ -373,7 +374,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       div.className = "flex gap-4 items-center bg-white p-4 rounded-xl shadow-[0_4px_12px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/10";
       div.innerHTML = `
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-bold text-on-surface leading-tight truncate" title="${item.name}">${item.name}</p>
+          <p class="text-sm font-bold text-on-surface leading-tight truncate" title="${esc(item.name)}">${esc(item.name)}</p>
           <div class="flex items-center gap-2 mt-2">
             <button class="text-primary bg-primary-container/10 hover:bg-primary hover:text-white rounded-md w-7 h-7 flex items-center justify-center font-bold transition-colors" onclick="window.updateQuantity('${item.product_id}', -1)">
               <span class="material-symbols-outlined text-[16px]">remove</span>

@@ -41,8 +41,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (err: unknown) {
     console.error('Stripe portal error:', err);
-    const message = err instanceof Error ? err.message : 'Internal error';
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

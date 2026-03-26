@@ -1,3 +1,4 @@
+import type { BrowserMultiFormatReader } from '@zxing/library';
 /**
  * Native BarcodeDetector scanner with html5-qrcode fallback.
  * Uses the browser's native BarcodeDetector API (Chrome 83+/Android)
@@ -35,7 +36,7 @@ export class NativeBarcodeScanner {
   private lastCodeTime = 0;
   private options: ScannerOptions;
   private useFallback = false;
-  private fallbackScanner: any = null;
+  private fallbackScanner: BrowserMultiFormatReader | null = null;
 
   constructor(options: ScannerOptions) {
     this.options = options;
@@ -133,8 +134,7 @@ export class NativeBarcodeScanner {
         audio: false,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      this.options.onError?.('No se pudo acceder a la cámara: ' + message);
+      this.options.onError?.('No se pudo acceder a la cámara: ' + (err instanceof Error ? err.message : String(err)));
       return;
     }
 
@@ -255,8 +255,7 @@ export class NativeBarcodeScanner {
 
     } catch (err: unknown) {
       if (this.isRunning) {
-        const message = err instanceof Error ? err.message : String(err);
-        this.options.onError?.('Error del escáner: ' + message);
+        this.options.onError?.('Error del escáner: ' + (err instanceof Error ? err.message : String(err)));
       }
     }
   }

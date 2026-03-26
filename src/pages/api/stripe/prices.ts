@@ -3,6 +3,13 @@ import Stripe from 'stripe';
 
 export const prerender = false;
 
+interface PlanDetails {
+  monthly: number;
+  annual_total: number;
+  annual_per_month: number;
+  discount?: number;
+}
+
 export const GET: APIRoute = async () => {
   try {
     const secretKey = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY || '';
@@ -49,14 +56,14 @@ export const GET: APIRoute = async () => {
     const results = await Promise.all(
       validIds.map(([, id]) =>
         stripeClient.prices.retrieve(id).catch(err => {
-          console.error(`Failed to fetch price ${id}:`, err.message);
+          console.error(`Failed to fetch price ${id}:`, err instanceof Error ? err.message : 'Unknown error');
           return null;
         })
       )
     );
 
     // Build plans object
-    const plans: Record<string, any> = {
+    const plans: Record<string, PlanDetails> = {
       basico: { monthly: 0, annual_total: 0, annual_per_month: 0 },
       pro: { monthly: 0, annual_total: 0, annual_per_month: 0 },
       premium: { monthly: 0, annual_total: 0, annual_per_month: 0 },
@@ -96,8 +103,7 @@ export const GET: APIRoute = async () => {
     });
   } catch (err: unknown) {
     console.error('Stripe prices error:', err);
-    const message = err instanceof Error ? err.message : 'Internal error';
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
