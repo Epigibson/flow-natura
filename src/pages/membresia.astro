@@ -541,8 +541,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
   }
 
-  async function openPortal() {
-    const btn = document.getElementById('btn-manage') as HTMLButtonElement;
+  async function openPortal(e?: Event) {
+    const btn = (e?.currentTarget as HTMLButtonElement) || document.getElementById('btn-manage') as HTMLButtonElement;
+    if (!btn) return;
+
+    const originalHtml = btn.innerHTML;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Abriendo...';
     btn.disabled = true;
 
@@ -558,7 +561,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         window.location.href = data.url;
       } else {
         alert(data.error || 'Error al abrir portal');
-        btn.innerHTML = '<span class="material-symbols-outlined text-sm">settings</span> Gestionar Plan';
+        btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
     } catch (err: unknown) {
