@@ -3,6 +3,13 @@ import Stripe from 'stripe';
 
 export const prerender = false;
 
+interface PlanDetails {
+  monthly: number;
+  annual_total: number;
+  annual_per_month: number;
+  discount?: number;
+}
+
 export const GET: APIRoute = async () => {
   try {
     const secretKey = import.meta.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY || '';
@@ -56,7 +63,7 @@ export const GET: APIRoute = async () => {
     );
 
     // Build plans object
-    const plans: Record<string, any> = {
+    const plans: Record<string, PlanDetails> = {
       basico: { monthly: 0, annual_total: 0, annual_per_month: 0 },
       pro: { monthly: 0, annual_total: 0, annual_per_month: 0 },
       premium: { monthly: 0, annual_total: 0, annual_per_month: 0 },
