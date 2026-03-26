@@ -133,6 +133,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../lib/supabase';
+  import { esc, sanitizeUrl } from '../lib/security';
 
   const container = document.getElementById('products-container') as HTMLElement;
   const listContainer = document.getElementById('list-container') as HTMLElement;
@@ -300,9 +301,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">${p.quantity} uds</span>`
         : `<span class="text-[10px] font-bold px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full">Sin stock</span>`;
 
-      const imgSrc = p.image_url || '';
+      const imgSrc = esc(sanitizeUrl(p.image_url));
       const imgEl = imgSrc
-        ? `<img src="${imgSrc}" alt="${p.name}" class="w-full h-40 object-contain bg-white" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        ? `<img src="${imgSrc}" alt="${esc(p.name)}" class="w-full h-40 object-contain bg-white" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
            <div class="w-full h-40 bg-surface-container items-center justify-center hidden"><span class="material-symbols-outlined text-4xl text-on-surface-variant/30">image_not_supported</span></div>`
         : `<div class="w-full h-40 bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-4xl text-on-surface-variant/30">spa</span></div>`;
 
@@ -310,14 +311,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         ${imgEl}
         <div class="p-4 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2 gap-2">
-            <span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full whitespace-nowrap">${p.brand || 'Natura'}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full whitespace-nowrap">${esc(p.brand) || 'Natura'}</span>
             <div class="flex items-center gap-1.5">
               ${stockBadge}
-              <span class="text-[10px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">${p.code}</span>
+              <span class="text-[10px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">${esc(p.code)}</span>
             </div>
           </div>
-          <h3 class="text-sm font-bold text-on-surface leading-tight line-clamp-2 mb-2 min-h-[2.5rem]" title="${p.name}">${p.name}</h3>
-          <p class="text-[10px] font-medium text-on-surface-variant mb-3 truncate" title="${p.category || ''}">${p.category || '—'}</p>
+          <h3 class="text-sm font-bold text-on-surface leading-tight line-clamp-2 mb-2 min-h-[2.5rem]" title="${esc(p.name)}">${esc(p.name)}</h3>
+          <p class="text-[10px] font-medium text-on-surface-variant mb-3 truncate" title="${esc(p.category || '')}">${esc(p.category) || '—'}</p>
           <div class="mt-auto grid grid-cols-3 gap-2 pt-3 border-t border-outline-variant/10">
             <div>
               <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wide">Costo</p>
@@ -349,7 +350,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
-      const imgSrc = p.image_url || '';
+      const imgSrc = esc(sanitizeUrl(p.image_url));
 
       tr.innerHTML = `
         <td class="px-3 py-2">
@@ -359,11 +360,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         </td>
         <td class="px-4 py-2">
-          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1" title="${p.name}">${p.name}</p>
-          <p class="text-[10px] font-mono text-on-surface-variant">${p.code}</p>
+          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1" title="${esc(p.name)}">${esc(p.name)}</p>
+          <p class="text-[10px] font-mono text-on-surface-variant">${esc(p.code)}</p>
         </td>
-        <td class="px-4 py-2 text-xs">${p.brand || '—'}</td>
-        <td class="px-4 py-2 text-xs text-on-surface-variant">${p.category || '—'}</td>
+        <td class="px-4 py-2 text-xs">${esc(p.brand) || '—'}</td>
+        <td class="px-4 py-2 text-xs text-on-surface-variant">${esc(p.category) || '—'}</td>
         <td class="px-4 py-2 text-right font-mono text-xs">$${(p.cost || 0).toFixed(0)}</td>
         <td class="px-4 py-2 text-right font-mono text-xs font-bold text-primary">$${(p.price || 0).toFixed(0)}</td>
         <td class="px-4 py-2 text-right text-xs font-bold ${marginColor}">${margin}%</td>
