@@ -5,8 +5,29 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
+
+
+
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Missing token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseClient = getServiceSupabase();
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = user.id;
 
     if (!userId) {
       return new Response(JSON.stringify({ error: 'Missing userId' }), {
