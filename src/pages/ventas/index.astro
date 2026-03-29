@@ -151,9 +151,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
+        if (isAbonos && o._parsedNotes) {
           try {
-            const terms = JSON.parse(o.notes);
+            const terms = o._parsedNotes;
             const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
             const montoCuota = remaining / Number(terms.pagos || 1);
             debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
@@ -186,9 +186,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
+        if (isAbonos && o._parsedNotes) {
           try {
-            const terms = JSON.parse(o.notes);
+            const terms = o._parsedNotes;
             const remaining = amt - Number(terms.enganche || 0);
             const montoCuota = remaining / Number(terms.pagos || 1);
             debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
@@ -220,9 +220,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
+        if (isAbonos && o._parsedNotes) {
           try {
-            const terms = JSON.parse(o.notes);
+            const terms = o._parsedNotes;
             const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
             const montoCuota = remaining / Number(terms.pagos || 1);
             debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
@@ -303,6 +303,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       loader.classList.add('hidden');
       
       allOrders = orders || [];
+
+      // ⚡ Bolt Performance Optimization: Pre-parsear JSON para evitar llamadas costosas a JSON.parse() dentro de los bucles
+      allOrders.forEach(o => {
+        if (o.payment_method?.toLowerCase() === 'abonos' && o.notes) {
+          try { o._parsedNotes = JSON.parse(o.notes); } catch(e) {}
+        }
+      });
+
       renderTable();
 
     } catch (err) {
