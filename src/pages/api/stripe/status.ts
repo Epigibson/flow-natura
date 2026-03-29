@@ -1,22 +1,33 @@
 import type { APIRoute } from 'astro';
 import { getServiceSupabase } from '../../../lib/supabase-server';
+import { supabase } from '../../../lib/supabase';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Missing userId' }), {
-        status: 400,
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = getServiceSupabase();
-    const { data: sub, error } = await supabase
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = user.id;
+
+    const serviceSupabase = getServiceSupabase();
+    const { data: sub, error } = await serviceSupabase
       .from('subscriptions')
       .select('*')
       .eq('consultant_id', userId)
@@ -37,7 +48,7 @@ export const GET: APIRoute = async ({ request }) => {
     if (sub.status === 'trialing' && sub.trial_ends_at) {
       if (new Date(sub.trial_ends_at) < new Date()) {
         // Trial has expired, update status
-        await supabase
+        await serviceSupabase
           .from('subscriptions')
           .update({ status: 'canceled', updated_at: new Date().toISOString() })
           .eq('consultant_id', userId);

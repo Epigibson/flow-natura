@@ -1,16 +1,38 @@
 import type { APIRoute } from 'astro';
 import { stripe, getPriceId } from '../../../lib/stripe';
 import { getServiceSupabase } from '../../../lib/supabase-server';
+import { supabase } from '../../../lib/supabase';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const { plan, billing_period, userId, userEmail } = body;
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    if (!plan || !billing_period || !userId) {
-      return new Response(JSON.stringify({ error: 'Missing required fields: plan, billing_period, userId' }), {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = user.id;
+    const userEmail = user.email;
+
+    const body = await request.json();
+    const { plan, billing_period } = body;
+
+    if (!plan || !billing_period) {
+      return new Response(JSON.stringify({ error: 'Missing required fields: plan, billing_period' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -24,10 +46,10 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const supabase = getServiceSupabase();
+    const serviceSupabase = getServiceSupabase();
 
     // Check if user already has a Stripe customer
-    const { data: sub } = await supabase
+    const { data: sub } = await serviceSupabase
       .from('subscriptions')
       .select('stripe_customer_id, stripe_subscription_id')
       .eq('consultant_id', userId)
@@ -44,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
       customerId = customer.id;
 
       // Save customer ID
-      await supabase
+      await serviceSupabase
         .from('subscriptions')
         .update({ stripe_customer_id: customerId })
         .eq('consultant_id', userId);
