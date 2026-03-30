@@ -163,6 +163,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </style>
 
 <script>
+  import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -231,7 +232,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   (document.getElementById('my-rank-stats') as HTMLElement).textContent = `${xp} XP • ${unlocked} badges`;
   (document.getElementById('my-level') as HTMLElement).textContent = currentLevel.name;
   (document.getElementById('my-rank-level') as HTMLElement).textContent = currentLevel.name;
-  (document.getElementById('level-desc') as HTMLElement).textContent = `${currentLevel.name} → ${nextLevel.name}`;
+  (document.getElementById('level-desc') as HTMLElement).textContent = `${esc(currentLevel.name)} → ${esc(nextLevel.name)}`;
   (document.getElementById('level-target') as HTMLElement).textContent = `${nextLevel.max - xp} XP restantes`;
   (document.getElementById('level-current') as HTMLElement).textContent = `${xp} XP`;
   (document.getElementById('level-next') as HTMLElement).textContent = `${nextLevel.max} XP`;
@@ -259,7 +260,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       el.innerHTML = `
         <div class="badge-glow"></div>
         <p class="badge-icon text-4xl mb-3 relative z-[1]">${b.icon}</p>
-        <p class="font-bold text-on-surface text-sm relative z-[1]">${b.name}</p>
+        <p class="font-bold text-on-surface text-sm relative z-[1]">${esc(b.name)}</p>
         <p class="text-xs text-on-surface-variant mt-1 relative z-[1]">${b.desc}</p>
         ${b.check
           ? '<span class="inline-flex items-center gap-1 mt-3 text-xs font-bold text-secondary bg-secondary/10 px-3 py-1 rounded-full"><span class="material-symbols-outlined text-xs">check_circle</span> Desbloqueado</span>'

@@ -289,6 +289,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 </style>
 
 <script>
+  import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
 
   // ===== SHARED STATE =====
@@ -629,7 +630,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       row.innerHTML = `
         ${item.imageUrl ? `<img src="${item.imageUrl}" class="w-9 h-9 rounded-lg object-contain bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-9 h-9 rounded-lg bg-surface-container shrink-0"></div>`}
         <div class="flex-1 min-w-0">
-          <p class="font-bold text-xs text-on-surface truncate">${item.name}</p>
+          <p class="font-bold text-xs text-on-surface truncate">${esc(item.name)}</p>
           <p class="text-[10px] text-on-surface-variant">${item.brand} #${item.code} · Stock: ${item.currentQty}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">

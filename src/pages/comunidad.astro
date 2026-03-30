@@ -289,7 +289,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <span class="font-bold text-sm">${initials}</span>
           </div>
           <div class="flex-1">
-            <h4 class="font-bold text-on-surface">${post.author_name}</h4>
+            <h4 class="font-bold text-on-surface">${esc(post.author_name)}</h4>
             <p class="text-xs text-on-surface-variant">${timeAgo(post.created_at)}</p>
           </div>
           ${topicBadge}
@@ -524,7 +524,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <span class="font-bold text-xs">${initials}</span>
         </div>
         <div class="flex-1">
-          <p class="font-bold text-sm text-on-surface">${c.name}</p>
+          <p class="font-bold text-sm text-on-surface">${esc(c.name)}</p>
           <p class="text-[10px] text-on-surface-variant">${c.count} posts</p>
         </div>
         <span class="text-lg">${medals[i]}</span>
