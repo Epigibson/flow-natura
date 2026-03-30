@@ -151,13 +151,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
-          try {
-            const terms = JSON.parse(o.notes);
-            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-            const montoCuota = remaining / Number(terms.pagos || 1);
-            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-          } catch(e) {}
+        if (isAbonos && o._parsedNotes) {
+          const terms = o._parsedNotes;
+          const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
+          const montoCuota = remaining / Number(terms.pagos || 1);
+          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
         } else if (o.status === 'pending') {
           debt = Number(o.total_amount);
         }
@@ -186,14 +184,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
-          try {
-            const terms = JSON.parse(o.notes);
-            const remaining = amt - Number(terms.enganche || 0);
-            const montoCuota = remaining / Number(terms.pagos || 1);
-            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-            if (debt > 0.01) abonosActivos++;
-          } catch(e) {}
+        if (isAbonos && o._parsedNotes) {
+          const terms = o._parsedNotes;
+          const remaining = amt - Number(terms.enganche || 0);
+          const montoCuota = remaining / Number(terms.pagos || 1);
+          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+          if (debt > 0.01) abonosActivos++;
         } else if (o.status === 'pending') {
           debt = amt;
           if (isAbonos) abonosActivos++;
@@ -220,13 +216,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         
         const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         let debt = 0;
-        if (isAbonos && o.notes) {
-          try {
-            const terms = JSON.parse(o.notes);
-            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-            const montoCuota = remaining / Number(terms.pagos || 1);
-            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-          } catch(e) {}
+        if (isAbonos && o._parsedNotes) {
+          const terms = o._parsedNotes;
+          const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
+          const montoCuota = remaining / Number(terms.pagos || 1);
+          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
         } else if (o.status === 'pending') {
           debt = Number(o.total_amount);
         }
@@ -302,7 +296,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
       loader.classList.add('hidden');
       
-      allOrders = orders || [];
+      // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
+      allOrders = (orders || []).map(o => {
+        let _parsedNotes = null;
+        if (o.notes) {
+          try { _parsedNotes = JSON.parse(o.notes); } catch(e) {}
+        }
+        return { ...o, _parsedNotes };
+      });
       renderTable();
 
     } catch (err) {

@@ -1,0 +1,3 @@
+## 2024-03-30 - Pre-analizar JSON al obtener datos
+**Learning:** La columna `notes` a menudo contiene JSON en formato de cadena (por ejemplo, términos de pago). Llamar repetidamente a `JSON.parse(o.notes)` dentro de los bucles de filtrado y renderizado bloquea el hilo principal y afecta el rendimiento, especialmente al filtrar resultados de búsqueda en cada pulsación de tecla.
+**Action:** Siempre pre-analizar estas cadenas JSON en propiedades de objeto (por ejemplo, `_parsedNotes`) inmediatamente después de obtener los datos. Usar el objeto pre-analizado en los bucles y funciones de renderizado para evitar llamadas repetidas y costosas a `JSON.parse()`.

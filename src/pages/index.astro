@@ -215,7 +215,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     .eq('consultant_id', userId);
 
   // ---- KPIs ----
-  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled');
+  // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
+  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled').map((o: any) => {
+    let _parsedNotes = {};
+    if (o.notes) {
+      try { _parsedNotes = JSON.parse(o.notes); } catch(e) {}
+    }
+    return { ...o, _parsedNotes };
+  });
+
   const totalRevenue = validOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
   const outOfStock = (inventory || []).filter((p: any) => p.stock <= 0).length;
 
@@ -224,7 +232,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   validOrders.forEach((o: any) => {
     if (o.payment_method === 'abonos') {
       try {
-        const t = JSON.parse(o.notes || '{}');
+        const t = o._parsedNotes;
         const eng = Number(t.enganche || 0);
         const cuotas = Number(t.pagos || 1);
         const pagados = Number(t.pagos_completados || 0);
@@ -362,7 +370,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   } else {
     abonoOrders.forEach((o: any, idx: number) => {
       try {
-        const t = JSON.parse(o.notes || '{}');
+        const t = o._parsedNotes;
         const eng = Number(t.enganche || 0);
         const cuotas = Number(t.pagos || 1);
         const pagados = Number(t.pagos_completados || 0);
