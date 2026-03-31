@@ -6,8 +6,13 @@ export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -33,8 +38,10 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    const supabase = getServiceSupabase();
-    const { data: sub, error } = await supabase
+    const userId = user.id;
+
+    const serviceSupabase = getServiceSupabase();
+    const { data: sub, error } = await serviceSupabase
       .from('subscriptions')
       .select('*')
       .eq('consultant_id', userId)
@@ -55,7 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
     if (sub.status === 'trialing' && sub.trial_ends_at) {
       if (new Date(sub.trial_ends_at) < new Date()) {
         // Trial has expired, update status
-        await supabase
+        await serviceSupabase
           .from('subscriptions')
           .update({ status: 'canceled', updated_at: new Date().toISOString() })
           .eq('consultant_id', userId);
