@@ -132,6 +132,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
 
   let currentUserId = '';
@@ -276,7 +277,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
        tr.innerHTML = `
         <td class="px-8 py-6">
           <div>
-            <p class="font-bold text-primary font-headline">${item.name}</p>
+            <p class="font-bold text-primary font-headline">${esc(item.name)}</p>
             <p class="text-xs text-on-surface-variant font-mono">ID: ${item.code}</p>
           </div>
         </td>
