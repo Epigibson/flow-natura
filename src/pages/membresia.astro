@@ -515,6 +515,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     btn.disabled = true;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
@@ -553,6 +554,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     btn.disabled = true;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch('/api/stripe/portal', {
         method: 'POST',
         headers: {
