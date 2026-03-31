@@ -184,7 +184,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
-  import { esc } from '../lib/security';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error('No session'); }
