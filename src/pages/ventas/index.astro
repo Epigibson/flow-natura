@@ -139,7 +139,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // ⚡ Bolt: Debounce search input para evitar costosos renderizados en cada pulsación de tecla
+    let searchTimer: ReturnType<typeof setTimeout>;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderTable, 200);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();
