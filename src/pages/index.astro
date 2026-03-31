@@ -182,7 +182,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import { esc } from '../lib/security';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error('No session'); }
@@ -201,12 +203,21 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
   // Fetch all orders this month
-  const { data: orders } = await supabase
+  const { data: ordersRaw } = await supabase
     .from('orders')
     .select('*, order_items (*, products (*)), customers (full_name)')
     .eq('consultant_id', userId)
     .gte('created_at', startOfMonth)
     .order('created_at', { ascending: false });
+
+  // Cache parsed JSON to prevent expensive re-parsing in loops
+  const orders = (ordersRaw || []).map((o: any) => {
+    let parsedNotes = null;
+    if (o.notes) {
+      try { parsedNotes = JSON.parse(o.notes); } catch(e) {}
+    }
+    return { ...o, _parsedNotes: parsedNotes };
+  });
 
   // Fetch all inventory
   const { data: inventory } = await supabase
@@ -231,15 +242,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   let totalDebt = 0;
   validOrders.forEach((o: any) => {
     if (o.payment_method === 'abonos') {
-      try {
-        const t = o._parsedNotes;
-        const eng = Number(t.enganche || 0);
-        const cuotas = Number(t.pagos || 1);
-        const pagados = Number(t.pagos_completados || 0);
-        const remaining = Number(o.total_amount) - eng;
-        const perCuota = remaining / cuotas;
-        totalDebt += Math.max(0, Number(o.total_amount) - eng - (perCuota * pagados));
-      } catch(e) {}
+      const t = o._parsedNotes || {};
+      const eng = Number(t.enganche || 0);
+      const cuotas = Number(t.pagos || 1);
+      const pagados = Number(t.pagos_completados || 0);
+      const remaining = Number(o.total_amount) - eng;
+      const perCuota = remaining / cuotas;
+      totalDebt += Math.max(0, Number(o.total_amount) - eng - (perCuota * pagados));
     }
   });
 
@@ -281,8 +290,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const row = document.createElement('a');
       row.href = '/ventas/detalle?id=' + o.id;
       row.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
-      row.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="font-bold text-primary text-sm">${custName.charAt(0)}</span></div>` +
-        `<div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${custName}</h4><p class="text-xs text-on-surface-variant truncate">${items}</p></div>` +
+      row.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="font-bold text-primary text-sm">${esc(custName.charAt(0))}</span></div>` +
+        `<div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${esc(custName)}</h4><p class="text-xs text-on-surface-variant truncate">${esc(items)}</p></div>` +
         `<div class="text-right shrink-0"><p class="font-bold text-on-surface">$${Number(o.total_amount).toFixed(2)}</p>` +
         `<span class="px-2 py-0.5 rounded-full text-xs font-bold ${statusColor}">${statusLabel}</span></div>`;
       recentContainer.appendChild(row);
@@ -308,7 +317,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const el = document.createElement('a');
       el.href = '/clientes/perfil?id=' + cid;
       el.className = 'flex items-center gap-3 py-3 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
-      el.innerHTML = `<span class="text-lg">${medals[idx]}</span><div class="flex-1"><p class="font-bold text-on-surface text-sm">${data.name}</p></div><p class="font-bold text-primary text-sm">$${data.total.toFixed(2)}</p>`;
+      el.innerHTML = `<span class="text-lg">${medals[idx]}</span><div class="flex-1"><p class="font-bold text-on-surface text-sm">${esc(data.name)}</p></div><p class="font-bold text-primary text-sm">$${data.total.toFixed(2)}</p>`;
       topClientsEl.appendChild(el);
     });
   }
@@ -324,7 +333,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const el = document.createElement('div');
       el.className = 'flex items-center gap-3 py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
       const color = p.stock <= 0 ? 'text-error bg-error-container/10' : 'text-primary bg-primary-container/10';
-      el.innerHTML = `<span class="px-2 py-1 rounded-lg text-xs font-bold ${color}">${p.stock <= 0 ? 'AGOTADO' : p.stock + ' uds'}</span><p class="flex-1 font-bold text-on-surface text-sm">${p.name}</p><span class="text-xs text-on-surface-variant">${p.category || ''}</span>`;
+      el.innerHTML = `<span class="px-2 py-1 rounded-lg text-xs font-bold ${color}">${p.stock <= 0 ? 'AGOTADO' : p.stock + ' uds'}</span><p class="flex-1 font-bold text-on-surface text-sm">${esc(p.name)}</p><span class="text-xs text-on-surface-variant">${esc(p.category || '')}</span>`;
       alertsEl.appendChild(el);
     });
   }
@@ -351,7 +360,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const pct = (data.rev / maxRev) * 100;
       const el = document.createElement('div');
       el.className = 'py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
-      el.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-bold text-on-surface text-sm">${data.name}</span><span class="text-sm font-bold text-secondary">$${data.rev.toFixed(0)}</span></div>` +
+      el.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-bold text-on-surface text-sm">${esc(data.name)}</span><span class="text-sm font-bold text-secondary">$${data.rev.toFixed(0)}</span></div>` +
         `<div class="w-full h-1.5 bg-surface-container-highest rounded-full"><div class="h-full bg-secondary rounded-full" style="width:${pct}%"></div></div>` +
         `<p class="text-xs text-on-surface-variant mt-1">${data.qty} unidades vendidas</p>`;
       topProdsEl.appendChild(el);
@@ -369,26 +378,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     paymentsEl.innerHTML = '<div class="text-center py-6"><span class="material-symbols-outlined text-secondary text-3xl">payments</span><p class="text-on-surface-variant mt-2">No hay pagos pendientes.</p></div>';
   } else {
     abonoOrders.forEach((o: any, idx: number) => {
-      try {
-        const t = o._parsedNotes;
-        const eng = Number(t.enganche || 0);
-        const cuotas = Number(t.pagos || 1);
-        const pagados = Number(t.pagos_completados || 0);
-        if (pagados >= cuotas) return;
-        pendingCobros++;
-        const remaining = Number(o.total_amount) - eng;
-        const perCuota = remaining / cuotas;
-        const custName = o.customers?.full_name || 'Cliente';
-        const phone = '';
+      const t = o._parsedNotes || {};
+      const eng = Number(t.enganche || 0);
+      const cuotas = Number(t.pagos || 1);
+      const pagados = Number(t.pagos_completados || 0);
+      if (pagados >= cuotas) return;
+      pendingCobros++;
+      const remaining = Number(o.total_amount) - eng;
+      const perCuota = remaining / cuotas;
+      const custName = o.customers?.full_name || 'Cliente';
 
-        const el = document.createElement('a');
-        el.href = '/ventas/detalle?id=' + o.id;
-        el.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
-        el.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-sm">payments</span></div>` +
-          `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${custName}</h4><p class="text-xs text-on-surface-variant">Pago ${pagados + 1} de ${cuotas} • $${perCuota.toFixed(2)}/pago</p></div>` +
-          `<span class="px-3 py-1 rounded-full text-xs font-bold text-primary bg-primary-container/10">Cobrar →</span>`;
-        paymentsEl.appendChild(el);
-      } catch(e) {}
+      const el = document.createElement('a');
+      el.href = '/ventas/detalle?id=' + o.id;
+      el.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
+      el.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-sm">payments</span></div>` +
+        `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${custName}</h4><p class="text-xs text-on-surface-variant">Pago ${pagados + 1} de ${cuotas} • $${perCuota.toFixed(2)}/pago</p></div>` +
+        `<span class="px-3 py-1 rounded-full text-xs font-bold text-primary bg-primary-container/10">Cobrar →</span>`;
+      paymentsEl.appendChild(el);
     });
   }
   cobrosCount.textContent = pendingCobros > 0 ? String(pendingCobros) : '';

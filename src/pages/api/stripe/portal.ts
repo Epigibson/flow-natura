@@ -1,23 +1,34 @@
 import type { APIRoute } from 'astro';
 import { stripe } from '../../../lib/stripe';
 import { getServiceSupabase } from '../../../lib/supabase-server';
+import { supabase } from '../../../lib/supabase';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const { userId } = body;
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Missing userId' }), {
-        status: 400,
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    const supabase = getServiceSupabase();
-    const { data: sub } = await supabase
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const userId = user.id;
+
+    const serviceSupabase = getServiceSupabase();
+    const { data: sub } = await serviceSupabase
       .from('subscriptions')
       .select('stripe_customer_id')
       .eq('consultant_id', userId)

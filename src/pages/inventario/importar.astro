@@ -92,6 +92,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { esc } from '../../lib/security';
 
   let fetchedProducts: any[] = [];
 
@@ -144,12 +145,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-surface-container-low/50';
       tr.innerHTML = `
-        <td class="px-4 py-2 font-mono text-xs text-primary font-bold">${p.code || '—'}</td>
-        <td class="px-4 py-2">${p.name || 'Sin nombre'}</td>
-        <td class="px-4 py-2 text-xs">${p.category || '—'}</td>
-        <td class="px-4 py-2 text-right font-mono">$${(p.cost || 0).toFixed(2)}</td>
-        <td class="px-4 py-2 text-right font-mono font-bold">$${(p.price || 0).toFixed(2)}</td>
-        <td class="px-4 py-2 text-right">${p.points || 0}</td>
+        <td class="px-4 py-2 font-mono text-xs text-primary font-bold">${esc(p.code || '—')}</td>
+        <td class="px-4 py-2">${esc(p.name || 'Sin nombre')}</td>
+        <td class="px-4 py-2 text-xs">${esc(p.category || '—')}</td>
+        <td class="px-4 py-2 text-right font-mono">$${Number(p.cost || 0).toFixed(2)}</td>
+        <td class="px-4 py-2 text-right font-mono font-bold">$${Number(p.price || 0).toFixed(2)}</td>
+        <td class="px-4 py-2 text-right">${esc(p.points || 0)}</td>
       `;
       tbody.appendChild(tr);
     });

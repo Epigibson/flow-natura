@@ -145,7 +145,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </style>
 
 <script>
+  import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import { esc } from '../lib/security';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
@@ -258,7 +260,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         const el = document.createElement('div');
         el.innerHTML = `
           <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-bold text-on-surface">${cat}</span>
+            <span class="font-bold text-on-surface">${esc(cat)}</span>
             <span class="text-on-surface-variant font-bold">$${val.toFixed(0)} <span class="text-[10px] font-normal">(${pctTotal}%)</span></span>
           </div>
           <div class="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden">
@@ -294,7 +296,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               <span class="material-symbols-outlined text-on-surface-variant text-lg">${m.icon}</span>
             </div>
             <div>
-              <p class="font-bold text-on-surface text-sm">${m.name}</p>
+              <p class="font-bold text-on-surface text-sm">${esc(m.name)}</p>
               <p class="text-[10px] text-on-surface-variant">${m.count} transacciones</p>
             </div>
           </div>
@@ -344,7 +346,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <span class="material-symbols-outlined ${d.stock <= 0 ? 'text-red-600' : 'text-amber-600'} text-lg">inventory_2</span>
           </div>
           <div class="flex-1">
-            <p class="font-bold text-on-surface text-sm">${d.name}</p>
+            <p class="font-bold text-on-surface text-sm">${esc(d.name)}</p>
             <p class="text-xs text-on-surface-variant">Vendidos: ${d.sold} | Stock: ${d.stock}</p>
           </div>
           <span class="text-xs font-bold px-3 py-1 rounded-full ${d.stock <= 0 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">${d.stock <= 0 ? 'Agotado' : 'Reabastecer'}</span>`;
@@ -397,7 +399,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <span class="material-symbols-outlined ${overdue ? 'text-red-600' : 'text-amber-600'} text-lg">${overdue ? 'notifications_active' : 'schedule'}</span>
           </div>
           <div class="flex-1">
-            <h4 class="font-bold text-on-surface text-sm">${c.name}</h4>
+            <h4 class="font-bold text-on-surface text-sm">${esc(c.name)}</h4>
             <p class="text-xs text-on-surface-variant">Última compra hace ${Math.round(c.daysSince)} días (promedio: ${Math.round(c.avgDays)} días)</p>
           </div>
           <span class="text-xs font-bold px-3 py-1 rounded-full ${overdue ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}">${overdue ? '⚠️ Vencido' : '🔜 Pronto'}</span>`;

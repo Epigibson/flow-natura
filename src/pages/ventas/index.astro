@@ -145,22 +145,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const term = searchInput.value.toLowerCase();
       
       const filtered = allOrders.filter(o => {
-        const cName = o.customers?.full_name?.toLowerCase() || '';
-        const folio = o.id.split('-')[0].toLowerCase();
-        const matchesSearch = cName.includes(term) || folio.includes(term);
-        
-        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
-        let debt = 0;
-        if (isAbonos && o._parsedNotes) {
-          const terms = o._parsedNotes;
-          const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-          const montoCuota = remaining / Number(terms.pagos || 1);
-          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-        } else if (o.status === 'pending') {
-          debt = Number(o.total_amount);
-        }
-
-        const matchesFilter = currentFilter === 'all' || (currentFilter === 'pending' && debt > 0.01);
+        const matchesSearch = !term || o._searchString.includes(term);
+        const matchesFilter = currentFilter === 'all' || (currentFilter === 'pending' && o._debt > 0.01);
         
         return matchesSearch && matchesFilter;
       });
@@ -179,22 +165,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       let abonosActivos = 0;
 
       allOrders.forEach(o => {
-        const amt = Number(o.total_amount);
-        totalVentas += amt;
-        
-        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
-        let debt = 0;
-        if (isAbonos && o._parsedNotes) {
-          const terms = o._parsedNotes;
-          const remaining = amt - Number(terms.enganche || 0);
-          const montoCuota = remaining / Number(terms.pagos || 1);
-          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-          if (debt > 0.01) abonosActivos++;
-        } else if (o.status === 'pending') {
-          debt = amt;
-          if (isAbonos) abonosActivos++;
+        totalVentas += Number(o.total_amount);
+        totalCobrar += o._debt;
+        if (o._isAbonos && o._debt > 0.01) {
+           abonosActivos++;
         }
-        totalCobrar += debt;
       });
 
       kpiTotal.textContent = `$${totalVentas.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
@@ -214,21 +189,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         const dateStr = dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
         const timeStr = dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
         
-        const isAbonos = o.payment_method?.toLowerCase() === 'abonos';
-        let debt = 0;
-        if (isAbonos && o._parsedNotes) {
-          const terms = o._parsedNotes;
-          const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-          const montoCuota = remaining / Number(terms.pagos || 1);
-          debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-        } else if (o.status === 'pending') {
-          debt = Number(o.total_amount);
-        }
-
-        const isFullyPaid = debt <= 0.01;
+        const isFullyPaid = o._debt <= 0.01;
         const amountStr = Number(o.total_amount).toLocaleString('es-MX', {minimumFractionDigits:2});
 
-        const methodUI = isAbonos 
+        const methodUI = o._isAbonos
           ? `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">history</span>ABONOS</div>`
           : `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">payments</span>CONTADO</div>`;
 
@@ -244,7 +208,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         tr.innerHTML = `
           <td class="bg-surface rounded-l-3xl px-6 py-6 md:py-4 border-b md:border-b-0 border-outline-variant/10">
             <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-full font-headline ${isAbonos ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'} flex items-center justify-center font-bold">
+              <div class="w-10 h-10 rounded-full font-headline ${o._isAbonos ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'} flex items-center justify-center font-bold">
                 ${initials}
               </div>
               <div>
@@ -259,7 +223,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           </td>
           <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
             <span class="font-headline font-black text-on-surface text-lg font-mono">$${amountStr}</span>
-            ${debt > 0.01 ? `<p class="text-[10px] text-primary font-bold uppercase mt-0.5">Pendiente: $${debt.toFixed(2)}</p>` : ''}
+            ${o._debt > 0.01 ? `<p class="text-[10px] text-primary font-bold uppercase mt-0.5">Pendiente: $${o._debt.toFixed(2)}</p>` : ''}
           </td>
           <td class="bg-surface px-6 py-4 border-b md:border-b-0 border-outline-variant/10">
             ${methodUI}
@@ -296,13 +260,27 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
       loader.classList.add('hidden');
       
-      // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
+      // Pre-calculate expensive parsed data to avoid parsing in loops
       allOrders = (orders || []).map(o => {
-        let _parsedNotes = null;
-        if (o.notes) {
-          try { _parsedNotes = JSON.parse(o.notes); } catch(e) {}
+        const cName = o.customers?.full_name || 'Cliente Mostrador';
+        const folio = o.id.split('-')[0];
+        o._searchString = (cName + ' ' + folio).toLowerCase();
+
+        o._isAbonos = o.payment_method?.toLowerCase() === 'abonos';
+        o._debt = 0;
+
+        if (o._isAbonos && o.notes) {
+          try {
+            const terms = JSON.parse(o.notes);
+            o._parsedNotes = terms;
+            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
+            const montoCuota = remaining / Number(terms.pagos || 1);
+            o._debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+          } catch(e) {}
+        } else if (o.status === 'pending') {
+          o._debt = Number(o.total_amount);
         }
-        return { ...o, _parsedNotes };
+        return o;
       });
       renderTable();
 

@@ -92,7 +92,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import { esc } from '../lib/security';
 
   const modal = document.getElementById('modal-cliente') as HTMLDialogElement;
   const btnNuevo = document.getElementById('btn-nuevo-cliente');
@@ -174,18 +176,18 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       tr.innerHTML = `
         <td class="p-4">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-bold">${initial}</div>
-            <span class="font-semibold">${c.full_name}</span>
+            <div class="w-10 h-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-bold">${esc(initial)}</div>
+            <span class="font-semibold">${esc(c.full_name)}</span>
           </div>
         </td>
         <td class="p-4 text-sm">
-          <div>${c.phone}</div>
-          <div class="text-xs text-on-surface-variant">${c.email || ''}</div>
+          <div>${esc(c.phone)}</div>
+          <div class="text-xs text-on-surface-variant">${esc(c.email || '')}</div>
         </td>
-        <td class="p-4 text-sm hidden md:table-cell text-on-surface-variant max-w-xs truncate">${c.preferences || '-'}</td>
+        <td class="p-4 text-sm hidden md:table-cell text-on-surface-variant max-w-xs truncate">${esc(c.preferences || '-')}</td>
         <td class="p-4 text-sm text-on-surface-variant">${date}</td>
         <td class="p-4 text-right">
-          <a href="/clientes/perfil?id=${c.id}" class="text-primary hover:text-primary-container font-semibold text-sm">Ver Perfil →</a>
+          <a href="/clientes/perfil?id=${esc(c.id)}" class="text-primary hover:text-primary-container font-semibold text-sm">Ver Perfil →</a>
         </td>
       `;
       tbody.appendChild(tr);

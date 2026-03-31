@@ -1,3 +1,3 @@
-## 2024-03-30 - Pre-analizar JSON al obtener datos
-**Learning:** La columna `notes` a menudo contiene JSON en formato de cadena (por ejemplo, términos de pago). Llamar repetidamente a `JSON.parse(o.notes)` dentro de los bucles de filtrado y renderizado bloquea el hilo principal y afecta el rendimiento, especialmente al filtrar resultados de búsqueda en cada pulsación de tecla.
-**Action:** Siempre pre-analizar estas cadenas JSON en propiedades de objeto (por ejemplo, `_parsedNotes`) inmediatamente después de obtener los datos. Usar el objeto pre-analizado en los bucles y funciones de renderizado para evitar llamadas repetidas y costosas a `JSON.parse()`.
+## 2026-03-26 - Repeated JSON.parse in Render Loops
+**Learning:** Found a pattern where structured data (payment terms) is stored in a stringified `notes` column. This leads to `JSON.parse(o.notes)` being called multiple times per row inside rendering and filtering loops (which execute on every keystroke).
+**Action:** Always pre-parse JSON strings into object properties immediately after data fetch so that subsequent filters and renders can just access the object properties without expensive recalculations.
