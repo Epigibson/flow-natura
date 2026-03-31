@@ -147,6 +147,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import { esc } from '../lib/security';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
@@ -259,7 +260,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         const el = document.createElement('div');
         el.innerHTML = `
           <div class="flex justify-between text-sm mb-1.5">
-            <span class="font-bold text-on-surface">${cat}</span>
+            <span class="font-bold text-on-surface">${esc(cat)}</span>
             <span class="text-on-surface-variant font-bold">$${val.toFixed(0)} <span class="text-[10px] font-normal">(${pctTotal}%)</span></span>
           </div>
           <div class="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden">

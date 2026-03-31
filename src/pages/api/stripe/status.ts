@@ -1,12 +1,35 @@
 import type { APIRoute } from 'astro';
 import { getServiceSupabase } from '../../../lib/supabase-server';
+import { supabase as anonSupabase } from '../../../lib/supabase';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const url = new URL(request.url);
-    const userId = url.searchParams.get('userId');
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid token' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    const token = authHeader.split(' ')[1];
+
+    const { data: authData, error: authError } = await anonSupabase.auth.getUser(token);
+    if (authError || !authData.user || authData.user.id !== userId) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token or user mismatch' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     if (!userId) {
       return new Response(JSON.stringify({ error: 'Missing userId' }), {
@@ -15,8 +38,10 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    const supabase = getServiceSupabase();
-    const { data: sub, error } = await supabase
+    const userId = user.id;
+
+    const serviceSupabase = getServiceSupabase();
+    const { data: sub, error } = await serviceSupabase
       .from('subscriptions')
       .select('*')
       .eq('consultant_id', userId)
@@ -37,7 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
     if (sub.status === 'trialing' && sub.trial_ends_at) {
       if (new Date(sub.trial_ends_at) < new Date()) {
         // Trial has expired, update status
-        await supabase
+        await serviceSupabase
           .from('subscriptions')
           .update({ status: 'canceled', updated_at: new Date().toISOString() })
           .eq('consultant_id', userId);

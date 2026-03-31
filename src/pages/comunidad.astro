@@ -204,7 +204,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     const initials = currentUserName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
     const avatar = document.getElementById('user-avatar');
     if (avatar) {
-      avatar.innerHTML = `<span class="font-bold text-sm text-primary">${initials}</span>`;
+      avatar.innerHTML = `<span class="font-bold text-sm text-primary">${esc(initials)}</span>`;
     }
 
     return user;
@@ -286,7 +286,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <article class="post-card bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all" data-topic="${post.topic}" data-post-id="${post.id}">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
-            <span class="font-bold text-sm">${initials}</span>
+            <span class="font-bold text-sm">${esc(initials)}</span>
           </div>
           <div class="flex-1">
             <h4 class="font-bold text-on-surface">${esc(post.author_name)}</h4>
@@ -470,7 +470,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const gradient = avatarGradient(c.author_name);
       return `<div class="flex items-start gap-2">
         <div class="w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0">
-          <span class="font-bold text-[10px]">${initials}</span>
+          <span class="font-bold text-[10px]">${esc(initials)}</span>
         </div>
         <div class="bg-surface-container-highest rounded-xl px-3 py-2 flex-1">
           <p class="text-xs font-bold text-on-surface">${esc(c.author_name)} <span class="font-normal text-on-surface-variant">${timeAgo(c.created_at)}</span></p>
@@ -521,7 +521,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const gradient = avatarGradient(c.name);
       return `<div class="flex items-center gap-3">
         <div class="w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
-          <span class="font-bold text-xs">${initials}</span>
+          <span class="font-bold text-xs">${esc(initials)}</span>
         </div>
         <div class="flex-1">
           <p class="font-bold text-sm text-on-surface">${esc(c.name)}</p>

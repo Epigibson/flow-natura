@@ -291,6 +291,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
+  import { esc, sanitizeUrl } from '../../lib/security';
 
   // ===== SHARED STATE =====
   const reasonLabels: Record<string, string> = {
@@ -368,13 +369,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     const p = inv.products;
     const bc = p?.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700' : p?.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary/10 text-primary';
     return `
-      ${p?.image_url ? `<img src="${p.image_url}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
+      ${p?.image_url ? `<img src="${esc(sanitizeUrl(p.image_url))}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
       <div class="flex-1 min-w-0">
-        <p class="font-bold text-on-surface text-xs leading-tight truncate">${p?.name || '—'}</p>
+        <p class="font-bold text-on-surface text-xs leading-tight truncate">${esc(p?.name || '—')}</p>
         <div class="flex items-center gap-1.5 mt-0.5">
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${bc}">${p?.brand || '—'}</span>
-          <span class="text-[10px] text-on-surface-variant truncate">${p?.category || ''}</span>
-          <span class="text-[10px] font-mono text-on-surface-variant/50">#${p?.code || ''}</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${bc}">${esc(p?.brand || '—')}</span>
+          <span class="text-[10px] text-on-surface-variant truncate">${esc(p?.category || '')}</span>
+          <span class="text-[10px] font-mono text-on-surface-variant/50">#${esc(p?.code || '')}</span>
         </div>
       </div>
       <div class="shrink-0 flex items-center gap-2">
@@ -628,10 +629,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const row = document.createElement('div');
       row.className = 'batch-q-item flex items-center gap-3 py-3 ' + (idx > 0 ? 'border-t border-outline-variant/10' : '');
       row.innerHTML = `
-        ${item.imageUrl ? `<img src="${item.imageUrl}" class="w-9 h-9 rounded-lg object-contain bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-9 h-9 rounded-lg bg-surface-container shrink-0"></div>`}
+        ${item.imageUrl ? `<img src="${esc(sanitizeUrl(item.imageUrl || ''))}" class="w-9 h-9 rounded-lg object-contain bg-white shadow-sm shrink-0" loading="lazy"/>` : `<div class="w-9 h-9 rounded-lg bg-surface-container shrink-0"></div>`}
         <div class="flex-1 min-w-0">
-          <p class="font-bold text-xs text-on-surface truncate">${esc(item.name)}</p>
-          <p class="text-[10px] text-on-surface-variant">${item.brand} #${item.code} · Stock: ${item.currentQty}</p>
+          <p class="font-bold text-xs text-on-surface truncate">${esc(item.name || '')}</p>
+          <p class="text-[10px] text-on-surface-variant">${esc(item.brand || '')} #${esc(item.code || '')} · Stock: ${item.currentQty}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <label class="text-[10px] text-on-surface-variant font-bold">${qtyLabel}:</label>
@@ -773,7 +774,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const ib = pos ? 'bg-green-100' : a.adjustment_type === 'correction' ? 'bg-amber-100' : 'bg-red-100';
       const row = document.createElement('div');
       row.className = 'adjust-row flex items-center gap-4 py-3.5 ' + (i > 0 ? 'border-t border-surface-container' : '');
-      row.innerHTML = `<div class="w-10 h-10 rounded-xl ${ib} flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-base ${qc}">${ic}</span></div><div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${a.products?.name || 'Producto'}</h4><p class="text-xs text-on-surface-variant">${reasonLabels[a.reason] || a.reason}${a.notes ? ' · ' + a.notes : ''}</p></div><div class="text-right shrink-0"><p class="text-sm font-bold ${qc}">${ql} uds</p><p class="text-[10px] text-on-surface-variant">${dl}, ${tl}</p></div>`;
+      row.innerHTML = `<div class="w-10 h-10 rounded-xl ${ib} flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-base ${qc}">${ic}</span></div><div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${esc(a.products?.name || 'Producto')}</h4><p class="text-xs text-on-surface-variant">${esc(reasonLabels[a.reason] || a.reason)}${a.notes ? ' · ' + esc(a.notes) : ''}</p></div><div class="text-right shrink-0"><p class="text-sm font-bold ${qc}">${ql} uds</p><p class="text-[10px] text-on-surface-variant">${dl}, ${tl}</p></div>`;
       list.appendChild(row);
     });
   }
