@@ -1,0 +1,45 @@
+
+> teal-transit@0.0.1 dev
+> astro dev
+
+21:14:25 [@astrojs/node] Enabling sessions with filesystem storage
+[vite] connected.
+21:14:26 [types] Generated 1ms
+21:14:27 [WARN] [content] Content config not loaded
+21:14:27 [WARN] [vite] [plugin:astro:scripts] context method emitFile() is not supported in serve mode. This plugin is likely not vite-compatible.
+21:14:27 [vite] Re-optimizing dependencies because vite config has changed
+ astro  v6.0.8 ready in 2002 ms
+┃ Local    http://localhost:4321/
+┃ Network  use --host to expose
+21:14:27 watching for file changes...
+
+ update  ▶ New version of Astro available: 6.1.1
+  Run npx @astrojs/upgrade to update
+
+21:15:06 [WARN] [vite] [vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+3778 |    }
+3779 |  }
+3780 |  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;70...
+     |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3781 |  @layer base {
+3782 |    body {
+21:15:07 [200] /ventas 442ms
+21:15:08 [WARN] [vite] [vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+3778 |    }
+3779 |  }
+3780 |  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;70...
+     |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3781 |  @layer base {
+3782 |    body {
+21:15:10 [vite] ✨ new dependencies optimized: astro/runtime/client/dev-toolbar/entrypoint.js, @supabase/supabase-js
+21:15:10 [vite] ✨ optimized dependencies changed. reloading
+21:15:10 [200] /ventas 7ms
+21:15:10 [WARN] [vite] [vite:css][postcss] @import must precede all other statements (besides @charset or empty @layer)
+3778 |    }
+3779 |  }
+3780 |  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;70...
+     |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3781 |  @layer base {
+3782 |    body {
+21:15:10 [200] /login 146ms
+21:15:10 [200] /login 146ms
