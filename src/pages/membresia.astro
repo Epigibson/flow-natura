@@ -398,7 +398,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <div><p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase">Expira</p><p class="text-lg font-bold text-on-surface">${sub?.trial_ends_at ? new Date(sub.trial_ends_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) : '—'}</p></div>
     `;
   } else {
-    detailsEl.innerHTML = '<p class="text-sm text-on-surface-variant">Elige un plan para comenzar a usar Natura Flow</p>';
+    detailsEl.innerHTML = '<p class="text-sm text-on-surface-variant">Elige un plan para comenzar a usar Natura Manager</p>';
   }
 
   // Trial banner
@@ -515,12 +515,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     btn.disabled = true;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) { window.location.href = '/login'; return; }
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${currentSession.access_token}`
         },
         body: JSON.stringify({
           plan,
@@ -554,12 +555,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     btn.disabled = true;
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession) { window.location.href = '/login'; return; }
       const res = await fetch('/api/stripe/portal', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
+          'Authorization': `Bearer ${currentSession.access_token}`
         },
         body: JSON.stringify({ userId }),
       });

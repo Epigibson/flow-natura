@@ -102,8 +102,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const errorDiv = document.getElementById('modal-error') as HTMLDivElement;
   const tbody = document.getElementById('customers-tbody') as HTMLElement;
   const emptyState = document.getElementById('empty-state') as HTMLElement;
+  const searchInput = document.getElementById('search-input') as HTMLInputElement;
 
   let currentUserId = '';
+  let allCustomers: any[] = [];
+  let currentPage = 1;
+  const PAGE_SIZE = 25;
 
   supabase.auth.getSession().then(({ data: { session } }: any) => {
     if (session) {
@@ -116,6 +120,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   btnNuevo?.addEventListener('click', () => modal?.showModal());
   btnClose?.addEventListener('click', () => modal?.close());
 
+  // Toast system
+  function showToast(message: string, type: 'success' | 'error' = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-6 right-6 z-[200] px-6 py-3 rounded-xl font-semibold text-sm shadow-lg transition-all transform translate-y-0 opacity-100
+      ${type === 'success' ? 'bg-secondary-container text-on-surface' : 'bg-error-container text-error'}`;
+    toast.innerHTML = `<span class="flex items-center gap-2"><span class="material-symbols-outlined text-base">${type === 'success' ? 'check_circle' : 'error'}</span>${esc(message)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-10px)'; }, 2500);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
   // Form Submit
   formCliente?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -123,7 +138,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     
     const formData = new FormData(formCliente);
     
-    // El consultant_id debe guardarse asociado al cliente
     const { error } = await supabase.from('customers').insert([{
       consultant_id: currentUserId,
       full_name: formData.get('full_name'),
@@ -139,8 +153,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     } else {
       formCliente.reset();
       modal.close();
+      showToast('Cliente registrado exitosamente');
       loadCustomers(); 
     }
+  });
+
+  // Search filter (real-time)
+  searchInput?.addEventListener('input', () => {
+    currentPage = 1;
+    renderCustomers();
   });
 
   // Load Customers
@@ -152,20 +173,43 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
     if (error) {
       console.error(error);
+      showToast('Error al cargar clientes', 'error');
       return;
     }
 
+    allCustomers = customers || [];
+    currentPage = 1;
+    renderCustomers();
+  }
+
+  function renderCustomers() {
+    const query = searchInput.value.toLowerCase().trim();
+    
+    // Filter
+    const filtered = allCustomers.filter(c => {
+      if (!query) return true;
+      return c.full_name?.toLowerCase().includes(query) ||
+             c.phone?.toLowerCase().includes(query) ||
+             c.email?.toLowerCase().includes(query);
+    });
+
+    // Paginate
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const startIdx = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = filtered.slice(startIdx, startIdx + PAGE_SIZE);
+
     tbody.innerHTML = '';
 
-    if (!customers || customers.length === 0) {
+    if (!filtered.length) {
       tbody.appendChild(emptyState);
       emptyState.classList.remove('hidden');
+      removePagination();
       return;
     }
 
     emptyState.classList.add('hidden');
 
-    customers.forEach(c => {
+    pageItems.forEach(c => {
       const tr = document.createElement('tr');
       tr.className = "hover:bg-surface-container-low transition-colors";
       
@@ -186,10 +230,74 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <td class="p-4 text-sm hidden md:table-cell text-on-surface-variant max-w-xs truncate">${esc(c.preferences || '-')}</td>
         <td class="p-4 text-sm text-on-surface-variant">${date}</td>
         <td class="p-4 text-right">
-          <a href="/clientes/perfil?id=${esc(c.id)}" class="text-primary hover:text-primary-container font-semibold text-sm">Ver Perfil →</a>
+          <div class="flex items-center justify-end gap-2">
+            <a href="/clientes/perfil?id=${esc(c.id)}" class="text-primary hover:text-primary-container font-semibold text-sm">Ver →</a>
+            <button data-delete-id="${esc(c.id)}" data-delete-name="${esc(c.full_name)}" class="text-on-surface-variant hover:text-error transition-colors p-1 rounded-lg hover:bg-error/10" title="Eliminar">
+              <span class="material-symbols-outlined text-sm">delete</span>
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
     });
+
+    // Delete buttons
+    tbody.querySelectorAll('[data-delete-id]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const el = (e.currentTarget as HTMLElement);
+        const id = el.dataset.deleteId!;
+        const name = el.dataset.deleteName || 'este cliente';
+        if (confirm(`¿Eliminar a "${name}"? Esta acción no se puede deshacer.`)) {
+          deleteCustomer(id);
+        }
+      });
+    });
+
+    // Render pagination
+    renderPagination(totalPages, filtered.length);
+  }
+
+  async function deleteCustomer(id: string) {
+    const { error } = await supabase.from('customers').delete().eq('id', id);
+    if (error) {
+      showToast('Error al eliminar: ' + error.message, 'error');
+    } else {
+      showToast('Cliente eliminado');
+      allCustomers = allCustomers.filter(c => c.id !== id);
+      renderCustomers();
+    }
+  }
+
+  function renderPagination(totalPages: number, totalItems: number) {
+    let pag = document.getElementById('clients-pagination');
+    if (!pag) {
+      pag = document.createElement('div');
+      pag.id = 'clients-pagination';
+      pag.className = 'flex justify-center items-center gap-3 mt-6';
+      tbody.closest('section')?.after(pag);
+    }
+
+    if (totalPages <= 1) {
+      pag.innerHTML = `<span class="text-xs text-on-surface-variant">${totalItems} clientes</span>`;
+      return;
+    }
+
+    pag.innerHTML = `
+      <button id="cl-prev" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" ${currentPage <= 1 ? 'disabled' : ''}>
+        ← Anterior
+      </button>
+      <span class="text-sm text-on-surface-variant font-medium">${currentPage} / ${totalPages} (${totalItems})</span>
+      <button id="cl-next" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" ${currentPage >= totalPages ? 'disabled' : ''}>
+        Siguiente →
+      </button>
+    `;
+
+    document.getElementById('cl-prev')?.addEventListener('click', () => { currentPage--; renderCustomers(); });
+    document.getElementById('cl-next')?.addEventListener('click', () => { currentPage++; renderCustomers(); });
+  }
+
+  function removePagination() {
+    const pag = document.getElementById('clients-pagination');
+    if (pag) pag.innerHTML = '';
   }
 </script>

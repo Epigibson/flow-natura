@@ -169,7 +169,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     const [{ data: orders }, { data: customers }, { data: products }] = await Promise.all([
       supabase.from('orders').select('*, order_items(*, products(*)), customers(full_name, phone, created_at)').eq('consultant_id', userId).gte('created_at', startDate).order('created_at', { ascending: true }),
       supabase.from('customers').select('*').eq('consultant_id', userId).gte('created_at', startDate),
-      supabase.from('products').select('*').eq('consultant_id', userId)
+      supabase.from('inventory').select('quantity, products(id, name, code, category, brand, price, cost, stock:quantity)').eq('consultant_id', userId)
     ]);
 
     const valid = (orders || []).filter((o: any) => o.status !== 'cancelled');
@@ -325,7 +325,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         prodSales[pid].sold += i.quantity;
       });
     });
-    (products || []).forEach((p: any) => { if (prodSales[p.id]) prodSales[p.id].stock = p.stock; });
+    // Map inventory data to flat product objects with stock
+    const inventoryProducts = (products || []).map((item: any) => ({ ...item.products, stock: item.quantity }));
+    inventoryProducts.forEach((p: any) => { if (prodSales[p.id]) prodSales[p.id].stock = p.stock; });
     const needReorder = Object.entries(prodSales).filter(([, d]) => d.stock <= d.sold * 0.3).sort((a, b) => a[1].stock - b[1].stock).slice(0, 5);
     if (!needReorder.length) {
       reorderEl.innerHTML = `

@@ -540,7 +540,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       whatsappContainer.classList.add('flex');
       const folioLabel = '#NF-' + order.id.split('-')[0].toUpperCase();
       const totalAmountVal = Number(order.total_amount);
-      let message = '*NATURA FLOW - RECIBO DIGITAL*\n\n¡Hola ' + cName + '! 👋\n\nAquí tienes el resumen de tu compra:\n\n📄 *Folio:* ' + folioLabel + '\n💰 *Monto:* $' + totalAmountVal.toFixed(2) + ' MXN\n';
+      let message = '*NATURA MANAGER - RECIBO DIGITAL*\n\n¡Hola ' + cName + '! 👋\n\nAquí tienes el resumen de tu compra:\n\n📄 *Folio:* ' + folioLabel + '\n💰 *Monto:* $' + totalAmountVal.toFixed(2) + ' MXN\n';
       if(isAbonos) {
         const pagos = Number(terms?.pagos_completados || 0);
         const totalPagos = Number(terms?.pagos || 1);

@@ -218,11 +218,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return { ...o, _parsedNotes: parsedNotes };
   });
 
-  // Fetch all inventory
-  const { data: inventory } = await supabase
-    .from('products')
-    .select('*')
+  // Fetch all inventory (JOIN inventory → products)
+  const { data: inventoryRaw } = await supabase
+    .from('inventory')
+    .select('quantity, products (id, name, code, category, brand, price, cost, points)')
     .eq('consultant_id', userId);
+  const inventory = (inventoryRaw || []).map((item: any) => ({
+    ...item.products,
+    stock: item.quantity
+  }));
 
   // ---- KPIs ----
   // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
