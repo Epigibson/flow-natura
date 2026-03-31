@@ -7,14 +7,6 @@ export const prerender = false;
 export const GET: APIRoute = async ({ request }) => {
   try {
     const authHeader = request.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const authHeader = request.headers.get('Authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Missing or invalid token' }), {
         status: 401,
@@ -24,21 +16,14 @@ export const GET: APIRoute = async ({ request }) => {
     const token = authHeader.split(' ')[1];
 
     const { data: authData, error: authError } = await anonSupabase.auth.getUser(token);
-    if (authError || !authData.user || authData.user.id !== userId) {
-      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token or user mismatch' }), {
+    if (authError || !authData.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Invalid token' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'Missing userId' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    const userId = user.id;
+    const userId = authData.user.id;
 
     const serviceSupabase = getServiceSupabase();
     const { data: sub, error } = await serviceSupabase
