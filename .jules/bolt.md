@@ -1,4 +1,3 @@
-
-## 2026-03-28 - Optimización de parseo JSON en notas
-**Learning:** Repetitive `JSON.parse` operations on stringified JSON columns (like `notes` storing payment terms) inside filtering and mapping functions cause unnecessary CPU overhead, especially when processing large datasets on the frontend.
-**Action:** Always pre-parse stringified JSON strings into a temporary object property (e.g., `_parsedNotes`) immediately after data fetching. Then, use this property in subsequent mapping, filtering, and rendering logic to avoid redundant and expensive JSON string parsing.
+## 2026-03-26 - Repeated JSON.parse in Render Loops
+**Learning:** Found a pattern where structured data (payment terms) is stored in a stringified `notes` column. This leads to `JSON.parse(o.notes)` being called multiple times per row inside rendering and filtering loops (which execute on every keystroke).
+**Action:** Always pre-parse JSON strings into object properties immediately after data fetch so that subsequent filters and renders can just access the object properties without expensive recalculations.
