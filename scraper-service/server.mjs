@@ -90,7 +90,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     // Navegar al login
     console.log('🌐 Navegando a Natura...');
     await page.goto('https://minegocio.natura-avon.com.mx/home', { 
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: 45000 
     });
     console.log(`✅ Página cargada. URL: ${page.url().substring(0, 80)}...`);
