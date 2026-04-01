@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import vm from 'vm';
 
 const app = express();
 app.use(cors());
@@ -12,31 +13,28 @@ const CONFIG = {
   CLIENT_ID: '31ndsgochinbk61v3jk8dhsf2o',
   REDIRECT_URI: 'https://minegocio.natura-avon.com.mx/',
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
+  ASF_SCRIPT_URL: 'https://d3oia8etllorh5.cloudfront.net/20240614193835/js/amazon-cognito-advanced-security-data.min.js',
 };
 
-/** Extrae cookies del header set-cookie de forma robusta */
 function extractCookies(response) {
   const cookies = [];
-  const raw = response.headers.get('set-cookie');
-  if (raw) {
-    // set-cookie puede tener múltiples valores separados por comas
-    // pero cuidado con expires que también usa comas
-    const parts = raw.split(/,(?=[^ ])/);
-    for (const part of parts) {
-      const kv = part.split(';')[0].trim();
-      if (kv.includes('=')) cookies.push(kv);
-    }
-  }
-  // También intentar getSetCookie si existe
   try {
     const multi = response.headers.getSetCookie?.() || [];
     for (const c of multi) {
       const kv = c.split(';')[0].trim();
-      if (kv.includes('=') && !cookies.some(x => x.startsWith(kv.split('=')[0]))) {
-        cookies.push(kv);
-      }
+      if (kv.includes('=')) cookies.push(kv);
     }
   } catch {}
+  if (cookies.length === 0) {
+    const raw = response.headers.get('set-cookie') || '';
+    if (raw) {
+      // Parse carefully
+      raw.split(/,(?=[A-Za-z])/).forEach(part => {
+        const kv = part.split(';')[0].trim();
+        if (kv.includes('=')) cookies.push(kv);
+      });
+    }
+  }
   return cookies;
 }
 
@@ -48,6 +46,160 @@ function authMiddleware(req, res, next) {
 }
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+/**
+ * Genera cognitoAsfData simulando un entorno de browser mínimo
+ * para ejecutar el script de Amazon Cognito ASF
+ */
+async function generateAsfData(userPoolId) {
+  console.log('🔐 Generando cognitoAsfData...');
+  
+  try {
+    // Descargar el script ASF de Amazon
+    const asfRes = await fetch(CONFIG.ASF_SCRIPT_URL, { signal: AbortSignal.timeout(10000) });
+    const asfScript = await asfRes.text();
+    console.log(`   ASF script: ${asfScript.length} bytes`);
+
+    // Crear un entorno de browser simulado
+    const browserEnv = {
+      window: {
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        location: { href: `${CONFIG.COGNITO_DOMAIN}/login`, hostname: 'natura-global-prd.auth.us-east-1.amazoncognito.com', protocol: 'https:' },
+        navigator: {
+          userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+          language: 'es-MX',
+          languages: ['es-MX', 'es'],
+          platform: 'Win32',
+          hardwareConcurrency: 8,
+          maxTouchPoints: 0,
+          cookieEnabled: true,
+          plugins: [],
+          mimeTypes: [],
+        },
+        screen: { width: 1920, height: 1080, colorDepth: 24 },
+        devicePixelRatio: 1,
+        innerWidth: 1920,
+        innerHeight: 1080,
+        crypto: { getRandomValues: (arr) => { for (let i = 0; i < arr.length; i++) arr[i] = Math.floor(Math.random() * 256); return arr; } },
+        setTimeout: (fn) => { try { fn(); } catch {} },
+        setInterval: () => {},
+        clearTimeout: () => {},
+        clearInterval: () => {},
+        performance: { now: () => Date.now(), timing: { navigationStart: Date.now() } },
+        history: { length: 1 },
+        atob: (str) => Buffer.from(str, 'base64').toString('binary'),
+        btoa: (str) => Buffer.from(str, 'binary').toString('base64'),
+      },
+      document: {
+        createElement: (tag) => ({
+          tagName: tag.toUpperCase(),
+          style: {},
+          getContext: () => ({
+            fillText: () => {},
+            measureText: () => ({ width: 100 }),
+            canvas: { toDataURL: () => 'data:image/png;base64,fake' },
+          }),
+          toDataURL: () => 'data:image/png;base64,fake',
+          setAttribute: () => {},
+          appendChild: () => {},
+          width: 200, height: 200,
+        }),
+        documentElement: { style: {} },
+        cookie: '',
+        addEventListener: () => {},
+        getElementsByTagName: () => [],
+        getElementById: () => null,
+        querySelector: () => null,
+        body: { appendChild: () => {} },
+      },
+      navigator: {},
+      screen: {},
+      self: {},
+      console: { log: () => {}, error: () => {}, warn: () => {} },
+      XMLHttpRequest: function() {
+        this.open = () => {};
+        this.send = () => {};
+        this.setRequestHeader = () => {};
+      },
+    };
+
+    // Aliases
+    browserEnv.navigator = browserEnv.window.navigator;
+    browserEnv.screen = browserEnv.window.screen;
+    browserEnv.self = browserEnv.window;
+    browserEnv.top = browserEnv.window;
+    browserEnv.parent = browserEnv.window;
+    browserEnv.frames = browserEnv.window;
+    browserEnv.globalThis = browserEnv.window;
+
+    // Ejecutar el script en sandbox
+    const context = vm.createContext(browserEnv);
+    
+    try {
+      vm.runInContext(asfScript, context, { timeout: 5000 });
+    } catch (e) {
+      console.log(`   ASF script execution: ${e.message?.substring(0, 80)}`);
+    }
+
+    // Intentar obtener los datos
+    let asfData = '';
+    
+    // El script generalmente expone AmazonCognitoAdvancedSecurityData
+    if (context.AmazonCognitoAdvancedSecurityData) {
+      console.log('   ✅ AmazonCognitoAdvancedSecurityData disponible!');
+      try {
+        asfData = context.AmazonCognitoAdvancedSecurityData.getData(
+          natura_email || 'user', 
+          userPoolId || 'us-east-1_dummy',
+          CONFIG.CLIENT_ID
+        );
+        console.log(`   ASF data generated: ${asfData?.substring(0, 50)}...`);
+      } catch (e) {
+        console.log(`   getData error: ${e.message?.substring(0, 80)}`);
+      }
+    }
+
+    // Verificar en window también
+    if (!asfData && context.window?.AmazonCognitoAdvancedSecurityData) {
+      try {
+        asfData = context.window.AmazonCognitoAdvancedSecurityData.getData('user', 'us-east-1_dummy', CONFIG.CLIENT_ID);
+        console.log(`   ASF data (from window): ${asfData?.substring(0, 50)}...`);
+      } catch (e) {
+        console.log(`   window.getData error: ${e.message}`);
+      }
+    }
+
+    if (asfData) return asfData;
+
+    // Fallback: generar datos mínimos manualmente
+    console.log('   ⚠️ Generando ASF data manual...');
+    const deviceData = {
+      payload: {
+        contextData: {
+          UserAgent: browserEnv.window.navigator.userAgent,
+          DeviceId: crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36)}`,
+          DeviceLanguage: 'es-MX',
+          DeviceFingerprint: `mozilla/5.0_${Date.now()}`,
+          DevicePlatform: 'Windows',
+          ClientTimezone: '-06:00',
+          ThirdPartyTracking: 'false',
+          ScreenHeight: '1080',
+          ScreenWidth: '1920',
+          ColorDepth: '24',
+        },
+        username: '',
+        userPoolId: '',
+        signInMethod: 'PASSWORD',
+      }
+    };
+    return Buffer.from(JSON.stringify(deviceData)).toString('base64');
+
+  } catch (e) {
+    console.log(`   ASF generation failed: ${e.message}`);
+    return '';
+  }
+}
 
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
@@ -64,9 +216,11 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // === PASO 1: Obtener formulario de login ===
-    console.log('📋 Paso 1: Obteniendo formulario de login...');
-    
+    // === PASO 1: Generar ASF Data ===
+    const asfData = await generateAsfData();
+
+    // === PASO 2: Obtener formulario ===
+    console.log('\n📋 Paso 2: Obteniendo formulario de login...');
     const loginPageUrl = `${CONFIG.COGNITO_DOMAIN}/login?client_id=${CONFIG.CLIENT_ID}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
     
     const loginPageRes = await fetch(loginPageUrl, {
@@ -75,33 +229,32 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       signal: AbortSignal.timeout(15000)
     });
 
-    console.log(`   Status: ${loginPageRes.status}`);
     const loginHtml = await loginPageRes.text();
-
-    // Cookies
     const cookies = extractCookies(loginPageRes);
     const cookieStr = cookies.join('; ');
-    console.log(`   Cookies: ${cookieStr.substring(0, 120)}`);
+    console.log(`   Cookies: ${cookieStr.substring(0, 100)}`);
 
-    // Form action
     const formAction = loginHtml.match(/form[^>]*action="([^"]+)"/i)?.[1];
-    console.log(`   Form action: ${formAction?.substring(0, 80) || 'NO'}`);
     if (!formAction) throw new Error('Form no encontrado');
 
     // Hidden inputs
     const hiddens = {};
-    const hRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
     let m;
+    const hRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
     while ((m = hRegex.exec(loginHtml)) !== null) {
       const name = m[0].match(/name=['"]([^'"]+)['"]/)?.[1];
       const value = m[0].match(/value=['"]([^'"]*)['"]/)?.[1];
       if (name) hiddens[name] = value || '';
     }
-    console.log(`   Hiddens: ${Object.keys(hiddens).join(', ')}`);
 
-    // === PASO 2: Enviar credenciales ===
-    console.log('\n📧 Paso 2: Enviando credenciales...');
-    
+    // Inyectar nuestro ASF data
+    if (asfData) {
+      hiddens['cognitoAsfData'] = asfData;
+      console.log(`   cognitoAsfData: ${asfData.substring(0, 50)}...`);
+    }
+
+    // === PASO 3: Enviar credenciales ===
+    console.log('\n📧 Paso 3: Enviando credenciales...');
     let postUrl = formAction.startsWith('http') ? formAction : `${CONFIG.COGNITO_DOMAIN}${formAction}`;
     postUrl = postUrl.replace(/&amp;/g, '&');
 
@@ -126,15 +279,13 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
     const location = authRes.headers.get('location') || '';
     const authCookies = extractCookies(authRes);
-    const allCookies = [...cookies, ...authCookies].join('; ');
-    
     console.log(`   Status: ${authRes.status}`);
     console.log(`   Location: ${location.substring(0, 150)}`);
-    console.log(`   Auth cookies: ${authCookies.join(', ').substring(0, 100)}`);
+    console.log(`   New cookies: ${authCookies.length} → ${authCookies.join(', ').substring(0, 100)}`);
 
-    // === Caso: Redirect con code (LOGIN EXITOSO!) ===
+    // LOGIN EXITOSO - redirect con code
     if (location.includes('code=')) {
-      console.log('\n🎫 ¡LOGIN EXITOSO! Intercambiando code por tokens...');
+      console.log('\n🎫 ¡LOGIN EXITOSO!');
       const code = new URL(location).searchParams.get('code');
       
       const tokenRes = await fetch(`${CONFIG.COGNITO_DOMAIN}/oauth2/token`, {
@@ -157,66 +308,46 @@ app.post('/scrape', authMiddleware, async (req, res) => {
         const growthData = await fetchGrowthData(tokenData.access_token || tokenData.id_token, baseHeaders);
         return res.json({ success: true, data: growthData || tokenData });
       }
-      console.log(`   Token error: ${JSON.stringify(tokenData).substring(0, 300)}`);
+      console.log(`   Token resp: ${JSON.stringify(tokenData).substring(0, 300)}`);
     }
 
-    // === Caso: Redirect de vuelta al login (CREDENCIALES MALAS o cognitoAsfData) ===
+    // LOGIN FALLIDO - redirect a login page
     if (authRes.status === 302 && location.includes('/login')) {
-      console.log('\n🔄 Redirect a login. Siguiendo para ver error...');
+      console.log('\n🔄 Login fallido. Analizando...');
       
-      const errorPageRes = await fetch(location, {
-        headers: {
-          ...baseHeaders,
-          'Cookie': allCookies,
-        },
-        redirect: 'follow',
+      const allCookies = [...cookies, ...authCookies].join('; ');
+      const errRes = await fetch(location, {
+        headers: { ...baseHeaders, Cookie: allCookies },
         signal: AbortSignal.timeout(10000)
       });
+      const errHtml = await errRes.text();
       
-      const errorHtml = await errorPageRes.text();
-      console.log(`   Error page status: ${errorPageRes.status}, size: ${errorHtml.length}`);
+      // Extraer todo el texto visible
+      const text = errHtml.replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
       
-      // Buscar mensaje de error (Cognito lo muestra en un div/p con clase error/alert)
-      const errorPatterns = [
-        /<p[^>]*class="[^"]*errorMessage[^"]*"[^>]*>([^<]+)/i,
-        /<div[^>]*class="[^"]*errorMessage[^"]*"[^>]*>([^<]+)/i,
-        /<p[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
-        /<div[^>]*class="[^"]*alert[^"]*"[^>]*>([^<]+)/i,
-        /<span[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
-        /id="loginErrorMessage"[^>]*>([^<]+)/i,
-        /errorMessage['"]\s*>([^<]+)/i,
-      ];
-      
-      let errorMsg = null;
-      for (const p of errorPatterns) {
-        const match = errorHtml.match(p);
-        if (match) { errorMsg = match[1].trim(); break; }
+      // Buscar diferencias con el login original (error messages)
+      const originalText = loginHtml.replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Encontrar texto nuevo que no estaba en la página original
+      if (text !== originalText) {
+        // Buscar la diferencia
+        const newParts = text.split(' ').filter(w => !originalText.includes(w));
+        if (newParts.length > 0) {
+          console.log(`   ❌ Nuevo texto (error): ${newParts.join(' ').substring(0, 200)}`);
+        }
       }
-      
-      if (errorMsg) {
-        console.log(`   ❌ Error de Cognito: "${errorMsg}"`);
-      } else {
-        // Buscar cualquier texto de error visible
-        const visibleText = errorHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/\s+/g, ' ')
-          .trim();
-        console.log(`   Page text: ${visibleText.substring(0, 500)}`);
-      }
-      
-      // Verificar si es un problema de cognitoAsfData
-      console.log(`\n   ℹ️ cognitoAsfData fue enviado como: "${hiddens.cognitoAsfData || 'VACÍO'}"`);
-      console.log('   ℹ️ Si el error es por dispositivo no reconocido, cognitoAsfData es requerido.');
-    }
-    
-    // === Caso: 200 con HTML de error ===
-    if (authRes.status === 200) {
-      const html = await authRes.text();
-      console.log(`   Direct response HTML: ${html.substring(0, 300).replace(/\s+/g, ' ')}`);
+      console.log(`   Page text: ${text.substring(0, 300)}`);
     }
 
-    throw new Error('Login no completado. Revisa error arriba.');
+    throw new Error('Login no completado.');
 
   } catch (err) {
     console.error('❌', err.message);
@@ -225,7 +356,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 });
 
 async function fetchGrowthData(token, baseHeaders) {
-  console.log('\n📊 Obteniendo datos de crecimiento...');
+  console.log('\n📊 Obteniendo datos...');
   const urls = [`${CONFIG.NATURA_BASE}/api/growthplan`, `${CONFIG.NATURA_BASE}/bff/growthplan`];
   for (const url of urls) {
     try {
@@ -238,7 +369,7 @@ async function fetchGrowthData(token, baseHeaders) {
         const d = await r.json();
         console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 300)}`);
         if (d?.data) return d.data;
-      } else console.log(`   ${url} → ${r.status} (${ct})`);
+      }
     } catch (e) { console.log(`   → ${e.message?.substring(0, 50)}`); }
   }
   return null;
