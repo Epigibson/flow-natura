@@ -53,7 +53,6 @@ app.post('/scrape', authMiddleware, async (req, res) => {
         '--disable-translate',
         '--metrics-recording-only',
         '--no-first-run',
-        '--disable-http2', // Bypassear ERR_HTTP2_PROTOCOL_ERROR de Akamai
       ],
     });
     console.log('✅ Chromium lanzado.');
@@ -96,18 +95,20 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     authPromise.catch(() => {});
 
     // Navegar directamente al auth frontend de Natura (menos bloqueos usualmente que minegocio)
+    // NOTA: No usamos 'networkidle' porque Natura tiene trackers/analytics que NUNCA terminan de cargar
     const NATURA_AUTH_URL = 'https://natura-auth.prd.naturacloud.com/login';
-    await page.goto(NATURA_AUTH_URL, { waitUntil: 'networkidle', timeout: 30000 });
-    console.log(`✅ Página cargada: ${page.url().substring(0, 80)}`);
+    await page.goto(NATURA_AUTH_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    console.log(`✅ Página cargada (DOM): ${page.url().substring(0, 80)}`);
 
     // === PASO 3: Esperar inputs y Llenar formulario ===
     console.log('📧 Esperando formulario de login Natura...');
 
-    // Esperar al input de email/username o código de consultora (buscamos por selectores comunes)
+    // Esperar al input de email/username o código de consultora
     const usernameSelector = 'input[type="text"], input[name="username"], input[name="login"], input[id*="user"]';
     const passwordSelector = 'input[type="password"]';
     
-    await page.waitForSelector(usernameSelector, { timeout: 15000 });
+    // Le damos más tiempo al selector visual en lugar de la red
+    await page.waitForSelector(usernameSelector, { timeout: 20000 });
     await page.waitForSelector(passwordSelector, { timeout: 5000 });
     
     // Click y rellenar
