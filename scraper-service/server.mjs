@@ -35,7 +35,12 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
   let browser;
   try {
-    browser = await firefox.launch({ headless: true });
+    console.log('🔄 Lanzando Firefox headless...');
+    browser = await firefox.launch({ 
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    console.log('✅ Firefox lanzado correctamente.');
 
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
@@ -43,8 +48,8 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     });
 
     const page = await context.newPage();
-    page.setDefaultTimeout(60000);
-    page.setDefaultNavigationTimeout(60000);
+    page.setDefaultTimeout(45000);
+    page.setDefaultNavigationTimeout(45000);
 
     let extractedGrowthData = null;
 
@@ -63,6 +68,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
     console.log('🌐 Navegando a login de Natura...');
     await page.goto('https://minegocio.natura-avon.com.mx/home', { waitUntil: 'domcontentloaded' });
+    console.log('✅ Página de login cargada.');
     await page.waitForTimeout(3000);
 
     // --- PASO 1: Cambiar dropdown MUI a E-mail si es correo ---
@@ -77,45 +83,60 @@ app.post('/scrape', authMiddleware, async (req, res) => {
           await emailOption.click();
           console.log('   ✅ Selector cambiado a E-mail.');
           await page.waitForTimeout(1000);
+        } else {
+          console.log('   ⚠️ Opción E-mail no encontrada en dropdown.');
         }
+      } else {
+        console.log('   ⚠️ Dropdown combobox no visible.');
       }
     }
 
     // --- PASO 2: Llenar usuario ---
+    console.log('   🔍 Buscando campo de usuario...');
     const userField = page.locator('input[placeholder*="E-mail"], input[placeholder*="Consultora"], input[type="email"], input[type="text"]').first();
     if (await userField.isVisible({ timeout: 5000 }).catch(() => false)) {
-      console.log('   Escribiendo usuario...');
+      console.log('   ✏️ Escribiendo usuario...');
       await userField.fill(natura_email);
       await page.waitForTimeout(500);
 
       // --- PASO 3: Llenar contraseña ---
       const pwdField = page.locator('input[type="password"]').first();
       if (await pwdField.isVisible({ timeout: 5000 }).catch(() => false)) {
-        console.log('   Escribiendo contraseña...');
+        console.log('   🔑 Escribiendo contraseña...');
         await pwdField.fill(natura_password);
         await page.waitForTimeout(500);
 
         // --- PASO 4: INICIAR SESIÓN ---
-        console.log('   Haciendo clic en INICIAR SESIÓN...');
+        console.log('   🖱️ Haciendo clic en INICIAR SESIÓN...');
         const loginBtn = page.locator('button', { hasText: 'INICIAR SESIÓN' });
         if (await loginBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
           await loginBtn.click();
+          console.log('   ✅ Botón clickeado.');
         } else {
+          console.log('   ⚠️ Botón no visible, usando Enter...');
           await pwdField.press('Enter');
         }
         await page.waitForTimeout(3000);
+      } else {
+        console.log('   ❌ Campo de contraseña NO encontrado.');
       }
+    } else {
+      console.log('   ❌ Campo de usuario NO encontrado.');
     }
 
-    // --- PASO 5: Esperar intercepción de datos ---
-    console.log('⏳ Esperando datos del API...');
-    for (let i = 0; i < 90; i++) {
+    // --- PASO 5: Esperar intercepción de datos (máx 60s) ---
+    console.log('⏳ Esperando datos del API de crecimiento...');
+    for (let i = 0; i < 60; i++) {
       if (extractedGrowthData) break;
       await page.waitForTimeout(1000);
+      if (i % 10 === 0 && i > 0) console.log(`   ... ${i}s esperando...`);
     }
 
     if (!extractedGrowthData) {
-      throw new Error('Timeout: No se logró interceptar los datos de crecimiento.');
+      // Capturar URL actual para debug
+      const currentUrl = page.url();
+      console.error(`❌ Timeout. URL actual: ${currentUrl}`);
+      throw new Error(`Timeout: No se interceptaron datos. URL final: ${currentUrl}`);
     }
 
     console.log('✅ Scraping exitoso!');
@@ -125,7 +146,10 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     console.error('❌ Error de scraping:', err.message);
     res.status(500).json({ success: false, error: err.message });
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      await browser.close().catch(() => {});
+      console.log('🔒 Browser cerrado.');
+    }
   }
 });
 
