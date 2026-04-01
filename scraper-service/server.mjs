@@ -160,62 +160,121 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     const finalUrl = page.url();
     console.log(`   URL final: ${finalUrl.substring(0, 150)}`);
 
-    // === Caso 1: Redirect exitoso a minegocio con code ===
-    if (finalUrl.includes('code=') || finalUrl.includes(CONFIG.REDIRECT_URI)) {
-      const urlObj = new URL(finalUrl);
-      const code = urlObj.searchParams.get('code');
-
-      if (code) {
-        console.log(`\n🎫 ¡LOGIN EXITOSO! Code: ${code.substring(0, 20)}...`);
-
-        // Cerrar browser antes de token exchange (liberar memoria)
-        await browser.close();
-        browser = null;
-
-        // Intercambiar code por tokens
-        console.log('🔄 Intercambiando code por tokens...');
-        const tokenRes = await fetch(`${CONFIG.COGNITO_DOMAIN}/oauth2/token`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            grant_type: 'authorization_code',
-            client_id: CONFIG.CLIENT_ID,
-            code,
-            redirect_uri: CONFIG.REDIRECT_URI,
-          }).toString(),
-          signal: AbortSignal.timeout(15000),
-        });
-
-        const tokenText = await tokenRes.text();
-        console.log(`   Token status: ${tokenRes.status}`);
-
-        try {
-          const tokenData = JSON.parse(tokenText);
-
-          if (tokenData.access_token || tokenData.id_token) {
-            console.log('✅ ¡TOKENS OBTENIDOS!');
-            const token = tokenData.access_token || tokenData.id_token;
-
-            // Obtener datos de crecimiento
-            const growthData = await fetchGrowthData(token);
-            return res.json({
-              success: true,
-              data: growthData || { message: 'Auth OK, growth data pendiente' },
-              tokens: {
-                access_token: tokenData.access_token ? '***' : undefined,
-                id_token: tokenData.id_token ? '***' : undefined,
-                expires_in: tokenData.expires_in,
-              },
-            });
+    // === PASO 2: Navegar al portal real de Natura ===
+    console.log('🌐 Navegando a Mi Negocio Natura (para forzar redirect a Auth)...');
+    
+    // Configurar intercepción de la respuesta de la API de authenticator
+    let authPromise = new Promise((resolve, reject) => {
+      let timeoutId = setTimeout(() => reject(new Error('Timeout esperando token de API')), 45000);
+      
+      page.on('response', async (response) => {
+        const url = response.url();
+        if (url.includes('authentication-api') && response.request().method() === 'POST') {
+          try {
+            const body = await response.json();
+            if (body && body.data && body.data.id_token) {
+              clearTimeout(timeoutId);
+              console.log(`📡 ¡Interceptado token de la API! Status: ${response.status()}`);
+              resolve(body.data);
+            } else if (body && body.error) {
+              console.log(`📡 Error de API interceptado: ${JSON.stringify(body)}`);
+              // No rechazamos inmediatamente por si hay reintentos, pero lo loggeamos
+            }
+          } catch (e) {
+            // Ignorar respuestas que no son JSON
           }
-
-          console.log(`   Token response: ${tokenText.substring(0, 300)}`);
-        } catch (e) {
-          console.log(`   Token parse error: ${e.message}`);
-          console.log(`   Raw: ${tokenText.substring(0, 300)}`);
         }
+      });
+    });
+
+    // Navegar a Mi Negocio (esto debería redirigir a natura-auth.prd.naturacloud.com o mostrar el login)
+    await page.goto(CONFIG.NATURA_BASE, { waitUntil: 'networkidle', timeout: 30000 });
+    console.log(`✅ Página cargada: ${page.url().substring(0, 80)}`);
+
+    // === PASO 3: Esperar inputs y Llenar formulario ===
+    console.log('📧 Esperando formulario de login Natura...');
+
+    // Esperar al input de email/username o código de consultora (buscamos por selectores comunes)
+    const usernameSelector = 'input[type="text"], input[name="username"], input[name="login"], input[id*="user"]';
+    const passwordSelector = 'input[type="password"]';
+    
+    await page.waitForSelector(usernameSelector, { timeout: 15000 });
+    await page.waitForSelector(passwordSelector, { timeout: 5000 });
+    
+    // Click y rellenar
+    // Como puede haber múltiples inputs, usamos el primero visible
+    const txtInputs = await page.$$(usernameSelector);
+    for (const input of txtInputs) {
+      if (await input.isVisible()) {
+        await input.fill(natura_email);
+        break;
       }
     }
+
+    const pwdInputs = await page.$$(passwordSelector);
+    for (const input of pwdInputs) {
+      if (await input.isVisible()) {
+        await input.fill(natura_password);
+        break;
+      }
+    }
+
+    console.log('   Credenciales ingresadas ✅');
+
+    // === PASO 4: Click en Submit ===
+    console.log('🔐 Enviando login (click en botón)...');
+    
+    // Buscar el botón de submit o login. Buscamos button[type="submit"] o botones con texto "entrar", "ingresar", "login"
+    const btnClicked = await page.evaluate(() => {
+      const btns = document.querySelectorAll('button');
+      for (const btn of btns) {
+        const text = btn.textContent?.toLowerCase() || '';
+        if (btn.type === 'submit' || text.includes('entrar') || text.includes('ingresar') || text.includes('login') || text.includes('sign in')) {
+          btn.click();
+          return text.trim().substring(0, 30);
+        }
+      }
+      return null;
+    });
+    
+    console.log(`   Botón clickeado: ${btnClicked || 'No encontrado, intentando Enter'}`);
+    
+    // Si no se encontró botón obvio, presionar Enter en el password
+    if (!btnClicked) {
+      await page.keyboard.press('Enter');
+    }
+
+    // === PASO 5: Esperar el token interceptado de la API ===
+    console.log('⏳ Esperando respuesta de la API de autenticación...');
+    
+    let tokenData;
+    try {
+      tokenData = await authPromise;
+    } catch (e) {
+      // Si falla la promesa, tomar una foto del DOM para debuggear
+      const pageText = await page.evaluate(() => document.body.innerText?.replace(/\s+/g, ' ').substring(0, 500));
+      console.log(`   Timeout interceptando API. Texto en página: ${pageText}`);
+      throw e;
+    }
+
+    console.log('✅ ¡TOKENS OBTENIDOS DESDE EL PORTAL REAL!');
+    const token = tokenData.access_token || tokenData.id_token;
+
+    // Cerrar browser antes de fetch final
+    await browser.close();
+    browser = null;
+
+    // Obtener datos de crecimiento
+    const growthData = await fetchGrowthData(token);
+    return res.json({
+      success: true,
+      data: growthData || { message: 'Auth OK, growth data pendiente' },
+      tokens: {
+        access_token: tokenData.access_token ? '***' : undefined,
+        id_token: tokenData.id_token ? '***' : undefined,
+        expires_in: tokenData.expires_in,
+      },
+    });
 
     // === Caso 2: Login falló - sigue en Cognito ===
     if (finalUrl.includes(CONFIG.COGNITO_DOMAIN)) {
