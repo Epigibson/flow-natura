@@ -83,84 +83,154 @@ app.get('/health', (req, res) => res.json({ status: 'ok', method: 'natura-api-di
 // =====================================================
 
 async function authenticateViaNatura(email, password) {
-  console.log('🔑 Autenticando via Natura authentication-api...');
+  console.log('🔑 Intentando múltiples métodos de autenticación...\n');
 
-  // Paso 1: Encriptar password como lo hace el frontend
-  const encryptedPassword = encryptPassword(password);
-  console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
+  // ====================================================================
+  // MÉTODO 1: Natura authentication-api (como lo hace el frontend React)
+  // ====================================================================
+  try {
+    console.log('📡 [1/3] Natura authentication-api...');
+    const encryptedPassword = encryptPassword(password);
+    console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
 
-  // Paso 2: Llamar a la API exactamente como el frontend
-  const body = {
-    clientId: CONFIG.CLIENT_ID,
-    company: CONFIG.COMPANY,
-    country: CONFIG.COUNTRY,
-    password: encryptedPassword,
-    recaptchaToken: null,
-    redirectUrl: CONFIG.NATURA_BASE + '/',
-    username: email,
-  };
-
-  console.log(`   → POST ${CONFIG.NATURA_API}`);
-  console.log(`   → Body: ${JSON.stringify({ ...body, password: '***' })}`);
-
-  const response = await fetch(CONFIG.NATURA_API, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': CONFIG.NATURA_API_KEY,
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-      'Accept': 'application/json',
-      'Origin': 'https://natura-auth.prd.naturacloud.com',
-      'Referer': 'https://natura-auth.prd.naturacloud.com/',
-    },
-    body: JSON.stringify(body),
-    signal: AbortSignal.timeout(20000),
-  });
-
-  const data = await response.json();
-  console.log(`   Status: ${response.status}`);
-  console.log(`   Response keys: ${JSON.stringify(Object.keys(data))}`);
-  console.log(`   Response (300 chars): ${JSON.stringify(data).substring(0, 300)}`);
-
-  // Caso exitoso: data contiene tokens
-  if (data?.data?.id_token || data?.data?.IdToken) {
-    console.log('   ✅ ¡Login exitoso!');
-    return {
-      id_token: data.data.id_token || data.data.IdToken,
-      access_token: data.data.access_token || data.data.AccessToken,
-      refresh_token: data.data.refresh_token || data.data.RefreshToken,
-      expires_in: data.data.expires_in || data.data.ExpiresIn,
+    const body = {
+      clientId: CONFIG.CLIENT_ID,
+      company: CONFIG.COMPANY,
+      country: CONFIG.COUNTRY,
+      password: encryptedPassword,
+      recaptchaToken: null,
+      redirectUrl: CONFIG.NATURA_BASE + '/',
+      username: email,
     };
+
+    const response = await fetch(CONFIG.NATURA_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CONFIG.NATURA_API_KEY,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+        'Accept': 'application/json, text/plain, */*',
+        'Origin': 'https://natura-auth.prd.naturacloud.com',
+        'Referer': 'https://natura-auth.prd.naturacloud.com/',
+        'Accept-Language': 'es-MX,es;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(20000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+
+    if (response.ok && (data?.data?.id_token || data?.data?.IdToken || data?.id_token || data?.AuthenticationResult)) {
+      console.log('   ✅ ¡Login exitoso via Natura API!');
+      const tokens = data?.data || data?.AuthenticationResult || data;
+      return {
+        id_token: tokens.id_token || tokens.IdToken,
+        access_token: tokens.access_token || tokens.AccessToken,
+        refresh_token: tokens.refresh_token || tokens.RefreshToken,
+        expires_in: tokens.expires_in || tokens.ExpiresIn,
+      };
+    }
+    console.log(`   ❌ Natura API falló (${response.status})`);
+  } catch (err) {
+    console.log(`   ❌ Natura API error: ${err.message}`);
   }
 
-  // Caso: tokens en root level
-  if (data?.id_token || data?.IdToken) {
-    console.log('   ✅ ¡Login exitoso (flat response)!');
-    return {
-      id_token: data.id_token || data.IdToken,
-      access_token: data.access_token || data.AccessToken,
-      refresh_token: data.refresh_token || data.RefreshToken,
-      expires_in: data.expires_in || data.ExpiresIn,
-    };
+  // ====================================================================
+  // MÉTODO 2: Cognito InitiateAuth con Android Client ID (sin SECRET)
+  // ====================================================================
+  const ANDROID_CLIENT_ID = '2mclhp3ui6kf7pjrvh2kv6a6lq';
+  try {
+    console.log(`\n📡 [2/3] Cognito directo (Android client: ${ANDROID_CLIENT_ID})...`);
+    const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
+
+    const response = await fetch(cognitoUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+      },
+      body: JSON.stringify({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: ANDROID_CLIENT_ID,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password, // Sin encriptar - Cognito espera plain text
+        },
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+
+    if (data?.AuthenticationResult) {
+      console.log('   ✅ ¡Login exitoso via Cognito Android!');
+      return {
+        id_token: data.AuthenticationResult.IdToken,
+        access_token: data.AuthenticationResult.AccessToken,
+        refresh_token: data.AuthenticationResult.RefreshToken,
+        expires_in: data.AuthenticationResult.ExpiresIn,
+      };
+    }
+    if (data?.ChallengeName) {
+      console.log(`   ⚠️ Challenge: ${data.ChallengeName}`);
+    }
+    console.log(`   ❌ Cognito Android falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
+  } catch (err) {
+    console.log(`   ❌ Cognito Android error: ${err.message}`);
   }
 
-  // Caso: AuthenticationResult de Cognito directamente
-  if (data?.AuthenticationResult) {
-    console.log('   ✅ ¡Login exitoso (Cognito format)!');
-    return {
-      id_token: data.AuthenticationResult.IdToken,
-      access_token: data.AuthenticationResult.AccessToken,
-      refresh_token: data.AuthenticationResult.RefreshToken,
-      expires_in: data.AuthenticationResult.ExpiresIn,
-    };
+  // ====================================================================
+  // MÉTODO 3: Cognito InitiateAuth con iOS Client ID (sin SECRET)
+  // ====================================================================
+  const IOS_CLIENT_ID = '3u0gp4t079j9g2m249gdghfghm';
+  try {
+    console.log(`\n📡 [3/3] Cognito directo (iOS client: ${IOS_CLIENT_ID})...`);
+    const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
+
+    const response = await fetch(cognitoUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+      },
+      body: JSON.stringify({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: IOS_CLIENT_ID,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+
+    if (data?.AuthenticationResult) {
+      console.log('   ✅ ¡Login exitoso via Cognito iOS!');
+      return {
+        id_token: data.AuthenticationResult.IdToken,
+        access_token: data.AuthenticationResult.AccessToken,
+        refresh_token: data.AuthenticationResult.RefreshToken,
+        expires_in: data.AuthenticationResult.ExpiresIn,
+      };
+    }
+    if (data?.ChallengeName) {
+      console.log(`   ⚠️ Challenge: ${data.ChallengeName}`);
+    }
+    console.log(`   ❌ Cognito iOS falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
+  } catch (err) {
+    console.log(`   ❌ Cognito iOS error: ${err.message}`);
   }
 
-  // Caso error
-  if (data?.error || data?.message) {
-    throw new Error(`Natura API error: ${data.error || data.message} (status ${response.status})`);
-  }
-
-  throw new Error(`Respuesta inesperada (${response.status}): ${JSON.stringify(data).substring(0, 500)}`);
+  throw new Error('Todos los métodos de autenticación fallaron. Ver logs para detalles.');
 }
 
 app.post('/scrape', authMiddleware, async (req, res) => {
