@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import { firefox } from 'playwright-core';
 
 const app = express();
 app.use(cors());
@@ -9,17 +8,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 
 const CONFIG = {
-  COGNITO_DOMAIN: 'https://natura-global-prd.auth.us-east-1.amazoncognito.com',
+  COGNITO_REGION: 'us-east-1',
   CLIENT_ID: '31ndsgochinbk61v3jk8dhsf2o',
-  REDIRECT_URI: 'https://minegocio.natura-avon.com.mx/',
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
 };
-
-// URLs a intentar en orden de preferencia
-const TARGET_URLS = [
-  'https://minegocio.natura-avon.com.mx/',          // Portal principal → redirige a auth
-  'https://natura-auth.prd.naturacloud.com/login',   // Auth frontend directo
-];
 
 function authMiddleware(req, res, next) {
   if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
@@ -28,7 +20,162 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', method: 'cognito-direct' }));
+
+// =====================================================
+// ESTRATEGIA: Llamar directamente a la API de Cognito
+// SIN navegador, SIN Akamai, SIN Playwright
+// AWS Cognito expone InitiateAuth como API REST pública
+// =====================================================
+
+async function authenticateViaCognito(email, password) {
+  console.log('🔑 Intentando auth directo con Cognito API...');
+
+  const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
+
+  // Intento 1: USER_PASSWORD_AUTH (el más simple)
+  try {
+    console.log('   → Probando USER_PASSWORD_AUTH...');
+    const response = await fetch(cognitoUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-amz-json-1.1',
+        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+      },
+      body: JSON.stringify({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: CONFIG.CLIENT_ID,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response keys: ${Object.keys(data).join(', ')}`);
+
+    if (data.AuthenticationResult) {
+      console.log('   ✅ USER_PASSWORD_AUTH exitoso!');
+      return {
+        id_token: data.AuthenticationResult.IdToken,
+        access_token: data.AuthenticationResult.AccessToken,
+        refresh_token: data.AuthenticationResult.RefreshToken,
+        expires_in: data.AuthenticationResult.ExpiresIn,
+        token_type: data.AuthenticationResult.TokenType,
+      };
+    }
+
+    if (data.ChallengeName) {
+      console.log(`   ⚠️ Challenge requerido: ${data.ChallengeName}`);
+      // Si requiere NEW_PASSWORD_REQUIRED u otro challenge
+      return { challenge: data.ChallengeName, session: data.Session };
+    }
+
+    if (data.__type) {
+      const errorType = data.__type.split('#').pop();
+      console.log(`   ❌ Error Cognito: ${errorType} - ${data.message}`);
+
+      // Si USER_PASSWORD_AUTH no está habilitado, intentar USER_SRP_AUTH
+      if (errorType === 'InvalidParameterException' || errorType === 'NotAuthorizedException') {
+        // Podría ser credenciales incorrectas vs flujo no disponible
+        // InvalidParameterException = flujo no disponible
+        // NotAuthorizedException = credenciales incorrectas
+        if (errorType === 'NotAuthorizedException') {
+          throw new Error(`Credenciales incorrectas: ${data.message}`);
+        }
+      }
+      // Cualquier otro error, lo propagamos
+      throw new Error(`Cognito ${errorType}: ${data.message}`);
+    }
+
+    throw new Error(`Respuesta inesperada de Cognito: ${JSON.stringify(data).substring(0, 300)}`);
+
+  } catch (err) {
+    if (err.message.includes('Credenciales incorrectas')) throw err;
+    console.log(`   ❌ USER_PASSWORD_AUTH falló: ${err.message}`);
+    // Continuar con SRP si el error indica que el flujo no está disponible
+  }
+
+  // Intento 2: Llamar a la authentication-api de Natura directamente (sin browser)
+  try {
+    console.log('   → Probando authentication-api de Natura directo...');
+    const naturaAuthUrl = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
+
+    const response = await fetch(naturaAuthUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+        'Accept': 'application/json',
+        'Origin': 'https://natura-auth.prd.naturacloud.com',
+        'Referer': 'https://natura-auth.prd.naturacloud.com/',
+      },
+      body: JSON.stringify({
+        username: email,
+        password: password,
+        clientId: CONFIG.CLIENT_ID,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response keys: ${Object.keys(data).join(', ')}`);
+    console.log(`   Data preview: ${JSON.stringify(data).substring(0, 300)}`);
+
+    if (data?.data?.id_token) {
+      console.log('   ✅ authentication-api exitoso!');
+      return data.data;
+    }
+    if (data?.id_token) {
+      console.log('   ✅ authentication-api exitoso (flat)!');
+      return data;
+    }
+
+    console.log(`   ❌ authentication-api no devolvió token: ${JSON.stringify(data).substring(0, 300)}`);
+  } catch (err) {
+    console.log(`   ❌ authentication-api falló: ${err.message}`);
+  }
+
+  // Intento 3: Probar variaciones del body de authentication-api
+  try {
+    console.log('   → Probando authentication-api con formato alternativo...');
+    const naturaAuthUrl = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
+
+    const response = await fetch(naturaAuthUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+        'Accept': 'application/json',
+        'Origin': 'https://minegocio.natura-avon.com.mx',
+        'Referer': 'https://minegocio.natura-avon.com.mx/',
+      },
+      body: JSON.stringify({
+        login: email,
+        password: password,
+        client_id: CONFIG.CLIENT_ID,
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
+
+    const data = await response.json();
+    console.log(`   Status: ${response.status}`);
+    console.log(`   Response: ${JSON.stringify(data).substring(0, 500)}`);
+
+    if (data?.data?.id_token || data?.id_token) {
+      console.log('   ✅ authentication-api (alt) exitoso!');
+      return data?.data || data;
+    }
+  } catch (err) {
+    console.log(`   ❌ authentication-api (alt) falló: ${err.message}`);
+  }
+
+  throw new Error('Todos los métodos de autenticación fallaron.');
+}
 
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
@@ -38,225 +185,23 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
   console.log(`🚀 Sync para: ${natura_email.substring(0, 5)}***`);
 
-  let browser = null;
-
   try {
-    // === PASO 1: Lanzar Firefox (SIN args de Chrome) ===
-    console.log('🔄 Lanzando Firefox...');
-    browser = await firefox.launch({
-      headless: true,
-      // Firefox NO acepta args de Chrome como --no-sandbox
-      // En la imagen oficial de Playwright ya viene configurado correctamente
-    });
-    console.log('✅ Firefox lanzado.');
+    const tokenData = await authenticateViaCognito(natura_email, natura_password);
 
-    const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-      locale: 'es-MX',
-      timezoneId: 'America/Mexico_City',
-      viewport: { width: 1280, height: 720 },
-      ignoreHTTPSErrors: true,
-    });
-
-    // Evadir detección de webdriver
-    await context.addInitScript(() => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-    });
-
-    const page = await context.newPage();
-
-    // === PASO 2: Intentar navegar a cada URL ===
-    console.log('🌐 Intentando navegar...');
-
-    let navigated = false;
-    for (const url of TARGET_URLS) {
-      try {
-        console.log(`   → Probando: ${url.substring(0, 60)}...`);
-        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 25000 });
-        console.log(`   ✅ Navegación exitosa: ${page.url().substring(0, 80)}`);
-        navigated = true;
-        break;
-      } catch (navErr) {
-        console.log(`   ❌ Falló: ${navErr.message.substring(0, 80)}`);
-        // Continuar con la siguiente URL
-      }
-    }
-
-    if (!navigated) {
-      throw new Error('No se pudo navegar a ninguna URL de Natura. Todas bloqueadas.');
-    }
-
-    // Capturar URL actual para diagnóstico (puede haber redirigido)
-    const currentUrl = page.url();
-    console.log(`📍 URL actual después de redirects: ${currentUrl.substring(0, 100)}`);
-
-    // Configurar intercepción de la respuesta de la API de authenticator
-    let authTimeoutId;
-    let authPromise = new Promise((resolve, reject) => {
-      authTimeoutId = setTimeout(() => reject(new Error('Timeout esperando token de API')), 60000);
-
-      page.on('response', async (response) => {
-        const url = response.url();
-        // Interceptar cualquier respuesta que parezca de autenticación
-        const isAuthApi = url.includes('authentication-api') && response.request().method() === 'POST';
-        const isTokenEndpoint = url.includes('/oauth2/token') && response.request().method() === 'POST';
-
-        if (isAuthApi || isTokenEndpoint) {
-          try {
-            const body = await response.json();
-            console.log(`📡 Interceptada respuesta de: ${url.substring(0, 80)}`);
-            console.log(`   Status: ${response.status()}, Keys: ${Object.keys(body).join(', ')}`);
-
-            // Caso 1: authentication-api de Natura devuelve { data: { id_token, ... } }
-            if (body?.data?.id_token) {
-              clearTimeout(authTimeoutId);
-              console.log('📡 ¡Token interceptado desde authentication-api!');
-              resolve(body.data);
-              return;
-            }
-            // Caso 2: OAuth2 token endpoint devuelve { id_token, access_token, ... }
-            if (body?.id_token) {
-              clearTimeout(authTimeoutId);
-              console.log('📡 ¡Token interceptado desde OAuth2 token endpoint!');
-              resolve(body);
-              return;
-            }
-            // Caso 3: Error
-            if (body?.error) {
-              console.log(`📡 Error interceptado: ${JSON.stringify(body).substring(0, 200)}`);
-            }
-          } catch (e) {
-            // No es JSON, ignorar
-          }
-        }
+    if (tokenData.challenge) {
+      return res.json({
+        success: false,
+        error: `Se requiere challenge: ${tokenData.challenge}`,
+        challenge: tokenData.challenge,
       });
-    });
-    authPromise.catch(() => {}); // Prevenir unhandled rejection
-
-    // === PASO 3: Buscar y llenar formulario de login ===
-    console.log('📧 Buscando formulario de login...');
-
-    // Esperar a que aparezca algún input (cubrir tanto Natura auth como Cognito Hosted UI)
-    const usernameSelectors = [
-      'input[name="username"]',
-      'input[name="login"]',
-      'input[id*="user"]',
-      'input[id*="email"]',
-      'input[type="email"]',
-      'input[type="text"]',
-    ];
-    const passwordSelector = 'input[type="password"]';
-
-    // Esperar al menos un input de texto visible
-    let usernameInput = null;
-    for (const sel of usernameSelectors) {
-      try {
-        await page.waitForSelector(sel, { timeout: 3000, state: 'visible' });
-        usernameInput = await page.$(sel);
-        if (usernameInput) {
-          console.log(`   ✅ Input encontrado: ${sel}`);
-          break;
-        }
-      } catch {
-        // Probar siguiente selector
-      }
     }
 
-    if (!usernameInput) {
-      // Diagnóstico: qué hay en la página?
-      const bodyText = await page.evaluate(() => document.body?.innerText?.replace(/\s+/g, ' ').substring(0, 500));
-      const bodyHTML = await page.evaluate(() => document.body?.innerHTML?.substring(0, 500));
-      console.log(`   ❌ No se encontró input de usuario`);
-      console.log(`   Texto visible: ${bodyText}`);
-      console.log(`   HTML (500 chars): ${bodyHTML}`);
-      throw new Error('No se encontró formulario de login en la página.');
-    }
-
-    // Esperar password input
-    await page.waitForSelector(passwordSelector, { timeout: 5000, state: 'visible' });
-
-    // Llenar credenciales
-    await usernameInput.fill(natura_email);
-    const pwdInput = await page.$(passwordSelector);
-    await pwdInput.fill(natura_password);
-    console.log('   Credenciales ingresadas ✅');
-
-    // === PASO 4: Click en Submit ===
-    console.log('🔐 Enviando login...');
-
-    // Buscar botón de submit
-    const submitSelectors = [
-      'button[type="submit"]',
-      'input[type="submit"]',
-      'button:has-text("Entrar")',
-      'button:has-text("Ingresar")',
-      'button:has-text("Login")',
-      'button:has-text("Sign in")',
-    ];
-
-    let submitted = false;
-    for (const sel of submitSelectors) {
-      try {
-        const btn = await page.$(sel);
-        if (btn && await btn.isVisible()) {
-          await btn.click();
-          console.log(`   ✅ Botón clickeado: ${sel}`);
-          submitted = true;
-          break;
-        }
-      } catch {
-        // Siguiente
-      }
-    }
-
-    if (!submitted) {
-      // Fallback: buscar por texto del botón
-      const btnClicked = await page.evaluate(() => {
-        const btns = document.querySelectorAll('button, input[type="submit"]');
-        for (const btn of btns) {
-          const text = (btn.textContent || btn.value || '').toLowerCase();
-          if (text.includes('entrar') || text.includes('ingresar') || text.includes('login') || text.includes('sign in') || btn.type === 'submit') {
-            btn.click();
-            return text.trim().substring(0, 30);
-          }
-        }
-        return null;
-      });
-
-      if (btnClicked) {
-        console.log(`   ✅ Botón clickeado (por texto): "${btnClicked}"`);
-        submitted = true;
-      } else {
-        console.log('   ⚠️ No se encontró botón, presionando Enter...');
-        await page.keyboard.press('Enter');
-        submitted = true;
-      }
-    }
-
-    // === PASO 5: Esperar el token interceptado ===
-    console.log('⏳ Esperando respuesta de autenticación (hasta 60s)...');
-
-    let tokenData;
-    try {
-      tokenData = await authPromise;
-    } catch (e) {
-      // Diagnóstico final
-      const finalUrl = page.url();
-      const pageText = await page.evaluate(() => document.body?.innerText?.replace(/\s+/g, ' ').substring(0, 500));
-      console.log(`   URL final: ${finalUrl}`);
-      console.log(`   Texto en página: ${pageText}`);
-      throw new Error(`No se pudo obtener token. ${e.message}. URL: ${finalUrl.substring(0, 80)}`);
-    }
-
-    console.log('✅ ¡TOKENS OBTENIDOS DESDE EL PORTAL REAL!');
+    console.log('✅ ¡TOKENS OBTENIDOS!');
     const token = tokenData.access_token || tokenData.id_token;
-
-    // Cerrar browser antes de fetch final
-    await browser.close();
-    browser = null;
 
     // Obtener datos de crecimiento
     const growthData = await fetchGrowthData(token);
+
     return res.json({
       success: true,
       data: growthData || { message: 'Auth OK, growth data pendiente' },
@@ -270,11 +215,6 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   } catch (err) {
     console.error('❌', err.message);
     res.status(500).json({ success: false, error: err.message });
-  } finally {
-    if (browser) {
-      await browser.close().catch(() => {});
-      console.log('🔒 Browser cerrado.');
-    }
   }
 });
 
@@ -310,4 +250,4 @@ async function fetchGrowthData(token) {
   return null;
 }
 
-app.listen(PORT, () => console.log(`🔧 Natura Scraper en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`🔧 Natura Scraper en puerto ${PORT} (modo: Cognito directo, sin browser)`));

@@ -1,13 +1,11 @@
-FROM mcr.microsoft.com/playwright:v1.59.0-noble
+FROM node:22-slim
 
 WORKDIR /app
 
 COPY package.json ./
-RUN npm install
+RUN npm install --production
 
 COPY server.mjs ./
-
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
 EXPOSE 3001
 
