@@ -5,8 +5,8 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 
-# Firefox evade mejor los WAFs de Natura (Akamai). --with-deps instala TODAS las libs del SO.
-RUN npx playwright install --with-deps firefox
+# Chromium con TODAS las dependencias del sistema
+RUN npx playwright install --with-deps chromium
 
 COPY server.mjs ./
 

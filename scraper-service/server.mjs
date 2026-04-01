@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { chromium } from 'playwright';
 
 const app = express();
 app.use(cors());
@@ -20,40 +21,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'natura-scraper' });
 });
 
-/**
- * Helper: Extrae cookies de respuestas fetch y las acumula
- */
-function extractCookies(response, existingCookies = '') {
-  const newCookies = [];
-  // getSetCookie puede no existir en todas las implementaciones
-  const raw = response.headers.raw?.()?.['set-cookie'] || [];
-  for (const c of raw) {
-    newCookies.push(c.split(';')[0]);
-  }
-  
-  // Fallback: leer header manual
-  if (newCookies.length === 0) {
-    const sc = response.headers.get('set-cookie');
-    if (sc) {
-      // Puede haber múltiples cookies separadas por coma (no es estándar pero pasa)
-      newCookies.push(sc.split(';')[0]);
-    }
-  }
-
-  if (existingCookies && newCookies.length > 0) {
-    return existingCookies + '; ' + newCookies.join('; ');
-  }
-  return newCookies.length > 0 ? newCookies.join('; ') : existingCookies;
-}
-
-/**
- * Flujo OAuth de Natura via Cognito:
- * 1. GET /home → redirect a natura-auth.prd.naturacloud.com (página de login)
- * 2. Extraer form action + campos hidden (CSRF, _fid, etc.)
- * 3. POST credenciales al form de Cognito
- * 4. Seguir redirects de vuelta a minegocio con cookies de sesión
- * 5. Llamar al API de growthplan con sesión activa
- */
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
 
@@ -63,191 +30,171 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
   console.log(`🚀 Iniciando sync para: ${natura_email.substring(0, 5)}***`);
 
+  let browser;
   try {
-    // === PASO 1: Ir a la página de login de Natura (sin seguir redirects) ===
-    console.log('🔑 Paso 1: Navegando a Natura login...');
-    const homeRes = await fetch('https://minegocio.natura-avon.com.mx/home', {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'es-MX,es;q=0.8,en-US;q=0.5,en;q=0.3',
-      },
-      redirect: 'follow'
+    console.log('🔄 Lanzando Chromium...');
+    browser = await chromium.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-http2',           // ← CLAVE: fuerza HTTP/1.1 para evadir detección WAF
+        '--single-process',
+        '--no-zygote',
+        '--disable-blink-features=AutomationControlled'  // ocultar flag de automatización
+      ]
     });
-    
-    const authPageUrl = homeRes.url;
-    console.log(`   → Redirigido a: ${authPageUrl.substring(0, 80)}...`);
-    
-    const authPageHtml = await homeRes.text();
-    let cookies = extractCookies(homeRes);
-    console.log(`   → Cookies: ${cookies.substring(0, 60)}...`);
+    console.log('✅ Chromium lanzado.');
 
-    // === PASO 2: Extraer el form de login (action URL + campos hidden) ===
-    console.log('🔑 Paso 2: Extrayendo formulario de login...');
-    
-    // Buscar <form action="...">
-    const formActionMatch = authPageHtml.match(/form[^>]*action="([^"]+)"/i);
-    const formAction = formActionMatch ? formActionMatch[1] : null;
-    console.log(`   → Form action: ${formAction || 'NO ENCONTRADO'}`);
-    
-    // Buscar todos los inputs hidden
-    const hiddenInputs = {};
-    const inputRegex = /<input[^>]*type="hidden"[^>]*>/gi;
-    let inputMatch;
-    while ((inputMatch = inputRegex.exec(authPageHtml)) !== null) {
-      const nameMatch = inputMatch[0].match(/name="([^"]+)"/);
-      const valueMatch = inputMatch[0].match(/value="([^"]*)"/);
-      if (nameMatch) {
-        hiddenInputs[nameMatch[1]] = valueMatch ? valueMatch[1] : '';
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 800 },
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+      locale: 'es-MX',
+      extraHTTPHeaders: {
+        'Accept-Language': 'es-MX,es;q=0.8,en-US;q=0.5,en;q=0.3'
       }
-    }
-    console.log(`   → Campos hidden: ${Object.keys(hiddenInputs).join(', ') || 'NINGUNO'}`);
+    });
+    console.log('✅ Contexto creado.');
 
-    // Detectar si es formulario con campos de email/password o si usa otro método
-    const hasEmailField = authPageHtml.includes('email') || authPageHtml.includes('username') || authPageHtml.includes('login');
-    const hasPasswordField = authPageHtml.includes('password') || authPageHtml.includes('contraseña');
-    console.log(`   → Tiene campo email: ${hasEmailField}, password: ${hasPasswordField}`);
+    // Ocultar webdriver
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => false });
+    });
 
-    // Log un snippet del HTML para debug
-    const bodyStart = authPageHtml.indexOf('<body');
-    const snippet = authPageHtml.substring(bodyStart, bodyStart + 1000).replace(/\s+/g, ' ');
-    console.log(`   → HTML snippet: ${snippet.substring(0, 500)}`);
+    const page = await context.newPage();
+    page.setDefaultTimeout(45000);
+    page.setDefaultNavigationTimeout(45000);
+    console.log('✅ Página creada.');
 
-    if (!formAction) {
-      // Intentar buscar otros patterns
-      console.log('   ⚠️ No se encontró form action. Buscando patrones alternativos...');
-      
-      // Buscar API endpoints en el JS
-      const apiMatch = authPageHtml.match(/["'](https?:\/\/[^"']*(?:auth|login|signin)[^"']*)["']/gi);
-      if (apiMatch) {
-        console.log(`   → APIs encontradas: ${apiMatch.slice(0, 5).join(', ')}`);
-      }
+    let extractedGrowthData = null;
 
-      // Buscar data attributes o configuración
-      const configMatch = authPageHtml.match(/window\.__CONFIG__\s*=\s*({[^}]+})/);
-      if (configMatch) {
-        console.log(`   → Config encontrada: ${configMatch[1].substring(0, 300)}`);
-      }
-    }
-
-    // === PASO 3: Enviar credenciales al formulario ===
-    if (formAction) {
-      console.log('🔑 Paso 3: Enviando credenciales...');
-      
-      // Construir la URL completa del form action
-      let loginUrl = formAction;
-      if (formAction.startsWith('/')) {
-        const authOrigin = new URL(authPageUrl).origin;
-        loginUrl = authOrigin + formAction;
-      } else if (!formAction.startsWith('http')) {
-        loginUrl = new URL(formAction, authPageUrl).href;
-      }
-      // Decode HTML entities
-      loginUrl = loginUrl.replace(/&amp;/g, '&');
-      console.log(`   → Login URL: ${loginUrl.substring(0, 100)}...`);
-
-      // Construir form data
-      const formData = new URLSearchParams();
-      // Agregar campos hidden
-      for (const [key, value] of Object.entries(hiddenInputs)) {
-        formData.append(key, value);
-      }
-      // Agregar credenciales (probar varios nombres de campo)
-      formData.append('email', natura_email);
-      formData.append('username', natura_email);
-      formData.append('password', natura_password);
-
-      const loginRes = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Origin': new URL(authPageUrl).origin,
-          'Referer': authPageUrl,
-          'Cookie': cookies,
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-        body: formData.toString(),
-        redirect: 'follow'
-      });
-
-      console.log(`   → Status: ${loginRes.status}`);
-      console.log(`   → URL final: ${loginRes.url}`);
-      cookies = extractCookies(loginRes, cookies);
-      
-      const loginResponseText = await loginRes.text();
-      const isBackOnNatura = loginRes.url.includes('minegocio.natura-avon.com.mx');
-      console.log(`   → De vuelta en Natura: ${isBackOnNatura}`);
-
-      if (isBackOnNatura) {
-        // === PASO 4: Ya autenticados, buscar el API de growthplan ===
-        console.log('📊 Paso 4: Obteniendo datos de crecimiento...');
-
-        // Probar varias URLs del API de growthplan
-        const growthUrls = [
-          'https://minegocio.natura-avon.com.mx/api/growthplan',
-          'https://minegocio.natura-avon.com.mx/api/consultant/growthplan',
-          'https://minegocio.natura-avon.com.mx/api/v1/growthplan',
-          'https://minegocio.natura-avon.com.mx/api/consultant-level',
-        ];
-
-        for (const url of growthUrls) {
-          try {
-            console.log(`   Probando: ${url}`);
-            const gRes = await fetch(url, {
-              headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-                'Accept': 'application/json',
-                'Cookie': cookies,
-                'Referer': 'https://minegocio.natura-avon.com.mx/home'
-              }
-            });
-            console.log(`   → Status: ${gRes.status}`);
-            
-            const contentType = gRes.headers.get('content-type') || '';
-            if (contentType.includes('json')) {
-              const data = await gRes.json();
-              console.log(`   → JSON: ${JSON.stringify(data).substring(0, 300)}`);
-              
-              if (data?.data?.consultantLevel) {
-                console.log('✅ ¡Datos de crecimiento obtenidos!');
-                return res.json({ success: true, data: data.data.consultantLevel });
-              }
-            } else {
-              const text = await gRes.text();
-              console.log(`   → No es JSON (${contentType}): ${text.substring(0, 100)}`);
-            }
-          } catch (e) {
-            console.log(`   → Error: ${e.message}`);
+    // Interceptar respuesta del API de growthplan
+    page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('growthplan') || url.includes('growth-plan') || url.includes('consultantLevel')) {
+        try {
+          const body = await response.json();
+          if (body?.data?.consultantLevel) {
+            extractedGrowthData = body.data.consultantLevel;
+            console.log('🎯 Payload de Crecimiento Interceptado!');
+          } else if (body?.consultantLevel) {
+            extractedGrowthData = body.consultantLevel;
+            console.log('🎯 Payload de Crecimiento Interceptado (alt)!');
           }
-        }
-        
-        // Si llegamos aquí, buscar en el HTML de la página las URLs del API
-        console.log('🔍 Buscando URLs de API en el HTML...');
-        const apiUrls = loginResponseText.match(/https?:\/\/[^"'\s]+growthplan[^"'\s]*/gi);
-        if (apiUrls) {
-          console.log(`   → URLs de growthplan en HTML: ${apiUrls.join(', ')}`);
-        }
-        
-        // Buscar cualquier endpoint de API
-        const allApiUrls = loginResponseText.match(/https?:\/\/[^"'\s]*api[^"'\s]*/gi);
-        if (allApiUrls) {
-          const unique = [...new Set(allApiUrls)].slice(0, 10);
-          console.log(`   → URLs de API encontradas: ${unique.join('\n     ')}`);
+        } catch {}
+      }
+    });
+
+    // Navegar al login
+    console.log('🌐 Navegando a Natura...');
+    await page.goto('https://minegocio.natura-avon.com.mx/home', { 
+      waitUntil: 'networkidle',
+      timeout: 45000 
+    });
+    console.log(`✅ Página cargada. URL: ${page.url().substring(0, 80)}...`);
+    await page.waitForTimeout(3000);
+
+    // --- PASO 1: Cambiar dropdown MUI a E-mail si es correo ---
+    if (natura_email.includes('@')) {
+      console.log('📧 Cambiando selector a E-mail...');
+      const dropdown = page.locator('div[role="combobox"]').first();
+      if (await dropdown.isVisible({ timeout: 8000 }).catch(() => false)) {
+        await dropdown.click();
+        await page.waitForTimeout(1500);
+        const emailOption = page.locator('li[role="option"]', { hasText: 'E-mail' });
+        if (await emailOption.isVisible({ timeout: 5000 }).catch(() => false)) {
+          await emailOption.click();
+          console.log('   ✅ Selector cambiado a E-mail.');
+          await page.waitForTimeout(1500);
+        } else {
+          console.log('   ⚠️ Opción E-mail no encontrada.');
         }
       } else {
-        // Login falló - estamos todavía en la página de auth
-        console.log('❌ Login falló. Analizando respuesta...');
-        const errorSnippet = loginResponseText.substring(0, 500).replace(/\s+/g, ' ');
-        console.log(`   → Respuesta: ${errorSnippet}`);
+        console.log('   ⚠️ Dropdown no visible. Buscando alternativas...');
+        // Intentar click en cualquier select visible
+        const anySelect = page.locator('select, [role="listbox"]').first();
+        if (await anySelect.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await anySelect.click();
+          console.log('   → Encontrado select alternativo.');
+        }
       }
     }
 
-    throw new Error('No se pudieron obtener los datos. Revisa los logs para más detalles.');
+    // --- PASO 2: Llenar usuario ---
+    console.log('✏️ Buscando campo de usuario...');
+    const userField = page.locator('input[placeholder*="E-mail"], input[placeholder*="Consultora"], input[placeholder*="usuario"], input[type="email"], input[name="email"], input[name="username"]').first();
+    if (await userField.isVisible({ timeout: 8000 }).catch(() => false)) {
+      console.log('   ✅ Campo encontrado. Escribiendo...');
+      await userField.fill(natura_email);
+      await page.waitForTimeout(500);
+    } else {
+      // Buscar cualquier input de texto visible
+      console.log('   ⚠️ Campo estándar no encontrado. Buscando cualquier input...');
+      const inputs = page.locator('input[type="text"], input[type="email"], input:not([type="password"]):not([type="hidden"])');
+      const count = await inputs.count();
+      console.log(`   → ${count} inputs encontrados.`);
+      if (count > 0) {
+        await inputs.first().fill(natura_email);
+        console.log('   ✅ Email escrito en primer input.');
+      }
+    }
+    await page.waitForTimeout(500);
+
+    // --- PASO 3: Llenar contraseña ---
+    console.log('🔑 Buscando campo de contraseña...');
+    const pwdField = page.locator('input[type="password"]').first();
+    if (await pwdField.isVisible({ timeout: 5000 }).catch(() => false)) {
+      console.log('   ✅ Campo encontrado. Escribiendo...');
+      await pwdField.fill(natura_password);
+      await page.waitForTimeout(500);
+    } else {
+      console.log('   ❌ Campo de contraseña NO encontrado.');
+    }
+
+    // --- PASO 4: Click en login ---
+    console.log('🖱️ Buscando botón de login...');
+    const loginBtn = page.locator('button:has-text("INICIAR"), button:has-text("Iniciar"), button:has-text("Login"), button:has-text("Entrar"), button[type="submit"]').first();
+    if (await loginBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      console.log('   ✅ Botón encontrado. Clickeando...');
+      await loginBtn.click();
+    } else {
+      console.log('   ⚠️ Botón no visible, usando Enter...');
+      await pwdField.press('Enter').catch(() => {});
+    }
+    
+    console.log('⏳ Esperando navegación post-login...');
+    await page.waitForTimeout(5000);
+    console.log(`   URL actual: ${page.url().substring(0, 80)}...`);
+
+    // --- PASO 5: Esperar datos ---
+    console.log('⏳ Esperando datos del API de crecimiento...');
+    for (let i = 0; i < 60; i++) {
+      if (extractedGrowthData) break;
+      await page.waitForTimeout(1000);
+      if (i % 15 === 0 && i > 0) {
+        console.log(`   ... ${i}s esperando. URL: ${page.url().substring(0, 60)}`);
+      }
+    }
+
+    if (!extractedGrowthData) {
+      const currentUrl = page.url();
+      console.error(`❌ Timeout. URL final: ${currentUrl}`);
+      throw new Error(`Timeout: datos no interceptados. URL: ${currentUrl}`);
+    }
+
+    console.log('✅ Sync exitoso!');
+    res.json({ success: true, data: extractedGrowthData });
 
   } catch (err) {
     console.error('❌ Error:', err.message);
     res.status(500).json({ success: false, error: err.message });
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+      console.log('🔒 Browser cerrado.');
+    }
   }
 });
 
