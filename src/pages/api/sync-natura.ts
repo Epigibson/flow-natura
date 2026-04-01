@@ -1,13 +1,11 @@
 import type { APIRoute } from 'astro';
-import { exec } from 'child_process';
-import path from 'path';
-import fs from 'fs';
 import { createClient } from '@supabase/supabase-js';
 import { decrypt } from '../../utils/crypto';
 
 export const prerender = false;
 
-const scriptPath = path.resolve('scripts/scrape-nivel-auto.mjs');
+const SCRAPER_URL = import.meta.env.SCRAPER_SERVICE_URL || 'http://localhost:3001';
+const SCRAPER_SECRET = import.meta.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -35,57 +33,42 @@ export const POST: APIRoute = async ({ request }) => {
     // 2. Decrypt password
     const plainPassword = decrypt(profile.natura_password_encrypted);
     
-    // Archivo temporal para los datos extraídos
-    const tempFile = path.join(process.cwd(), `.tmp_growth_${userId}.json`);
+    console.log(`📡 Enviando solicitud al Scraper Service para ${profile.natura_email.substring(0, 5)}***...`);
 
-    return new Promise((resolve) => {
-      console.log(`📡 Solicitud de sincronización de ${profile.natura_email}...`);
-      
-      const childEnv = {
-          ...process.env,
-          NATURA_USER: profile.natura_email,
-          NATURA_PASS: plainPassword,
-          OUT_FILE: tempFile
-      };
-
-      const command = `node ${scriptPath}`;
-
-      exec(command, { env: childEnv }, async (err, stdout, stderr) => {
-        if (err) {
-          console.error(`❌ Error scraper: ${err.message}`);
-          console.error(stderr);
-          resolve(new Response(JSON.stringify({ 
-              success: false, 
-              error: `Fallo al ejecutar bot: ${err.message}. STDERR: ${stderr}` 
-          }), { status: 500 }));
-          return;
-        }
-
-        console.log(`✅ Scraper success:\n${stdout}`);
-
-        try {
-          if (fs.existsSync(tempFile)) {
-             const resultData = JSON.parse(fs.readFileSync(tempFile, 'utf-8'));
-             // 3. Update DB with new growth data
-             await supabaseAdmin.from('consultant_profiles').update({
-                 latest_growth_data: resultData,
-                 growth_sync_date: new Date().toISOString()
-             }).eq('id', userId);
-
-             fs.unlinkSync(tempFile); // clean up
-          } else {
-             resolve(new Response(JSON.stringify({ success: false, error: 'Scraper didn\'t output data.' }), { status: 500 }));
-             return;
-          }
-          
-          resolve(new Response(JSON.stringify({ success: true }), { status: 200 }));
-        } catch(fileErr) {
-          console.error('Error parsing/saving sync data:', fileErr);
-          resolve(new Response(JSON.stringify({ success: false, error: 'Error procesando datos extraídos.' }), { status: 500 }));
-        }
-      });
+    // 3. Call the external Render scraper service
+    const scraperResponse = await fetch(`${SCRAPER_URL}/scrape`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': SCRAPER_SECRET
+      },
+      body: JSON.stringify({
+        natura_email: profile.natura_email,
+        natura_password: plainPassword
+      })
     });
+
+    const scraperResult = await scraperResponse.json();
+
+    if (!scraperResponse.ok || !scraperResult.success) {
+      console.error('❌ Error del Scraper Service:', scraperResult.error);
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: `Error de sincronización: ${scraperResult.error}` 
+      }), { status: 500 });
+    }
+
+    // 4. Save growth data to DB
+    console.log('✅ Datos recibidos del scraper. Guardando en base de datos...');
+    await supabaseAdmin.from('consultant_profiles').update({
+      latest_growth_data: scraperResult.data,
+      growth_sync_date: new Date().toISOString()
+    }).eq('id', userId);
+
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+
   } catch(e: any) {
+    console.error('Error en sync-natura:', e);
     return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500 });
   }
 };

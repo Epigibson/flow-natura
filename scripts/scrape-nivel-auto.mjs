@@ -52,29 +52,57 @@ const PASSWORD = process.env.NATURA_PASS || 'tucontraseña';
 
     console.log('🤖 Tratando de auto-completar el Login...');
     
-    // Esperar a que los inputs aparezcan (puede redirigir a GSP/Auth0)
+    // Esperar a que el formulario cargue completamente
     await page.waitForTimeout(3000);
     
-    // Intentar ubicar el campo de correo (suele ser identifier, username, o type email)
-    const emailField = page.locator('input[type="email"], input[name="identifier"], input[name="username"], input[id*="user"]').first();
-    
-    // Si lo encuentra, llenarlo
-    if (await emailField.isVisible({ timeout: 5000 }).catch(() => false)) {
-      console.log('   Escribiendo email...');
-      await emailField.fill(USERNAME);
-      await page.keyboard.press('Enter');
-      await page.waitForTimeout(2000); // Esperar animación
-      
-      const pwdField = page.locator('input[type="password"], input[name="password"], input[id*="password"]').first();
+    // --- PASO 1: Cambiar el dropdown MUI de "Código" a "E-mail" si el usuario usa correo ---
+    if (USERNAME.includes('@')) {
+      console.log('   📧 Detectado email. Cambiando selector a E-mail...');
+      const dropdown = page.locator('div[role="combobox"]').first();
+      if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await dropdown.click();
+        await page.waitForTimeout(1000);
+        // Seleccionar la opción "E-mail" del menú desplegable MUI
+        const emailOption = page.locator('li[role="option"]', { hasText: 'E-mail' });
+        if (await emailOption.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await emailOption.click();
+          console.log('   ✅ Selector cambiado a E-mail.');
+          await page.waitForTimeout(1000);
+        } else {
+          console.log('   ⚠️ No se encontró la opción E-mail en el dropdown.');
+        }
+      }
+    }
+
+    // --- PASO 2: Llenar el campo de usuario ---
+    const userField = page.locator('input[placeholder*="E-mail"], input[placeholder*="Consultora"], input[type="email"], input[type="text"]').first();
+    if (await userField.isVisible({ timeout: 5000 }).catch(() => false)) {
+      console.log('   Escribiendo usuario...');
+      await userField.fill(USERNAME);
+      await page.waitForTimeout(500);
+
+      // --- PASO 3: Llenar contraseña ---
+      const pwdField = page.locator('input[type="password"]').first();
       if (await pwdField.isVisible({ timeout: 5000 }).catch(() => false)) {
-         console.log('   Escribiendo contraseña...');
-         await pwdField.fill(PASSWORD);
-         await page.keyboard.press('Enter');
+        console.log('   Escribiendo contraseña...');
+        await pwdField.fill(PASSWORD);
+        await page.waitForTimeout(500);
+
+        // --- PASO 4: Hacer clic en INICIAR SESIÓN ---
+        console.log('   Haciendo clic en INICIAR SESIÓN...');
+        const loginBtn = page.locator('button', { hasText: 'INICIAR SESIÓN' });
+        if (await loginBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await loginBtn.click();
+        } else {
+          // Fallback: presionar Enter en el campo de contraseña
+          await pwdField.press('Enter');
+        }
+        await page.waitForTimeout(3000);
       } else {
-         console.log('   ⚠️ No se encontró el campo de contraseña.');
+        console.log('   ⚠️ No se encontró el campo de contraseña.');
       }
     } else {
-      console.log('   ⚠️ No se encontró el campo de correo directamente. (Posible sesión ya activa)');
+      console.log('   ⚠️ No se encontró el campo de usuario. (Posible sesión ya activa)');
     }
 
     console.log('⏳ Esperando datos del API...');
