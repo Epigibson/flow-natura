@@ -35,33 +35,17 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   let browser = null;
 
   try {
-    // === PASO 1: Lanzar Chromium ultra-ligero ===
-    console.log('🔄 Lanzando Chromium...');
-    browser = await chromium.launch({
+    // === PASO 1: Lanzar Firefox ===
+    console.log('🔄 Lanzando Firefox para evadir Akamai...');
+    browser = await firefox.launch({
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process',
-        '--no-zygote',
-        '--disable-extensions',
-        '--disable-background-networking',
-        '--disable-default-apps',
-        '--disable-sync',
-        '--disable-translate',
-        '--metrics-recording-only',
-        '--no-first-run',
-        '--disable-http2', // ESTE ERA EL QUE SOLUCIONABA EL PROTOCOL_ERROR
-        '--disable-blink-features=AutomationControlled', // Evadir detección de bot básica
-      ],
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
       ignoreHTTPSErrors: true
     });
-    console.log('✅ Chromium lanzado.');
+    console.log('✅ Firefox lanzado.');
 
     const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
       locale: 'es-MX',
       timezoneId: 'America/Mexico_City',
       viewport: { width: 1280, height: 720 },
