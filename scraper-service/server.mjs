@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import crypto from 'crypto';
+import CryptoJS from 'crypto-js';
 
 const app = express();
 app.use(cors());
@@ -11,8 +11,8 @@ const API_SECRET = process.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
 const NATURA_AUTH_DOMAIN = 'natura-auth.prd.naturacloud.com';
 const NATURA_CLIENT_ID = '31ndsgochinbk61v3jk8dhsf2o';
-const COGNITO_REGION = 'us-east-1';
 const AUTH_API_BASE = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
+const NATURA_BASE_URL = 'https://minegocio.natura-avon.com.mx';
 
 function authMiddleware(req, res, next) {
   if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
@@ -25,6 +25,28 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'natura-scraper' });
 });
 
+/**
+ * Extrae TODAS las variables VITE_APP_ del JS bundle
+ */
+async function extractViteConfig(js) {
+  const config = {};
+  
+  // Buscar todas las asignaciones VITE_APP_*:"valor"
+  const vitePattern = /VITE_APP_([A-Z_]+)\s*:\s*"([^"]+)"/g;
+  let match;
+  while ((match = vitePattern.exec(js)) !== null) {
+    config[`VITE_APP_${match[1]}`] = match[2];
+  }
+
+  // También buscar VITE_BASE_URL y similares
+  const vitePattern2 = /VITE_([A-Z_]+)\s*:\s*"([^"]+)"/g;
+  while ((match = vitePattern2.exec(js)) !== null) {
+    config[`VITE_${match[1]}`] = match[2];
+  }
+
+  return config;
+}
+
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
   if (!natura_email || !natura_password) {
@@ -36,191 +58,221 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   try {
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36',
-      'Accept': '*/*',
+      'Accept': 'application/json, text/plain, */*',
       'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // === PASO 1: Descargar JS de la auth page y analizar a fondo ===
-    console.log('📜 Paso 1: Analizando JS de la página de auth...');
+    // === PASO 1: Descargar JS y extraer config ===
+    console.log('📜 Paso 1: Extrayendo configuración del JS bundle...');
 
     const authPageRes = await fetch(`https://${NATURA_AUTH_DOMAIN}/?client_id=${NATURA_CLIENT_ID}&country=mx&language=es&company=natura`, {
       headers, redirect: 'follow', signal: AbortSignal.timeout(15000)
     });
     const authHtml = await authPageRes.text();
-    const scriptUrls = [...authHtml.matchAll(/src="([^"]+)"/g)].map(m => m[1]);
+    const appJsUrl = [...authHtml.matchAll(/src="([^"]+)"/g)]
+      .map(m => m[1])
+      .find(s => s.includes('assets/'));
 
-    // Solo descargar el JS de la app (no el de Akamai)
-    const appJsUrl = scriptUrls.find(s => s.includes('assets/'));
-    if (!appJsUrl) {
-      throw new Error('No se encontró el JS de la app.');
-    }
+    if (!appJsUrl) throw new Error('JS bundle no encontrado.');
 
-    const fullJsUrl = `https://${NATURA_AUTH_DOMAIN}${appJsUrl}`;
-    console.log(`   📥 Descargando: ${fullJsUrl}`);
-    const jsRes = await fetch(fullJsUrl, { headers, signal: AbortSignal.timeout(15000) });
-    const js = await jsRes.text();
-    console.log(`   → ${js.length} bytes`);
-
-    // Buscar TODOS los contextos donde se usa authentication-api
-    console.log('\n🔍 Analizando uso de authentication-api...');
-    const authApiContexts = [];
-    let idx = 0;
-    while (true) {
-      idx = js.indexOf('authentication-api', idx);
-      if (idx === -1) break;
-      const context = js.substring(Math.max(0, idx - 200), Math.min(js.length, idx + 200));
-      authApiContexts.push(context);
-      idx += 20;
-    }
-    console.log(`   ${authApiContexts.length} referencias encontradas:`);
-    authApiContexts.forEach((ctx, i) => {
-      console.log(`   [${i}] ...${ctx.replace(/\s+/g, ' ')}...`);
+    const jsRes = await fetch(`https://${NATURA_AUTH_DOMAIN}${appJsUrl}`, {
+      headers, signal: AbortSignal.timeout(15000)
     });
+    const js = await jsRes.text();
+    console.log(`   JS descargado: ${js.length} bytes`);
 
-    // Buscar x-api-key, apiKey, api_key en todo el JS
-    console.log('\n🔑 Buscando API keys...');
-    const apiKeyPatterns = [
-      /x-api-key['":\s]*['"]([^'"]+)['"]/gi,
-      /apiKey['":\s]*['"]([^'"]+)['"]/gi,
-      /api[_-]key['":\s]*['"]([^'"]+)['"]/gi,
-      /Authorization['":\s]*['"]([^'"]+)['"]/gi,
-    ];
-    for (const pattern of apiKeyPatterns) {
-      let match;
-      while ((match = pattern.exec(js)) !== null) {
-        console.log(`   🔑 ${match[0].substring(0, 80)}`);
+    // Extraer TODA la config Vite
+    const viteConfig = await extractViteConfig(js);
+    console.log('   📋 Config Vite encontrada:');
+    for (const [key, value] of Object.entries(viteConfig)) {
+      console.log(`     ${key}: ${value.substring(0, 80)}`);
+    }
+
+    const apiToken = viteConfig['VITE_APP_API_TOKEN'];
+    if (!apiToken) {
+      // Buscar el token de otra forma - puede estar asignado de otra manera
+      console.log('   ⚠️ VITE_APP_API_TOKEN no encontrado en formato estándar.');
+      console.log('   🔍 Buscando API_TOKEN con patrones alternativos...');
+      
+      // Buscar cualquier string que se use después de x-api-key
+      const apiKeyUsage = js.match(/x-api-key['"]\s*:\s*([^,}\s]+)/g);
+      if (apiKeyUsage) {
+        console.log(`   x-api-key usages: ${apiKeyUsage.join(' | ')}`);
+      }
+
+      // Buscar la variable que contiene el token - "V" es el objeto de env
+      // Buscar la definición de V = { ... VITE_APP_API_TOKEN ... }
+      const tokenDefMatch = js.match(/API_TOKEN\s*:\s*"([^"]+)"/);
+      if (tokenDefMatch) {
+        console.log(`   🔑 API_TOKEN encontrado: ${tokenDefMatch[1].substring(0, 20)}...`);
+      }
+
+      // Buscar el token en todo el contexto del config
+      const configIdx = js.indexOf('VITE_APP_API_DOMAIN');
+      if (configIdx !== -1) {
+        // Extraer un gran bloque del config
+        const configBlock = js.substring(Math.max(0, configIdx - 1000), configIdx + 2000);
+        console.log('   📦 Bloque de config completo:');
+        
+        // Dividir en líneas lógicas
+        const entries = configBlock.split(',').filter(e => e.includes('VITE_') || e.includes('TOKEN') || e.includes('KEY') || e.includes('SECRET'));
+        entries.forEach(e => console.log(`     ${e.trim().substring(0, 120)}`));
+      }
+
+      throw new Error('API Token no encontrado. Revisa los logs.');
+    }
+
+    console.log(`\n🔑 API Token: ${apiToken.substring(0, 15)}...`);
+
+    // === PASO 2: Autenticarnos via el authentication-api ===
+    console.log('\n🔐 Paso 2: Autenticando via API...');
+
+    // Encriptar password con AES usando el username como key
+    const encryptedPassword = CryptoJS.AES.encrypt(natura_password, natura_email).toString();
+    console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
+
+    // Determinar el client ID correcto para México
+    // Del JS: "7resg001uav3j2c0fkvr40l52": ["co","pe","cl","ec","mx","ar"]
+    const clientIdsForMexico = ['31ndsgochinbk61v3jk8dhsf2o', '7resg001uav3j2c0fkvr40l52'];
+
+    for (const clientId of clientIdsForMexico) {
+      console.log(`\n   Probando con clientId: ${clientId}`);
+
+      // Probar diferentes paths del API
+      const loginPaths = ['', '/login', '/v1/login', '/authenticate', '/signin'];
+      
+      for (const path of loginPaths) {
+        try {
+          const loginUrl = `${AUTH_API_BASE}${path}`;
+          console.log(`   → POST ${loginUrl.split('.com')[1]}`);
+
+          const loginRes = await fetch(loginUrl, {
+            method: 'POST',
+            headers: {
+              ...headers,
+              'Content-Type': 'application/json',
+              'x-api-key': apiToken,
+              'Origin': `https://${NATURA_AUTH_DOMAIN}`,
+              'Referer': `https://${NATURA_AUTH_DOMAIN}/`,
+            },
+            body: JSON.stringify({
+              clientId: clientId,
+              country: 'mx',
+              company: 'natura',
+              username: natura_email,
+              password: encryptedPassword
+            }),
+            signal: AbortSignal.timeout(15000)
+          });
+
+          const respText = await loginRes.text();
+          console.log(`     Status: ${loginRes.status}`);
+          console.log(`     Body: ${respText.substring(0, 500)}`);
+
+          // Si obtenemos una respuesta exitosa
+          if (loginRes.ok) {
+            try {
+              const loginData = JSON.parse(respText);
+              console.log('   ✅ LOGIN EXITOSO!');
+              
+              // Extraer tokens
+              const tokens = loginData.AuthenticationResult || loginData.tokens || loginData;
+              const idToken = tokens.IdToken || tokens.idToken || tokens.id_token;
+              const accessToken = tokens.AccessToken || tokens.accessToken || tokens.access_token;
+              
+              if (idToken || accessToken) {
+                console.log('   🎫 Tokens obtenidos!');
+                
+                // Intentar obtener datos de crecimiento
+                const growthData = await fetchGrowthDataWithSession(
+                  idToken || accessToken, 
+                  loginData,
+                  headers
+                );
+                
+                if (growthData) {
+                  return res.json({ success: true, data: growthData });
+                }
+              }
+              
+              // Si la respuesta tiene redirect URL, seguirla
+              if (loginData.redirectUrl || loginData.redirect_url || loginData.url) {
+                const redirectUrl = loginData.redirectUrl || loginData.redirect_url || loginData.url;
+                console.log(`   📎 Redirect: ${redirectUrl}`);
+              }
+
+              // Devolver lo que tengamos
+              return res.json({ success: true, data: loginData });
+            } catch (e) {
+              console.log(`   Parse error: ${e.message}`);
+            }
+          }
+
+          // Si es 401/403 con mensaje específico, probablemente path incorrecto
+          if (loginRes.status === 403 && respText.includes('Missing Authentication Token')) {
+            continue; // Path no existe
+          }
+
+          // Si hay otro error, loggearlo
+          if (loginRes.status >= 400) {
+            // Si el error indica credenciales malas, no seguir probando paths
+            if (respText.includes('NotAuthorized') || respText.includes('invalid')) {
+              console.log('   ❌ Credenciales rechazadas por este endpoint.');
+            }
+          }
+
+        } catch (e) {
+          console.log(`     Error: ${e.message?.substring(0, 60)}`);
+        }
       }
     }
 
-    // Buscar fetch/axios/http calls cerca de la auth URL
-    console.log('\n📡 Buscando patrones de llamadas HTTP...');
-    const fetchPatterns = [
-      /fetch\s*\([^)]{0,500}\)/g,
-      /\.post\s*\([^)]{0,500}\)/g,
-      /\.get\s*\([^)]{0,500}\)/g,
-      /axios[^;]{0,300}/g,
-      /headers\s*:\s*\{[^}]{0,500}\}/g,
-    ];
-    for (const pattern of fetchPatterns) {
-      const matches = [...js.matchAll(pattern)];
-      if (matches.length > 0) {
-        console.log(`   Pattern ${pattern.source.substring(0, 20)}...:`);
-        matches.slice(0, 8).forEach(m => {
-          const text = m[0].replace(/\s+/g, ' ').substring(0, 150);
-          console.log(`     → ${text}`);
-        });
-      }
-    }
-
-    // Buscar constantes importantes (cualquier string que parezca un secret/key)
-    console.log('\n🔤 Buscando constantes importantes...');
-    // Strings largoas alfanuméricas que podrían ser secrets
-    const longStrings = [...new Set(js.match(/['"][a-zA-Z0-9]{30,}['"]/g) || [])];
-    if (longStrings.length > 0) {
-      console.log(`   Strings largos (posibles secrets):`);
-      longStrings.slice(0, 15).forEach(s => console.log(`     → ${s}`));
-    }
-
-    // Buscar SRP o secret hash patterns
-    console.log('\n🔐 Buscando patrones de autenticación...');
-    const authPatterns = [
-      /SRP/g, /SECRET/g, /HASH/g, /PASSWORD/g, 
-      /signIn/g, /login/g, /authenticate/g,
-      /initiateAuth/g, /respondToAuth/g,
-      /CognitoUser/g, /AuthenticationDetails/g,
-      /USER_SRP_AUTH/g, /USER_PASSWORD_AUTH/g,
-    ];
-    for (const ap of authPatterns) {
-      const matches = [...js.matchAll(ap)];
-      if (matches.length > 0) {
-        // Get context around first match
-        const firstIdx = matches[0].index;
-        const context = js.substring(Math.max(0, firstIdx - 100), Math.min(js.length, firstIdx + 100)).replace(/\s+/g, ' ');
-        console.log(`   ${ap.source} (${matches.length}x): ...${context.substring(0, 150)}...`);
-      }
-    }
-
-    // === PASO 2: Probar el authentication-api con varios enfoques ===
-    console.log('\n📡 Paso 2: Probando authentication-api...');
-
-    const authApiPaths = [
-      '/login', '/signin', '/authenticate', '/auth',
-      '/v1/login', '/v1/authenticate', '/token',
-      '/cognito/login', '/users/login',
-      '', // root
-    ];
-
-    for (const path of authApiPaths) {
-      const url = `${AUTH_API_BASE}${path}`;
-      try {
-        // POST con credenciales
-        const authRes = await fetch(url, {
-          method: 'POST',
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-            'Origin': `https://${NATURA_AUTH_DOMAIN}`,
-            'Referer': `https://${NATURA_AUTH_DOMAIN}/`,
-          },
-          body: JSON.stringify({
-            email: natura_email,
-            password: natura_password,
-            username: natura_email,
-            clientId: NATURA_CLIENT_ID,
-            country: 'mx',
-            company: 'natura'
-          }),
-          signal: AbortSignal.timeout(8000)
-        });
-
-        const contentType = authRes.headers.get('content-type') || '';
-        const body = await authRes.text();
-        console.log(`   POST ${path || '/'} → ${authRes.status}`);
-        if (body.length < 500) console.log(`     ${body}`);
-      } catch (e) {
-        console.log(`   POST ${path || '/'} → ${e.message?.substring(0, 50)}`);
-      }
-    }
-
-    // También probar GET endpoints
-    for (const path of ['/config', '/settings', '/health', '/.well-known/openid-configuration']) {
-      const url = `${AUTH_API_BASE}${path}`;
-      try {
-        const gRes = await fetch(url, {
-          headers: { ...headers, 'Accept': 'application/json' },
-          signal: AbortSignal.timeout(5000)
-        });
-        const body = await gRes.text();
-        console.log(`   GET ${path} → ${gRes.status}: ${body.substring(0, 200)}`);
-      } catch (e) {
-        console.log(`   GET ${path} → ${e.message?.substring(0, 50)}`);
-      }
-    }
-
-    // Probar el dominio de Cognito directamente
-    console.log('\n🌐 Probando Cognito hosted UI endpoints...');
-    const cognitoEndpoints = [
-      `https://${NATURA_AUTH_DOMAIN}/.well-known/openid-configuration`,
-      `https://${NATURA_AUTH_DOMAIN}/.well-known/jwks.json`,
-    ];
-    for (const url of cognitoEndpoints) {
-      try {
-        const gRes = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
-        const body = await gRes.text();
-        console.log(`   ${url.split('.com')[1]} → ${gRes.status}`);
-        if (body.length < 1000) console.log(`     ${body.substring(0, 500)}`);
-      } catch (e) {
-        console.log(`   → ${e.message?.substring(0, 60)}`);
-      }
-    }
-
-    throw new Error('Análisis completo. Revisa los logs.');
+    throw new Error('No se pudo autenticar. Revisa los logs.');
 
   } catch (err) {
     console.error('❌', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+/**
+ * Con un token de sesión, intenta obtener datos de crecimiento
+ */
+async function fetchGrowthDataWithSession(token, loginResponse, baseHeaders) {
+  console.log('\n📊 Buscando datos de crecimiento...');
+  
+  const growthUrls = [
+    `${NATURA_BASE_URL}/api/growthplan`,
+    `${NATURA_BASE_URL}/bff/growthplan`,
+    `${NATURA_BASE_URL}/api/consultant/growthplan`,
+  ];
+
+  for (const url of growthUrls) {
+    try {
+      const gRes = await fetch(url, {
+        headers: {
+          ...baseHeaders,
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+
+      const ct = gRes.headers.get('content-type') || '';
+      if (ct.includes('json')) {
+        const data = await gRes.json();
+        console.log(`   ${url} → ${gRes.status}: ${JSON.stringify(data).substring(0, 200)}`);
+        if (data?.data?.consultantLevel) return data.data.consultantLevel;
+        if (data?.consultantLevel) return data.consultantLevel;
+      } else {
+        console.log(`   ${url} → ${gRes.status} (${ct})`);
+      }
+    } catch (e) {
+      console.log(`   ${url} → ${e.message?.substring(0, 60)}`);
+    }
+  }
+  return null;
+}
 
 app.listen(PORT, () => {
   console.log(`🔧 Natura Scraper Service en puerto ${PORT}`);
