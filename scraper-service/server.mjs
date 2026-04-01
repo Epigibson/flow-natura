@@ -82,7 +82,9 @@ app.post('/scrape', authMiddleware, async (req, res) => {
         const links = document.querySelectorAll('a, button, [role="tab"], .nav-link, [data-toggle]');
         for (const link of links) {
           const text = link.textContent?.toLowerCase() || '';
-          if (text.includes('username') || text.includes('password') || text.includes('sign in with your user')) {
+          const isTab = text.includes('sign in with your username') || text.includes('username and password');
+          const isForgot = text.includes('forgot') || text.includes('reset');
+          if (isTab && !isForgot) {
             link.click();
             return text.trim().substring(0, 50);
           }
