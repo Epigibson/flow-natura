@@ -87,55 +87,70 @@ async function authenticateViaNatura(email, password) {
 
   // ====================================================================
   // MÉTODO 1: Natura authentication-api (como lo hace el frontend React)
+  // Intentamos varias rutas por si el path es diferente
   // ====================================================================
-  try {
-    console.log('📡 [1/3] Natura authentication-api...');
-    const encryptedPassword = encryptPassword(password);
-    console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
+  const API_URLS = [
+    'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api/login',
+    'https://authenticator-cognito-apigw.prd.naturacloud.com/login',
+    'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api',
+    'https://authenticator-cognito-apigw.prd.naturacloud.com/prd/authentication-api/login',
+  ];
 
-    const body = {
-      clientId: CONFIG.CLIENT_ID,
-      company: CONFIG.COMPANY,
-      country: CONFIG.COUNTRY,
-      password: encryptedPassword,
-      recaptchaToken: null,
-      redirectUrl: CONFIG.NATURA_BASE + '/',
-      username: email,
-    };
+  const encryptedPassword = encryptPassword(password);
+  console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
 
-    const response = await fetch(CONFIG.NATURA_API, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CONFIG.NATURA_API_KEY,
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-        'Accept': 'application/json, text/plain, */*',
-        'Origin': 'https://natura-auth.prd.naturacloud.com',
-        'Referer': 'https://natura-auth.prd.naturacloud.com/',
-        'Accept-Language': 'es-MX,es;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-      },
-      body: JSON.stringify(body),
-      signal: AbortSignal.timeout(20000),
-    });
+  const body = {
+    clientId: CONFIG.CLIENT_ID,
+    company: CONFIG.COMPANY,
+    country: CONFIG.COUNTRY,
+    password: encryptedPassword,
+    recaptchaToken: null,
+    redirectUrl: CONFIG.NATURA_BASE + '/',
+    username: email,
+  };
 
-    const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+  for (const apiUrl of API_URLS) {
+    try {
+      console.log(`📡 [1] Natura API → ${apiUrl}`);
 
-    if (response.ok && (data?.data?.id_token || data?.data?.IdToken || data?.id_token || data?.AuthenticationResult)) {
-      console.log('   ✅ ¡Login exitoso via Natura API!');
-      const tokens = data?.data || data?.AuthenticationResult || data;
-      return {
-        id_token: tokens.id_token || tokens.IdToken,
-        access_token: tokens.access_token || tokens.AccessToken,
-        refresh_token: tokens.refresh_token || tokens.RefreshToken,
-        expires_in: tokens.expires_in || tokens.ExpiresIn,
-      };
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CONFIG.NATURA_API_KEY,
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+          'Accept': 'application/json, text/plain, */*',
+          'Origin': 'https://natura-auth.prd.naturacloud.com',
+          'Referer': 'https://natura-auth.prd.naturacloud.com/',
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000),
+      });
+
+      const responseText = await response.text();
+      console.log(`   Status: ${response.status}`);
+      console.log(`   Response: ${responseText.substring(0, 400)}`);
+
+      // Si NO es 403 "Missing Authentication Token", procesamos
+      if (response.status !== 403) {
+        try {
+          const data = JSON.parse(responseText);
+          if (data?.data?.id_token || data?.id_token || data?.AuthenticationResult) {
+            console.log('   ✅ ¡Login exitoso!');
+            const tokens = data?.data || data?.AuthenticationResult || data;
+            return {
+              id_token: tokens.id_token || tokens.IdToken,
+              access_token: tokens.access_token || tokens.AccessToken,
+              refresh_token: tokens.refresh_token || tokens.RefreshToken,
+              expires_in: tokens.expires_in || tokens.ExpiresIn,
+            };
+          }
+        } catch (e) { /* not JSON */ }
+      }
+      console.log(`   ❌ ${response.status} en ${apiUrl}`);
+    } catch (err) {
+      console.log(`   ❌ Error: ${err.message}`);
     }
-    console.log(`   ❌ Natura API falló (${response.status})`);
-  } catch (err) {
-    console.log(`   ❌ Natura API error: ${err.message}`);
   }
 
   // ====================================================================
