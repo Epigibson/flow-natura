@@ -116,7 +116,8 @@ import PageLoader from '../components/PageLoader.astro';
       <div class="relative z-10 shrink-0 flex flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
         <button id="btn-sync-growth" class="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/20 hover:scale-[1.02] transition-all group overflow-hidden relative">
           <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
-          <span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">sync</span> Sincronizar
+          <span id="btn-sync-icon" class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">sync</span> 
+          <span id="btn-sync-text">Sincronizar</span>
         </button>
       </div>
     </div>
@@ -379,33 +380,52 @@ import PageLoader from '../components/PageLoader.astro';
     });
   }
 
-  // Handle Sincronizar — Abre modal con instrucciones para el .exe de escritorio
+  // Handle Sincronizar — Abre modal interactivo
   const btnSyncGrowth = document.getElementById('btn-sync-growth') as HTMLButtonElement;
   if (btnSyncGrowth) {
     btnSyncGrowth.addEventListener('click', () => {
-      // Create modal overlay
+      const hasSyncedBefore = !!profile.growth_sync_date;
+      
       const overlay = document.createElement('div');
       overlay.id = 'sync-modal-overlay';
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease';
       
-      overlay.innerHTML = `
-        <div style="background:rgba(30,30,40,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:36px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      const contentHasSynced = `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">✅</div>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronización Activa</h3>
+          </div>
+          <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.7;margin-bottom:20px;">
+            Tu computadora ya tiene configurada la sincronización <strong>automática y silenciosa</strong> gracias a <strong style="color:#10b981">Natura Manager Sync</strong>.
+          </p>
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:20px;">
+            <p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.6;margin:0;">
+               Tus puntos se han actualizado al ras del arranque del sistema. Si aún deseas forzar un escaneo nuevo en este preciso instante, <strong>solo dale doble click a NaturaManager-Sync.exe</strong> en la carpeta de descargas o escritorio de tu PC.
+            </p>
+          </div>
+          <button onclick="this.closest('#sync-modal-overlay').remove()" 
+                  style="display:block;width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);border-radius:12px;color:#fff;font-weight:600;font-size:15px;cursor:pointer;border:none;">
+            Entendido
+          </button>
+      `;
+
+      const contentNeedsInstall = `
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
             <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🔄</div>
             <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronizar con Natura</h3>
           </div>
           <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.7;margin-bottom:20px;">
-            tus datos se sincronizan <strong>automáticamente en segundo plano</strong> gracias a <strong style="color:#10b981">Natura Manager Sync</strong>. 
-            No necesitas hacer nada más si ya lo instalaste en tu computadora.
+            Tus datos se sincronizarán <strong>automáticamente en segundo plano</strong> gracias a <strong style="color:#10b981">Natura Manager Sync</strong>. 
+            Es invisible y solo necesitas instalarlo una vez.
           </p>
           <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px;margin-bottom:20px;">
             <p style="color:rgba(255,255,255,0.7);font-size:13px;line-height:1.8;margin:0;">
-              ✨ Se ejecuta de forma invisible y segura al encender tu PC.<br>
+              ✨ Se ejecuta de forma segura al encender tu PC.<br>
               ✨ Tus credenciales nunca salen de tu equipo principal.<br>
               ✨ Actualiza tus puntos automáticamente.
             </p>
           </div>
-          <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:10px;text-align:center;">¿Aún no lo tienes o cambiaste de computadora?</p>
+          <p style="color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:10px;text-align:center;">Descarga la herramienta aquí</p>
           <a href="https://github.com/Epigibson/flow-natura/releases/latest/download/NaturaManager-Sync.exe" 
              style="display:block;text-align:center;padding:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-weight:600;font-size:14px;text-decoration:none;transition:background 0.2s;"
              onmouseover="this.style.background='rgba(255,255,255,0.1)'"
@@ -416,12 +436,28 @@ import PageLoader from '../components/PageLoader.astro';
                   style="display:block;width:100%;margin-top:12px;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.5);font-size:13px;cursor:pointer;font-family:inherit;">
             Cerrar
           </button>
+      `;
+
+      overlay.innerHTML = `
+        <div style="background:rgba(30,30,40,0.95);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:36px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+          ${hasSyncedBefore ? contentHasSynced : contentNeedsInstall}
         </div>
       `;
       
       overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
       document.body.appendChild(overlay);
     });
+  }
+
+  if (profile.growth_sync_date) {
+    const btnSyncGrowth2 = document.getElementById('btn-sync-growth');
+    if (btnSyncGrowth2) {
+      btnSyncGrowth2.classList.remove('bg-primary', 'shadow-primary/20');
+      btnSyncGrowth2.classList.add('bg-surface-container-highest', 'border', 'border-outline-variant/30', 'text-on-surface');
+      document.getElementById('btn-sync-icon')!.textContent = 'cloud_done';
+      document.getElementById('btn-sync-icon')!.classList.add('text-primary');
+      document.getElementById('btn-sync-text')!.innerHTML = `Sincronizado`;
+    }
   }
 
   // ---- LOAD REAL DATA ----
