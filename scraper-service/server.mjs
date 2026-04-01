@@ -75,25 +75,29 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     console.log('📧 Llenando formulario...');
 
     // Esperar a que el formulario esté listo
-    await page.waitForSelector('input[name="username"]', { timeout: 10000 });
+    // Usar IDs específicos del formulario de Cognito (hay 2 forms, uno corporativo y uno de username)
+    await page.waitForSelector('#signInFormUsername', { timeout: 10000, state: 'attached' });
+    console.log('   Form encontrado ✅');
 
-    // Llenar campos
-    await page.fill('input[name="username"]', natura_email);
-    await page.fill('input[name="password"]', natura_password);
-
+    // Llenar campos usando IDs específicos
+    await page.fill('#signInFormUsername', natura_email);
+    await page.fill('#signInFormPassword', natura_password);
     console.log('   Username y password llenados ✅');
 
-    // Verificar que cognitoAsfData se haya generado
-    const asfData = await page.$eval('input[name="cognitoAsfData"]', el => el.value).catch(() => '');
-    console.log(`   cognitoAsfData: ${asfData ? asfData.substring(0, 50) + '...' : 'VACÍO'}`);
+    // Verificar que cognitoAsfData se haya generado por el ASF script
+    const asfData = await page.evaluate(() => {
+      const inputs = document.querySelectorAll('input[name="cognitoAsfData"]');
+      return Array.from(inputs).map(i => i.value?.substring(0, 50) || 'VACÍO');
+    });
+    console.log(`   cognitoAsfData: ${JSON.stringify(asfData)}`);
 
     // === PASO 4: Submit y capturar redirect ===
     console.log('🔐 Enviando login...');
 
-    // Escuchar la navegación resultante
+    // Click en el botón de sign in del form de username/password
     const [response] = await Promise.all([
       page.waitForNavigation({ waitUntil: 'commit', timeout: 30000 }),
-      page.click('input[type="submit"], button[type="submit"]'),
+      page.click('#signInFormSubmit, input[name="signInSubmitButton"]'),
     ]);
 
     const finalUrl = page.url();
