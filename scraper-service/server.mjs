@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import CryptoJS from 'crypto-js';
 
 const app = express();
 app.use(cors());
@@ -9,22 +8,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 
 const CONFIG = {
-  API_TOKEN: '2aa3706e-93b1-4b36-bb93-c76f5076d576',
-  AUTH_API: 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api',
-  COGNITO_LATAM: 'https://natura-global-prd.auth.us-east-1.amazoncognito.com',
-  COGNITO_BR: 'https://natura-global-br-prd.auth.us-east-1.amazoncognito.com',
-  ENCRYPTION_KEY: 'N@tur4=',
+  COGNITO_DOMAIN: 'https://natura-global-prd.auth.us-east-1.amazoncognito.com',
+  CLIENT_ID: '31ndsgochinbk61v3jk8dhsf2o',
+  REDIRECT_URI: 'https://minegocio.natura-avon.com.mx/',
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
-  // Todos los client IDs encontrados
-  CLIENT_IDS: [
-    '31ndsgochinbk61v3jk8dhsf2o',
-    '7resg001uav3j2c0fkvr40l52',
-    '2mclhp3ui6kf7pjrvh2kv6a6lq',
-    '3u0gp4t079j9g2m249gdghfghm',
-    '604b3ku8d95i7uo1s342rsauoa',
-    '3jgf6penoqk510pfjebdcbig8',
-    'd1ljdp0ikgk1edal2nc9e6qkn',
-  ]
 };
 
 function authMiddleware(req, res, next) {
@@ -51,176 +38,188 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // Variantes de redirect_uri a probar
-    const redirectUris = [
-      'https://minegocio.natura-avon.com.mx/natura-callback',
-      'https://minegocio.natura-avon.com.mx/natura-callback?return_url=home',
-      'https://minegocio.natura-avon.com.mx/',
-      'https://minegocio.natura-avon.com.mx',
-      'https://natura-auth.prd.naturacloud.com/callback',
-      'https://natura-auth.prd.naturacloud.com',
-    ];
+    // === PASO 1: Obtener formulario de login de Cognito ===
+    console.log('📋 Paso 1: Obteniendo formulario de login...');
+    
+    const loginPageUrl = `${CONFIG.COGNITO_DOMAIN}/login?client_id=${CONFIG.CLIENT_ID}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
+    
+    const loginPageRes = await fetch(loginPageUrl, {
+      headers,
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15000)
+    });
 
-    // Cognito domains a probar
-    const cognitoDomains = [CONFIG.COGNITO_LATAM, CONFIG.COGNITO_BR];
+    console.log(`   Status: ${loginPageRes.status}`);
+    const loginHtml = await loginPageRes.text();
+    console.log(`   HTML size: ${loginHtml.length}`);
 
-    console.log('🔐 Probando combinaciones de Cognito Hosted UI...\n');
+    // Extraer cookies (XSRF-TOKEN especialmente)
+    const setCookies = loginPageRes.headers.getSetCookie?.() || [];
+    const cookieStr = setCookies.map(c => c.split(';')[0]).join('; ');
+    console.log(`   Cookies: ${cookieStr.substring(0, 100)}`);
 
-    for (const cognitoDomain of cognitoDomains) {
-      const domainLabel = cognitoDomain.includes('-br-') ? 'BR' : 'LATAM';
+    // Extraer form action
+    const formAction = loginHtml.match(/form[^>]*action="([^"]+)"/i)?.[1];
+    console.log(`   Form action: ${formAction || 'NO ENCONTRADO'}`);
 
-      for (const clientId of CONFIG.CLIENT_IDS) {
-        for (const redirectUri of redirectUris) {
-          // Probar con response_type=token (implicit grant - da tokens directo)
-          const loginUrl = `${cognitoDomain}/login?client_id=${clientId}&response_type=token&scope=openid+email+profile&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    if (!formAction) {
+      // Log más HTML para debugging
+      console.log(`   HTML preview: ${loginHtml.substring(0, 500).replace(/\s+/g, ' ')}`);
+      
+      // Buscar cualquier tag form
+      const formTag = loginHtml.match(/<form[^>]*>/gi);
+      console.log(`   Forms encontrados: ${formTag?.length || 0}`);
+      formTag?.forEach(f => console.log(`     ${f}`));
+      
+      // Buscar inputs
+      const inputs = loginHtml.match(/<input[^>]*>/gi);
+      console.log(`   Inputs: ${inputs?.length || 0}`);
+      inputs?.forEach(i => console.log(`     ${i.substring(0, 100)}`));
 
-          try {
-            const loginRes = await fetch(loginUrl, {
-              headers,
-              redirect: 'follow',
-              signal: AbortSignal.timeout(8000)
-            });
+      // Buscar links y buttons
+      const buttons = loginHtml.match(/<button[^>]*>[^<]*<\/button>/gi);
+      console.log(`   Buttons: ${buttons?.length || 0}`);
+      buttons?.forEach(b => console.log(`     ${b}`));
 
-            const finalUrl = loginRes.url;
-            const status = loginRes.status;
+      // Buscar cualquier URL de acción
+      const actions = loginHtml.match(/action=['"]([^'"]+)['"]/gi);
+      console.log(`   Actions: ${actions?.join(', ') || 'NONE'}`);
 
-            // Si NO es 400, encontramos una combo válida!
-            if (status !== 400) {
-              console.log(`✅ ${domainLabel} | ${clientId.substring(0, 8)}... | ${redirectUri.split('.mx')[1] || redirectUri.split('.com')[1]}`);
-              console.log(`   Status: ${status}, URL: ${finalUrl.substring(0, 100)}`);
+      throw new Error('Form no encontrado. Revisa HTML.');
+    }
 
-              const html = await loginRes.text();
-              
-              // Buscar form
-              const formAction = html.match(/form[^>]*action="([^"]+)"/i)?.[1];
-              if (formAction) {
-                console.log(`   📋 Form action: ${formAction}`);
-                
-                // Extraer hidden inputs
-                const hiddens = {};
-                const hRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
-                let m;
-                while ((m = hRegex.exec(html)) !== null) {
-                  const n = m[0].match(/name=['"]([^'"]+)['"]/)?.[1];
-                  const v = m[0].match(/value=['"]([^'"]*)['"]/)?.[1];
-                  if (n) hiddens[n] = v || '';
-                }
-                console.log(`   Hidden: ${JSON.stringify(hiddens).substring(0, 200)}`);
+    // Extraer hidden inputs
+    const hiddens = {};
+    const hRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
+    let m;
+    while ((m = hRegex.exec(loginHtml)) !== null) {
+      const name = m[0].match(/name=['"]([^'"]+)['"]/)?.[1];
+      const value = m[0].match(/value=['"]([^'"]*)['"]/)?.[1];
+      if (name) hiddens[name] = value || '';
+    }
+    console.log(`   Hidden inputs: ${JSON.stringify(hiddens)}`);
 
-                // Obtener cookies
-                const cookies = loginRes.headers.get('set-cookie') || '';
-                const cookieStr = cookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
+    // === PASO 2: Enviar credenciales ===
+    console.log('\n📧 Paso 2: Enviando credenciales...');
+    
+    let postUrl = formAction.startsWith('http') ? formAction : `${CONFIG.COGNITO_DOMAIN}${formAction}`;
+    postUrl = postUrl.replace(/&amp;/g, '&');
+    console.log(`   POST ${postUrl.substring(0, 80)}...`);
 
-                // POST credenciales
-                console.log('   📧 Enviando credenciales...');
-                let postUrl = formAction.startsWith('/') ? `${cognitoDomain}${formAction}` : formAction;
-                postUrl = postUrl.replace(/&amp;/g, '&');
+    const formBody = new URLSearchParams();
+    for (const [k, v] of Object.entries(hiddens)) formBody.append(k, v);
+    formBody.append('username', natura_email);
+    formBody.append('password', natura_password);
+    
+    console.log(`   Form data keys: ${[...formBody.keys()].join(', ')}`);
 
-                const formBody = new URLSearchParams();
-                for (const [k, v] of Object.entries(hiddens)) formBody.append(k, v);
-                formBody.append('username', natura_email);
-                formBody.append('password', natura_password);
+    const authRes = await fetch(postUrl, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Cookie': cookieStr,
+        'Origin': CONFIG.COGNITO_DOMAIN,
+        'Referer': loginPageUrl,
+      },
+      body: formBody.toString(),
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15000)
+    });
 
-                const authRes = await fetch(postUrl, {
-                  method: 'POST',
-                  headers: {
-                    ...headers,
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Cookie': cookieStr,
-                    'Origin': cognitoDomain,
-                    'Referer': loginUrl,
-                  },
-                  body: formBody.toString(),
-                  redirect: 'manual',
-                  signal: AbortSignal.timeout(15000)
-                });
+    console.log(`   Response status: ${authRes.status}`);
+    
+    // Extraer headers importantes
+    const location = authRes.headers.get('location') || '';
+    const newCookies = authRes.headers.getSetCookie?.() || [];
+    console.log(`   Location: ${location.substring(0, 150)}`);
+    console.log(`   New cookies: ${newCookies.length}`);
 
-                const location = authRes.headers.get('location') || '';
-                console.log(`   → Status: ${authRes.status}`);
-                console.log(`   → Location: ${location.substring(0, 150)}`);
+    // === Caso 1: Redirect con authorization code ===
+    if (location.includes('code=')) {
+      const url = new URL(location);
+      const code = url.searchParams.get('code');
+      console.log(`\n🎫 Paso 3: ¡Authorization code obtenido! ${code?.substring(0, 20)}...`);
 
-                // Token en la URL (implicit grant usa fragment #access_token=...)
-                if (location.includes('access_token') || location.includes('id_token')) {
-                  // Extraer tokens del fragment
-                  const fragment = location.split('#')[1] || location.split('?')[1] || '';
-                  const params = new URLSearchParams(fragment);
-                  const accessToken = params.get('access_token');
-                  const idToken = params.get('id_token');
-                  
-                  console.log(`   🎫 ACCESS TOKEN: ${accessToken?.substring(0, 30)}...`);
-                  console.log(`   🎫 ID TOKEN: ${idToken?.substring(0, 30)}...`);
+      // Intercambiar code por tokens
+      console.log('   Intercambiando code por tokens...');
+      const tokenRes = await fetch(`${CONFIG.COGNITO_DOMAIN}/oauth2/token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: CONFIG.CLIENT_ID,
+          code: code,
+          redirect_uri: CONFIG.REDIRECT_URI
+        }).toString(),
+        signal: AbortSignal.timeout(15000)
+      });
 
-                  const token = accessToken || idToken;
-                  if (token) {
-                    const growthData = await fetchGrowthData(token, headers);
-                    if (growthData) {
-                      return res.json({ success: true, data: growthData });
-                    }
-                  }
-                }
+      const tokenText = await tokenRes.text();
+      console.log(`   Token status: ${tokenRes.status}`);
+      console.log(`   Token response: ${tokenText.substring(0, 500)}`);
 
-                // Code en la URL (authorization code flow)
-                if (location.includes('code=')) {
-                  const code = new URL(location).searchParams.get('code');
-                  console.log(`   🎫 AUTH CODE: ${code?.substring(0, 20)}...`);
-
-                  // Intercambiar code por tokens
-                  const tokenRes = await fetch(`${cognitoDomain}/oauth2/token`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({
-                      grant_type: 'authorization_code',
-                      client_id: clientId,
-                      code,
-                      redirect_uri: redirectUri
-                    }).toString(),
-                    signal: AbortSignal.timeout(10000)
-                  });
-                  const tokenData = await tokenRes.json().catch(() => null);
-                  console.log(`   Token exchange: ${tokenRes.status}`);
-                  console.log(`   ${JSON.stringify(tokenData)?.substring(0, 300)}`);
-                  
-                  const token = tokenData?.access_token || tokenData?.id_token;
-                  if (token) {
-                    const growthData = await fetchGrowthData(token, headers);
-                    if (growthData) return res.json({ success: true, data: growthData });
-                  }
-                }
-
-                // Si login falla, mostrar error
-                if (authRes.status === 200 || authRes.status === 302 && !location.includes('token') && !location.includes('code')) {
-                  const errHtml = await authRes.text().catch(() => '');
-                  const errMsg = errHtml.match(/errorMessage['"]*[>:]\s*['"]?([^<'"]+)/i)?.[1];
-                  console.log(`   ❌ Login error: ${errMsg || 'unknown'}`);
-                }
-
-                // Solo probar la primera combinación válida a fondo
-                // Si llegamos aquí sin éxito, seguir probando
-              }
-            }
-            // Si es 400 (redirect_mismatch), silenciosamente continuar
-          } catch (e) {
-            // timeout o error de red, continuar
+      try {
+        const tokenData = JSON.parse(tokenText);
+        if (tokenData.access_token || tokenData.id_token) {
+          console.log('   ✅ ¡TOKENS OBTENIDOS!');
+          
+          const token = tokenData.access_token || tokenData.id_token;
+          
+          // Obtener datos de crecimiento
+          const growthData = await fetchGrowthData(token, headers);
+          if (growthData) {
+            return res.json({ success: true, data: growthData });
           }
+          
+          // Si no se obtienen growth data, devolver los tokens
+          return res.json({ success: true, tokens: tokenData, message: 'Auth OK pero growth data no disponible' });
         }
+      } catch (e) {
+        console.log(`   Parse error: ${e.message}`);
       }
     }
 
-    // Si también probamos response_type=code
-    console.log('\n📋 También probando con response_type=code...');
-    for (const clientId of CONFIG.CLIENT_IDS.slice(0, 3)) {
-      for (const redirectUri of redirectUris.slice(0, 3)) {
-        const url = `${CONFIG.COGNITO_LATAM}/login?client_id=${clientId}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(redirectUri)}`;
-        try {
-          const r = await fetch(url, { headers, redirect: 'follow', signal: AbortSignal.timeout(5000) });
-          if (r.status !== 400) {
-            console.log(`   ✅ code: ${clientId.substring(0,8)}... + ${redirectUri.split('.mx')[1] || redirectUri.split('.com')[1]} → ${r.status}`);
-          }
-        } catch {}
+    // === Caso 2: Redirect con tokens (implicit) ===
+    if (location.includes('access_token') || location.includes('id_token')) {
+      const fragment = location.split('#')[1] || '';
+      const params = new URLSearchParams(fragment);
+      const token = params.get('access_token') || params.get('id_token');
+      console.log(`\n🎫 ¡Token obtenido via implicit grant!`);
+      
+      const growthData = await fetchGrowthData(token, headers);
+      if (growthData) return res.json({ success: true, data: growthData });
+      return res.json({ success: true, message: 'Auth OK' });
+    }
+
+    // === Caso 3: Login fallido ===
+    if (authRes.status === 200 || authRes.status === 302) {
+      const errHtml = await authRes.text().catch(() => '');
+      
+      // Buscar mensaje de error
+      const errorPatterns = [
+        /errorMessage['"]*[>:]\s*['"]?([^<'"]+)/i,
+        /class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
+        /id="[^"]*error[^"]*"[^>]*>([^<]+)/i,
+        /"message"\s*:\s*"([^"]+)"/i,
+      ];
+      
+      let errorMsg = 'Unknown error';
+      for (const pattern of errorPatterns) {
+        const match = errHtml.match(pattern);
+        if (match) { errorMsg = match[1].trim(); break; }
+      }
+      
+      console.log(`   ❌ Login error: ${errorMsg}`);
+      console.log(`   Response HTML snippet: ${errHtml.substring(0, 500).replace(/\s+/g, ' ')}`);
+      
+      // Si es redirect a error
+      if (location) {
+        console.log(`   Redirect to: ${location}`);
       }
     }
 
-    throw new Error('Ninguna combinación de client_id + redirect_uri funcionó.');
+    throw new Error('No se pudo completar el login.');
 
   } catch (err) {
     console.error('❌', err.message);
@@ -230,7 +229,22 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
 async function fetchGrowthData(token, baseHeaders) {
   console.log('\n📊 Obteniendo datos de crecimiento...');
-  const urls = [`${CONFIG.NATURA_BASE}/api/growthplan`, `${CONFIG.NATURA_BASE}/bff/growthplan`];
+  
+  // Primero obtener sesión en minegocio
+  try {
+    const sessionRes = await fetch(`${CONFIG.NATURA_BASE}/natura-callback?return_url=home&code=placeholder`, {
+      headers: { ...baseHeaders, 'Authorization': `Bearer ${token}` },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10000)
+    });
+    console.log(`   Session: ${sessionRes.status}`);
+  } catch {}
+
+  const urls = [
+    `${CONFIG.NATURA_BASE}/api/growthplan`,
+    `${CONFIG.NATURA_BASE}/bff/growthplan`,
+  ];
+  
   for (const url of urls) {
     try {
       const r = await fetch(url, {
@@ -240,10 +254,14 @@ async function fetchGrowthData(token, baseHeaders) {
       const ct = r.headers.get('content-type') || '';
       if (ct.includes('json')) {
         const d = await r.json();
-        console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 200)}`);
-        if (d?.data?.consultantLevel) return d.data.consultantLevel;
-      } else console.log(`   ${url} → ${r.status} (${ct})`);
-    } catch (e) { console.log(`   → ${e.message?.substring(0, 50)}`); }
+        console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 300)}`);
+        if (d?.data) return d.data;
+      } else {
+        console.log(`   ${url} → ${r.status} (${ct})`);
+      }
+    } catch (e) {
+      console.log(`   → ${e.message?.substring(0, 50)}`);
+    }
   }
   return null;
 }
