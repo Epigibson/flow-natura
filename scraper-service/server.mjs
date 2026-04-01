@@ -53,15 +53,27 @@ app.post('/scrape', authMiddleware, async (req, res) => {
         '--disable-translate',
         '--metrics-recording-only',
         '--no-first-run',
+        '--disable-http2', // ESTE ERA EL QUE SOLUCIONABA EL PROTOCOL_ERROR
+        '--disable-blink-features=AutomationControlled', // Evadir detección de bot básica
       ],
+      ignoreHTTPSErrors: true
     });
     console.log('✅ Chromium lanzado.');
 
     const context = await browser.newContext({
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       locale: 'es-MX',
       timezoneId: 'America/Mexico_City',
+      viewport: { width: 1280, height: 720 },
+      hasTouch: false,
+      isMobile: false
     });
+    
+    // Inyectar script para evadir webdriver
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    });
+    
     const page = await context.newPage();
 
     // === PASO 2: Navegar al portal Auth de Natura ===
