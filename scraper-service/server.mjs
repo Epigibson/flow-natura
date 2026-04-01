@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
 
 const app = express();
 app.use(cors());
@@ -8,10 +9,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
-// Datos conocidos del Cognito de Natura
+// Datos confirmados de Cognito
 const NATURA_AUTH_DOMAIN = 'natura-auth.prd.naturacloud.com';
 const NATURA_CLIENT_ID = '31ndsgochinbk61v3jk8dhsf2o';
-const NATURA_REDIRECT_URI = 'https://minegocio.natura-avon.com.mx/natura-callback?return_url=home';
+const COGNITO_REGION = 'us-east-1'; // ¡Confirmado por la respuesta!
 const NATURA_BASE_URL = 'https://minegocio.natura-avon.com.mx';
 
 function authMiddleware(req, res, next) {
@@ -23,19 +24,54 @@ function authMiddleware(req, res, next) {
 }
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'natura-scraper', mode: 'api-direct' });
+  res.json({ status: 'ok', service: 'natura-scraper', mode: 'cognito-direct' });
 });
 
 /**
- * Estrategia Multi-Step sin navegador:
- * 1. GET la página de auth para obtener cookies de Akamai y el form real
- * 2. POST al form de Cognito para autenticarnos
- * 3. Seguir redirects para obtener cookies de sesión en minegocio
- * 4. Llamar al API de growthplan con cookies de sesión
- * 
- * La clave: usamos fetch con User-Agent de móvil (las APIs móviles
- * suelen tener menos restricciones de WAF)
+ * Computa el SECRET_HASH requerido por Cognito
  */
+function computeSecretHash(clientSecret, username, clientId) {
+  return crypto
+    .createHmac('sha256', clientSecret)
+    .update(username + clientId)
+    .digest('base64');
+}
+
+/**
+ * Intenta autenticarse con Cognito usando InitiateAuth
+ */
+async function cognitoAuth(username, password, clientId, clientSecret) {
+  const cognitoUrl = `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
+  
+  const authParams = {
+    USERNAME: username,
+    PASSWORD: password,
+  };
+
+  if (clientSecret) {
+    authParams.SECRET_HASH = computeSecretHash(clientSecret, username, clientId);
+  }
+
+  const body = JSON.stringify({
+    AuthFlow: 'USER_PASSWORD_AUTH',
+    ClientId: clientId,
+    AuthParameters: authParams
+  });
+
+  const res = await fetch(cognitoUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-amz-json-1.1',
+      'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
+    },
+    body,
+    signal: AbortSignal.timeout(15000)
+  });
+
+  const data = await res.json();
+  return data;
+}
+
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
 
@@ -46,256 +82,203 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   console.log(`🚀 Iniciando sync para: ${natura_email.substring(0, 5)}***`);
 
   try {
-    // Headers que simulan un dispositivo móvil real
+    // === PASO 1: Descargar y analizar el JS de la página de auth ===
+    console.log('📜 Paso 1: Descargando página de auth para extraer config...');
+    
     const mobileHeaders = {
       'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-      'Accept-Language': 'es-MX,es;q=0.9,en;q=0.8',
-      'Accept-Encoding': 'gzip, deflate, br',
-      'Connection': 'keep-alive',
-      'Upgrade-Insecure-Requests': '1',
-      'Sec-Fetch-Dest': 'document',
-      'Sec-Fetch-Mode': 'navigate',
-      'Sec-Fetch-Site': 'none',
-      'Sec-Fetch-User': '?1',
+      'Accept': '*/*',
+      'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // === PASO 1: Descubrir el flujo de autenticación ===
-    console.log('🔍 Paso 1: Descubriendo flujo de autenticación...');
-    
-    // Primero probar si hay un API REST directo de Natura
-    // Muchas apps Natura/Avon tienen APIs móviles desprotegidas
-    const mobileApiEndpoints = [
-      'https://api-minegocio.natura-avon.com.mx',
-      'https://minegocio.natura-avon.com.mx/api',
-      'https://api.natura.com.mx',
-      'https://api.natura-avon.com.mx',
-    ];
-
-    console.log('📱 Probando APIs móviles...');
-    for (const baseUrl of mobileApiEndpoints) {
-      try {
-        const testRes = await fetch(`${baseUrl}/health`, { 
-          headers: mobileHeaders,
-          signal: AbortSignal.timeout(5000)
-        });
-        console.log(`   ${baseUrl}/health → ${testRes.status}`);
-      } catch (e) {
-        console.log(`   ${baseUrl}/health → ${e.message?.substring(0, 50)}`);
-      }
-    }
-
-    // === PASO 2: Intentar Cognito Resource Owner Flow (SRP) ===
-    console.log('🔐 Paso 2: Intentando autenticación Cognito...');
-    
-    // Probar OAuth2 Resource Owner Password Grant (ROPC)
-    // Esta es una forma estándar OAuth2 que algunas configuraciones de Cognito permiten
-    console.log('   Probando OAuth2 ROPC (token endpoint)...');
-    
-    const tokenEndpoints = [
-      `https://${NATURA_AUTH_DOMAIN}/oauth2/token`,
-      `https://${NATURA_AUTH_DOMAIN}/token`,
-    ];
-
-    for (const tokenUrl of tokenEndpoints) {
-      try {
-        const tokenBody = new URLSearchParams({
-          grant_type: 'password',
-          client_id: NATURA_CLIENT_ID,
-          username: natura_email,
-          password: natura_password,
-          scope: 'openid email profile'
-        });
-
-        const tokenRes = await fetch(tokenUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            ...mobileHeaders
-          },
-          body: tokenBody.toString(),
-          signal: AbortSignal.timeout(10000)
-        });
-
-        console.log(`   ${tokenUrl} → Status: ${tokenRes.status}`);
-        const tokenData = await tokenRes.text();
-        console.log(`   → Respuesta: ${tokenData.substring(0, 300)}`);
-
-        // Si obtenemos un token, lo usamos
-        try {
-          const parsed = JSON.parse(tokenData);
-          if (parsed.access_token || parsed.id_token) {
-            console.log('   ✅ Token obtenido via ROPC!');
-            const accessToken = parsed.access_token || parsed.id_token;
-            
-            // Intentar obtener datos de crecimiento con el token
-            const growthData = await fetchGrowthData(accessToken, mobileHeaders);
-            if (growthData) {
-              return res.json({ success: true, data: growthData });
-            }
-          }
-        } catch {}
-      } catch (e) {
-        console.log(`   → Error: ${e.message?.substring(0, 80)}`);
-      }
-    }
-
-    // === PASO 3: Intentar Cognito InitiateAuth via AWS API ===
-    console.log('🔐 Paso 3: Intentando Cognito InitiateAuth...');
-    
-    // Cognito tiene regiones conocidas. Natura es México → probablemente us-east-1 o us-west-2
-    const regions = ['us-east-1', 'us-west-2', 'sa-east-1', 'eu-west-1'];
-    
-    for (const region of regions) {
-      try {
-        const cognitoUrl = `https://cognito-idp.${region}.amazonaws.com/`;
-        
-        const initiateAuthBody = JSON.stringify({
-          AuthFlow: 'USER_PASSWORD_AUTH',
-          ClientId: NATURA_CLIENT_ID,
-          AuthParameters: {
-            USERNAME: natura_email,
-            PASSWORD: natura_password
-          }
-        });
-
-        console.log(`   Probando región ${region}...`);
-        const authRes = await fetch(cognitoUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-amz-json-1.1',
-            'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
-          },
-          body: initiateAuthBody,
-          signal: AbortSignal.timeout(10000)
-        });
-
-        console.log(`   → Status: ${authRes.status}`);
-        const authData = await authRes.text();
-        console.log(`   → Respuesta: ${authData.substring(0, 300)}`);
-
-        try {
-          const parsed = JSON.parse(authData);
-          
-          // Si hay AuthenticationResult, tenemos tokens!
-          if (parsed.AuthenticationResult) {
-            console.log('   ✅ Auth exitoso via Cognito!');
-            const idToken = parsed.AuthenticationResult.IdToken;
-            const accessToken = parsed.AuthenticationResult.AccessToken;
-            
-            const growthData = await fetchGrowthData(accessToken || idToken, mobileHeaders);
-            if (growthData) {
-              return res.json({ success: true, data: growthData });
-            }
-          }
-
-          // Si obtenemos un error específico, nos dice si la región es correcta
-          if (parsed.__type?.includes('ResourceNotFoundException')) {
-            console.log(`   → Pool no encontrado en ${region}`);
-          } else if (parsed.__type?.includes('NotAuthorizedException')) {
-            console.log(`   → ¡Región correcta! Pero credenciales inválidas.`);
-            throw new Error('Credenciales inválidas para Natura.');
-          } else if (parsed.__type?.includes('InvalidParameterException')) {
-            console.log(`   → Región encontrada pero USER_PASSWORD_AUTH no habilitado.`);
-            // Esto significa que necesitamos usar SRP auth flow
-            // Intentemos con SRP
-          }
-        } catch (e) {
-          if (e.message === 'Credenciales inválidas para Natura.') throw e;
-        }
-      } catch (e) {
-        if (e.message === 'Credenciales inválidas para Natura.') throw e;
-        console.log(`   → Error ${region}: ${e.message?.substring(0, 80)}`);
-      }
-    }
-
-    // === PASO 4: Intentar el flujo web con redirects (cookie-based) ===
-    console.log('🌐 Paso 4: Intentando flujo web con redirects...');
-    
-    // Usar el Authorization Code flow de OAuth2
-    const authCodeUrl = `https://${NATURA_AUTH_DOMAIN}/?client_id=${NATURA_CLIENT_ID}&country=mx&language=es&company=natura&redirect_uri=${encodeURIComponent(NATURA_REDIRECT_URI)}`;
-    
-    const authPageRes = await fetch(authCodeUrl, {
+    const authPageRes = await fetch(`https://${NATURA_AUTH_DOMAIN}/?client_id=${NATURA_CLIENT_ID}&country=mx&language=es&company=natura`, {
       headers: mobileHeaders,
       redirect: 'follow',
       signal: AbortSignal.timeout(15000)
     });
-    
-    console.log(`   Auth page status: ${authPageRes.status}`);
-    console.log(`   Final URL: ${authPageRes.url?.substring(0, 80)}`);
-    
+
     const authHtml = await authPageRes.text();
-    
-    // Buscar pistas en el HTML
-    // Scripts, APIs, configuraciones
+    console.log(`   Auth page status: ${authPageRes.status}, size: ${authHtml.length}`);
+
+    // Extraer URLs de scripts
     const scriptUrls = [...authHtml.matchAll(/src="([^"]+)"/g)].map(m => m[1]);
-    console.log(`   Scripts encontrados: ${scriptUrls.length}`);
-    scriptUrls.forEach(s => console.log(`     → ${s}`));
-    
-    // Buscar en inline scripts por configuraciones de Cognito
-    const inlineScripts = [...authHtml.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]).filter(s => s.trim());
-    for (const script of inlineScripts) {
-      if (script.includes('cognito') || script.includes('pool') || script.includes('region') || script.includes('config')) {
-        console.log(`   → Inline script relevante: ${script.substring(0, 300)}`);
+    console.log(`   Scripts: ${scriptUrls.join(', ')}`);
+
+    // Variables que vamos a buscar
+    let foundClientSecret = null;
+    let foundPoolId = null;
+    let foundAltClientId = null;
+    let foundApiUrls = [];
+
+    // Descargar cada script JS y buscar configuración
+    for (const scriptUrl of scriptUrls) {
+      try {
+        const fullUrl = scriptUrl.startsWith('http') ? scriptUrl : `https://${NATURA_AUTH_DOMAIN}${scriptUrl}`;
+        console.log(`   📥 Descargando: ${fullUrl.substring(0, 80)}...`);
+        
+        const jsRes = await fetch(fullUrl, {
+          headers: mobileHeaders,
+          signal: AbortSignal.timeout(15000)
+        });
+
+        if (!jsRes.ok) {
+          console.log(`   → Status ${jsRes.status}`);
+          continue;
+        }
+
+        const js = await jsRes.text();
+        console.log(`   → ${js.length} bytes`);
+
+        // Buscar Client Secret (suele verse como clientSecret, client_secret, etc.)
+        const secretPatterns = [
+          /client[_\-]?secret['":\s]+['"]([a-zA-Z0-9]+)['"]/gi,
+          /SECRET['":\s]+['"]([a-zA-Z0-9]{20,})['"]/gi,
+          /clientSecret['":\s]+['"]([a-zA-Z0-9]+)['"]/gi,
+          /app[_\-]?secret['":\s]+['"]([a-zA-Z0-9]+)['"]/gi,
+        ];
+
+        for (const pattern of secretPatterns) {
+          const match = pattern.exec(js);
+          if (match) {
+            foundClientSecret = match[1];
+            console.log(`   🔑 CLIENT SECRET ENCONTRADO: ${foundClientSecret.substring(0, 10)}...`);
+          }
+        }
+
+        // Buscar User Pool ID (formato: us-east-1_XXXXXXXXX)
+        const poolMatch = js.match(/['"]((?:us|eu|ap|sa|ca)-[a-z]+-\d+_[a-zA-Z0-9]+)['"]/);
+        if (poolMatch) {
+          foundPoolId = poolMatch[1];
+          console.log(`   🏊 USER POOL ID: ${foundPoolId}`);
+        }
+
+        // Buscar Client IDs alternativos (formato: alphanumeric, 20-30 chars)
+        const clientIds = [...new Set(js.match(/['"]([a-z0-9]{20,30})['"]/g) || [])].map(s => s.replace(/['"]/g, ''));
+        const altIds = clientIds.filter(id => id !== NATURA_CLIENT_ID && id.length >= 20 && id.length <= 30);
+        if (altIds.length > 0) {
+          console.log(`   🆔 Client IDs alternativos: ${altIds.join(', ')}`);
+          foundAltClientId = altIds[0];
+        }
+
+        // Buscar URLs de API
+        const apiMatches = [...new Set(js.match(/https?:\/\/[^"'\s\)]+(?:api|bff|graphql)[^"'\s\)]*/gi) || [])];
+        if (apiMatches.length > 0) {
+          foundApiUrls.push(...apiMatches);
+          console.log(`   🔗 API URLs:`);
+          apiMatches.slice(0, 10).forEach(u => console.log(`     → ${u}`));
+        }
+
+        // Buscar menciones de growthplan
+        const growthRefs = js.match(/.{0,40}growthplan.{0,60}/gi);
+        if (growthRefs) {
+          console.log(`   📊 Growth refs:`);
+          growthRefs.slice(0, 5).forEach(g => console.log(`     → ${g}`));
+        }
+
+        // Buscar configuración general tipo { key: "value" } 
+        const configPatterns = [
+          /(?:config|settings|env|environment)\s*[:=]\s*(\{[^}]{10,500}\})/gi,
+          /REACT_APP_[A-Z_]+\s*[:=]\s*["']([^"']+)["']/gi,
+          /process\.env\.([A-Z_]+)/gi,
+        ];
+
+        for (const cp of configPatterns) {
+          const matches = [...js.matchAll(cp)];
+          if (matches.length > 0) {
+            console.log(`   ⚙️ Config patterns:`);
+            matches.slice(0, 5).forEach(m => console.log(`     → ${m[0].substring(0, 120)}`));
+          }
+        }
+
+      } catch (e) {
+        console.log(`   → Error: ${e.message?.substring(0, 60)}`);
       }
     }
 
-    // Descargar el JS principal para buscar configuración de Cognito
-    if (scriptUrls.length > 0) {
-      console.log('📜 Analizando JS principal...');
-      for (const scriptUrl of scriptUrls.slice(0, 3)) {
-        try {
-          const fullUrl = scriptUrl.startsWith('http') ? scriptUrl : `https://${NATURA_AUTH_DOMAIN}${scriptUrl}`;
-          const jsRes = await fetch(fullUrl, {
-            headers: mobileHeaders,
-            signal: AbortSignal.timeout(10000)
-          });
-          
-          if (jsRes.ok) {
-            const jsContent = await jsRes.text();
-            console.log(`   JS size: ${jsContent.length} bytes`);
-            
-            // Buscar User Pool ID, región, etc.
-            const poolIdMatch = jsContent.match(/userPoolId['":\s]+['"]([^'"]+)['"]/i);
-            const regionMatch = jsContent.match(/region['":\s]+['"]([a-z]+-[a-z]+-\d+)['"]/i);
-            const clientIdMatch = jsContent.match(/clientId['":\s]+['"]([^'"]+)['"]/i);
-            const apiUrlMatch = jsContent.match(/apiUrl['":\s]+['"]([^'"]+)['"]/i);
-            const baseUrlMatch = jsContent.match(/baseUrl['":\s]+['"]([^'"]+)['"]/i);
-            
-            if (poolIdMatch) console.log(`   🎯 User Pool ID: ${poolIdMatch[1]}`);
-            if (regionMatch) console.log(`   🎯 Region: ${regionMatch[1]}`);
-            if (clientIdMatch) console.log(`   🎯 Client ID: ${clientIdMatch[1]}`);
-            if (apiUrlMatch) console.log(`   🎯 API URL: ${apiUrlMatch[1]}`);
-            if (baseUrlMatch) console.log(`   🎯 Base URL: ${baseUrlMatch[1]}`);
-            
-            // Buscar cualquier URL de API
-            const apiUrls = [...new Set(jsContent.match(/https?:\/\/[^"'\s\)]+api[^"'\s\)]*/gi) || [])];
-            if (apiUrls.length > 0) {
-              console.log(`   🔗 URLs de API encontradas:`);
-              apiUrls.slice(0, 15).forEach(u => console.log(`     → ${u}`));
-            }
-            
-            // Buscar cognito pool configurations
-            const cognitoMatches = jsContent.match(/.{0,50}cognito.{0,100}/gi);
-            if (cognitoMatches) {
-              console.log(`   🧩 Referencias a Cognito:`);
-              cognitoMatches.slice(0, 5).forEach(m => console.log(`     → ${m.substring(0, 120)}`));
-            }
+    // === PASO 2: Intentar auth con lo que encontramos ===
+    console.log('\n🔐 Paso 2: Intentando autenticación con datos encontrados...');
 
-            // Buscar growthplan endpoint
-            const growthMatches = jsContent.match(/.{0,30}growth.{0,80}/gi);
-            if (growthMatches) {
-              console.log(`   📊 Referencias a growth:`);
-              growthMatches.slice(0, 5).forEach(m => console.log(`     → ${m.substring(0, 120)}`));
-            }
-          }
-        } catch (e) {
-          console.log(`   → Error loading JS: ${e.message?.substring(0, 60)}`);
+    // Intento 2a: Si encontramos client secret, usar el client ID original + secret
+    if (foundClientSecret) {
+      console.log(`   Intentando con SECRET_HASH (secret: ${foundClientSecret.substring(0, 8)}...)...`);
+      const result = await cognitoAuth(natura_email, natura_password, NATURA_CLIENT_ID, foundClientSecret);
+      console.log(`   → Resultado: ${JSON.stringify(result).substring(0, 300)}`);
+      
+      if (result.AuthenticationResult) {
+        console.log('   ✅ AUTH EXITOSO!');
+        return await handleAuthSuccess(result.AuthenticationResult, mobileHeaders, res);
+      }
+    }
+
+    // Intento 2b: Si encontramos un client ID alternativo (posiblemente sin secret)
+    if (foundAltClientId) {
+      console.log(`   Intentando con client ID alternativo: ${foundAltClientId}...`);
+      const result = await cognitoAuth(natura_email, natura_password, foundAltClientId, null);
+      console.log(`   → Resultado: ${JSON.stringify(result).substring(0, 300)}`);
+      
+      if (result.AuthenticationResult) {
+        console.log('   ✅ AUTH EXITOSO con client alternativo!');
+        return await handleAuthSuccess(result.AuthenticationResult, mobileHeaders, res);
+      }
+
+      // Si este client ID también necesita secret, intentar con el secret encontrado
+      if (result.__type?.includes('SECRET_HASH') && foundClientSecret) {
+        console.log('   Reintentando alt client ID + secret...');
+        const result2 = await cognitoAuth(natura_email, natura_password, foundAltClientId, foundClientSecret);
+        console.log(`   → Resultado: ${JSON.stringify(result2).substring(0, 300)}`);
+        
+        if (result2.AuthenticationResult) {
+          console.log('   ✅ AUTH EXITOSO!');
+          return await handleAuthSuccess(result2.AuthenticationResult, mobileHeaders, res);
         }
       }
     }
 
-    throw new Error('Exploración completa. Revisa los logs para encontrar las rutas de API y configuración de Cognito.');
+    // Intento 2c: Probar el health endpoint accesible con cualquier token/cookie
+    console.log('\n🌐 Paso 3: Explorando API accesible...');
+    
+    // El endpoint /api/health respondió 200 antes. Explorar qué más hay
+    const explorationUrls = [
+      `${NATURA_BASE_URL}/api/health`,
+      `${NATURA_BASE_URL}/api/swagger`,
+      `${NATURA_BASE_URL}/api/docs`,
+      `${NATURA_BASE_URL}/api/v1`,
+      `${NATURA_BASE_URL}/api/auth`,
+      `${NATURA_BASE_URL}/api/auth/login`,
+      `${NATURA_BASE_URL}/api/auth/callback`,
+      `${NATURA_BASE_URL}/api/session`,
+      `${NATURA_BASE_URL}/api/user`,
+      `${NATURA_BASE_URL}/api/me`,
+      ...foundApiUrls.slice(0, 10)
+    ];
+
+    for (const url of [...new Set(explorationUrls)]) {
+      try {
+        const explRes = await fetch(url, {
+          headers: { ...mobileHeaders, 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(5000)
+        });
+        const contentType = explRes.headers.get('content-type') || '';
+        const body = await explRes.text();
+        console.log(`   ${url} → ${explRes.status} (${contentType.split(';')[0]})`);
+        if (body.length < 500 && contentType.includes('json')) {
+          console.log(`     ${body}`);
+        }
+      } catch (e) {
+        console.log(`   ${url} → ${e.message?.substring(0, 40)}`);
+      }
+    }
+
+    // Resumen final
+    console.log('\n📋 RESUMEN DE DESCUBRIMIENTO:');
+    console.log(`   Región Cognito: ${COGNITO_REGION}`);
+    console.log(`   Client ID: ${NATURA_CLIENT_ID}`);
+    console.log(`   Client Secret: ${foundClientSecret || 'NO ENCONTRADO'}`);
+    console.log(`   Pool ID: ${foundPoolId || 'NO ENCONTRADO'}`);
+    console.log(`   Alt Client IDs: ${foundAltClientId || 'NINGUNO'}`);
+    console.log(`   API URLs: ${foundApiUrls.length}`);
+
+    throw new Error('Exploración completa. Revisa los logs.');
 
   } catch (err) {
     console.error('❌ Error:', err.message);
@@ -304,48 +287,69 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 });
 
 /**
- * Intenta obtener datos de crecimiento usando un token de acceso
+ * Con tokens de Cognito, intenta obtener datos de crecimiento
  */
-async function fetchGrowthData(token, headers) {
+async function handleAuthSuccess(authResult, headers, res) {
+  const idToken = authResult.IdToken;
+  const accessToken = authResult.AccessToken;
+  
+  console.log('📊 Buscando datos de crecimiento con token...');
+
+  // Primero: intentar obtener sesión en el sitio web con el token
+  try {
+    const callbackUrl = `${NATURA_BASE_URL}/natura-callback?return_url=home&id_token=${idToken}&access_token=${accessToken}`;
+    const sessionRes = await fetch(callbackUrl, {
+      headers: { ...headers },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10000)
+    });
+    console.log(`   Callback → Status: ${sessionRes.status}`);
+    
+    const sessionCookies = sessionRes.headers.get('set-cookie') || '';
+    if (sessionCookies) {
+      console.log(`   Cookies de sesión obtenidas!`);
+    }
+  } catch (e) {
+    console.log(`   Callback error: ${e.message?.substring(0, 60)}`);
+  }
+
+  // Luego: llamar al API con Bearer token
   const growthUrls = [
     `${NATURA_BASE_URL}/api/growthplan`,
     `${NATURA_BASE_URL}/api/consultant/growthplan`,
-    `${NATURA_BASE_URL}/api/v1/growthplan`,
     `${NATURA_BASE_URL}/bff/growthplan`,
-    `${NATURA_BASE_URL}/graphql`,
-    'https://api-minegocio.natura-avon.com.mx/api/growthplan',
   ];
 
   for (const url of growthUrls) {
     try {
-      console.log(`   📊 Probando: ${url}`);
+      // Con Access Token
       const gRes = await fetch(url, {
         headers: {
           ...headers,
           'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
         signal: AbortSignal.timeout(10000)
       });
-      
-      console.log(`   → Status: ${gRes.status}`);
+
       const contentType = gRes.headers.get('content-type') || '';
-      
+      console.log(`   ${url} → ${gRes.status} (${contentType.split(';')[0]})`);
+
       if (contentType.includes('json')) {
         const data = await gRes.json();
-        console.log(`   → JSON: ${JSON.stringify(data).substring(0, 300)}`);
+        console.log(`   → ${JSON.stringify(data).substring(0, 300)}`);
         
-        if (data?.data?.consultantLevel) return data.data.consultantLevel;
-        if (data?.consultantLevel) return data.consultantLevel;
-      } else {
-        const text = await gRes.text();
-        console.log(`   → ${contentType}: ${text.substring(0, 100)}`);
+        if (data?.data?.consultantLevel) {
+          console.log('✅ ¡Datos de crecimiento obtenidos!');
+          return res.json({ success: true, data: data.data.consultantLevel });
+        }
       }
     } catch (e) {
       console.log(`   → Error: ${e.message?.substring(0, 60)}`);
     }
   }
-  return null;
+
+  throw new Error('Auth exitoso pero no se encontraron datos de crecimiento.');
 }
 
 app.listen(PORT, () => {
