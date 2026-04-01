@@ -8,7 +8,6 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
-// Middleware de autenticación
 function authMiddleware(req, res, next) {
   const authHeader = req.headers['x-api-key'];
   if (authHeader !== API_SECRET) {
@@ -17,16 +16,43 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'natura-scraper' });
 });
 
 /**
- * Estrategia: Llamar directamente al API de Natura sin navegador.
- * 1. Hacer login via POST al endpoint de auth de Natura
- * 2. Obtener token/cookies de sesión
- * 3. Llamar al API de growthplan con esas credenciales
+ * Helper: Extrae cookies de respuestas fetch y las acumula
+ */
+function extractCookies(response, existingCookies = '') {
+  const newCookies = [];
+  // getSetCookie puede no existir en todas las implementaciones
+  const raw = response.headers.raw?.()?.['set-cookie'] || [];
+  for (const c of raw) {
+    newCookies.push(c.split(';')[0]);
+  }
+  
+  // Fallback: leer header manual
+  if (newCookies.length === 0) {
+    const sc = response.headers.get('set-cookie');
+    if (sc) {
+      // Puede haber múltiples cookies separadas por coma (no es estándar pero pasa)
+      newCookies.push(sc.split(';')[0]);
+    }
+  }
+
+  if (existingCookies && newCookies.length > 0) {
+    return existingCookies + '; ' + newCookies.join('; ');
+  }
+  return newCookies.length > 0 ? newCookies.join('; ') : existingCookies;
+}
+
+/**
+ * Flujo OAuth de Natura via Cognito:
+ * 1. GET /home → redirect a natura-auth.prd.naturacloud.com (página de login)
+ * 2. Extraer form action + campos hidden (CSRF, _fid, etc.)
+ * 3. POST credenciales al form de Cognito
+ * 4. Seguir redirects de vuelta a minegocio con cookies de sesión
+ * 5. Llamar al API de growthplan con sesión activa
  */
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
@@ -38,9 +64,9 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   console.log(`🚀 Iniciando sync para: ${natura_email.substring(0, 5)}***`);
 
   try {
-    // === PASO 1: Obtener la página de login para extraer cookies/tokens iniciales ===
-    console.log('🔑 Paso 1: Obteniendo página de login...');
-    const loginPageRes = await fetch('https://minegocio.natura-avon.com.mx/home', {
+    // === PASO 1: Ir a la página de login de Natura (sin seguir redirects) ===
+    console.log('🔑 Paso 1: Navegando a Natura login...');
+    const homeRes = await fetch('https://minegocio.natura-avon.com.mx/home', {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -49,208 +75,181 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       redirect: 'follow'
     });
     
-    console.log(`   Status: ${loginPageRes.status}, URL final: ${loginPageRes.url}`);
+    const authPageUrl = homeRes.url;
+    console.log(`   → Redirigido a: ${authPageUrl.substring(0, 80)}...`);
     
-    // Extraer cookies de la respuesta
-    const setCookies = loginPageRes.headers.getSetCookie?.() || [];
-    const cookieString = setCookies.map(c => c.split(';')[0]).join('; ');
-    console.log(`   Cookies obtenidas: ${setCookies.length}`);
+    const authPageHtml = await homeRes.text();
+    let cookies = extractCookies(homeRes);
+    console.log(`   → Cookies: ${cookies.substring(0, 60)}...`);
 
-    // === PASO 2: Intentar login via API ===
-    console.log('🔑 Paso 2: Intentando login via API...');
+    // === PASO 2: Extraer el form de login (action URL + campos hidden) ===
+    console.log('🔑 Paso 2: Extrayendo formulario de login...');
     
-    // Probar endpoints comunes de Natura
-    const loginEndpoints = [
-      'https://minegocio.natura-avon.com.mx/api/auth/login',
-      'https://minegocio.natura-avon.com.mx/api/login',
-      'https://minegocio.natura-avon.com.mx/auth/login',
-      'https://api-minegocio.natura-avon.com.mx/api/auth/login',
-    ];
+    // Buscar <form action="...">
+    const formActionMatch = authPageHtml.match(/form[^>]*action="([^"]+)"/i);
+    const formAction = formActionMatch ? formActionMatch[1] : null;
+    console.log(`   → Form action: ${formAction || 'NO ENCONTRADO'}`);
+    
+    // Buscar todos los inputs hidden
+    const hiddenInputs = {};
+    const inputRegex = /<input[^>]*type="hidden"[^>]*>/gi;
+    let inputMatch;
+    while ((inputMatch = inputRegex.exec(authPageHtml)) !== null) {
+      const nameMatch = inputMatch[0].match(/name="([^"]+)"/);
+      const valueMatch = inputMatch[0].match(/value="([^"]*)"/);
+      if (nameMatch) {
+        hiddenInputs[nameMatch[1]] = valueMatch ? valueMatch[1] : '';
+      }
+    }
+    console.log(`   → Campos hidden: ${Object.keys(hiddenInputs).join(', ') || 'NINGUNO'}`);
 
-    let authToken = null;
-    let authCookies = cookieString;
-    let loginSuccess = false;
+    // Detectar si es formulario con campos de email/password o si usa otro método
+    const hasEmailField = authPageHtml.includes('email') || authPageHtml.includes('username') || authPageHtml.includes('login');
+    const hasPasswordField = authPageHtml.includes('password') || authPageHtml.includes('contraseña');
+    console.log(`   → Tiene campo email: ${hasEmailField}, password: ${hasPasswordField}`);
 
-    for (const endpoint of loginEndpoints) {
-      try {
-        console.log(`   Probando: ${endpoint}`);
-        const loginRes = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-            'Origin': 'https://minegocio.natura-avon.com.mx',
-            'Referer': 'https://minegocio.natura-avon.com.mx/home',
-            'Cookie': cookieString
-          },
-          body: JSON.stringify({
-            email: natura_email,
-            password: natura_password,
-            username: natura_email,
-            login: natura_email
-          })
-        });
+    // Log un snippet del HTML para debug
+    const bodyStart = authPageHtml.indexOf('<body');
+    const snippet = authPageHtml.substring(bodyStart, bodyStart + 1000).replace(/\s+/g, ' ');
+    console.log(`   → HTML snippet: ${snippet.substring(0, 500)}`);
 
-        console.log(`   → Status: ${loginRes.status}`);
-        
-        if (loginRes.ok) {
-          const loginData = await loginRes.json().catch(() => null);
-          console.log(`   → Respuesta: ${JSON.stringify(loginData)?.substring(0, 200)}`);
-          
-          if (loginData?.token || loginData?.access_token || loginData?.data?.token) {
-            authToken = loginData.token || loginData.access_token || loginData.data?.token;
-            loginSuccess = true;
-            console.log('   ✅ Login exitoso con token!');
-            break;
-          }
+    if (!formAction) {
+      // Intentar buscar otros patterns
+      console.log('   ⚠️ No se encontró form action. Buscando patrones alternativos...');
+      
+      // Buscar API endpoints en el JS
+      const apiMatch = authPageHtml.match(/["'](https?:\/\/[^"']*(?:auth|login|signin)[^"']*)["']/gi);
+      if (apiMatch) {
+        console.log(`   → APIs encontradas: ${apiMatch.slice(0, 5).join(', ')}`);
+      }
 
-          // Recoger cookies del login
-          const loginCookies = loginRes.headers.getSetCookie?.() || [];
-          if (loginCookies.length > 0) {
-            authCookies = [...setCookies, ...loginCookies].map(c => c.split(';')[0]).join('; ');
-            loginSuccess = true;
-            console.log('   ✅ Login exitoso con cookies!');
-            break;
+      // Buscar data attributes o configuración
+      const configMatch = authPageHtml.match(/window\.__CONFIG__\s*=\s*({[^}]+})/);
+      if (configMatch) {
+        console.log(`   → Config encontrada: ${configMatch[1].substring(0, 300)}`);
+      }
+    }
+
+    // === PASO 3: Enviar credenciales al formulario ===
+    if (formAction) {
+      console.log('🔑 Paso 3: Enviando credenciales...');
+      
+      // Construir la URL completa del form action
+      let loginUrl = formAction;
+      if (formAction.startsWith('/')) {
+        const authOrigin = new URL(authPageUrl).origin;
+        loginUrl = authOrigin + formAction;
+      } else if (!formAction.startsWith('http')) {
+        loginUrl = new URL(formAction, authPageUrl).href;
+      }
+      // Decode HTML entities
+      loginUrl = loginUrl.replace(/&amp;/g, '&');
+      console.log(`   → Login URL: ${loginUrl.substring(0, 100)}...`);
+
+      // Construir form data
+      const formData = new URLSearchParams();
+      // Agregar campos hidden
+      for (const [key, value] of Object.entries(hiddenInputs)) {
+        formData.append(key, value);
+      }
+      // Agregar credenciales (probar varios nombres de campo)
+      formData.append('email', natura_email);
+      formData.append('username', natura_email);
+      formData.append('password', natura_password);
+
+      const loginRes = await fetch(loginUrl, {
+        method: 'POST',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Origin': new URL(authPageUrl).origin,
+          'Referer': authPageUrl,
+          'Cookie': cookies,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+        body: formData.toString(),
+        redirect: 'follow'
+      });
+
+      console.log(`   → Status: ${loginRes.status}`);
+      console.log(`   → URL final: ${loginRes.url}`);
+      cookies = extractCookies(loginRes, cookies);
+      
+      const loginResponseText = await loginRes.text();
+      const isBackOnNatura = loginRes.url.includes('minegocio.natura-avon.com.mx');
+      console.log(`   → De vuelta en Natura: ${isBackOnNatura}`);
+
+      if (isBackOnNatura) {
+        // === PASO 4: Ya autenticados, buscar el API de growthplan ===
+        console.log('📊 Paso 4: Obteniendo datos de crecimiento...');
+
+        // Probar varias URLs del API de growthplan
+        const growthUrls = [
+          'https://minegocio.natura-avon.com.mx/api/growthplan',
+          'https://minegocio.natura-avon.com.mx/api/consultant/growthplan',
+          'https://minegocio.natura-avon.com.mx/api/v1/growthplan',
+          'https://minegocio.natura-avon.com.mx/api/consultant-level',
+        ];
+
+        for (const url of growthUrls) {
+          try {
+            console.log(`   Probando: ${url}`);
+            const gRes = await fetch(url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+                'Accept': 'application/json',
+                'Cookie': cookies,
+                'Referer': 'https://minegocio.natura-avon.com.mx/home'
+              }
+            });
+            console.log(`   → Status: ${gRes.status}`);
+            
+            const contentType = gRes.headers.get('content-type') || '';
+            if (contentType.includes('json')) {
+              const data = await gRes.json();
+              console.log(`   → JSON: ${JSON.stringify(data).substring(0, 300)}`);
+              
+              if (data?.data?.consultantLevel) {
+                console.log('✅ ¡Datos de crecimiento obtenidos!');
+                return res.json({ success: true, data: data.data.consultantLevel });
+              }
+            } else {
+              const text = await gRes.text();
+              console.log(`   → No es JSON (${contentType}): ${text.substring(0, 100)}`);
+            }
+          } catch (e) {
+            console.log(`   → Error: ${e.message}`);
           }
         }
-      } catch (e) {
-        console.log(`   → Error: ${e.message}`);
-      }
-    }
-
-    // === PASO 2b: Si no encontramos API directa, usar Playwright como fallback ===
-    if (!loginSuccess) {
-      console.log('⚠️ No se encontró API directa. Usando Playwright fallback...');
-      const growthData = await playwrightFallback(natura_email, natura_password);
-      if (growthData) {
-        return res.json({ success: true, data: growthData });
-      }
-      throw new Error('No se pudo autenticar con ningún método.');
-    }
-
-    // === PASO 3: Llamar al API de growthplan ===
-    console.log('📊 Paso 3: Obteniendo datos de crecimiento...');
-    
-    const growthEndpoints = [
-      'https://minegocio.natura-avon.com.mx/api/growthplan',
-      'https://api-minegocio.natura-avon.com.mx/api/growthplan',
-      'https://minegocio.natura-avon.com.mx/api/consultant/growthplan',
-    ];
-
-    const authHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-      'Accept': 'application/json',
-      'Origin': 'https://minegocio.natura-avon.com.mx',
-      'Referer': 'https://minegocio.natura-avon.com.mx/home',
-      'Cookie': authCookies,
-      ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
-    };
-
-    for (const endpoint of growthEndpoints) {
-      try {
-        console.log(`   Probando: ${endpoint}`);
-        const growthRes = await fetch(endpoint, { headers: authHeaders });
-        console.log(`   → Status: ${growthRes.status}`);
         
-        if (growthRes.ok) {
-          const growthData = await growthRes.json();
-          if (growthData?.data?.consultantLevel) {
-            console.log('✅ Datos de crecimiento obtenidos!');
-            return res.json({ success: true, data: growthData.data.consultantLevel });
-          }
-          console.log(`   → Data: ${JSON.stringify(growthData)?.substring(0, 200)}`);
+        // Si llegamos aquí, buscar en el HTML de la página las URLs del API
+        console.log('🔍 Buscando URLs de API en el HTML...');
+        const apiUrls = loginResponseText.match(/https?:\/\/[^"'\s]+growthplan[^"'\s]*/gi);
+        if (apiUrls) {
+          console.log(`   → URLs de growthplan en HTML: ${apiUrls.join(', ')}`);
         }
-      } catch (e) {
-        console.log(`   → Error: ${e.message}`);
+        
+        // Buscar cualquier endpoint de API
+        const allApiUrls = loginResponseText.match(/https?:\/\/[^"'\s]*api[^"'\s]*/gi);
+        if (allApiUrls) {
+          const unique = [...new Set(allApiUrls)].slice(0, 10);
+          console.log(`   → URLs de API encontradas: ${unique.join('\n     ')}`);
+        }
+      } else {
+        // Login falló - estamos todavía en la página de auth
+        console.log('❌ Login falló. Analizando respuesta...');
+        const errorSnippet = loginResponseText.substring(0, 500).replace(/\s+/g, ' ');
+        console.log(`   → Respuesta: ${errorSnippet}`);
       }
     }
 
-    throw new Error('No se pudieron obtener los datos de crecimiento.');
+    throw new Error('No se pudieron obtener los datos. Revisa los logs para más detalles.');
 
   } catch (err) {
     console.error('❌ Error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
-
-/**
- * Fallback: Usa Playwright solo si el API directo no funciona.
- * Intenta importar Playwright dinámicamente.
- */
-async function playwrightFallback(email, password) {
-  try {
-    const { firefox } = await import('playwright');
-    console.log('🦊 Lanzando Firefox (fallback)...');
-    
-    const browser = await firefox.launch({ headless: true });
-    const context = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0'
-    });
-    const page = await context.newPage();
-    page.setDefaultTimeout(45000);
-
-    let extractedData = null;
-
-    page.on('response', async (response) => {
-      if (response.url().includes('growthplan')) {
-        try {
-          const body = await response.json();
-          if (body?.data?.consultantLevel) {
-            extractedData = body.data.consultantLevel;
-            console.log('🎯 Datos interceptados!');
-          }
-        } catch {}
-      }
-    });
-
-    await page.goto('https://minegocio.natura-avon.com.mx/home', { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(3000);
-
-    // Login flow
-    if (email.includes('@')) {
-      const dropdown = page.locator('div[role="combobox"]').first();
-      if (await dropdown.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await dropdown.click();
-        await page.waitForTimeout(1000);
-        const emailOpt = page.locator('li[role="option"]', { hasText: 'E-mail' });
-        if (await emailOpt.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await emailOpt.click();
-          await page.waitForTimeout(1000);
-        }
-      }
-    }
-
-    const userField = page.locator('input[placeholder*="E-mail"], input[placeholder*="Consultora"], input[type="email"], input[type="text"]').first();
-    if (await userField.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await userField.fill(email);
-      await page.waitForTimeout(500);
-      const pwdField = page.locator('input[type="password"]').first();
-      if (await pwdField.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await pwdField.fill(password);
-        await page.waitForTimeout(500);
-        const loginBtn = page.locator('button', { hasText: 'INICIAR SESIÓN' });
-        if (await loginBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-          await loginBtn.click();
-        } else {
-          await pwdField.press('Enter');
-        }
-        await page.waitForTimeout(3000);
-      }
-    }
-
-    for (let i = 0; i < 60; i++) {
-      if (extractedData) break;
-      await page.waitForTimeout(1000);
-    }
-
-    await browser.close();
-    return extractedData;
-  } catch (err) {
-    console.error('❌ Playwright fallback error:', err.message);
-    return null;
-  }
-}
 
 app.listen(PORT, () => {
   console.log(`🔧 Natura Scraper Service corriendo en puerto ${PORT}`);
