@@ -14,6 +14,32 @@ const CONFIG = {
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
 };
 
+/** Extrae cookies del header set-cookie de forma robusta */
+function extractCookies(response) {
+  const cookies = [];
+  const raw = response.headers.get('set-cookie');
+  if (raw) {
+    // set-cookie puede tener múltiples valores separados por comas
+    // pero cuidado con expires que también usa comas
+    const parts = raw.split(/,(?=[^ ])/);
+    for (const part of parts) {
+      const kv = part.split(';')[0].trim();
+      if (kv.includes('=')) cookies.push(kv);
+    }
+  }
+  // También intentar getSetCookie si existe
+  try {
+    const multi = response.headers.getSetCookie?.() || [];
+    for (const c of multi) {
+      const kv = c.split(';')[0].trim();
+      if (kv.includes('=') && !cookies.some(x => x.startsWith(kv.split('=')[0]))) {
+        cookies.push(kv);
+      }
+    }
+  } catch {}
+  return cookies;
+}
+
 function authMiddleware(req, res, next) {
   if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
     return res.status(401).json({ success: false, error: 'No autorizado.' });
@@ -32,63 +58,37 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   console.log(`🚀 Sync para: ${natura_email.substring(0, 5)}***`);
 
   try {
-    const headers = {
+    const baseHeaders = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // === PASO 1: Obtener formulario de login de Cognito ===
+    // === PASO 1: Obtener formulario de login ===
     console.log('📋 Paso 1: Obteniendo formulario de login...');
     
     const loginPageUrl = `${CONFIG.COGNITO_DOMAIN}/login?client_id=${CONFIG.CLIENT_ID}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(CONFIG.REDIRECT_URI)}`;
     
     const loginPageRes = await fetch(loginPageUrl, {
-      headers,
+      headers: baseHeaders,
       redirect: 'follow',
       signal: AbortSignal.timeout(15000)
     });
 
     console.log(`   Status: ${loginPageRes.status}`);
     const loginHtml = await loginPageRes.text();
-    console.log(`   HTML size: ${loginHtml.length}`);
 
-    // Extraer cookies (XSRF-TOKEN especialmente)
-    const setCookies = loginPageRes.headers.getSetCookie?.() || [];
-    const cookieStr = setCookies.map(c => c.split(';')[0]).join('; ');
-    console.log(`   Cookies: ${cookieStr.substring(0, 100)}`);
+    // Cookies
+    const cookies = extractCookies(loginPageRes);
+    const cookieStr = cookies.join('; ');
+    console.log(`   Cookies: ${cookieStr.substring(0, 120)}`);
 
-    // Extraer form action
+    // Form action
     const formAction = loginHtml.match(/form[^>]*action="([^"]+)"/i)?.[1];
-    console.log(`   Form action: ${formAction || 'NO ENCONTRADO'}`);
+    console.log(`   Form action: ${formAction?.substring(0, 80) || 'NO'}`);
+    if (!formAction) throw new Error('Form no encontrado');
 
-    if (!formAction) {
-      // Log más HTML para debugging
-      console.log(`   HTML preview: ${loginHtml.substring(0, 500).replace(/\s+/g, ' ')}`);
-      
-      // Buscar cualquier tag form
-      const formTag = loginHtml.match(/<form[^>]*>/gi);
-      console.log(`   Forms encontrados: ${formTag?.length || 0}`);
-      formTag?.forEach(f => console.log(`     ${f}`));
-      
-      // Buscar inputs
-      const inputs = loginHtml.match(/<input[^>]*>/gi);
-      console.log(`   Inputs: ${inputs?.length || 0}`);
-      inputs?.forEach(i => console.log(`     ${i.substring(0, 100)}`));
-
-      // Buscar links y buttons
-      const buttons = loginHtml.match(/<button[^>]*>[^<]*<\/button>/gi);
-      console.log(`   Buttons: ${buttons?.length || 0}`);
-      buttons?.forEach(b => console.log(`     ${b}`));
-
-      // Buscar cualquier URL de acción
-      const actions = loginHtml.match(/action=['"]([^'"]+)['"]/gi);
-      console.log(`   Actions: ${actions?.join(', ') || 'NONE'}`);
-
-      throw new Error('Form no encontrado. Revisa HTML.');
-    }
-
-    // Extraer hidden inputs
+    // Hidden inputs
     const hiddens = {};
     const hRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
     let m;
@@ -97,26 +97,23 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       const value = m[0].match(/value=['"]([^'"]*)['"]/)?.[1];
       if (name) hiddens[name] = value || '';
     }
-    console.log(`   Hidden inputs: ${JSON.stringify(hiddens)}`);
+    console.log(`   Hiddens: ${Object.keys(hiddens).join(', ')}`);
 
     // === PASO 2: Enviar credenciales ===
     console.log('\n📧 Paso 2: Enviando credenciales...');
     
     let postUrl = formAction.startsWith('http') ? formAction : `${CONFIG.COGNITO_DOMAIN}${formAction}`;
     postUrl = postUrl.replace(/&amp;/g, '&');
-    console.log(`   POST ${postUrl.substring(0, 80)}...`);
 
     const formBody = new URLSearchParams();
     for (const [k, v] of Object.entries(hiddens)) formBody.append(k, v);
     formBody.append('username', natura_email);
     formBody.append('password', natura_password);
-    
-    console.log(`   Form data keys: ${[...formBody.keys()].join(', ')}`);
 
     const authRes = await fetch(postUrl, {
       method: 'POST',
       headers: {
-        ...headers,
+        ...baseHeaders,
         'Content-Type': 'application/x-www-form-urlencoded',
         'Cookie': cookieStr,
         'Origin': CONFIG.COGNITO_DOMAIN,
@@ -127,99 +124,99 @@ app.post('/scrape', authMiddleware, async (req, res) => {
       signal: AbortSignal.timeout(15000)
     });
 
-    console.log(`   Response status: ${authRes.status}`);
-    
-    // Extraer headers importantes
     const location = authRes.headers.get('location') || '';
-    const newCookies = authRes.headers.getSetCookie?.() || [];
+    const authCookies = extractCookies(authRes);
+    const allCookies = [...cookies, ...authCookies].join('; ');
+    
+    console.log(`   Status: ${authRes.status}`);
     console.log(`   Location: ${location.substring(0, 150)}`);
-    console.log(`   New cookies: ${newCookies.length}`);
+    console.log(`   Auth cookies: ${authCookies.join(', ').substring(0, 100)}`);
 
-    // === Caso 1: Redirect con authorization code ===
+    // === Caso: Redirect con code (LOGIN EXITOSO!) ===
     if (location.includes('code=')) {
-      const url = new URL(location);
-      const code = url.searchParams.get('code');
-      console.log(`\n🎫 Paso 3: ¡Authorization code obtenido! ${code?.substring(0, 20)}...`);
-
-      // Intercambiar code por tokens
-      console.log('   Intercambiando code por tokens...');
+      console.log('\n🎫 ¡LOGIN EXITOSO! Intercambiando code por tokens...');
+      const code = new URL(location).searchParams.get('code');
+      
       const tokenRes = await fetch(`${CONFIG.COGNITO_DOMAIN}/oauth2/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           client_id: CONFIG.CLIENT_ID,
-          code: code,
+          code,
           redirect_uri: CONFIG.REDIRECT_URI
         }).toString(),
         signal: AbortSignal.timeout(15000)
       });
 
-      const tokenText = await tokenRes.text();
+      const tokenData = await tokenRes.json().catch(() => ({}));
       console.log(`   Token status: ${tokenRes.status}`);
-      console.log(`   Token response: ${tokenText.substring(0, 500)}`);
-
-      try {
-        const tokenData = JSON.parse(tokenText);
-        if (tokenData.access_token || tokenData.id_token) {
-          console.log('   ✅ ¡TOKENS OBTENIDOS!');
-          
-          const token = tokenData.access_token || tokenData.id_token;
-          
-          // Obtener datos de crecimiento
-          const growthData = await fetchGrowthData(token, headers);
-          if (growthData) {
-            return res.json({ success: true, data: growthData });
-          }
-          
-          // Si no se obtienen growth data, devolver los tokens
-          return res.json({ success: true, tokens: tokenData, message: 'Auth OK pero growth data no disponible' });
-        }
-      } catch (e) {
-        console.log(`   Parse error: ${e.message}`);
+      
+      if (tokenData.access_token || tokenData.id_token) {
+        console.log('   ✅ ¡TOKENS OBTENIDOS!');
+        const growthData = await fetchGrowthData(tokenData.access_token || tokenData.id_token, baseHeaders);
+        return res.json({ success: true, data: growthData || tokenData });
       }
+      console.log(`   Token error: ${JSON.stringify(tokenData).substring(0, 300)}`);
     }
 
-    // === Caso 2: Redirect con tokens (implicit) ===
-    if (location.includes('access_token') || location.includes('id_token')) {
-      const fragment = location.split('#')[1] || '';
-      const params = new URLSearchParams(fragment);
-      const token = params.get('access_token') || params.get('id_token');
-      console.log(`\n🎫 ¡Token obtenido via implicit grant!`);
+    // === Caso: Redirect de vuelta al login (CREDENCIALES MALAS o cognitoAsfData) ===
+    if (authRes.status === 302 && location.includes('/login')) {
+      console.log('\n🔄 Redirect a login. Siguiendo para ver error...');
       
-      const growthData = await fetchGrowthData(token, headers);
-      if (growthData) return res.json({ success: true, data: growthData });
-      return res.json({ success: true, message: 'Auth OK' });
-    }
-
-    // === Caso 3: Login fallido ===
-    if (authRes.status === 200 || authRes.status === 302) {
-      const errHtml = await authRes.text().catch(() => '');
+      const errorPageRes = await fetch(location, {
+        headers: {
+          ...baseHeaders,
+          'Cookie': allCookies,
+        },
+        redirect: 'follow',
+        signal: AbortSignal.timeout(10000)
+      });
       
-      // Buscar mensaje de error
+      const errorHtml = await errorPageRes.text();
+      console.log(`   Error page status: ${errorPageRes.status}, size: ${errorHtml.length}`);
+      
+      // Buscar mensaje de error (Cognito lo muestra en un div/p con clase error/alert)
       const errorPatterns = [
-        /errorMessage['"]*[>:]\s*['"]?([^<'"]+)/i,
-        /class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
-        /id="[^"]*error[^"]*"[^>]*>([^<]+)/i,
-        /"message"\s*:\s*"([^"]+)"/i,
+        /<p[^>]*class="[^"]*errorMessage[^"]*"[^>]*>([^<]+)/i,
+        /<div[^>]*class="[^"]*errorMessage[^"]*"[^>]*>([^<]+)/i,
+        /<p[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
+        /<div[^>]*class="[^"]*alert[^"]*"[^>]*>([^<]+)/i,
+        /<span[^>]*class="[^"]*error[^"]*"[^>]*>([^<]+)/i,
+        /id="loginErrorMessage"[^>]*>([^<]+)/i,
+        /errorMessage['"]\s*>([^<]+)/i,
       ];
       
-      let errorMsg = 'Unknown error';
-      for (const pattern of errorPatterns) {
-        const match = errHtml.match(pattern);
+      let errorMsg = null;
+      for (const p of errorPatterns) {
+        const match = errorHtml.match(p);
         if (match) { errorMsg = match[1].trim(); break; }
       }
       
-      console.log(`   ❌ Login error: ${errorMsg}`);
-      console.log(`   Response HTML snippet: ${errHtml.substring(0, 500).replace(/\s+/g, ' ')}`);
-      
-      // Si es redirect a error
-      if (location) {
-        console.log(`   Redirect to: ${location}`);
+      if (errorMsg) {
+        console.log(`   ❌ Error de Cognito: "${errorMsg}"`);
+      } else {
+        // Buscar cualquier texto de error visible
+        const visibleText = errorHtml.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+          .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+          .replace(/<[^>]+>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+        console.log(`   Page text: ${visibleText.substring(0, 500)}`);
       }
+      
+      // Verificar si es un problema de cognitoAsfData
+      console.log(`\n   ℹ️ cognitoAsfData fue enviado como: "${hiddens.cognitoAsfData || 'VACÍO'}"`);
+      console.log('   ℹ️ Si el error es por dispositivo no reconocido, cognitoAsfData es requerido.');
+    }
+    
+    // === Caso: 200 con HTML de error ===
+    if (authRes.status === 200) {
+      const html = await authRes.text();
+      console.log(`   Direct response HTML: ${html.substring(0, 300).replace(/\s+/g, ' ')}`);
     }
 
-    throw new Error('No se pudo completar el login.');
+    throw new Error('Login no completado. Revisa error arriba.');
 
   } catch (err) {
     console.error('❌', err.message);
@@ -229,22 +226,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
 async function fetchGrowthData(token, baseHeaders) {
   console.log('\n📊 Obteniendo datos de crecimiento...');
-  
-  // Primero obtener sesión en minegocio
-  try {
-    const sessionRes = await fetch(`${CONFIG.NATURA_BASE}/natura-callback?return_url=home&code=placeholder`, {
-      headers: { ...baseHeaders, 'Authorization': `Bearer ${token}` },
-      redirect: 'manual',
-      signal: AbortSignal.timeout(10000)
-    });
-    console.log(`   Session: ${sessionRes.status}`);
-  } catch {}
-
-  const urls = [
-    `${CONFIG.NATURA_BASE}/api/growthplan`,
-    `${CONFIG.NATURA_BASE}/bff/growthplan`,
-  ];
-  
+  const urls = [`${CONFIG.NATURA_BASE}/api/growthplan`, `${CONFIG.NATURA_BASE}/bff/growthplan`];
   for (const url of urls) {
     try {
       const r = await fetch(url, {
@@ -256,12 +238,8 @@ async function fetchGrowthData(token, baseHeaders) {
         const d = await r.json();
         console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 300)}`);
         if (d?.data) return d.data;
-      } else {
-        console.log(`   ${url} → ${r.status} (${ct})`);
-      }
-    } catch (e) {
-      console.log(`   → ${e.message?.substring(0, 50)}`);
-    }
+      } else console.log(`   ${url} → ${r.status} (${ct})`);
+    } catch (e) { console.log(`   → ${e.message?.substring(0, 50)}`); }
   }
   return null;
 }
