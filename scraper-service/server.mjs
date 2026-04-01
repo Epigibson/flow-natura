@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import crypto from 'crypto';
 
 const app = express();
 app.use(cors());
@@ -8,10 +9,63 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 
 const CONFIG = {
-  COGNITO_REGION: 'us-east-1',
+  // Credenciales extraídas del JS de Natura Auth frontend
   CLIENT_ID: '31ndsgochinbk61v3jk8dhsf2o',
+  NATURA_API: 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api/login',
+  NATURA_API_KEY: '2aa3706e-93b1-4b36-bb93-c76f5076d576',
+  AES_KEY: 'N@tur4=',
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
+  COUNTRY: 'mx',
+  COMPANY: 'natura',
 };
+
+// === Encriptar password con AES (mismo método que el frontend de Natura) ===
+// Natura usa CryptoJS.AES.encrypt(password, key).toString()
+// CryptoJS con passphrase usa: PBKDF2-like KDF (OpenSSL EVP_BytesToKey) para derivar key+iv
+function encryptPassword(password) {
+  const key = CONFIG.AES_KEY;
+
+  // CryptoJS.AES.encrypt con una string como key usa OpenSSL's EVP_BytesToKey
+  // Genera un salt random de 8 bytes, luego:
+  // key_iv = MD5(key + salt) + MD5(MD5(key + salt) + key + salt) + ...
+  const salt = crypto.randomBytes(8);
+  const keyAndIV = evpBytesToKey(key, salt, 32, 16); // AES-256: 32 bytes key, 16 bytes IV
+
+  const cipher = crypto.createCipheriv('aes-256-cbc', keyAndIV.key, keyAndIV.iv);
+  let encrypted = cipher.update(password, 'utf8');
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  // CryptoJS output format: "Salted__" + salt + encrypted, all base64
+  const result = Buffer.concat([
+    Buffer.from('Salted__', 'ascii'),
+    salt,
+    encrypted,
+  ]);
+
+  return result.toString('base64');
+}
+
+// OpenSSL EVP_BytesToKey - compatible con CryptoJS passphrase mode
+function evpBytesToKey(passphrase, salt, keyLen, ivLen) {
+  const totalLen = keyLen + ivLen;
+  let derivedBytes = Buffer.alloc(0);
+  let block = Buffer.alloc(0);
+
+  while (derivedBytes.length < totalLen) {
+    const data = Buffer.concat([
+      block,
+      Buffer.from(passphrase, 'utf8'),
+      salt,
+    ]);
+    block = crypto.createHash('md5').update(data).digest();
+    derivedBytes = Buffer.concat([derivedBytes, block]);
+  }
+
+  return {
+    key: derivedBytes.subarray(0, keyLen),
+    iv: derivedBytes.subarray(keyLen, keyLen + ivLen),
+  };
+}
 
 function authMiddleware(req, res, next) {
   if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
@@ -20,161 +74,93 @@ function authMiddleware(req, res, next) {
   next();
 }
 
-app.get('/health', (req, res) => res.json({ status: 'ok', method: 'cognito-direct' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', method: 'natura-api-direct' }));
 
 // =====================================================
-// ESTRATEGIA: Llamar directamente a la API de Cognito
+// ESTRATEGIA: Llamar a la API proxy de Natura directamente
+// Exactamente como lo hace su frontend React
 // SIN navegador, SIN Akamai, SIN Playwright
-// AWS Cognito expone InitiateAuth como API REST pública
 // =====================================================
 
-async function authenticateViaCognito(email, password) {
-  console.log('🔑 Intentando auth directo con Cognito API...');
+async function authenticateViaNatura(email, password) {
+  console.log('🔑 Autenticando via Natura authentication-api...');
 
-  const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
+  // Paso 1: Encriptar password como lo hace el frontend
+  const encryptedPassword = encryptPassword(password);
+  console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
 
-  // Intento 1: USER_PASSWORD_AUTH (el más simple)
-  try {
-    console.log('   → Probando USER_PASSWORD_AUTH...');
-    const response = await fetch(cognitoUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-amz-json-1.1',
-        'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth',
-      },
-      body: JSON.stringify({
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        ClientId: CONFIG.CLIENT_ID,
-        AuthParameters: {
-          USERNAME: email,
-          PASSWORD: password,
-        },
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
+  // Paso 2: Llamar a la API exactamente como el frontend
+  const body = {
+    clientId: CONFIG.CLIENT_ID,
+    company: CONFIG.COMPANY,
+    country: CONFIG.COUNTRY,
+    password: encryptedPassword,
+    recaptchaToken: null,
+    redirectUrl: CONFIG.NATURA_BASE + '/',
+    username: email,
+  };
 
-    const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response keys: ${Object.keys(data).join(', ')}`);
+  console.log(`   → POST ${CONFIG.NATURA_API}`);
+  console.log(`   → Body: ${JSON.stringify({ ...body, password: '***' })}`);
 
-    if (data.AuthenticationResult) {
-      console.log('   ✅ USER_PASSWORD_AUTH exitoso!');
-      return {
-        id_token: data.AuthenticationResult.IdToken,
-        access_token: data.AuthenticationResult.AccessToken,
-        refresh_token: data.AuthenticationResult.RefreshToken,
-        expires_in: data.AuthenticationResult.ExpiresIn,
-        token_type: data.AuthenticationResult.TokenType,
-      };
-    }
+  const response = await fetch(CONFIG.NATURA_API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': CONFIG.NATURA_API_KEY,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+      'Accept': 'application/json',
+      'Origin': 'https://natura-auth.prd.naturacloud.com',
+      'Referer': 'https://natura-auth.prd.naturacloud.com/',
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(20000),
+  });
 
-    if (data.ChallengeName) {
-      console.log(`   ⚠️ Challenge requerido: ${data.ChallengeName}`);
-      // Si requiere NEW_PASSWORD_REQUIRED u otro challenge
-      return { challenge: data.ChallengeName, session: data.Session };
-    }
+  const data = await response.json();
+  console.log(`   Status: ${response.status}`);
+  console.log(`   Response keys: ${JSON.stringify(Object.keys(data))}`);
+  console.log(`   Response (300 chars): ${JSON.stringify(data).substring(0, 300)}`);
 
-    if (data.__type) {
-      const errorType = data.__type.split('#').pop();
-      console.log(`   ❌ Error Cognito: ${errorType} - ${data.message}`);
-
-      // Si USER_PASSWORD_AUTH no está habilitado, intentar USER_SRP_AUTH
-      if (errorType === 'InvalidParameterException' || errorType === 'NotAuthorizedException') {
-        // Podría ser credenciales incorrectas vs flujo no disponible
-        // InvalidParameterException = flujo no disponible
-        // NotAuthorizedException = credenciales incorrectas
-        if (errorType === 'NotAuthorizedException') {
-          throw new Error(`Credenciales incorrectas: ${data.message}`);
-        }
-      }
-      // Cualquier otro error, lo propagamos
-      throw new Error(`Cognito ${errorType}: ${data.message}`);
-    }
-
-    throw new Error(`Respuesta inesperada de Cognito: ${JSON.stringify(data).substring(0, 300)}`);
-
-  } catch (err) {
-    if (err.message.includes('Credenciales incorrectas')) throw err;
-    console.log(`   ❌ USER_PASSWORD_AUTH falló: ${err.message}`);
-    // Continuar con SRP si el error indica que el flujo no está disponible
+  // Caso exitoso: data contiene tokens
+  if (data?.data?.id_token || data?.data?.IdToken) {
+    console.log('   ✅ ¡Login exitoso!');
+    return {
+      id_token: data.data.id_token || data.data.IdToken,
+      access_token: data.data.access_token || data.data.AccessToken,
+      refresh_token: data.data.refresh_token || data.data.RefreshToken,
+      expires_in: data.data.expires_in || data.data.ExpiresIn,
+    };
   }
 
-  // Intento 2: Llamar a la authentication-api de Natura directamente (sin browser)
-  try {
-    console.log('   → Probando authentication-api de Natura directo...');
-    const naturaAuthUrl = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
-
-    const response = await fetch(naturaAuthUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-        'Accept': 'application/json',
-        'Origin': 'https://natura-auth.prd.naturacloud.com',
-        'Referer': 'https://natura-auth.prd.naturacloud.com/',
-      },
-      body: JSON.stringify({
-        username: email,
-        password: password,
-        clientId: CONFIG.CLIENT_ID,
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
-
-    const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response keys: ${Object.keys(data).join(', ')}`);
-    console.log(`   Data preview: ${JSON.stringify(data).substring(0, 300)}`);
-
-    if (data?.data?.id_token) {
-      console.log('   ✅ authentication-api exitoso!');
-      return data.data;
-    }
-    if (data?.id_token) {
-      console.log('   ✅ authentication-api exitoso (flat)!');
-      return data;
-    }
-
-    console.log(`   ❌ authentication-api no devolvió token: ${JSON.stringify(data).substring(0, 300)}`);
-  } catch (err) {
-    console.log(`   ❌ authentication-api falló: ${err.message}`);
+  // Caso: tokens en root level
+  if (data?.id_token || data?.IdToken) {
+    console.log('   ✅ ¡Login exitoso (flat response)!');
+    return {
+      id_token: data.id_token || data.IdToken,
+      access_token: data.access_token || data.AccessToken,
+      refresh_token: data.refresh_token || data.RefreshToken,
+      expires_in: data.expires_in || data.ExpiresIn,
+    };
   }
 
-  // Intento 3: Probar variaciones del body de authentication-api
-  try {
-    console.log('   → Probando authentication-api con formato alternativo...');
-    const naturaAuthUrl = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
-
-    const response = await fetch(naturaAuthUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-        'Accept': 'application/json',
-        'Origin': 'https://minegocio.natura-avon.com.mx',
-        'Referer': 'https://minegocio.natura-avon.com.mx/',
-      },
-      body: JSON.stringify({
-        login: email,
-        password: password,
-        client_id: CONFIG.CLIENT_ID,
-      }),
-      signal: AbortSignal.timeout(15000),
-    });
-
-    const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response: ${JSON.stringify(data).substring(0, 500)}`);
-
-    if (data?.data?.id_token || data?.id_token) {
-      console.log('   ✅ authentication-api (alt) exitoso!');
-      return data?.data || data;
-    }
-  } catch (err) {
-    console.log(`   ❌ authentication-api (alt) falló: ${err.message}`);
+  // Caso: AuthenticationResult de Cognito directamente
+  if (data?.AuthenticationResult) {
+    console.log('   ✅ ¡Login exitoso (Cognito format)!');
+    return {
+      id_token: data.AuthenticationResult.IdToken,
+      access_token: data.AuthenticationResult.AccessToken,
+      refresh_token: data.AuthenticationResult.RefreshToken,
+      expires_in: data.AuthenticationResult.ExpiresIn,
+    };
   }
 
-  throw new Error('Todos los métodos de autenticación fallaron.');
+  // Caso error
+  if (data?.error || data?.message) {
+    throw new Error(`Natura API error: ${data.error || data.message} (status ${response.status})`);
+  }
+
+  throw new Error(`Respuesta inesperada (${response.status}): ${JSON.stringify(data).substring(0, 500)}`);
 }
 
 app.post('/scrape', authMiddleware, async (req, res) => {
@@ -186,15 +172,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   console.log(`🚀 Sync para: ${natura_email.substring(0, 5)}***`);
 
   try {
-    const tokenData = await authenticateViaCognito(natura_email, natura_password);
-
-    if (tokenData.challenge) {
-      return res.json({
-        success: false,
-        error: `Se requiere challenge: ${tokenData.challenge}`,
-        challenge: tokenData.challenge,
-      });
-    }
+    const tokenData = await authenticateViaNatura(natura_email, natura_password);
 
     console.log('✅ ¡TOKENS OBTENIDOS!');
     const token = tokenData.access_token || tokenData.id_token;
@@ -250,4 +228,4 @@ async function fetchGrowthData(token) {
   return null;
 }
 
-app.listen(PORT, () => console.log(`🔧 Natura Scraper en puerto ${PORT} (modo: Cognito directo, sin browser)`));
+app.listen(PORT, () => console.log(`🔧 Natura Scraper en puerto ${PORT} (modo: API directa con AES)`));
