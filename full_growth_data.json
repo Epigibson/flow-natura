@@ -1,0 +1,89 @@
+{
+  "nextLevelsParameters": [
+    {
+      "levelName": "Diamante",
+      "levelCode": 5,
+      "levelSequence": 5,
+      "minPointsValue": 13000,
+      "minActivityValue": null,
+      "__typename": "NextLevelsParameters"
+    },
+    {
+      "levelName": "Diamante Azul",
+      "levelCode": 6,
+      "levelSequence": 6,
+      "minPointsValue": 64000,
+      "minActivityValue": null,
+      "__typename": "NextLevelsParameters"
+    }
+  ],
+  "person_code": "5959327",
+  "person_id": "8115c536-6d00-47ec-bce3-def0a98860c4",
+  "level": {
+    "code": 4,
+    "description": "Zafiro",
+    "maintenanceGap": 247,
+    "maintenanceValue": 4500,
+    "changedLevel": false,
+    "__typename": "Level"
+  },
+  "beginner": {
+    "status": false,
+    "start": "",
+    "end": "",
+    "remaining": 0,
+    "minValue": 0,
+    "total": 0,
+    "currentValue": 0,
+    "showProgressionComponent": false,
+    "progress": 0,
+    "__typename": "Beginner"
+  },
+  "cycle": "202605",
+  "nextLevel": "Diamante",
+  "period": {
+    "actualCycleDateStart": "18/03/2026",
+    "actualCycleDateEnd": "07/04/2026",
+    "actualCycleTotalDays": 21,
+    "daysFinalDate": 6,
+    "cyclesQnty": 9,
+    "periodDateStart": "24/12/2025",
+    "periodDateEnd": "23/06/2026",
+    "progress": 5,
+    "__typename": "PeriodCycles"
+  },
+  "nextLevelProgress": {
+    "indexName": "Pontos",
+    "currentValue": 4253,
+    "nextValueMin": 13000,
+    "nextValueTotal": 13000,
+    "gap": 8747,
+    "progressPercentage": 33,
+    "isAchieved": false,
+    "__typename": "NextLevelProgress"
+  },
+  "configuration": {
+    "minimumOrderNatura": 100,
+    "minimumOrderAvon": 70,
+    "start": 202601,
+    "end": 202609,
+    "__typename": "Configuration"
+  },
+  "nextActiveProgress": {
+    "show": false,
+    "indexName": "Atividade",
+    "currentValue": 0,
+    "nextValueMin": 0,
+    "nextValueTotal": 0,
+    "gap": 0,
+    "isAchieved": false,
+    "__typename": "NextActiveProgress"
+  },
+  "levelAfterNext": {
+    "levelName": "Diamante Azul",
+    "minPointsValue": 64000,
+    "minActivityValue": null,
+    "__typename": "NextLevelsParameters"
+  },
+  "__typename": "ConsultantLevelResponse"
+}

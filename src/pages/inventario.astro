@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 ---
 
 <DashboardLayout>
@@ -87,8 +88,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         </div>
       </div>
 
-      <!-- Products Grid -->
-      <section id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <!-- Skeleton for products grid -->
+      <div id="inventory-skeleton">
+        <CardGridSkeleton count={8} />
+      </div>
+
+      <!-- Products Grid (hidden until loaded) -->
+      <section id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 hidden">
         <div class="col-span-full text-center py-12 text-on-surface-variant hidden" id="empty-state">
           <span class="material-symbols-outlined text-5xl mb-4 text-primary/30">inventory_2</span>
           <p class="text-lg font-bold">No tienes productos en tu inventario aún.</p>
@@ -197,6 +203,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     emptyState.classList.add('hidden');
+
+    // Swap skeleton → real content
+    document.getElementById('inventory-skeleton')?.classList.add('hidden');
+    container.classList.remove('hidden');
+    container.classList.add('content-loaded');
 
     fullInventory = allInventory.map((item: any) => ({
       ...item.products,

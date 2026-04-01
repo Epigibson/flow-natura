@@ -1,0 +1,49 @@
+---
+/**
+ * TableSkeleton — Skeleton for data tables (clientes, inventario, ventas)
+ */
+interface Props {
+  rows?: number;
+  cols?: number;
+}
+const { rows = 8, cols = 5 } = Astro.props;
+---
+
+<div class="surface-card shadow-sm border border-outline-variant/20 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-surface-container-low">
+          {Array.from({ length: cols }).map((_, i) => (
+            <th class="py-4 px-5">
+              <div class="skeleton skeleton-text" style={`width: ${3 + Math.random() * 3}rem;`}></div>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: rows }).map((_, rowIdx) => (
+          <tr class="border-t border-outline-variant/8">
+            {Array.from({ length: cols }).map((_, colIdx) => (
+              <td class="py-4 px-5">
+                {colIdx === 0 ? (
+                  <div class="flex items-center gap-3">
+                    <div class="skeleton skeleton-avatar"></div>
+                    <div class="space-y-1.5">
+                      <div class="skeleton skeleton-text" style="width: 7rem;"></div>
+                      <div class="skeleton skeleton-text" style="width: 5rem; height: 0.5rem;"></div>
+                    </div>
+                  </div>
+                ) : colIdx === cols - 1 ? (
+                  <div class="skeleton skeleton-badge"></div>
+                ) : (
+                  <div class="skeleton skeleton-text" style={`width: ${3 + Math.random() * 4}rem;`}></div>
+                )}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>

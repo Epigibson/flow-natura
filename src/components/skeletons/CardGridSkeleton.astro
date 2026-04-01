@@ -1,0 +1,25 @@
+---
+/**
+ * CardGridSkeleton — Skeleton for card grid layouts (catalogo, inventario)
+ */
+interface Props {
+  count?: number;
+}
+const { count = 8 } = Astro.props;
+---
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+  {Array.from({ length: count }).map((_, i) => (
+    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/5" style={`animation: fadeInUp 0.3s ease ${i * 0.05}s both;`}>
+      <div class="skeleton skeleton-image w-full" style="aspect-ratio: 1; border-radius: 0;"></div>
+      <div class="p-4 space-y-2.5">
+        <div class="skeleton skeleton-text w-3/4"></div>
+        <div class="skeleton skeleton-text w-1/2" style="height: 0.625rem;"></div>
+        <div class="flex justify-between items-center mt-3">
+          <div class="skeleton skeleton-badge" style="width: 4rem;"></div>
+          <div class="skeleton skeleton-badge" style="width: 3rem;"></div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>

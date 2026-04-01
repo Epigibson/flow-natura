@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
@@ -112,8 +113,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     </div>
     <!-- Loading -->
     <div id="loading" class="text-center py-16">
-      <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-      <p class="text-on-surface-variant mt-3 font-bold">Cargando catálogo...</p>
+      <PageLoader inline={true} text="Cargando catálogo" />
     </div>
     <!-- Empty -->
     <div id="empty-state" class="text-center py-16 hidden">

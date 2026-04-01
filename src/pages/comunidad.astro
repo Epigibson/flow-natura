@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import PageLoader from '../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
@@ -65,8 +66,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       <!-- Loading State -->
       <div id="feed-loading" class="flex flex-col items-center justify-center py-16">
-        <span class="material-symbols-outlined text-4xl text-primary animate-spin mb-3">refresh</span>
-        <p class="text-on-surface-variant text-sm">Cargando comunidad...</p>
+        <PageLoader inline={true} text="Cargando comunidad" />
       </div>
 
       <!-- Empty State -->

@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
@@ -61,8 +62,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     <div id="clients-table" class="space-y-0">
       <div id="clients-loading" class="text-center py-12">
-        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-        <p class="text-on-surface-variant mt-2">Analizando cartera...</p>
+        <PageLoader inline={true} text="Analizando cartera" />
       </div>
       <div id="clients-empty" class="text-center py-12 hidden">
         <span class="material-symbols-outlined text-5xl text-on-surface-variant">sentiment_satisfied</span>
@@ -79,7 +79,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     </h3>
     <div id="top-buyers-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div id="top-buyers-loading" class="col-span-full text-center py-8">
-        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+        <PageLoader inline={true} />
       </div>
     </div>
   </section>

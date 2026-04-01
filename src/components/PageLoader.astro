@@ -1,0 +1,271 @@
+---
+/**
+ * PageLoader — Premium SVG animated loader for Natura Manager
+ * Features a nature-inspired leaf motif with professional stroke animations.
+ * 
+ * Usage:
+ *   <PageLoader id="my-loader" text="Cargando datos..." />
+ *   
+ *   In script: 
+ *     document.getElementById('my-loader')?.classList.add('hidden');
+ *     document.getElementById('content')?.classList.remove('hidden');
+ *     document.getElementById('content')?.classList.add('content-loaded');
+ */
+interface Props {
+  id?: string;
+  text?: string;
+  inline?: boolean;
+}
+
+const { id = 'page-loader', text = 'Cargando...', inline = false } = Astro.props;
+---
+
+<div id={id} class={inline ? 'nm-loader nm-loader--inline' : 'nm-loader'}>
+  <div class="nm-loader__icon">
+    <!-- Outer rotating ring -->
+    <svg class="nm-loader__ring" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--color-primary)" stop-opacity="1" />
+          <stop offset="50%" stop-color="var(--color-primary-container)" stop-opacity="0.6" />
+          <stop offset="100%" stop-color="var(--color-primary)" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <circle cx="40" cy="40" r="36" stroke="var(--color-surface-container-high)" stroke-width="2.5" />
+      <circle cx="40" cy="40" r="36" stroke="url(#ring-grad)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="160 66" />
+    </svg>
+    
+    <!-- Center leaf SVG (Natura-inspired) -->
+    <svg class="nm-loader__leaf" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="leaf-fill" x1="12" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="var(--color-primary)" />
+          <stop offset="100%" stop-color="var(--color-primary-container)" />
+        </linearGradient>
+        <linearGradient id="leaf-stroke" x1="12" y1="8" x2="36" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="var(--color-primary)" />
+          <stop offset="100%" stop-color="#e8720c" />
+        </linearGradient>
+      </defs>
+      <!-- Main leaf shape -->
+      <path 
+        class="nm-loader__leaf-path"
+        d="M24 6C24 6 12 14 12 26C12 34.5 17.4 40 24 42C30.6 40 36 34.5 36 26C36 14 24 6 24 6Z" 
+        fill="url(#leaf-fill)" 
+        fill-opacity="0.15"
+        stroke="url(#leaf-stroke)" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+      />
+      <!-- Central vein -->
+      <path 
+        class="nm-loader__vein nm-loader__vein--center"
+        d="M24 12V36" 
+        stroke="var(--color-primary)" 
+        stroke-width="1.5" 
+        stroke-linecap="round"
+      />
+      <!-- Left veins -->
+      <path 
+        class="nm-loader__vein nm-loader__vein--left1"
+        d="M24 20L17 24" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.6"
+      />
+      <path 
+        class="nm-loader__vein nm-loader__vein--left2"
+        d="M24 26L16 29" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.5"
+      />
+      <path 
+        class="nm-loader__vein nm-loader__vein--left3"
+        d="M24 32L18 34" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.4"
+      />
+      <!-- Right veins -->
+      <path 
+        class="nm-loader__vein nm-loader__vein--right1"
+        d="M24 20L31 24" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.6"
+      />
+      <path 
+        class="nm-loader__vein nm-loader__vein--right2"
+        d="M24 26L32 29" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.5"
+      />
+      <path 
+        class="nm-loader__vein nm-loader__vein--right3"
+        d="M24 32L30 34" 
+        stroke="var(--color-primary)" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-opacity="0.4"
+      />
+      <!-- Glow dot at top -->
+      <circle class="nm-loader__glow" cx="24" cy="10" r="2" fill="var(--color-primary-container)" />
+    </svg>
+  </div>
+
+  {!inline && (
+    <div class="nm-loader__text-block">
+      <span class="nm-loader__brand">Natura Manager</span>
+      <span class="nm-loader__text">{text}</span>
+    </div>
+  )}
+  {inline && <span class="nm-loader__text">{text}</span>}
+</div>
+
+<style>
+  /* ═══════════════════════════════════════
+     NATURA MANAGER — PREMIUM SVG LOADER
+     ═══════════════════════════════════════ */
+
+  .nm-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 0;
+    gap: 1.5rem;
+  }
+
+  .nm-loader.hidden {
+    display: none !important;
+  }
+
+  .nm-loader--inline {
+    flex-direction: row;
+    padding: 1.5rem 0;
+    gap: 1rem;
+  }
+
+  /* Icon container */
+  .nm-loader__icon {
+    position: relative;
+    width: 5rem;
+    height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nm-loader--inline .nm-loader__icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  /* Rotating ring */
+  .nm-loader__ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    animation: nm-orbit 1.4s linear infinite;
+  }
+
+  /* Center leaf */
+  .nm-loader__leaf {
+    width: 55%;
+    height: 55%;
+    animation: nm-breathe 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 2px 8px rgba(150, 73, 0, 0.15));
+  }
+
+  /* Leaf outline draw animation */
+  .nm-loader__leaf-path {
+    stroke-dasharray: 120;
+    stroke-dashoffset: 0;
+    animation: nm-leaf-trace 3s ease-in-out infinite;
+  }
+
+  /* Vein animations — staggered stroke draw */
+  .nm-loader__vein {
+    stroke-dasharray: 30;
+    stroke-dashoffset: 30;
+    animation: nm-vein-draw 2.4s ease-in-out infinite;
+  }
+  .nm-loader__vein--center { animation-delay: 0s; stroke-dasharray: 26; stroke-dashoffset: 26; }
+  .nm-loader__vein--left1 { animation-delay: 0.2s; }
+  .nm-loader__vein--right1 { animation-delay: 0.3s; }
+  .nm-loader__vein--left2 { animation-delay: 0.4s; }
+  .nm-loader__vein--right2 { animation-delay: 0.5s; }
+  .nm-loader__vein--left3 { animation-delay: 0.6s; }
+  .nm-loader__vein--right3 { animation-delay: 0.7s; }
+
+  /* Glow pulse */
+  .nm-loader__glow {
+    animation: nm-glow-pulse 2.4s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  /* Text */
+  .nm-loader__text-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .nm-loader__brand {
+    font-family: var(--font-display);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    color: var(--color-primary);
+    text-transform: uppercase;
+  }
+
+  .nm-loader__text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-on-surface-variant);
+    letter-spacing: 0.04em;
+  }
+
+  .nm-loader--inline .nm-loader__brand { display: none; }
+
+  /* ═══ KEYFRAMES ═══ */
+
+  @keyframes nm-orbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes nm-breathe {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.08); opacity: 1; }
+  }
+
+  @keyframes nm-leaf-trace {
+    0% { stroke-dashoffset: 0; fill-opacity: 0.15; }
+    40% { stroke-dashoffset: -120; fill-opacity: 0.25; }
+    60% { stroke-dashoffset: -120; fill-opacity: 0.25; }
+    100% { stroke-dashoffset: -240; fill-opacity: 0.15; }
+  }
+
+  @keyframes nm-vein-draw {
+    0%, 10% { stroke-dashoffset: 30; opacity: 0.2; }
+    40%, 60% { stroke-dashoffset: 0; opacity: 1; }
+    80%, 100% { stroke-dashoffset: -30; opacity: 0.2; }
+  }
+
+  @keyframes nm-glow-pulse {
+    0%, 100% { r: 2; opacity: 0.4; }
+    50% { r: 3.5; opacity: 1; }
+  }
+</style>

@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout title="Detalle de Venta">
@@ -53,8 +54,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   <div class="max-w-7xl mx-auto" id="print-area">
     <!-- Loader & Error States -->
     <div id="loader" class="flex flex-col items-center justify-center py-20 text-primary">
-      <span class="material-symbols-outlined animate-spin text-4xl mb-4">refresh</span>
-      <p class="font-bold">Cargando detalle...</p>
+      <PageLoader text="Cargando detalle" />
     </div>
 
     <div id="error-state" class="hidden py-20 text-center">

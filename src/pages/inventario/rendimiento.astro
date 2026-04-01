@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
@@ -51,8 +52,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       </h3>
       <div id="products-ranking" class="space-y-0">
         <div id="ranking-loading" class="text-center py-12">
-          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-          <p class="text-on-surface-variant mt-2">Calculando métricas...</p>
+          <PageLoader inline={true} text="Calculando métricas" />
         </div>
       </div>
     </div>
@@ -65,7 +65,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       </h3>
       <div id="category-breakdown" class="space-y-4">
         <div id="category-loading" class="text-center py-8">
-          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+          <PageLoader inline={true} />
         </div>
       </div>
     </div>
@@ -80,7 +80,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <p class="text-on-surface-variant mb-4">Estos productos llevan tiempo sin venderse. Considera ofrecerlos con promoción.</p>
     <div id="low-performers" class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div id="low-loading" class="col-span-full text-center py-8">
-        <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
+        <PageLoader inline={true} />
       </div>
     </div>
   </section>

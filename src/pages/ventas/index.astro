@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout title="Ventas Realizadas">
@@ -78,10 +79,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     <!-- Sales Table -->
     <section class="bg-surface-container-lowest rounded-[2.5rem] p-4 md:p-8 shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)]">
       
-      <div id="loader" class="flex flex-col items-center justify-center py-20 text-primary">
-        <span class="material-symbols-outlined animate-spin text-4xl mb-4">refresh</span>
-        <p class="font-bold">Cargando ventas...</p>
-      </div>
+      <PageLoader id="loader" text="Cargando ventas..." />
 
       <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-on-surface-variant text-center">
         <span class="material-symbols-outlined text-6xl mb-4 opacity-50 text-primary">receipt_long</span>
@@ -255,15 +253,18 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
       if (error) {  
         console.error('Error loading orders:', error);
+        loader.classList.add('hidden');
+        emptyState.classList.remove('hidden');
         return;
       }
 
       loader.classList.add('hidden');
+      tableContainer.classList.add('content-loaded');
       
       // Pre-calculate expensive parsed data to avoid parsing in loops
       allOrders = (orders || []).map(o => {
         const cName = o.customers?.full_name || 'Cliente Mostrador';
-        const folio = o.id.split('-')[0];
+        const folio = o.id ? o.id.split('-')[0] : 'N/A';
         o._searchString = (cName + ' ' + folio).toLowerCase();
 
         o._isAbonos = o.payment_method?.toLowerCase() === 'abonos';
@@ -285,7 +286,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       renderTable();
 
     } catch (err) {
-      console.error(err);
+      console.error('Error loading sales data:', err);
+      loader.classList.add('hidden');
+      emptyState.classList.remove('hidden');
     }
   }
 

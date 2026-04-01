@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
@@ -90,8 +91,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       </div>
       <div id="ps-list" class="max-h-[320px] overflow-y-auto">
         <div class="p-8 text-center text-on-surface-variant">
-          <span class="material-symbols-outlined animate-spin text-xl">refresh</span>
-          <p class="text-sm mt-2">Cargando productos...</p>
+          <PageLoader inline={true} text="Cargando productos" />
         </div>
       </div>
       <div class="px-4 py-2 border-t border-outline-variant/10 bg-surface-container-high/20">
@@ -253,8 +253,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <h3 class="text-2xl font-display font-bold text-on-surface mb-6">Actividad Reciente</h3>
       <div id="adjustments-list" class="space-y-0">
         <div id="adjustments-loading" class="text-center py-12">
-          <span class="material-symbols-outlined animate-spin text-primary text-3xl">refresh</span>
-          <p class="text-on-surface-variant mt-2">Cargando ajustes...</p>
+          <PageLoader inline={true} text="Cargando ajustes" />
         </div>
         <div id="adjustments-empty" class="text-center py-12 hidden">
           <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">inventory_2</span>

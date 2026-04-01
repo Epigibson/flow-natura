@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 ---
 
 <DashboardLayout>
@@ -22,8 +23,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     </div>
   </div>
 
-  <!-- Customers List -->
-  <section class="surface-card shadow-sm border border-outline-variant/20 overflow-hidden">
+  <!-- Skeleton state for table -->
+  <div id="table-skeleton">
+    <TableSkeleton rows={6} cols={5} />
+  </div>
+
+  <!-- Customers List (hidden until loaded) -->
+  <section id="customers-section" class="surface-card shadow-sm border border-outline-variant/20 overflow-hidden hidden">
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead>
@@ -178,6 +184,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     allCustomers = customers || [];
+    // Swap skeleton → real table
+    document.getElementById('table-skeleton')?.classList.add('hidden');
+    const section = document.getElementById('customers-section');
+    if (section) { section.classList.remove('hidden'); section.classList.add('content-loaded'); }
     currentPage = 1;
     renderCustomers();
   }

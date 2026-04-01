@@ -1,14 +1,12 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import PageLoader from '../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
   <!-- Loading State -->
   <div id="loading-state" class="flex items-center justify-center py-32">
-    <div class="text-center">
-      <div class="w-12 h-12 mx-auto border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-4"></div>
-      <p class="text-on-surface-variant font-bold">Cargando tu membresía...</p>
-    </div>
+    <PageLoader text="Cargando tu membresía" />
   </div>
 
   <div id="main-content" class="hidden">

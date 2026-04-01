@@ -1,12 +1,25 @@
 ---
+import fs from 'fs';
+import path from 'path';
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import DashboardSkeleton from '../components/skeletons/DashboardSkeleton.astro';
+import PageLoader from '../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
+  <!-- Skeleton state (visible by default) -->
+  <div id="skeleton-state">
+    <DashboardSkeleton />
+  </div>
+
+  <!-- Real content (hidden until data loads) -->
+  <div id="real-content" class="hidden">
   <!-- Header -->
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-6 mb-10">
     <div>
-      <h2 id="greeting" class="text-4xl md:text-5xl font-display font-medium text-on-surface">¡Hola! ✨</h2>
+      <div class="flex flex-wrap items-center gap-3">
+        <h2 id="greeting" class="text-4xl md:text-5xl font-display font-medium text-on-surface">¡Hola! ✨</h2>
+      </div>
       <p id="subtitle" class="text-on-surface-variant mt-2 text-lg">Cargando tu resumen...</p>
     </div>
     <div class="flex items-center gap-4">
@@ -21,6 +34,93 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       </div>
     </div>
   </header>
+
+  </header>
+
+  <!-- Premium Growth Widget (Client Hydrated) -->
+  <section id="growth-widget-container" class="mb-10 relative overflow-hidden bg-surface-container-lowest rounded-4xl p-8 shadow-sm border border-outline-variant/30 hidden">
+    <!-- Decorative background blur -->
+    <div class="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <!-- Skeleton State -->
+    <div id="growth-widget-skeleton" class="w-full flex flex-col md:flex-row gap-8 items-center justify-between animate-pulse">
+        <div class="flex-1 w-full space-y-4">
+           <div class="h-6 w-32 bg-surface-container-highest rounded-full"></div>
+           <div class="h-12 w-48 bg-surface-container-highest rounded-2xl"></div>
+           <div class="h-4 w-full bg-surface-container-highest rounded-full"></div>
+        </div>
+    </div>
+
+    <!-- Prompto Form Conexión -->
+    <div id="growth-widget-connect" class="relative z-10 w-full flex flex-col items-center justify-center text-center hidden">
+        <span class="material-symbols-outlined text-4xl text-primary mb-2">link</span>
+        <h3 class="text-2xl font-display font-medium text-on-surface">Conecta tu cuenta de Natura</h3>
+        <p class="text-sm text-on-surface-variant max-w-md mx-auto mt-2 mb-6">Ingresa tus datos de Mi Negocio para sincronizar tus puntos reales y tu avance del ciclo automáticamente y de forma segura.</p>
+        
+        <form id="form-connect-natura" class="flex flex-col sm:flex-row gap-2 w-full max-w-lg">
+          <input type="email" id="natura-email" placeholder="Correo de Mi Negocio" required class="flex-1 bg-surface-container rounded-xl px-4 py-3 text-sm border-2 border-transparent focus:border-primary/30 outline-none text-on-surface" />
+          <input type="password" id="natura-password" placeholder="Contraseña" required class="flex-1 bg-surface-container rounded-xl px-4 py-3 text-sm border-2 border-transparent focus:border-primary/30 outline-none text-on-surface" />
+          <button type="submit" id="btn-submit-connect" class="py-3 px-6 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-transform shadow-md disabled:opacity-50 flex items-center gap-2 shrink-0">
+             Vincular <span class="material-symbols-outlined text-[1rem]">arrow_forward</span>
+          </button>
+        </form>
+    </div>
+
+    <!-- Data State -->
+    <div id="growth-widget-content" class="relative z-10 w-full flex-col md:flex-row gap-8 items-center justify-between hidden">
+      <div class="flex-1 w-full">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold tracking-widest uppercase text-primary bg-primary-container/30 px-3 py-1 rounded-full flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">stars</span>
+            Camino de Crecimiento
+          </span>
+          <div class="flex flex-col items-end">
+            <span id="gw-timestamp" class="text-xs text-on-surface-variant flex items-center gap-1 hidden">
+              <span class="material-symbols-outlined text-[12px]">update</span> <span id="gw-time-text"></span>
+            </span>
+            <span id="gw-alert" class="text-xs text-error font-bold mt-0.5 animate-pulse flex items-center gap-1 hidden">
+               <span class="material-symbols-outlined text-[12px]">alarm</span> ¡Cierre inminente!
+            </span>
+          </div>
+        </div>
+        
+        <div class="flex flex-col md:flex-row md:items-end gap-4 mt-6">
+          <div class="shrink-0">
+            <h3 id="gw-level-desc" class="text-4xl font-display font-medium text-on-surface leading-none">Consultor</h3>
+            <p class="text-sm font-medium text-on-surface-variant mt-1">
+              <span id="gw-current-pts" class="text-on-surface font-bold">0</span> pts acumulados
+            </p>
+          </div>
+          <div class="flex-1 md:ml-8 mt-4 md:mt-0 w-full">
+            <div class="flex justify-between items-end mb-2">
+              <span class="text-sm font-bold text-on-surface-variant">Próximo: <span id="gw-next-level" class="text-on-surface">?</span></span>
+              <span id="gw-percent-text" class="text-xs font-bold text-primary">0%</span>
+            </div>
+            <div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden relative">
+              <div id="gw-progress-bar" class="absolute top-0 left-0 h-full bg-linear-to-r from-primary to-secondary rounded-full" style="width: 0%"></div>
+            </div>
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-xs text-on-surface-variant font-medium text-left">Faltan <span id="gw-gap-pts" class="text-on-surface font-bold">0 pts</span></span>
+              <span id="gw-days-left" class="text-xs text-on-surface-variant font-medium text-right text-error">0 días para cerrar</span>
+            </div>
+          </div>
+        </div>
+        
+        <div id="gw-maintenance" class="mt-4 pt-4 border-t border-outline-variant/30 flex items-center gap-2 hidden">
+          <span class="material-symbols-outlined text-error text-[16px]">info</span>
+          <span class="text-xs text-on-surface-variant"><strong>Mantenimiento:</strong> Faltan <span id="gw-maintenance-pts"></span> pts para conservar el nivel <span id="gw-maintenance-level"></span>.</span>
+        </div>
+      </div>
+      
+      <div class="relative z-10 shrink-0 flex flex-col gap-2 w-full md:w-auto mt-4 md:mt-0">
+        <button id="btn-sync-growth" class="flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-bold bg-primary text-white shadow-md shadow-primary/20 hover:scale-[1.02] transition-all group overflow-hidden relative">
+          <div class="absolute inset-0 bg-white/20 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out"></div>
+          <span class="material-symbols-outlined group-hover:rotate-180 transition-transform duration-500">sync</span> Sincronizar
+        </button>
+      </div>
+    </div>
+  </section>
 
   <!-- KPI Grid -->
   <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
@@ -64,7 +164,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       </div>
       <div id="recent-orders" class="space-y-0">
         <div id="orders-loading" class="text-center py-8">
-          <span class="material-symbols-outlined animate-spin text-primary text-2xl">refresh</span>
+          <PageLoader inline={true} />
         </div>
       </div>
     </div>
@@ -179,6 +279,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <button id="btn-close-export" class="w-full py-2 mt-4 text-sm text-on-surface-variant hover:text-on-surface transition-colors">Cerrar</button>
     </div>
   </dialog>
+  </div>
 </DashboardLayout>
 
 <script>
@@ -196,6 +297,114 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const nameFromEmail = userEmail.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
   (document.getElementById('greeting') as HTMLElement).textContent = `${greeting}, ${nameFromEmail}! ✨`;
   (document.getElementById('user-avatar') as HTMLImageElement).src = `https://api.dicebear.com/8.x/micah/svg?seed=${nameFromEmail}`;
+
+  // 1. Fetch User Profile
+  const profileRes = await supabase.from('consultant_profiles').select('*').eq('id', userId).single();
+  const profile = profileRes.data || {};
+  
+  // 2. Hydrate Growth Widget
+  const widgetContainer = document.getElementById('growth-widget-container')!;
+  const wSkeleton = document.getElementById('growth-widget-skeleton')!;
+  const wConnect = document.getElementById('growth-widget-connect')!;
+  const wContent = document.getElementById('growth-widget-content')!;
+  
+  widgetContainer.classList.remove('hidden'); // unhide widget
+  widgetContainer.classList.add('flex');
+
+  if (!profile.is_natura_connected) {
+    wSkeleton.classList.add('hidden');
+    wConnect.classList.remove('hidden');
+  } else {
+    wSkeleton.classList.add('hidden');
+    wContent.classList.remove('hidden');
+    wContent.classList.add('flex');
+
+    const gData = profile.latest_growth_data;
+    if (gData && gData.level) {
+      document.getElementById('gw-level-desc')!.textContent = gData.level.description || 'Consultor';
+      document.getElementById('gw-current-pts')!.textContent = (gData.nextLevelProgress?.currentValue || 0).toLocaleString();
+      document.getElementById('gw-next-level')!.textContent = gData.nextLevel || '?';
+      
+      const pct = Math.min(100, gData.nextLevelProgress?.progressPercentage || 0);
+      document.getElementById('gw-percent-text')!.textContent = pct + '%';
+      document.getElementById('gw-progress-bar')!.style.width = pct + '%';
+      
+      document.getElementById('gw-gap-pts')!.textContent = (gData.nextLevelProgress?.gap || 0).toLocaleString() + ' pts';
+      document.getElementById('gw-days-left')!.textContent = (gData.period?.daysFinalDate || 0) + ' días para cerrar';
+      
+      if (gData.period?.daysFinalDate <= 7) {
+        document.getElementById('gw-alert')?.classList.remove('hidden');
+      }
+      if (profile.growth_sync_date) {
+        document.getElementById('gw-timestamp')?.classList.remove('hidden');
+        document.getElementById('gw-time-text')!.textContent = new Date(profile.growth_sync_date).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      }
+      if (gData.level.maintenanceGap > 0) {
+        document.getElementById('gw-maintenance')?.classList.remove('hidden');
+        document.getElementById('gw-maintenance-pts')!.textContent = gData.level.maintenanceGap;
+        document.getElementById('gw-maintenance-level')!.textContent = gData.level.description;
+      }
+    } else {
+       // Connected but never synced
+       document.getElementById('gw-current-pts')!.textContent = "0 (Sin sincronizar)";
+    }
+  }
+
+  // Handle Form Conexión Natura
+  const formConnect = document.getElementById('form-connect-natura');
+  if (formConnect) {
+    formConnect.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = (document.getElementById('natura-email') as HTMLInputElement).value;
+      const pwd = (document.getElementById('natura-password') as HTMLInputElement).value;
+      const btn = document.getElementById('btn-submit-connect') as HTMLButtonElement;
+      
+      btn.disabled = true;
+      btn.innerHTML = `<span class="material-symbols-outlined animate-spin">refresh</span>`;
+      
+      try {
+        const res = await fetch('/api/connect-natura', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, natura_email: email, natura_password: pwd })
+        });
+        const d = await res.json();
+        if (d.success) {
+           window.location.reload();
+        } else {
+           alert('Error al vincular: ' + d.error);
+        }
+      } catch(e) { alert('Error de red'); }
+      finally { btn.disabled = false; btn.innerHTML = `Vincular <span class="material-symbols-outlined text-[1rem]">arrow_forward</span>`;}
+    });
+  }
+
+  // Handle Sincronizar
+  const btnSyncGrowth = document.getElementById('btn-sync-growth') as HTMLButtonElement;
+  if (btnSyncGrowth) {
+    btnSyncGrowth.addEventListener('click', async () => {
+      btnSyncGrowth.disabled = true;
+      btnSyncGrowth.classList.add('opacity-80', 'cursor-wait');
+      btnSyncGrowth.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> ...`;
+      try {
+        const res = await fetch('/api/sync-natura', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ userId }) });
+        const data = await res.json();
+        if (data.success) {
+          window.location.reload();
+        } else {
+          alert('Error de sincronización: ' + data.error);
+        }
+      } catch (err) {
+        alert('Fallo al conectar con el servidor.');
+      } finally {
+        if (btnSyncGrowth) {
+           btnSyncGrowth.disabled = false;
+           btnSyncGrowth.classList.remove('opacity-80', 'cursor-wait');
+           btnSyncGrowth.innerHTML = `<span class="material-symbols-outlined transition-transform duration-500">sync</span> Sincronizar`;
+        }
+      }
+    });
+  }
 
   // ---- LOAD REAL DATA ----
   const now = new Date();
@@ -259,6 +468,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   (document.getElementById('kpi-orders') as HTMLElement).textContent = String(validOrders.length);
   (document.getElementById('kpi-debt') as HTMLElement).textContent = totalDebt > 0 ? '$' + totalDebt.toFixed(2) : '$0';
   (document.getElementById('kpi-outofstock') as HTMLElement).textContent = String(outOfStock);
+
+  // ⚡ Swap skeleton → real content with fade-in
+  document.getElementById('skeleton-state')?.classList.add('hidden');
+  const realContent = document.getElementById('real-content');
+  if (realContent) {
+    realContent.classList.remove('hidden');
+    realContent.classList.add('content-loaded');
+  }
 
   // Goal
   const savedGoal = Number(localStorage.getItem('natura_goal') || '0');
