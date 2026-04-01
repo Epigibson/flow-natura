@@ -74,30 +74,85 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     // === PASO 3: Llenar formulario de login ===
     console.log('📧 Llenando formulario...');
 
-    // Esperar a que el formulario esté listo
-    // Usar IDs específicos del formulario de Cognito (hay 2 forms, uno corporativo y uno de username)
-    await page.waitForSelector('#signInFormUsername', { timeout: 10000, state: 'attached' });
-    console.log('   Form encontrado ✅');
+    // Hay 2 tabs/forms en la página. El form de username/password puede estar oculto.
+    // Primero intentar click en el tab "Sign in with your username and password"
+    try {
+      const tabClicked = await page.evaluate(() => {
+        // Buscar links/tabs que activen el formulario de username/password
+        const links = document.querySelectorAll('a, button, [role="tab"], .nav-link, [data-toggle]');
+        for (const link of links) {
+          const text = link.textContent?.toLowerCase() || '';
+          if (text.includes('username') || text.includes('password') || text.includes('sign in with your user')) {
+            link.click();
+            return text.trim().substring(0, 50);
+          }
+        }
+        // Buscar tab que contenga el form de username/password
+        const tabs = document.querySelectorAll('.tab-pane, [role="tabpanel"]');
+        for (const tab of tabs) {
+          if (tab.querySelector('#signInFormUsername')) {
+            tab.style.display = 'block';
+            tab.classList.add('active', 'show');
+            return 'tab activated manually';
+          }
+        }
+        return null;
+      });
+      console.log(`   Tab switch: ${tabClicked || 'no tab needed'}`);
+    } catch (e) {
+      console.log(`   Tab switch: ${e.message?.substring(0, 50)}`);
+    }
 
-    // Llenar campos usando IDs específicos
-    await page.fill('#signInFormUsername', natura_email);
-    await page.fill('#signInFormPassword', natura_password);
+    // Esperar un momento para que el tab se muestre
+    await page.waitForTimeout(500);
+
+    // Llenar el formulario via JavaScript (bypass visibility checks)
+    await page.evaluate(({ email, password }) => {
+      // Buscar el formulario visible o el primero que tenga signInFormUsername
+      const usernameInputs = document.querySelectorAll('#signInFormUsername, input[name="username"]');
+      const passwordInputs = document.querySelectorAll('#signInFormPassword, input[name="password"]');
+      
+      // Llenar todos los inputs que coincidan (por si hay duplicados)
+      usernameInputs.forEach(input => {
+        input.value = email;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      passwordInputs.forEach(input => {
+        input.value = password;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    }, { email: natura_email, password: natura_password });
+
     console.log('   Username y password llenados ✅');
 
-    // Verificar que cognitoAsfData se haya generado por el ASF script
+    // Verificar cognitoAsfData
     const asfData = await page.evaluate(() => {
       const inputs = document.querySelectorAll('input[name="cognitoAsfData"]');
       return Array.from(inputs).map(i => i.value?.substring(0, 50) || 'VACÍO');
     });
     console.log(`   cognitoAsfData: ${JSON.stringify(asfData)}`);
 
-    // === PASO 4: Submit y capturar redirect ===
+    // === PASO 4: Submit via JavaScript ===
     console.log('🔐 Enviando login...');
 
-    // Click en el botón de sign in del form de username/password
     const [response] = await Promise.all([
       page.waitForNavigation({ waitUntil: 'commit', timeout: 30000 }),
-      page.click('#signInFormSubmit, input[name="signInSubmitButton"]'),
+      page.evaluate(() => {
+        // Buscar el form que contiene signInFormUsername y hacer submit
+        const forms = document.querySelectorAll('form');
+        for (const form of forms) {
+          if (form.querySelector('#signInFormUsername') || form.querySelector('input[name="username"]')) {
+            // Intentar click en submit button
+            const submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
+            if (submitBtn) { submitBtn.click(); return; }
+            // Fallback: submit directo
+            form.submit();
+            return;
+          }
+        }
+      }),
     ]);
 
     const finalUrl = page.url();
