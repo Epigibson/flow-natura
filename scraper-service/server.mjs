@@ -9,10 +9,17 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 const API_SECRET = process.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
-const NATURA_AUTH_DOMAIN = 'natura-auth.prd.naturacloud.com';
-const NATURA_CLIENT_ID = '31ndsgochinbk61v3jk8dhsf2o';
-const AUTH_API_BASE = 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api';
-const NATURA_BASE_URL = 'https://minegocio.natura-avon.com.mx';
+// Config extraída del JS bundle de Natura
+const CONFIG = {
+  API_TOKEN: '2aa3706e-93b1-4b36-bb93-c76f5076d576',
+  AUTH_API: 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api',
+  COGNITO_LATAM: 'https://natura-global-prd.auth.us-east-1.amazoncognito.com',
+  COGNITO_REGION: 'us-east-1',
+  ENCRYPTION_KEY: 'N@tur4=',
+  CLIENT_ID_MX: '31ndsgochinbk61v3jk8dhsf2o',
+  CLIENT_ID_LATAM: '7resg001uav3j2c0fkvr40l52',
+  NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
+};
 
 function authMiddleware(req, res, next) {
   if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
@@ -25,28 +32,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'natura-scraper' });
 });
 
-/**
- * Extrae TODAS las variables VITE_APP_ del JS bundle
- */
-async function extractViteConfig(js) {
-  const config = {};
-  
-  // Buscar todas las asignaciones VITE_APP_*:"valor"
-  const vitePattern = /VITE_APP_([A-Z_]+)\s*:\s*"([^"]+)"/g;
-  let match;
-  while ((match = vitePattern.exec(js)) !== null) {
-    config[`VITE_APP_${match[1]}`] = match[2];
-  }
-
-  // También buscar VITE_BASE_URL y similares
-  const vitePattern2 = /VITE_([A-Z_]+)\s*:\s*"([^"]+)"/g;
-  while ((match = vitePattern2.exec(js)) !== null) {
-    config[`VITE_${match[1]}`] = match[2];
-  }
-
-  return config;
-}
-
 app.post('/scrape', authMiddleware, async (req, res) => {
   const { natura_email, natura_password } = req.body;
   if (!natura_email || !natura_password) {
@@ -57,177 +42,210 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
   try {
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36',
-      'Accept': 'application/json, text/plain, */*',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'es-MX,es;q=0.9',
     };
 
-    // === PASO 1: Descargar JS y extraer config ===
-    console.log('📜 Paso 1: Extrayendo configuración del JS bundle...');
+    // ============================================================
+    // ESTRATEGIA A: Cognito Hosted UI Login (no pasa por Akamai)
+    // ============================================================
+    console.log('🔐 Estrategia A: Cognito Hosted UI directo...');
 
-    const authPageRes = await fetch(`https://${NATURA_AUTH_DOMAIN}/?client_id=${NATURA_CLIENT_ID}&country=mx&language=es&company=natura`, {
-      headers, redirect: 'follow', signal: AbortSignal.timeout(15000)
+    // Paso 1: Obtener la página de login del Cognito Hosted UI
+    const loginPageUrl = `${CONFIG.COGNITO_LATAM}/login?client_id=${CONFIG.CLIENT_ID_MX}&response_type=code&scope=openid+email+profile&redirect_uri=${encodeURIComponent(CONFIG.NATURA_BASE + '/natura-callback?return_url=home')}`;
+    
+    console.log(`   GET ${loginPageUrl.substring(0, 80)}...`);
+    const loginPageRes = await fetch(loginPageUrl, {
+      headers,
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15000)
     });
-    const authHtml = await authPageRes.text();
-    const appJsUrl = [...authHtml.matchAll(/src="([^"]+)"/g)]
-      .map(m => m[1])
-      .find(s => s.includes('assets/'));
+    
+    console.log(`   Status: ${loginPageRes.status}, URL: ${loginPageRes.url?.substring(0, 80)}`);
+    const loginHtml = await loginPageRes.text();
+    console.log(`   HTML size: ${loginHtml.length}`);
+    
+    // Extraer cookies
+    const loginCookies = loginPageRes.headers.get('set-cookie') || '';
+    const cookieStr = loginCookies.split(',').map(c => c.split(';')[0].trim()).join('; ');
+    console.log(`   Cookies: ${cookieStr.substring(0, 80)}`);
 
-    if (!appJsUrl) throw new Error('JS bundle no encontrado.');
+    // Buscar form action y campos hidden
+    const formAction = loginHtml.match(/form[^>]*action="([^"]+)"/i)?.[1];
+    const csrfToken = loginHtml.match(/name="_csrf"[^>]*value="([^"]+)"/i)?.[1] 
+                   || loginHtml.match(/csrf['":\s]+['"]([^'"]+)['"]/i)?.[1];
+    const cognitoState = loginHtml.match(/name="cognitoAsfData"[^>]*value="([^"]+)"/i)?.[1];
+    
+    console.log(`   Form action: ${formAction || 'NO ENCONTRADO'}`);
+    console.log(`   CSRF: ${csrfToken?.substring(0, 30) || 'NO'}`);
+    console.log(`   Cognito ASF: ${cognitoState ? 'SÍ' : 'NO'}`);
 
-    const jsRes = await fetch(`https://${NATURA_AUTH_DOMAIN}${appJsUrl}`, {
-      headers, signal: AbortSignal.timeout(15000)
-    });
-    const js = await jsRes.text();
-    console.log(`   JS descargado: ${js.length} bytes`);
-
-    // Extraer TODA la config Vite
-    const viteConfig = await extractViteConfig(js);
-    console.log('   📋 Config Vite encontrada:');
-    for (const [key, value] of Object.entries(viteConfig)) {
-      console.log(`     ${key}: ${value.substring(0, 80)}`);
+    // Extractar todos los hidden inputs
+    const hiddenInputs = {};
+    const hiddenRegex = /<input[^>]*type=['"]hidden['"][^>]*>/gi;
+    let hMatch;
+    while ((hMatch = hiddenRegex.exec(loginHtml)) !== null) {
+      const name = hMatch[0].match(/name=['"]([^'"]+)['"]/)?.[1];
+      const value = hMatch[0].match(/value=['"]([^'"]*)['"]/)?.[1];
+      if (name) hiddenInputs[name] = value || '';
     }
+    console.log(`   Hidden inputs: ${JSON.stringify(hiddenInputs).substring(0, 200)}`);
 
-    const apiToken = viteConfig['VITE_APP_API_TOKEN'];
-    if (!apiToken) {
-      // Buscar el token de otra forma - puede estar asignado de otra manera
-      console.log('   ⚠️ VITE_APP_API_TOKEN no encontrado en formato estándar.');
-      console.log('   🔍 Buscando API_TOKEN con patrones alternativos...');
+    // Si encontramos form, hacer POST con credenciales
+    if (formAction) {
+      console.log('\n📧 Enviando credenciales al Cognito Hosted UI...');
       
-      // Buscar cualquier string que se use después de x-api-key
-      const apiKeyUsage = js.match(/x-api-key['"]\s*:\s*([^,}\s]+)/g);
-      if (apiKeyUsage) {
-        console.log(`   x-api-key usages: ${apiKeyUsage.join(' | ')}`);
+      let postUrl = formAction;
+      if (formAction.startsWith('/')) {
+        postUrl = `${CONFIG.COGNITO_LATAM}${formAction}`;
       }
+      postUrl = postUrl.replace(/&amp;/g, '&');
+      console.log(`   POST ${postUrl.substring(0, 80)}...`);
 
-      // Buscar la variable que contiene el token - "V" es el objeto de env
-      // Buscar la definición de V = { ... VITE_APP_API_TOKEN ... }
-      const tokenDefMatch = js.match(/API_TOKEN\s*:\s*"([^"]+)"/);
-      if (tokenDefMatch) {
-        console.log(`   🔑 API_TOKEN encontrado: ${tokenDefMatch[1].substring(0, 20)}...`);
+      const formBody = new URLSearchParams();
+      for (const [key, value] of Object.entries(hiddenInputs)) {
+        formBody.append(key, value);
       }
+      formBody.append('username', natura_email);
+      formBody.append('password', natura_password);
 
-      // Buscar el token en todo el contexto del config
-      const configIdx = js.indexOf('VITE_APP_API_DOMAIN');
-      if (configIdx !== -1) {
-        // Extraer un gran bloque del config
-        const configBlock = js.substring(Math.max(0, configIdx - 1000), configIdx + 2000);
-        console.log('   📦 Bloque de config completo:');
-        
-        // Dividir en líneas lógicas
-        const entries = configBlock.split(',').filter(e => e.includes('VITE_') || e.includes('TOKEN') || e.includes('KEY') || e.includes('SECRET'));
-        entries.forEach(e => console.log(`     ${e.trim().substring(0, 120)}`));
-      }
+      const loginRes = await fetch(postUrl, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Cookie': cookieStr,
+          'Origin': CONFIG.COGNITO_LATAM,
+          'Referer': loginPageUrl,
+        },
+        body: formBody.toString(),
+        redirect: 'manual', // No seguir redirect para capturar el code
+        signal: AbortSignal.timeout(15000)
+      });
 
-      throw new Error('API Token no encontrado. Revisa los logs.');
-    }
-
-    console.log(`\n🔑 API Token: ${apiToken.substring(0, 15)}...`);
-
-    // === PASO 2: Autenticarnos via el authentication-api ===
-    console.log('\n🔐 Paso 2: Autenticando via API...');
-
-    // Encriptar password con AES usando el username como key
-    const encryptedPassword = CryptoJS.AES.encrypt(natura_password, natura_email).toString();
-    console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
-
-    // Determinar el client ID correcto para México
-    // Del JS: "7resg001uav3j2c0fkvr40l52": ["co","pe","cl","ec","mx","ar"]
-    const clientIdsForMexico = ['31ndsgochinbk61v3jk8dhsf2o', '7resg001uav3j2c0fkvr40l52'];
-
-    for (const clientId of clientIdsForMexico) {
-      console.log(`\n   Probando con clientId: ${clientId}`);
-
-      // Probar diferentes paths del API
-      const loginPaths = ['', '/login', '/v1/login', '/authenticate', '/signin'];
+      console.log(`   Status: ${loginRes.status}`);
+      const location = loginRes.headers.get('location');
+      console.log(`   Location: ${location?.substring(0, 120) || 'NONE'}`);
       
-      for (const path of loginPaths) {
-        try {
-          const loginUrl = `${AUTH_API_BASE}${path}`;
-          console.log(`   → POST ${loginUrl.split('.com')[1]}`);
+      // Si hay redirect con code, extraerlo
+      if (location && location.includes('code=')) {
+        const code = new URL(location).searchParams.get('code');
+        console.log(`   ✅ Authorization code obtenido: ${code?.substring(0, 20)}...`);
 
-          const loginRes = await fetch(loginUrl, {
-            method: 'POST',
-            headers: {
-              ...headers,
-              'Content-Type': 'application/json',
-              'x-api-key': apiToken,
-              'Origin': `https://${NATURA_AUTH_DOMAIN}`,
-              'Referer': `https://${NATURA_AUTH_DOMAIN}/`,
-            },
-            body: JSON.stringify({
-              clientId: clientId,
-              country: 'mx',
-              company: 'natura',
-              username: natura_email,
-              password: encryptedPassword
-            }),
-            signal: AbortSignal.timeout(15000)
-          });
+        // Intercambiar code por tokens
+        console.log('\n🎫 Intercambiando code por tokens...');
+        const tokenRes = await fetch(`${CONFIG.COGNITO_LATAM}/oauth2/token`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'authorization_code',
+            client_id: CONFIG.CLIENT_ID_MX,
+            code: code,
+            redirect_uri: `${CONFIG.NATURA_BASE}/natura-callback?return_url=home`
+          }).toString(),
+          signal: AbortSignal.timeout(15000)
+        });
 
-          const respText = await loginRes.text();
-          console.log(`     Status: ${loginRes.status}`);
-          console.log(`     Body: ${respText.substring(0, 500)}`);
+        const tokenData = await tokenRes.json().catch(() => null);
+        console.log(`   Token status: ${tokenRes.status}`);
+        console.log(`   Token data: ${JSON.stringify(tokenData)?.substring(0, 300)}`);
 
-          // Si obtenemos una respuesta exitosa
-          if (loginRes.ok) {
-            try {
-              const loginData = JSON.parse(respText);
-              console.log('   ✅ LOGIN EXITOSO!');
-              
-              // Extraer tokens
-              const tokens = loginData.AuthenticationResult || loginData.tokens || loginData;
-              const idToken = tokens.IdToken || tokens.idToken || tokens.id_token;
-              const accessToken = tokens.AccessToken || tokens.accessToken || tokens.access_token;
-              
-              if (idToken || accessToken) {
-                console.log('   🎫 Tokens obtenidos!');
-                
-                // Intentar obtener datos de crecimiento
-                const growthData = await fetchGrowthDataWithSession(
-                  idToken || accessToken, 
-                  loginData,
-                  headers
-                );
-                
-                if (growthData) {
-                  return res.json({ success: true, data: growthData });
-                }
-              }
-              
-              // Si la respuesta tiene redirect URL, seguirla
-              if (loginData.redirectUrl || loginData.redirect_url || loginData.url) {
-                const redirectUrl = loginData.redirectUrl || loginData.redirect_url || loginData.url;
-                console.log(`   📎 Redirect: ${redirectUrl}`);
-              }
-
-              // Devolver lo que tengamos
-              return res.json({ success: true, data: loginData });
-            } catch (e) {
-              console.log(`   Parse error: ${e.message}`);
-            }
+        if (tokenData?.access_token || tokenData?.id_token) {
+          console.log('   ✅ Tokens obtenidos!');
+          const growthData = await fetchGrowthData(tokenData.access_token || tokenData.id_token, headers);
+          if (growthData) {
+            return res.json({ success: true, data: growthData });
           }
-
-          // Si es 401/403 con mensaje específico, probablemente path incorrecto
-          if (loginRes.status === 403 && respText.includes('Missing Authentication Token')) {
-            continue; // Path no existe
-          }
-
-          // Si hay otro error, loggearlo
-          if (loginRes.status >= 400) {
-            // Si el error indica credenciales malas, no seguir probando paths
-            if (respText.includes('NotAuthorized') || respText.includes('invalid')) {
-              console.log('   ❌ Credenciales rechazadas por este endpoint.');
-            }
-          }
-
-        } catch (e) {
-          console.log(`     Error: ${e.message?.substring(0, 60)}`);
         }
+      } else if (loginRes.status === 200) {
+        // Login falló, mostrar error
+        const respHtml = await loginRes.text();
+        const errorMsg = respHtml.match(/class="[^"]*error[^"]*"[^>]*>([^<]+)/i)?.[1];
+        console.log(`   ❌ Error de login: ${errorMsg || 'desconocido'}`);
+        console.log(`   Response snippet: ${respHtml.substring(0, 300).replace(/\s+/g, ' ')}`);
+      }
+    } else {
+      // No es Cognito Hosted UI estándar, mostrar snippet del HTML
+      console.log(`   HTML snippet: ${loginHtml.substring(0, 500).replace(/\s+/g, ' ')}`);
+    }
+
+    // ============================================================
+    // ESTRATEGIA B: Llamar al authentication-api con encryption key
+    // ============================================================
+    console.log('\n🔐 Estrategia B: authentication-api con encryption key...');
+    
+    // Probar encriptar con N@tur4= en vez del username
+    const pwdWithEncKey = CryptoJS.AES.encrypt(natura_password, CONFIG.ENCRYPTION_KEY).toString();
+    const pwdWithUsername = CryptoJS.AES.encrypt(natura_password, natura_email).toString();
+    
+    console.log(`   Password con N@tur4=: ${pwdWithEncKey.substring(0, 30)}...`);
+    console.log(`   Password con username: ${pwdWithUsername.substring(0, 30)}...`);
+
+    // Probar POST con ambas variantes de encripción y más paths
+    const attempts = [
+      { path: '/signIn', pwd: pwdWithUsername, label: 'signIn+username' },
+      { path: '/signIn', pwd: pwdWithEncKey, label: 'signIn+encKey' },
+      { path: '/sign-in', pwd: pwdWithUsername, label: 'sign-in+username' },
+      { path: '/sign-in', pwd: pwdWithEncKey, label: 'sign-in+encKey' },
+      { path: '/v1/signIn', pwd: pwdWithUsername, label: 'v1/signIn+username' },
+      { path: '/v1/sign-in', pwd: pwdWithEncKey, label: 'v1/sign-in+encKey' },
+      { path: '/users/sign-in', pwd: pwdWithEncKey, label: 'users/sign-in+encKey' },
+    ];
+
+    for (const { path, pwd, label } of attempts) {
+      try {
+        const url = `${CONFIG.AUTH_API}${path}`;
+        const authRes = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': CONFIG.API_TOKEN,
+            'Origin': 'https://natura-auth.prd.naturacloud.com',
+            'Referer': 'https://natura-auth.prd.naturacloud.com/',
+            ...headers,
+          },
+          body: JSON.stringify({
+            clientId: CONFIG.CLIENT_ID_MX,
+            country: 'mx',
+            company: 'natura',
+            username: natura_email,
+            password: pwd
+          }),
+          signal: AbortSignal.timeout(10000)
+        });
+
+        const body = await authRes.text();
+        const isApiGw403 = body.includes('Missing Authentication Token');
+        const isAkamai = body.includes('Access Denied');
+        
+        if (!isApiGw403 && !isAkamai) {
+          console.log(`   ✅ ${label} → ${authRes.status}: ${body.substring(0, 300)}`);
+          
+          if (authRes.ok) {
+            try {
+              const data = JSON.parse(body);
+              const tokens = data.AuthenticationResult || data;
+              const token = tokens.AccessToken || tokens.IdToken || tokens.access_token || tokens.id_token;
+              if (token) {
+                console.log('   🎫 TOKEN OBTENIDO!');
+                const growthData = await fetchGrowthData(token, headers);
+                if (growthData) return res.json({ success: true, data: growthData });
+              }
+              return res.json({ success: true, data });
+            } catch {}
+          }
+        } else {
+          console.log(`   ${label} → ${isAkamai ? 'AKAMAI BLOCK' : 'PATH NOT FOUND'}`);
+        }
+      } catch (e) {
+        console.log(`   ${label} → ${e.message?.substring(0, 50)}`);
       }
     }
 
-    throw new Error('No se pudo autenticar. Revisa los logs.');
+    throw new Error('No se pudo autenticar con ninguna estrategia.');
 
   } catch (err) {
     console.error('❌', err.message);
@@ -235,40 +253,28 @@ app.post('/scrape', authMiddleware, async (req, res) => {
   }
 });
 
-/**
- * Con un token de sesión, intenta obtener datos de crecimiento
- */
-async function fetchGrowthDataWithSession(token, loginResponse, baseHeaders) {
-  console.log('\n📊 Buscando datos de crecimiento...');
-  
-  const growthUrls = [
-    `${NATURA_BASE_URL}/api/growthplan`,
-    `${NATURA_BASE_URL}/bff/growthplan`,
-    `${NATURA_BASE_URL}/api/consultant/growthplan`,
+async function fetchGrowthData(token, baseHeaders) {
+  console.log('\n📊 Obteniendo datos de crecimiento...');
+  const urls = [
+    `${CONFIG.NATURA_BASE}/api/growthplan`,
+    `${CONFIG.NATURA_BASE}/bff/growthplan`,
   ];
-
-  for (const url of growthUrls) {
+  for (const url of urls) {
     try {
-      const gRes = await fetch(url, {
-        headers: {
-          ...baseHeaders,
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+      const r = await fetch(url, {
+        headers: { ...baseHeaders, Accept: 'application/json', Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(10000)
       });
-
-      const ct = gRes.headers.get('content-type') || '';
+      const ct = r.headers.get('content-type') || '';
       if (ct.includes('json')) {
-        const data = await gRes.json();
-        console.log(`   ${url} → ${gRes.status}: ${JSON.stringify(data).substring(0, 200)}`);
-        if (data?.data?.consultantLevel) return data.data.consultantLevel;
-        if (data?.consultantLevel) return data.consultantLevel;
+        const d = await r.json();
+        console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 200)}`);
+        if (d?.data?.consultantLevel) return d.data.consultantLevel;
       } else {
-        console.log(`   ${url} → ${gRes.status} (${ct})`);
+        console.log(`   ${url} → ${r.status} (${ct})`);
       }
     } catch (e) {
-      console.log(`   ${url} → ${e.message?.substring(0, 60)}`);
+      console.log(`   ${url} → ${e.message?.substring(0, 50)}`);
     }
   }
   return null;
