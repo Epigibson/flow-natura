@@ -53,6 +53,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
         '--disable-translate',
         '--metrics-recording-only',
         '--no-first-run',
+        '--disable-http2', // Bypassear ERR_HTTP2_PROTOCOL_ERROR de Akamai
       ],
     });
     console.log('✅ Chromium lanzado.');
@@ -64,12 +65,13 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     });
     const page = await context.newPage();
 
-    // === PASO 2: Navegar al portal real de Natura ===
-    console.log('🌐 Navegando a Mi Negocio Natura (para forzar redirect a Auth)...');
+    // === PASO 2: Navegar al portal Auth de Natura ===
+    console.log('🌐 Navegando a Auth de Natura...');
     
     // Configurar intercepción de la respuesta de la API de authenticator
+    let authTimeoutId;
     let authPromise = new Promise((resolve, reject) => {
-      let timeoutId = setTimeout(() => reject(new Error('Timeout esperando token de API')), 45000);
+      authTimeoutId = setTimeout(() => reject(new Error('Timeout esperando token de API')), 45000);
       
       page.on('response', async (response) => {
         const url = response.url();
@@ -77,7 +79,7 @@ app.post('/scrape', authMiddleware, async (req, res) => {
           try {
             const body = await response.json();
             if (body && body.data && body.data.id_token) {
-              clearTimeout(timeoutId);
+              clearTimeout(authTimeoutId);
               console.log(`📡 ¡Interceptado token de la API! Status: ${response.status()}`);
               resolve(body.data);
             } else if (body && body.error) {
@@ -85,14 +87,17 @@ app.post('/scrape', authMiddleware, async (req, res) => {
               // No rechazamos inmediatamente por si hay reintentos, pero lo loggeamos
             }
           } catch (e) {
-            // Ignorar respuestas que no son JSON
+            // Ignorar respuestas que no son JSON o si se cortó rápido
           }
         }
       });
     });
+    // Evitar Unhandled Rejection si ocurre un error en otra parte antes de await
+    authPromise.catch(() => {});
 
-    // Navegar a Mi Negocio (esto debería redirigir a natura-auth.prd.naturacloud.com o mostrar el login)
-    await page.goto(CONFIG.NATURA_BASE, { waitUntil: 'networkidle', timeout: 30000 });
+    // Navegar directamente al auth frontend de Natura (menos bloqueos usualmente que minegocio)
+    const NATURA_AUTH_URL = 'https://natura-auth.prd.naturacloud.com/login';
+    await page.goto(NATURA_AUTH_URL, { waitUntil: 'networkidle', timeout: 30000 });
     console.log(`✅ Página cargada: ${page.url().substring(0, 80)}`);
 
     // === PASO 3: Esperar inputs y Llenar formulario ===
