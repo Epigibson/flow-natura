@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { chromium } from 'playwright';
+import { firefox } from 'playwright';
 
 const app = express();
 app.use(cors());
@@ -35,19 +35,9 @@ app.post('/scrape', authMiddleware, async (req, res) => {
 
   let browser;
   try {
-    console.log('🔄 Lanzando Chromium headless...');
-    browser = await chromium.launch({ 
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process',
-        '--no-zygote'
-      ]
-    });
-    console.log('✅ Chromium lanzado correctamente.');
+    console.log('🔄 Lanzando Firefox headless...');
+    browser = await firefox.launch({ headless: true });
+    console.log('✅ Firefox lanzado correctamente.');
 
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
