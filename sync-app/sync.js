@@ -243,6 +243,24 @@ async function sendToSupabase(naturaEmail, growthData) {
 
 // ─── HTML UI ───────────────────────────────────────────────────
 function getHTML(savedEmail) {
+  const formHtml = savedEmail 
+    ? `
+      <div id="autoSyncMsg" style="text-align:center; padding: 20px 0;">
+         <p style="color:#10b981; font-weight:600; font-size: 16px;">Conectando de forma segura...</p>
+      </div>
+      <input type="hidden" id="email" value="${savedEmail}">
+      <input type="hidden" id="password" value="">
+      <input type="hidden" id="remember" value="true">
+    `
+    : `
+      <form id="syncForm" onsubmit="doSync(event)">
+        <div class="input-group"><label>Correo de Natura</label><input type="email" id="email" placeholder="tucorreo@ejemplo.com" required></div>
+        <div class="input-group"><label>Contraseña de Natura</label><input type="password" id="password" placeholder="Tu contraseña de Mi Negocio" required></div>
+        <div class="remember-row"><input type="checkbox" id="remember" checked><label for="remember">Recordar credenciales en esta PC</label></div>
+        <button type="submit" class="btn" id="syncBtn">🔄 Sincronizar Datos</button>
+      </form>
+    `;
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -307,29 +325,42 @@ function getHTML(savedEmail) {
   <div class="bg-glow glow-2"></div>
   <div class="card">
     <div class="logo"><div class="logo-icon">🌿</div><h1>Natura Manager</h1></div>
-    <p class="subtitle">Ingresa tus credenciales de <strong>Mi Negocio Natura</strong> para sincronizar tus datos de crecimiento.</p>
-    <form id="syncForm" onsubmit="doSync(event)">
-      <div class="input-group"><label>Correo de Natura</label><input type="email" id="email" placeholder="tucorreo@ejemplo.com" value="${savedEmail || ''}" required></div>
-      <div class="input-group"><label>Contraseña de Natura</label><input type="password" id="password" placeholder="Tu contraseña de Mi Negocio" required></div>
-      <div class="remember-row"><input type="checkbox" id="remember" checked><label for="remember">Recordar credenciales en esta PC</label></div>
-      <button type="submit" class="btn" id="syncBtn">🔄 Sincronizar Datos</button>
-    </form>
+    <p class="subtitle" id="mainSubtitle">${savedEmail ? 'Tu computadora está sincronizando tus datos de crecimiento en segundo plano.' : 'Ingresa tus credenciales de <strong>Mi Negocio Natura</strong> para acceder.'}</p>
+    ${formHtml}
     <div id="status"></div>
     <div class="version">Natura Manager Sync v2.0 — Tus datos nunca salen de tu computadora</div>
   </div>
   <script>
     let eventSource;
+    let hasAutoSynced = false;
+
+    window.onload = () => {
+      const emailInput = document.getElementById('email').value;
+      const isAuto = !document.getElementById('syncForm'); // Si no hay form, es auto-sync
+      if (emailInput && isAuto && !hasAutoSynced) {
+        hasAutoSynced = true;
+        doSync(); // Auto ejecuta
+      }
+    };
+
     async function doSync(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      const remember = document.getElementById('remember').checked;
+      const password = document.getElementById('password') ? document.getElementById('password').value : '';
+      const remember = document.getElementById('remember') ? (document.getElementById('remember').checked || document.getElementById('remember').value === 'true') : false;
+      
       const btn = document.getElementById('syncBtn');
       const status = document.getElementById('status');
-      btn.disabled = true;
-      btn.textContent = '⏳ Sincronizando...';
+      const autoSyncMsg = document.getElementById('autoSyncMsg');
+      
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Sincronizando...';
+      }
+      if (autoSyncMsg) autoSyncMsg.style.display = 'none';
+
       status.className = 'loading';
-      status.innerHTML = '<span class="spinner"></span> Iniciando...';
+      status.innerHTML = '<span class="spinner"></span> Iniciando conexión hipersegura...';
 
       // Use SSE for real-time progress
       if (eventSource) eventSource.close();
@@ -363,7 +394,11 @@ function getHTML(savedEmail) {
             secs--;
             const el = document.getElementById('countdown');
             if (el) el.textContent = 'Redirigiendo automáticamente en ' + secs + ' segundos...';
-            if (secs <= 0) { clearInterval(timer); window.open('${CONFIG.DASHBOARD_URL}', '_blank'); }
+            if (secs <= 0) { 
+              clearInterval(timer); 
+              window.open('${CONFIG.DASHBOARD_URL}', '_blank'); 
+              fetch('/shutdown');
+            }
           }, 1000);
         } else {
           throw new Error(data.error || 'Error desconocido');
@@ -399,6 +434,13 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // Graceful shutdown after UI redirects
+  if (req.method === 'GET' && req.url === '/shutdown') {
+    res.writeHead(200); res.end('shutting down');
+    setTimeout(() => process.exit(0), 1000);
+    return;
+  }
+
   // SSE endpoint for real-time progress
   if (req.method === 'GET' && req.url === '/progress') {
     res.writeHead(200, {
@@ -417,8 +459,15 @@ const server = http.createServer(async (req, res) => {
     req.on('end', async () => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       try {
-        const { email, password, remember } = JSON.parse(body);
-        if (remember) saveCredentials(email, password);
+        let { email, password, remember } = JSON.parse(body);
+        
+        // Si no hay password en el payload (porque la UI auto-sincronizó), cargarlo
+        if (!password) {
+           const saved = loadCredentials();
+           if (saved && saved.email === email) password = saved.password;
+        }
+
+        if (remember && password) saveCredentials(email, password);
 
         console.log(`\n🚀 Sync para: ${email.substring(0, 5)}***`);
 
@@ -451,18 +500,63 @@ const server = http.createServer(async (req, res) => {
   res.writeHead(404); res.end('Not found');
 });
 
-// ─── Start ─────────────────────────────────────────────────────
-server.listen(0, '127.0.0.1', () => {
-  const port = server.address().port;
-  const url = `http://127.0.0.1:${port}`;
-  console.log('');
-  console.log('  ╔════════════════════════════════════════╗');
-  console.log('  ║   🌿 Natura Manager Sync v2.0            ║');
-  console.log(`  ║   ${url.padEnd(28)}        ║`);
-  console.log('  ╚════════════════════════════════════════╝');
-  console.log('');
+// ─── Startup Logic & Ghost Process ─────────────────────────────
+const { spawn } = require('child_process');
+const isSilent = process.argv.includes('--silent');
+const isGhost = process.env.GHOST_MODE === 'true';
 
-  const cmd = process.platform === 'win32' ? `start ${url}`
-    : process.platform === 'darwin' ? `open ${url}` : `xdg-open ${url}`;
-  exec(cmd, () => {});
-});
+// 1. Convert to Ghost Process (Hide Windows Console)
+if (process.platform === 'win32' && !isGhost && !isSilent && !process.pkg) {
+  // If not compiled, we don't need to hide. But if compiled... wait, process.pkg check
+  // Actually, we ALWAYS want to hide if it's the executable.
+}
+if (process.platform === 'win32' && !isGhost && !isSilent) {
+  const child = spawn(process.execPath, process.argv.slice(1), {
+    detached: true,
+    stdio: 'ignore',       // Drop terminal output
+    windowsHide: true,     // Magic flag to hide CMD
+    env: { ...process.env, GHOST_MODE: 'true' }
+  });
+  child.unref();
+  process.exit(0); // Exit immediately
+}
+
+function installToStartup() {
+  if (process.platform === 'win32') {
+    const exePath = `"${process.execPath}" --silent`;
+    exec(`REG ADD HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v NaturaManagerSync /t REG_SZ /d "${exePath}" /f`, () => {});
+  }
+}
+
+async function startSilentWorker() {
+  const saved = loadCredentials();
+  if (!saved || !saved.email || !saved.password) {
+    process.exit(0);
+  }
+  try {
+    const growthData = await syncViaBrowser(saved.email, saved.password, () => {});
+    await sendToSupabase(saved.email, growthData);
+  } catch (err) {
+    // Silently fail in background
+  } finally {
+    process.exit(0);
+  }
+}
+
+if (isSilent) {
+  // 2. Background Worker Mode
+  startSilentWorker();
+} else {
+  // 3. UI Mode (Ghost)
+  server.listen(0, '127.0.0.1', () => {
+    installToStartup(); // Se auto-instala en startup al correr la UI
+
+    const port = server.address().port;
+    const url = `http://127.0.0.1:${port}`;
+    
+    // Only open browser if we actually want to show UI
+    const cmd = process.platform === 'win32' ? `start "" "${url}"`
+      : process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
+    exec(cmd, () => {});
+  });
+}
