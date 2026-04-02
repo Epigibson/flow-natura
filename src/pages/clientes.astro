@@ -165,9 +165,14 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  // ⚡ Bolt: Debounce search input (150ms) to prevent main-thread blocking during DOM re-rendering.
+  let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers
