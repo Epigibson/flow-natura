@@ -3,12 +3,12 @@ import { GoogleGenAI } from '@google/genai';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
+    const body = await request.json();
+    if (!body || !body.file) {
       return new Response(JSON.stringify({ error: 'Falta el archivo PDF en la petición' }), { status: 400 });
     }
+
+    const base64Pdf = body.file;
 
     const apiKey = import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
@@ -23,9 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Convert file to base64
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64Pdf = buffer.toString('base64');
+    // Ya tenemos base64Pdf desde el cliente
     
     // Call Gemini directly
     const response = await ai.models.generateContent({

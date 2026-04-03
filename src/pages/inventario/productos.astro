@@ -85,13 +85,23 @@ import PageLoader from '../../components/PageLoader.astro';
       <select id="filter-category" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold min-w-[170px]">
         <option value="all">Todas las categorías</option>
       </select>
+      <div class="flex items-center gap-1 bg-surface-container-highest rounded-xl p-1 ml-auto">
+        <button id="view-list" class="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center transition-colors shadow-sm" title="Vista de Lista">
+          <span class="material-symbols-outlined text-sm">list</span>
+        </button>
+        <button id="view-grid" class="w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors" title="Vista de Tarjetas">
+          <span class="material-symbols-outlined text-sm">grid_view</span>
+        </button>
+      </div>
     </div>
     <p id="results-count" class="text-xs text-on-surface-variant mt-3 font-bold uppercase tracking-wider"></p>
   </section>
 
-  <!-- Products Table -->
-  <section class="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-outline-variant/5 overflow-hidden mb-8">
-    <div class="overflow-x-auto">
+  <!-- Products Table / Grid -->
+  <section class="bg-surface-container-lowest rounded-[2rem] shadow-sm border border-outline-variant/5 overflow-hidden mb-8 min-h-[400px] relative">
+    
+    <!-- List View -->
+    <div id="list-view-container" class="overflow-x-auto">
       <table class="w-full text-left text-sm">
         <thead class="sticky top-0 bg-surface-container-high z-10">
           <tr class="text-[10px] uppercase tracking-wider text-on-surface-variant border-b border-outline-variant/10 font-bold">
@@ -100,6 +110,7 @@ import PageLoader from '../../components/PageLoader.astro';
             <th class="px-4 py-3.5">Código</th>
             <th class="px-4 py-3.5">Marca</th>
             <th class="px-4 py-3.5">Categoría</th>
+            <th class="px-4 py-3.5 text-center">Variantes</th>
             <th class="px-4 py-3.5 text-right">Costo</th>
             <th class="px-4 py-3.5 text-right">Precio</th>
             <th class="px-4 py-3.5 text-right">Margen</th>
@@ -111,6 +122,12 @@ import PageLoader from '../../components/PageLoader.astro';
         <tbody id="table-body" class="divide-y divide-outline-variant/5"></tbody>
       </table>
     </div>
+
+    <!-- Grid View -->
+    <div id="grid-view-container" class="hidden p-6 bg-surface-container-lowest">
+      <div id="grid-body" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+
     <!-- Loading -->
     <div id="loading" class="text-center py-16">
       <PageLoader inline={true} text="Cargando catálogo" />
@@ -261,8 +278,97 @@ import PageLoader from '../../components/PageLoader.astro';
     </div>
   </dialog>
 
+  <!-- Variants Detail Modal -->
+  <dialog id="variants-detail-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-lg bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl w-full border border-outline-variant/10 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center p-6 pb-3">
+        <h3 id="variants-detail-title" class="text-xl font-display font-bold text-on-surface flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary">palette</span>
+          Variantes
+        </h3>
+        <button id="variants-detail-close" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <p id="variants-detail-subtitle" class="px-6 text-xs text-on-surface-variant mb-3"></p>
+      <div id="variants-detail-list" class="px-6 pb-6 space-y-2"></div>
+    </div>
+  </dialog>
+
+  <!-- Details Slide-Over Modal -->
+  <dialog id="detail-slideover" class="fixed right-0 top-0 bottom-0 m-0 mr-0 h-full max-h-screen w-full max-w-md bg-transparent border-none p-0 z-50">
+    <div class="drawer-content bg-surface-container-lowest h-full w-full rounded-l-[2rem] shadow-[-10px_0_40px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden will-change-transform translate-x-full">
+      <!-- Header Image Area -->
+      <div class="relative h-64 shrink-0 bg-surface-container flex items-center justify-center p-6 overflow-hidden">
+        <div id="detail-bg-blur" class="absolute inset-0 opacity-40 blur-2xl scale-125 transition-all"></div>
+        <img id="detail-img" src="" class="relative z-10 w-full h-full object-contain filter drop-shadow-xl transition-transform hover:scale-105 duration-500" />
+        <button id="detail-close" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-white/80 backdrop-blur text-on-surface-variant flex items-center justify-center hover:bg-white hover:text-error hover:scale-110 shadow-sm transition-all">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div id="detail-badge-status" class="absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider backdrop-blur shadow-sm"></div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="flex-1 overflow-y-auto p-6 scrollbar-hide">
+        <div class="mb-6">
+          <div class="flex items-center gap-2 mb-2">
+            <span id="detail-brand" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase"></span>
+            <span id="detail-category" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant uppercase"></span>
+          </div>
+          <h2 id="detail-name" class="text-2xl font-display font-bold text-on-surface leading-tight mb-2"></h2>
+          <div class="flex items-center gap-2 text-on-surface-variant font-mono text-sm bg-surface-container-highest w-max px-2 py-1 rounded-lg">
+            <span class="material-symbols-outlined text-[16px]">qr_code_2</span>
+            <span id="detail-code"></span>
+          </div>
+          <p id="detail-desc" class="mt-4 text-sm text-on-surface-variant leading-relaxed hidden"></p>
+        </div>
+
+        <!-- Financial Dashboard Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="bg-surface-container-highest rounded-xl p-4">
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-1">Costo</p>
+            <p id="detail-cost" class="text-xl font-display font-bold text-on-surface"></p>
+          </div>
+          <div class="bg-surface-container-highest rounded-xl p-4">
+            <p class="text-xs text-on-surface-variant font-bold uppercase tracking-wider mb-1">Precio</p>
+            <p id="detail-price" class="text-xl font-display font-bold text-primary"></p>
+          </div>
+          <div id="detail-margin-box" class="col-span-2 rounded-xl p-4 flex items-center justify-between border">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider mb-1" id="detail-margin-label">Margen Libre</p>
+              <p id="detail-margin" class="text-2xl font-display font-bold"></p>
+            </div>
+            <div class="text-right">
+              <p class="text-[10px] uppercase font-bold opacity-80 mb-1">Ganancia / u.</p>
+              <p id="detail-profit" class="text-xl font-display font-bold"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Variants Section -->
+        <div id="detail-variants-container" class="hidden mb-6">
+          <div class="flex items-center justify-between mb-3 border-b border-outline-variant/10 pb-2">
+            <h4 class="font-bold text-sm text-on-surface">Variantes Activas</h4>
+            <span id="detail-variants-count" class="text-xs font-bold px-2 py-1 rounded-full bg-tertiary/10 text-tertiary"></span>
+          </div>
+          <div id="detail-variants-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="p-6 bg-surface-container-lowest border-t border-outline-variant/10 flex gap-3">
+        <button id="detail-btn-edit" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/30 transition-all">
+          <span class="material-symbols-outlined text-sm">edit</span> Editar
+        </button>
+        <button id="detail-btn-delete" class="w-14 h-14 rounded-xl flex items-center justify-center border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-bold">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Toast -->
-  <div id="toast" class="fixed bottom-6 right-6 bg-green-600 text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+  <div id="toast" class="fixed bottom-6 right-6 bg-green-600 text-white py-3 px-5 rounded-xl shadow-lg flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 z-[100] pointer-events-none">
     <span class="material-symbols-outlined">check_circle</span>
     <span id="toast-msg" class="font-bold text-sm"></span>
   </div>
@@ -274,6 +380,8 @@ import PageLoader from '../../components/PageLoader.astro';
   .row-deleted td { position: relative; }
   tbody tr { transition: background-color 0.15s; }
   tbody tr:hover { background-color: rgba(139, 90, 43, 0.03); }
+  
+  /* Buttons */
   .action-btn {
     width: 32px; height: 32px; border-radius: 8px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -286,6 +394,57 @@ import PageLoader from '../../components/PageLoader.astro';
   .action-delete:hover { background: rgba(179, 38, 30, 0.1); }
   .action-restore { color: #16a34a; }
   .action-restore:hover { background: rgba(22, 163, 74, 0.1); }
+  .action-variants { color: var(--color-tertiary); }
+  .action-variants:hover { background: rgba(125, 82, 96, 0.1); }
+  .action-view { color: #0284c7; }
+  .action-view:hover { background: rgba(2, 132, 199, 0.1); }
+  
+  .variant-row { transition: all 0.2s; }
+  .variant-row:hover { background: rgba(139, 90, 43, 0.04); }
+
+  /* Product Card Grid Styles */
+  .admin-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  .admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
+    border-color: rgba(139, 90, 43, 0.2);
+  }
+  .admin-card-img { transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+  .admin-card:hover .admin-card-img { transform: scale(1.1); }
+  .admin-card-actions { opacity: 0; transform: translateY(10px); transition: all 0.3s; }
+  .admin-card:hover .admin-card-actions { opacity: 1; transform: translateY(0); }
+
+  /* Slide-over animations */
+  #detail-slideover::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  #detail-slideover[open]::backdrop {
+    opacity: 1;
+  }
+  #detail-slideover[open] .drawer-content {
+    animation: slide-in-right 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+  }
+  #detail-slideover.closing .drawer-content {
+    animation: slide-out-right 0.3s ease-in forwards;
+  }
+  
+  @keyframes slide-in-right {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0); }
+  }
+  @keyframes slide-out-right {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
@@ -296,11 +455,18 @@ import PageLoader from '../../components/PageLoader.astro';
   let allProducts: any[] = [];
   let filteredProducts: any[] = [];
   let showDeleted = false;
+  let viewMode: 'list' | 'grid' = 'list';
   let currentPage = 1;
   const PAGE_SIZE = 50;
 
   // ═════════ ELEMENTS ═════════
   const tableBody = document.getElementById('table-body')!;
+  const listViewContainer = document.getElementById('list-view-container')!;
+  const gridViewContainer = document.getElementById('grid-view-container')!;
+  const gridBody = document.getElementById('grid-body')!;
+  const btnViewList = document.getElementById('view-list')!;
+  const btnViewGrid = document.getElementById('view-grid')!;
+  
   const loadingEl = document.getElementById('loading')!;
   const emptyEl = document.getElementById('empty-state')!;
   const searchInput = document.getElementById('search') as HTMLInputElement;
@@ -316,6 +482,9 @@ import PageLoader from '../../components/PageLoader.astro';
   // Modals
   const editModal = document.getElementById('edit-modal') as HTMLDialogElement;
   const deleteModal = document.getElementById('delete-modal') as HTMLDialogElement;
+  const detailModal = document.getElementById('detail-slideover') as HTMLDialogElement;
+  
+  let currentDetailProduct: any = null;
 
   // ═════════ AUTH ═════════
   supabase.auth.getSession().then(({ data: { session } }: any) => {
@@ -396,8 +565,10 @@ import PageLoader from '../../components/PageLoader.astro';
   }
 
   // ═════════ RENDER TABLE ═════════
+  // ═════════ RENDER TABLE & GRID ═════════
   function renderTable() {
     tableBody.innerHTML = '';
+    gridBody.innerHTML = '';
     const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
     const start = (currentPage - 1) * PAGE_SIZE;
     const page = filteredProducts.slice(start, start + PAGE_SIZE);
@@ -424,10 +595,17 @@ import PageLoader from '../../components/PageLoader.astro';
       const isDeleted = !!p.deleted_at;
       const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
+      const marginBg = parseInt(margin) >= 30 ? 'bg-green-100/50 text-green-700' : parseInt(margin) >= 15 ? 'bg-amber-100/50 text-amber-700' : 'bg-red-100/50 text-red-700';
       const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700'
         : p.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700'
           : 'bg-primary/10 text-primary';
+      const vc = p.variant_count || 0;
+      
+      const variantCell = vc > 0
+        ? `<button class="action-btn action-variants" data-variants="${p.id}" title="Ver ${vc} variantes"><span class="inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 bg-tertiary/10 text-tertiary rounded-full"><span class="material-symbols-outlined text-xs">palette</span>${vc}</span></button>`
+        : `<span class="text-on-surface-variant/30 text-xs">—</span>`;
 
+      // --- RENDER LIST ROW ---
       const tr = document.createElement('tr');
       tr.className = isDeleted ? 'row-deleted' : '';
       tr.innerHTML = `
@@ -436,13 +614,14 @@ import PageLoader from '../../components/PageLoader.astro';
           ? `<img src="${p.image_url}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm" loading="lazy" />`
           : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-sm text-on-surface-variant/30">spa</span></div>`}
         </td>
-        <td class="px-4 py-2.5">
-          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1" title="${esc(p.name)}">${esc(p.name)}</p>
+        <td class="px-4 py-2.5 cursor-pointer action-view group" data-view="${p.id}">
+          <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1 group-hover:text-primary transition-colors" title="${esc(p.name)}">${esc(p.name)}</p>
           ${p.description ? `<p class="text-[10px] text-on-surface-variant/60 truncate max-w-[200px]" title="${p.description}">${p.description}</p>` : ''}
         </td>
         <td class="px-4 py-2.5"><span class="text-xs font-mono text-on-surface-variant bg-surface-container-highest px-1.5 py-0.5 rounded">${p.code}</span></td>
         <td class="px-4 py-2.5"><span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full">${p.brand || '—'}</span></td>
         <td class="px-4 py-2.5 text-xs text-on-surface-variant">${p.category || '—'}</td>
+        <td class="px-4 py-2.5 text-center">${variantCell}</td>
         <td class="px-4 py-2.5 text-right font-mono text-xs">$${(p.cost || 0).toFixed(0)}</td>
         <td class="px-4 py-2.5 text-right font-mono text-xs font-bold text-primary">$${(p.price || 0).toFixed(0)}</td>
         <td class="px-4 py-2.5 text-right text-xs font-bold ${marginColor}">${margin}%</td>
@@ -455,31 +634,84 @@ import PageLoader from '../../components/PageLoader.astro';
         <td class="px-4 py-2.5 text-center">
           ${isDeleted
           ? `<button class="action-btn action-restore" data-restore="${p.id}" title="Restaurar"><span class="material-symbols-outlined text-base">undo</span></button>`
-          : `<button class="action-btn action-edit" data-edit="${p.id}" title="Editar"><span class="material-symbols-outlined text-base">edit</span></button>
-               <button class="action-btn action-delete" data-delete="${p.id}" data-name="${encodeURIComponent(p.name)}" title="Eliminar"><span class="material-symbols-outlined text-base">delete</span></button>`}
+          : `<button class="action-btn action-view" data-view="${p.id}" title="Ver Detalles"><span class="material-symbols-outlined text-base">visibility</span></button>
+             <button class="action-btn action-edit" data-edit="${p.id}" title="Editar"><span class="material-symbols-outlined text-base">edit</span></button>`}
         </td>
       `;
       tableBody.appendChild(tr);
+
+      // --- RENDER GRID CARD ---
+      const card = document.createElement('div');
+      card.className = `admin-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10 flex flex-col relative group ${isDeleted ? 'opacity-50 grayscale' : ''}`;
+      
+      const badgeHTML = isDeleted 
+        ? `<span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-red-500 text-white shadow-sm z-10">Eliminado</span>`
+        : `<span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${brandColor} shadow-sm z-10">${p.brand || 'General'}</span>`;
+
+      card.innerHTML = `
+        <div class="h-44 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden relative" data-view="${p.id}">
+          ${p.image_url
+            ? `<img src="${p.image_url}" class="admin-card-img w-full h-full object-contain p-2 relative z-0" loading="lazy"/>`
+            : `<span class="material-symbols-outlined text-primary/20 text-6xl relative z-0">spa</span>`}
+          ${badgeHTML}
+          <div class="absolute top-3 right-3 flex flex-col gap-1 items-end z-10">
+            <span class="text-[10px] font-bold px-2 py-1 rounded-full ${marginBg} backdrop-blur">Margen ${margin}%</span>
+            ${vc > 0 ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-tertiary/90 text-white shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-xs">palette</span>${vc} vars</span>` : ''}
+          </div>
+        </div>
+        <div class="p-4 flex-1 flex flex-col">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-primary/70">${esc(p.category) || 'General'}</span>
+          <h3 class="font-bold text-on-surface text-sm mt-0.5 leading-tight line-clamp-2 cursor-pointer hover:underline" data-view="${p.id}">${esc(p.name)}</h3>
+          <p class="text-[10px] text-on-surface-variant/50 font-mono mt-1">#${esc(p.code)}</p>
+          
+          <div class="mt-auto pt-3 flex items-end justify-between">
+            <div>
+              <p class="text-[10px] text-on-surface-variant uppercase font-bold">Precio / Costo</p>
+              <div class="flex items-baseline gap-1.5">
+                <p class="text-lg font-display font-bold text-primary">$${(p.price || 0).toFixed(0)}</p>
+                <p class="text-xs font-mono text-on-surface-variant/60 line-through">$${(p.cost || 0).toFixed(0)}</p>
+              </div>
+            </div>
+            <div class="admin-card-actions flex gap-1">
+              ${isDeleted
+                ? `<button class="w-8 h-8 rounded-lg bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100 transition-colors" data-restore="${p.id}" title="Restaurar"><span class="material-symbols-outlined text-sm">undo</span></button>`
+                : `<button class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors" data-edit="${p.id}" title="Editar"><span class="material-symbols-outlined text-sm">edit</span></button>
+                   <button class="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100 transition-colors" data-delete="${p.id}" data-name="${encodeURIComponent(p.name)}" title="Eliminar"><span class="material-symbols-outlined text-sm">delete</span></button>`}
+            </div>
+          </div>
+        </div>
+      `;
+      gridBody.appendChild(card);
     });
 
     bindActions();
   }
 
   // ═════════ BIND ROW ACTIONS ═════════
-  function bindActions() {
-    // Edit
-    tableBody.querySelectorAll('[data-edit]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = (btn as HTMLElement).dataset.edit!;
-        const product = allProducts.find(p => p.id === id);
-        if (!product) return;
-        openEditModal(product);
-      });
-    });
+  const variantsDetailModal = document.getElementById('variants-detail-modal') as HTMLDialogElement;
+  document.getElementById('variants-detail-close')!.addEventListener('click', () => variantsDetailModal.close());
 
+  function bindActions() {
+    // Both Table and Grid bindings
+    const bindGroup = (selector: string, cb: (btn: HTMLElement, p: any) => void) => {
+      document.querySelectorAll(selector).forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = (btn as HTMLElement).dataset[selector.replace('[data-', '').replace(']', '')];
+          const product = allProducts.find(p => p.id === id);
+          if (product) cb(btn as HTMLElement, product);
+        });
+      });
+    };
+
+    bindGroup('[data-view]', (btn, p) => openDetailSlideover(p));
+    bindGroup('[data-edit]', (btn, p) => openEditModal(p));
+    bindGroup('[data-variants]', (btn, p) => openVariantsDetail(p));
+    
     // Delete
-    tableBody.querySelectorAll('[data-delete]').forEach(btn => {
-      btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-delete]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         const id = (btn as HTMLElement).dataset.delete!;
         const name = decodeURIComponent((btn as HTMLElement).dataset.name || '');
         openDeleteModal(id, name);
@@ -496,7 +728,213 @@ import PageLoader from '../../components/PageLoader.astro';
         await loadProducts();
       });
     });
+
+    // Variants
+    tableBody.querySelectorAll('[data-variants]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const pid = (btn as HTMLElement).dataset.variants!;
+        const product = allProducts.find(p => p.id === pid);
+        if (!product) return;
+        await openVariantsDetail(product);
+      });
+    });
   }
+
+  // ═════════ VARIANTS DETAIL ═════════
+  async function openVariantsDetail(product: any) {
+    const title = document.getElementById('variants-detail-title') as HTMLElement;
+    const subtitle = document.getElementById('variants-detail-subtitle') as HTMLElement;
+    const list = document.getElementById('variants-detail-list') as HTMLElement;
+
+    title.innerHTML = `<span class="material-symbols-outlined text-tertiary">palette</span> ${esc(product.name)}`;
+    subtitle.textContent = 'Cargando variantes...';
+    list.innerHTML = '';
+    variantsDetailModal.showModal();
+
+    // Fetch variants from Supabase
+    const { data: variants, error } = await supabase
+      .from('product_variants')
+      .select('*')
+      .eq('product_id', product.id)
+      .is('deleted_at', null)
+      .order('sort_order', { ascending: true });
+
+    if (error || !variants) {
+      subtitle.textContent = 'Error al cargar variantes';
+      return;
+    }
+
+    subtitle.textContent = `${variants.length} variantes • ${product.category || 'Sin categoría'}`;
+
+    variants.forEach((v: any) => {
+      const vPrice = v.price || product.price;
+      const row = document.createElement('div');
+      row.className = 'variant-row flex items-center gap-3 p-3 rounded-xl bg-surface-container border border-outline-variant/10';
+      row.innerHTML = `
+        ${v.image_url
+          ? `<img src="${v.image_url}" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm"/>`
+          : `<div class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-on-surface text-sm">${esc(v.variant_label)}</p>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[10px] font-mono text-on-surface-variant bg-surface-container-highest px-1.5 py-0.5 rounded">${v.code}</span>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 bg-tertiary/10 text-tertiary rounded-full">${v.variant_type || 'tono'}</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <p class="font-display font-bold text-primary text-sm">$${Number(vPrice).toFixed(0)}</p>
+          ${v.points ? `<p class="text-[10px] text-amber-600 font-bold">${v.points} pts</p>` : ''}
+        </div>`;
+      list.appendChild(row);
+    });
+  }
+
+  // ═════════ DETAILS SLIDEOVER ═════════
+  async function openDetailSlideover(product: any) {
+    currentDetailProduct = product;
+    const isDeleted = !!product.deleted_at;
+
+    // Header/Image
+    const imgEl = document.getElementById('detail-img') as HTMLImageElement;
+    const bgBlur = document.getElementById('detail-bg-blur')!;
+    if (product.image_url) {
+      imgEl.src = product.image_url;
+      imgEl.style.display = 'block';
+      bgBlur.style.backgroundImage = `url(${product.image_url})`;
+      bgBlur.style.backgroundSize = 'cover';
+      bgBlur.style.backgroundPosition = 'center';
+    } else {
+      imgEl.style.display = 'none';
+      bgBlur.style.backgroundImage = 'none';
+      bgBlur.style.backgroundColor = 'var(--color-primary-container)';
+    }
+
+    const badge = document.getElementById('detail-badge-status')!;
+    if (isDeleted) {
+      badge.textContent = 'Eliminado';
+      badge.className = 'absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider backdrop-blur shadow-sm bg-red-500/80 text-white';
+    } else {
+      badge.textContent = 'Activo';
+      badge.className = 'absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider backdrop-blur shadow-sm bg-green-500/80 text-white';
+    }
+
+    // Top data
+    document.getElementById('detail-name')!.textContent = product.name;
+    document.getElementById('detail-code')!.textContent = product.code;
+    document.getElementById('detail-brand')!.textContent = product.brand || 'Natura';
+    document.getElementById('detail-category')!.textContent = product.category || 'Categoría';
+
+    const descEl = document.getElementById('detail-desc')!;
+    if (product.description) {
+      descEl.textContent = product.description;
+      descEl.classList.remove('hidden');
+    } else {
+      descEl.classList.add('hidden');
+    }
+
+    // Financials
+    const cost = parseFloat(product.cost) || 0;
+    const price = parseFloat(product.price) || 0;
+    const margin = price > 0 ? ((price - cost) / price * 100) : 0;
+    
+    document.getElementById('detail-cost')!.textContent = `$${cost.toFixed(2)}`;
+    document.getElementById('detail-price')!.textContent = `$${price.toFixed(2)}`;
+    document.getElementById('detail-margin')!.textContent = `${margin.toFixed(1)}%`;
+    document.getElementById('detail-profit')!.textContent = `$${(price - cost).toFixed(2)}`;
+    
+    const marginBox = document.getElementById('detail-margin-box')!;
+    if (margin >= 25) {
+      marginBox.className = 'col-span-2 rounded-xl p-4 flex items-center justify-between border bg-green-50 border-green-200 text-green-700';
+    } else if (margin >= 15) {
+      marginBox.className = 'col-span-2 rounded-xl p-4 flex items-center justify-between border bg-amber-50 border-amber-200 text-amber-700';
+    } else {
+      marginBox.className = 'col-span-2 rounded-xl p-4 flex items-center justify-between border bg-red-50 border-red-200 text-red-700';
+    }
+
+    // Action buttons in footer
+    const btnEdit = document.getElementById('detail-btn-edit') as HTMLButtonElement;
+    const btnDel = document.getElementById('detail-btn-delete') as HTMLButtonElement;
+    
+    if (isDeleted) {
+      btnDel.innerHTML = '<span class="material-symbols-outlined">undo</span>';
+      btnDel.title = 'Restaurar';
+      btnDel.className = 'w-14 h-14 rounded-xl flex items-center justify-center border-2 border-green-100 text-green-500 hover:bg-green-50 hover:border-green-200 transition-all font-bold';
+    } else {
+      btnDel.innerHTML = '<span class="material-symbols-outlined">delete</span>';
+      btnDel.title = 'Eliminar';
+      btnDel.className = 'w-14 h-14 rounded-xl flex items-center justify-center border-2 border-red-100 text-red-500 hover:bg-red-50 hover:border-red-200 transition-all font-bold';
+    }
+
+    // Variants (lazy load if has any)
+    const varContainer = document.getElementById('detail-variants-container')!;
+    const varCount = document.getElementById('detail-variants-count')!;
+    const varList = document.getElementById('detail-variants-list')!;
+    
+    if (product.variant_count > 0) {
+      varContainer.classList.remove('hidden');
+      varCount.textContent = 'Cargando...';
+      varList.innerHTML = '';
+      
+      const { data: variants } = await supabase
+        .from('product_variants')
+        .select('*')
+        .eq('product_id', product.id)
+        .is('deleted_at', null)
+        .order('sort_order', { ascending: true });
+
+      if (variants) {
+        varCount.textContent = `${variants.length} opciones`;
+        variants.forEach((v: any) => {
+          const vPrice = v.price || product.price;
+          const row = document.createElement('div');
+          row.className = 'flex items-center gap-3 p-2 rounded-xl border border-outline-variant/10 shadow-sm bg-white';
+          row.innerHTML = `
+            ${v.image_url ? `<img src="${v.image_url}" class="w-8 h-8 object-contain rounded-lg"/>` : `<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-[10px] opacity-30">spa</span></div>`}
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-on-surface text-xs truncate">${esc(v.variant_label)}</p>
+              <p class="text-[10px] text-on-surface-variant font-mono">#${v.code}</p>
+            </div>
+            <p class="font-display font-bold text-primary text-sm">$${Number(vPrice).toFixed(0)}</p>`;
+          varList.appendChild(row);
+        });
+      }
+    } else {
+      varContainer.classList.add('hidden');
+    }
+
+    detailModal.showModal();
+  }
+
+  // Slideover close animation
+  document.getElementById('detail-close')!.addEventListener('click', () => {
+    detailModal.classList.add('closing');
+    setTimeout(() => {
+      detailModal.close();
+      detailModal.classList.remove('closing');
+    }, 300);
+  });
+
+  // Slideover footer actions
+  document.getElementById('detail-btn-edit')!.addEventListener('click', () => {
+    if (currentDetailProduct) {
+      detailModal.close();
+      openEditModal(currentDetailProduct);
+    }
+  });
+
+  document.getElementById('detail-btn-delete')!.addEventListener('click', async () => {
+    if (currentDetailProduct) {
+      const isDeleted = !!currentDetailProduct.deleted_at;
+      detailModal.close();
+      if (isDeleted) {
+        // Restore
+        const { error } = await supabase.rpc('restore_product', { p_product_id: currentDetailProduct.id });
+        if (!error) { showToast('¡Producto restaurado! ✅'); loadProducts(); }
+      } else {
+        openDeleteModal(currentDetailProduct.id, currentDetailProduct.name);
+      }
+    }
+  });
 
   // ═════════ EDIT MODAL ═════════
   function openEditModal(product: any) {
@@ -640,6 +1078,27 @@ import PageLoader from '../../components/PageLoader.astro';
 
     applyFilters();
   });
+
+  // ═════════ VIEW TOGGLES ═════════
+  function updateViewMode() {
+    if (viewMode === 'list') {
+      listViewContainer.classList.remove('hidden');
+      gridViewContainer.classList.add('hidden');
+      btnViewList.className = 'w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center transition-colors shadow-sm';
+      btnViewGrid.className = 'w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors';
+    } else {
+      listViewContainer.classList.add('hidden');
+      gridViewContainer.classList.remove('hidden');
+      btnViewGrid.className = 'w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center transition-colors shadow-sm';
+      btnViewList.className = 'w-9 h-9 rounded-lg text-on-surface-variant hover:bg-surface-container flex items-center justify-center transition-colors';
+    }
+  }
+
+  btnViewList.addEventListener('click', () => { viewMode = 'list'; updateViewMode(); });
+  btnViewGrid.addEventListener('click', () => { viewMode = 'grid'; updateViewMode(); });
+
+  // Init views
+  updateViewMode();
 
   // ═════════ FILTER EVENTS ═════════
   let searchTimer: any;

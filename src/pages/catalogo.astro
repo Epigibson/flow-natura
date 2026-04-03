@@ -1,10 +1,12 @@
 ---
-import DashboardLayout from '../layouts/DashboardLayout.astro';
+import Layout from '../layouts/Layout.astro';
 import PageLoader from '../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+<Layout title="Catálogo Digital - Natura">
+  <div class="min-h-screen bg-surface">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">HERRAMIENTAS</p>
       <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Catálogo Digital 💚</h2>
@@ -120,7 +122,23 @@ import PageLoader from '../components/PageLoader.astro';
       </div>
     </div>
   </dialog>
-</DashboardLayout>
+  <!-- Variants Modal -->
+  <dialog id="variants-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
+    <div class="bg-surface-container-lowest rounded-2xl p-6 w-full border border-outline-variant/20 max-h-[85vh] overflow-y-auto">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="variants-title" class="text-xl font-display font-bold text-on-surface"></h3>
+        <button id="btn-close-variants" class="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div id="variants-product-img" class="h-40 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 rounded-2xl flex items-center justify-center overflow-hidden mb-4"></div>
+      <p id="variants-subtitle" class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3"></p>
+      <div id="variants-list" class="space-y-2"></div>
+    </div>
+  </dialog>
+    </main>
+  </div>
+</Layout>
 
 <style>
   .product-card { transition: all 0.25s cubic-bezier(0.4,0,0.2,1); }
@@ -135,6 +153,10 @@ import PageLoader from '../components/PageLoader.astro';
   .list-mode .product-card .card-body { flex: 1; }
   .btn-add-cart { transition: all 0.2s; }
   .btn-add-cart:active { transform: scale(0.92); }
+  .variant-chip { transition: all 0.2s; cursor: pointer; }
+  .variant-chip:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(139,90,43,0.12); }
+  .variants-badge { animation: pulse-badge 2s infinite; }
+  @keyframes pulse-badge { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
 </style>
 
 <script>
@@ -142,7 +164,7 @@ import PageLoader from '../components/PageLoader.astro';
   import { esc, sanitizeUrl } from '../lib/security';
 
   const params = new URLSearchParams(window.location.search);
-  const consultantId = params.get('c');
+  let activeConsultantId = params.get('c') || '';
 
   const grid = document.getElementById('products-grid') as HTMLElement;
   const loading = document.getElementById('loading') as HTMLElement;
@@ -156,19 +178,23 @@ import PageLoader from '../components/PageLoader.astro';
   const cartTotalEl = document.getElementById('cart-total') as HTMLElement;
   const cartEmpty = document.getElementById('cart-empty') as HTMLElement;
 
-  interface CartItem { id: string; name: string; price: number; qty: number; imageUrl: string; }
+  interface Variant { id: string; code: string; label: string; type: string; price: number; imageUrl: string; }
+  interface CartItem { id: string; name: string; variantLabel: string; price: number; qty: number; imageUrl: string; }
   let cart: CartItem[] = [];
   let allProducts: any[] = [];
   let viewMode: 'grid' | 'list' = 'grid';
   let displayCount = 40;
+  const variantsModal = document.getElementById('variants-modal') as HTMLDialogElement;
 
   async function loadProducts() {
-    let cid = consultantId;
+    let cid = activeConsultantId;
     if (!cid) {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) cid = session.user.id;
     }
     if (!cid) { loading.innerHTML = '<p class="text-on-surface-variant">No se encontró el catálogo. Verifica el link.</p>'; return; }
+    activeConsultantId = cid; // Save resolved ID for the share button
+
 
     // Paginated fetch (bypass 1000-row limit)
     let all: any[] = [];
@@ -177,7 +203,7 @@ import PageLoader from '../components/PageLoader.astro';
     while (true) {
       const { data, error } = await supabase
         .from('inventory')
-        .select('quantity, product_id, products(id, name, price, category, code, brand, image_url)')
+        .select('quantity, product_id, variant_id, products(id, name, price, category, code, brand, image_url, has_variants)')
         .eq('consultant_id', cid)
         .gt('quantity', 0)
         .range(from, from + BATCH - 1);
@@ -187,16 +213,48 @@ import PageLoader from '../components/PageLoader.astro';
       from += BATCH;
     }
 
-    allProducts = all.map((inv: any) => ({
-      id: inv.products?.id || inv.product_id,
-      name: inv.products?.name || 'Producto',
-      price: inv.products?.price || 0,
-      category: inv.products?.category || '',
-      code: inv.products?.code || '',
-      brand: inv.products?.brand || '',
-      imageUrl: inv.products?.image_url || '',
-      stock: inv.quantity
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+    // Fetch all product variants for products that have them
+    const productIds = [...new Set(all.map((inv: any) => inv.products?.id).filter(Boolean))];
+    let variantsMap: Record<string, Variant[]> = {};
+    if (productIds.length > 0) {
+      const { data: vData } = await supabase
+        .from('product_variants')
+        .select('id, product_id, code, variant_label, variant_type, price, image_url')
+        .in('product_id', productIds);
+      if (vData) {
+        for (const v of vData) {
+          if (!variantsMap[v.product_id]) variantsMap[v.product_id] = [];
+          variantsMap[v.product_id].push({
+            id: v.id, code: v.code, label: v.variant_label,
+            type: v.variant_type || 'tono',
+            price: v.price || 0, imageUrl: v.image_url || ''
+          });
+        }
+      }
+    }
+
+    // Group inventory by product, summing stock across variants
+    const productMap: Record<string, any> = {};
+    for (const inv of all) {
+      const pid = inv.products?.id || inv.product_id;
+      if (!productMap[pid]) {
+        productMap[pid] = {
+          id: pid,
+          name: inv.products?.name || 'Producto',
+          price: inv.products?.price || 0,
+          category: inv.products?.category || '',
+          code: inv.products?.code || '',
+          brand: inv.products?.brand || '',
+          imageUrl: inv.products?.image_url || '',
+          hasVariants: inv.products?.has_variants || false,
+          variants: variantsMap[pid] || [],
+          stock: 0
+        };
+      }
+      productMap[pid].stock += inv.quantity;
+    }
+
+    allProducts = Object.values(productMap).sort((a: any, b: any) => a.name.localeCompare(b.name));
 
     // Populate filters
     const brands = [...new Set(allProducts.map((p: any) => p.brand).filter(Boolean))].sort();
@@ -250,6 +308,14 @@ import PageLoader from '../components/PageLoader.astro';
       const card = document.createElement('div');
       card.className = 'product-card bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm';
       const sUrl = esc(sanitizeUrl(p.imageUrl));
+      const hasV = p.hasVariants && p.variants.length > 0;
+      const variantBadge = hasV
+        ? `<span class="variants-badge absolute bottom-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-tertiary/90 text-white shadow-sm flex items-center gap-1"><span class="material-symbols-outlined text-xs">palette</span>${p.variants.length} opciones</span>`
+        : '';
+      const actionBtn = hasV
+        ? `<button data-pid="${p.id}" class="btn-variants flex items-center gap-1 py-2 px-4 rounded-xl font-bold bg-tertiary text-white text-xs hover:shadow-md"><span class="material-symbols-outlined text-sm">palette</span> Elegir</button>`
+        : `<button data-id="${p.id}" data-name="${enc(p.name)}" data-price="${p.price}" data-img="${enc(p.imageUrl)}" class="btn-add-cart flex items-center gap-1 py-2 px-4 rounded-xl font-bold bg-primary text-white text-xs hover:shadow-md"><span class="material-symbols-outlined text-sm">add_shopping_cart</span> Agregar</button>`;
+
       card.innerHTML = `
         <div class="card-media h-44 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden relative">
           ${sUrl
@@ -257,6 +323,7 @@ import PageLoader from '../components/PageLoader.astro';
             : `<span class="material-symbols-outlined text-primary/20 text-6xl">spa</span>`}
           <span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${bc}">${esc(p.brand) || 'General'}</span>
           <span class="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-on-surface-variant shadow-sm">${p.stock} uds</span>
+          ${variantBadge}
         </div>
         <div class="card-body p-4">
           <span class="text-[10px] font-bold uppercase tracking-wider text-primary/70">${esc(p.category) || 'General'}</span>
@@ -264,9 +331,7 @@ import PageLoader from '../components/PageLoader.astro';
           <p class="text-[10px] text-on-surface-variant/50 font-mono mt-1">#${esc(p.code)}</p>
           <div class="flex items-center justify-between mt-3">
             <p class="text-xl font-display font-bold text-primary">$${Number(p.price).toFixed(2)}</p>
-            <button data-id="${p.id}" data-name="${enc(p.name)}" data-price="${p.price}" data-img="${enc(p.imageUrl)}" class="btn-add-cart flex items-center gap-1 py-2 px-4 rounded-xl font-bold bg-primary text-white text-xs hover:shadow-md">
-              <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Agregar
-            </button>
+            ${actionBtn}
           </div>
         </div>`;
       grid.appendChild(card);
@@ -281,18 +346,72 @@ import PageLoader from '../components/PageLoader.astro';
       wrap.classList.add('hidden');
     }
 
-    // Bind add buttons
+    // Bind add-to-cart buttons (products without variants)
     grid.querySelectorAll('.btn-add-cart').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const el = btn as HTMLElement;
-        addToCart(el.dataset.id!, dec(el.dataset.name!), Number(el.dataset.price), dec(el.dataset.img || ''));
-        // Micro animation
+        addToCart(el.dataset.id!, dec(el.dataset.name!), '', Number(el.dataset.price), dec(el.dataset.img || ''));
         el.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> ✓';
         setTimeout(() => { el.innerHTML = '<span class="material-symbols-outlined text-sm">add_shopping_cart</span> Agregar'; }, 800);
       });
     });
+
+    // Bind variant buttons
+    grid.querySelectorAll('.btn-variants').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const pid = (btn as HTMLElement).dataset.pid!;
+        const product = allProducts.find((p: any) => p.id === pid);
+        if (product) openVariantsModal(product);
+      });
+    });
   }
+
+  function openVariantsModal(product: any) {
+    const title = document.getElementById('variants-title') as HTMLElement;
+    const imgWrap = document.getElementById('variants-product-img') as HTMLElement;
+    const subtitle = document.getElementById('variants-subtitle') as HTMLElement;
+    const list = document.getElementById('variants-list') as HTMLElement;
+
+    title.textContent = product.name;
+    subtitle.textContent = `${product.variants.length} variantes disponibles • ${product.category || 'General'}`;
+    const sUrl = esc(sanitizeUrl(product.imageUrl));
+    imgWrap.innerHTML = sUrl
+      ? `<img src="${sUrl}" alt="${esc(product.name)}" class="w-full h-full object-contain p-2"/>`
+      : `<span class="material-symbols-outlined text-primary/20 text-5xl">spa</span>`;
+
+    list.innerHTML = '';
+    product.variants.forEach((v: Variant) => {
+      const vPrice = v.price || product.price;
+      const vImg = v.imageUrl || product.imageUrl;
+      const chip = document.createElement('div');
+      chip.className = 'variant-chip flex items-center gap-3 p-3 rounded-xl bg-surface-container hover:bg-primary-container/20 border border-outline-variant/10';
+      const chipImgUrl = esc(sanitizeUrl(vImg));
+      chip.innerHTML = `
+        ${chipImgUrl ? `<img src="${chipImgUrl}" class="w-12 h-12 object-contain rounded-lg bg-white shadow-sm"/>` : `<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30">spa</span></div>`}
+        <div class="flex-1 min-w-0">
+          <p class="font-bold text-on-surface text-sm">${esc(v.label)}</p>
+          <p class="text-[10px] text-on-surface-variant font-mono">#${esc(v.code)}</p>
+        </div>
+        <p class="font-display font-bold text-primary text-sm">$${Number(vPrice).toFixed(2)}</p>
+        <button class="btn-add-variant flex items-center gap-1 py-2 px-3 rounded-lg font-bold bg-primary text-white text-xs hover:shadow-md transition-all">
+          <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
+        </button>`;
+      list.appendChild(chip);
+
+      chip.querySelector('.btn-add-variant')!.addEventListener('click', () => {
+        addToCart(v.id, product.name, v.label, vPrice, vImg);
+        const btn = chip.querySelector('.btn-add-variant') as HTMLElement;
+        btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+        setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined text-sm">add_shopping_cart</span>'; }, 800);
+      });
+    });
+
+    variantsModal.showModal();
+  }
+
+  document.getElementById('btn-close-variants')!.addEventListener('click', () => variantsModal.close());
 
   function enc(s: string) { return btoa(encodeURIComponent(s)); }
   function dec(s: string) { try { return decodeURIComponent(atob(s)); } catch { return s; } }
@@ -323,9 +442,9 @@ import PageLoader from '../components/PageLoader.astro';
   filterCat.addEventListener('change', () => { displayCount = 40; renderProducts(); });
 
   // Cart logic
-  function addToCart(id: string, name: string, price: number, imageUrl: string) {
+  function addToCart(id: string, name: string, variantLabel: string, price: number, imageUrl: string) {
     const existing = cart.find(i => i.id === id);
-    if (existing) { existing.qty++; } else { cart.push({ id, name, price, qty: 1, imageUrl }); }
+    if (existing) { existing.qty++; } else { cart.push({ id, name, variantLabel, price, qty: 1, imageUrl }); }
     updateCartUI();
   }
 
@@ -342,10 +461,11 @@ import PageLoader from '../components/PageLoader.astro';
       const el = document.createElement('div');
       el.className = 'flex items-center gap-3 py-3 border-b border-surface-container last:border-b-0';
       const sUrl = esc(sanitizeUrl(item.imageUrl));
+      const displayName = item.variantLabel ? `${item.name} — ${item.variantLabel}` : item.name;
       el.innerHTML = `
         ${sUrl ? `<img src="${sUrl}" class="w-10 h-10 object-contain rounded-lg bg-surface-container shadow-sm"/>` : `<div class="div w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30 text-sm">spa</span></div>`}
         <div class="flex-1 min-w-0">
-          <p class="font-bold text-on-surface text-sm truncate">${esc(item.name)}</p>
+          <p class="font-bold text-on-surface text-sm truncate">${esc(displayName)}</p>
           <p class="text-xs text-on-surface-variant">$${item.price.toFixed(2)} c/u</p>
         </div>
         <div class="flex items-center gap-2">
@@ -369,7 +489,10 @@ import PageLoader from '../components/PageLoader.astro';
   function getOrderText() {
     const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
     let text = '🛒 *Mi Pedido Natura*\n\n';
-    cart.forEach(i => { text += `• ${i.name} x${i.qty} — $${(i.price * i.qty).toFixed(2)}\n`; });
+    cart.forEach(i => {
+      const label = i.variantLabel ? `${i.name} (${i.variantLabel})` : i.name;
+      text += `• ${label} x${i.qty} — $${(i.price * i.qty).toFixed(2)}\n`;
+    });
     text += `\n💰 *Total: $${total.toFixed(2)}*\n\n¡Gracias! 💚`;
     return text;
   }
@@ -386,7 +509,7 @@ import PageLoader from '../components/PageLoader.astro';
     setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined">content_copy</span> Copiar Pedido'; }, 2000);
   });
   document.getElementById('btn-share-catalog')!.addEventListener('click', () => {
-    const url = window.location.origin + '/catalogo?c=' + (consultantId || '');
+    const url = window.location.origin + '/catalogo?c=' + activeConsultantId;
     navigator.clipboard.writeText(url);
     const btn = document.getElementById('btn-share-catalog') as HTMLButtonElement;
     btn.innerHTML = '<span class="material-symbols-outlined text-lg">check</span> ¡Link copiado!';

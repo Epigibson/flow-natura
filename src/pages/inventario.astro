@@ -174,32 +174,40 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
   // Load Products (paginated — Supabase limits to 1000 per query)
   async function loadProducts(consultantId: string) {
-    let allInventory: any[] = [];
+    let allProducts: any[] = [];
     let from = 0;
     const BATCH = 1000;
 
+    // 1. Descargamos absolutamente TODO el catálogo maestro
     while (true) {
       const { data: batch, error } = await supabase
-        .from('inventory')
-        .select(`
-          id,
-          quantity,
-          products ( id, name, code, category, brand, price, cost, points, image_url )
-        `)
-        .eq('consultant_id', consultantId)
+        .from('products')
+        .select('*')
+        .is('deleted_at', null)
         .range(from, from + BATCH - 1)
-        .order('created_at', { ascending: false });
+        .order('name', { ascending: true });
 
       if (error) { console.error(error); break; }
       if (!batch || batch.length === 0) break;
-      allInventory = allInventory.concat(batch);
+      allProducts = allProducts.concat(batch);
       if (batch.length < BATCH) break; // last page
       from += BATCH;
     }
 
-    if (allInventory.length === 0) {
+    if (allProducts.length === 0) {
       emptyState.classList.remove('hidden');
       return;
+    }
+
+    // 2. Descargamos el inventario local del usuario
+    const { data: myInv } = await supabase
+      .from('inventory')
+      .select('id, product_id, quantity')
+      .eq('consultant_id', consultantId);
+
+    const invMap = new Map();
+    if (myInv) {
+      myInv.forEach(i => invMap.set(i.product_id, { quantity: i.quantity, inv_id: i.id }));
     }
 
     emptyState.classList.add('hidden');
@@ -209,11 +217,15 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     container.classList.remove('hidden');
     container.classList.add('content-loaded');
 
-    fullInventory = allInventory.map((item: any) => ({
-      ...item.products,
-      inv_id: item.id,
-      quantity: item.quantity
-    }));
+    // Mapeamos el catálogo global con las cantidades locales
+    fullInventory = allProducts.map((p: any) => {
+      const invData = invMap.get(p.id) || { quantity: 0, inv_id: null };
+      return {
+        ...p,
+        inv_id: invData.inv_id,
+        quantity: invData.quantity
+      };
+    });
 
     // Populate filters dynamically
     populateFilters();
@@ -303,14 +315,23 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
     items.forEach(p => {
       const card = document.createElement('div');
-      card.className = "inv-card bg-surface-container-lowest rounded-2xl shadow-[0_8px_20px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/8 hover:shadow-lg hover:border-primary/15 transition-all group overflow-hidden";
+      card.className = "inv-card bg-surface-container-lowest rounded-2xl shadow-[0_8px_20px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/8 hover:shadow-lg hover:border-primary/15 transition-all group overflow-hidden flex flex-col";
 
       const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
       const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700' : p.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary/10 text-primary';
-      const stockBadge = p.quantity > 0
-        ? `<span class="text-[10px] font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">${p.quantity} uds</span>`
-        : `<span class="text-[10px] font-bold px-2 py-0.5 bg-surface-container-highest text-on-surface-variant rounded-full">Sin stock</span>`;
+      
+      const stockControls = `
+        <div class="flex items-center gap-1 bg-surface-container-highest rounded-lg p-0.5 ml-auto" onclick="event.stopPropagation()">
+          <button class="btn-minus-stock w-7 h-7 rounded-md flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error transition-colors disabled:opacity-30" data-id="${p.id}" ${p.quantity === 0 ? 'disabled' : ''}>
+            <span class="material-symbols-outlined text-sm pointer-events-none">remove</span>
+          </button>
+          <span class="text-sm font-bold w-6 text-center text-${p.quantity > 0 ? 'green-600' : 'on-surface-variant'} stock-label-${p.id}">${p.quantity}</span>
+          <button class="btn-plus-stock w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors" data-id="${p.id}">
+            <span class="material-symbols-outlined text-sm pointer-events-none">add</span>
+          </button>
+        </div>
+      `;
 
       const imgSrc = esc(sanitizeUrl(p.image_url));
       const imgEl = imgSrc
@@ -323,10 +344,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         <div class="p-4 flex flex-col flex-1">
           <div class="flex justify-between items-start mb-2 gap-2">
             <span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full whitespace-nowrap">${esc(p.brand) || 'Natura'}</span>
-            <div class="flex items-center gap-1.5">
-              ${stockBadge}
-              <span class="text-[10px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">${esc(p.code)}</span>
-            </div>
+            <span class="text-[10px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">${esc(p.code)}</span>
           </div>
           <h3 class="text-sm font-bold text-on-surface leading-tight line-clamp-2 mb-2 min-h-[2.5rem]" title="${esc(p.name)}">${esc(p.name)}</h3>
           <p class="text-[10px] font-medium text-on-surface-variant mb-3 truncate" title="${esc(p.category || '')}">${esc(p.category) || '—'}</p>
@@ -344,11 +362,16 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
               <p class="text-sm font-bold ${marginColor}">${margin}%</p>
             </div>
           </div>
-          ${p.points ? `<div class="flex items-center gap-1 mt-2"><span class="material-symbols-outlined text-xs text-amber-500">stars</span><span class="text-[10px] font-bold text-amber-600">${p.points} pts</span></div>` : ''}
+          <div class="flex items-center justify-between mt-3 pr-1">
+            ${p.points ? `<div class="flex items-center gap-1"><span class="material-symbols-outlined text-xs text-amber-500">stars</span><span class="text-[10px] font-bold text-amber-600">${p.points} pts</span></div>` : '<div></div>'}
+            ${stockControls}
+          </div>
         </div>
       `;
       container.appendChild(card);
     });
+
+    bindStockButtons(container);
   }
 
   // ===== LIST VIEW =====
@@ -381,14 +404,76 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         <td class="px-4 py-2 text-right text-xs font-bold ${marginColor}">${margin}%</td>
         <td class="px-4 py-2 text-center">${p.points ? `<span class="text-[10px] font-bold text-amber-600">${p.points}</span>` : '—'}</td>
         <td class="px-4 py-2 text-center">
-          ${p.quantity > 0
-            ? `<span class="text-xs font-bold text-green-600">${p.quantity}</span>`
-            : `<span class="text-xs text-on-surface-variant">0</span>`
-          }
+          <div class="flex justify-center" onclick="event.stopPropagation()">
+            <div class="flex items-center gap-1 bg-surface-container-highest rounded-md p-1">
+              <button class="btn-minus-stock w-6 h-6 rounded flex items-center justify-center hover:bg-error/10 hover:text-error transition-colors text-on-surface-variant disabled:opacity-30" data-id="${p.id}" ${p.quantity === 0 ? 'disabled' : ''}>
+                <span class="material-symbols-outlined text-[12px] pointer-events-none">remove</span>
+              </button>
+              <span class="text-xs font-bold w-6 text-center text-${p.quantity > 0 ? 'green-600' : 'on-surface-variant'} stock-label-${p.id}">${p.quantity}</span>
+              <button class="btn-plus-stock w-6 h-6 rounded bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors" data-id="${p.id}">
+                <span class="material-symbols-outlined text-[12px] pointer-events-none">add</span>
+              </button>
+            </div>
+          </div>
         </td>
       `;
       listTbody.appendChild(tr);
     });
+
+    bindStockButtons(listTbody);
+  }
+
+  // ===== STOCK MANAGEMENT =====
+  function bindStockButtons(root: HTMLElement) {
+    root.querySelectorAll('.btn-minus-stock').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (btn as HTMLElement).dataset.id;
+        if(id) updateStock(id, -1);
+      });
+    });
+    root.querySelectorAll('.btn-plus-stock').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (btn as HTMLElement).dataset.id;
+        if(id) updateStock(id, 1);
+      });
+    });
+  }
+
+  async function updateStock(productId: string, increment: number) {
+    const product = fullInventory.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Optimistic update
+    const newQty = Math.max(0, product.quantity + increment);
+    if (newQty === product.quantity) return; // no change
+    
+    product.quantity = newQty;
+    
+    // Update DOM instantaneously
+    document.querySelectorAll(`.stock-label-${productId}`).forEach(el => {
+      el.textContent = newQty.toString();
+      el.className = `text-sm lg:text-xs font-bold w-6 text-center text-${newQty > 0 ? 'green-600' : 'on-surface-variant'} stock-label-${productId}`;
+    });
+    
+    document.querySelectorAll(`.btn-minus-stock[data-id="${productId}"]`).forEach(btn => {
+       (btn as HTMLButtonElement).disabled = newQty === 0;
+    });
+
+    updateStats(fullInventory); 
+
+    // Find inventory entry and sync with Supabase
+    if (product.inv_id) {
+       await supabase.from('inventory').update({ quantity: newQty, updated_at: new Date().toISOString() }).eq('id', product.inv_id);
+    } else {
+       const { data, error } = await supabase.from('inventory').insert([{
+         consultant_id: currentUser,
+         product_id: productId,
+         quantity: newQty
+       }]).select().single();
+       if (data && !error) {
+         product.inv_id = data.id;
+       }
+    }
   }
 
   // ===== EVENT LISTENERS =====
