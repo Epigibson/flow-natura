@@ -164,10 +164,15 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     }
   });
 
-  // Search filter (real-time)
+  // ⚡ Bolt: Implementación de debounce para optimizar el rendimiento.
+  // Evita re-renderizados costosos del DOM en cada pulsación de tecla, mejorando la fluidez.
+  let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers

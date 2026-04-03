@@ -137,7 +137,16 @@ import PageLoader from '../../components/PageLoader.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // ⚡ Bolt: Implementación de debounce en la búsqueda para optimizar el rendimiento.
+    // Retrasa el filtrado y re-renderizado de la tabla para no bloquear el hilo principal.
+    let searchTimer: ReturnType<typeof setTimeout>;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        renderTable();
+      }, 150);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();
