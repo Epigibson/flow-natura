@@ -303,10 +303,16 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
+  // ⚡ OPTIMIZATION: Debounce search input to avoid expensive synchronous DOM operations
+  // Expected impact: Improves UI responsiveness when filtering large product arrays by enforcing a 200ms delay between updates
+  let searchTimer: any;
   searchInput?.addEventListener('input', (e) => {
-    const qt = (e.target as HTMLInputElement).value.toLowerCase();
-    const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
-    renderProducts(filtered);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const qt = (e.target as HTMLInputElement).value.toLowerCase();
+      const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
+      renderProducts(filtered);
+    }, 200);
   });
 
   function addToCart(product: any) {

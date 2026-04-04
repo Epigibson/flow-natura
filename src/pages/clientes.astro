@@ -165,9 +165,15 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  // ⚡ OPTIMIZATION: Debounce search input to prevent main-thread blocking
+  // Expected impact: Eliminates UI jank by delaying list filtering and re-rendering until the user pauses typing for 200ms
+  let searchTimer: any;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 200);
   });
 
   // Load Customers
