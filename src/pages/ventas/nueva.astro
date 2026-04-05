@@ -303,10 +303,15 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
+  // Optimization: Debounce search input to prevent expensive synchronous DOM operations on every keystroke
+  let searchTimer: any;
   searchInput?.addEventListener('input', (e) => {
-    const qt = (e.target as HTMLInputElement).value.toLowerCase();
-    const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
-    renderProducts(filtered);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const qt = (e.target as HTMLInputElement).value.toLowerCase();
+      const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
+      renderProducts(filtered);
+    }, 150);
   });
 
   function addToCart(product: any) {
