@@ -160,6 +160,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   let filteredInventory: any[] = [];
   let currentPage = 1;
   let viewMode: 'grid' | 'list' = 'grid';
+  let searchTimer: any;
   const PAGE_SIZE = 48;
 
   // Protect route & Load data
@@ -477,7 +478,11 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // ===== EVENT LISTENERS =====
-  searchInput?.addEventListener('input', () => applyFilters());
+  // ⚡ Bolt: Debounce search input to avoid expensive re-renders on every keystroke
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilters, 150);
+  });
   filterBrand?.addEventListener('change', () => applyFilters());
   filterCategory?.addEventListener('change', () => applyFilters());
 

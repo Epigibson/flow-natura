@@ -113,6 +113,7 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   let currentUserId = '';
   let allCustomers: any[] = [];
   let currentPage = 1;
+  let searchTimer: any;
   const PAGE_SIZE = 25;
 
   supabase.auth.getSession().then(({ data: { session } }: any) => {
@@ -165,9 +166,13 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  // ⚡ Bolt: Debounce search input to avoid expensive re-renders on every keystroke
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers

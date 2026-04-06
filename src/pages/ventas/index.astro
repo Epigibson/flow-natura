@@ -127,6 +127,7 @@ import PageLoader from '../../components/PageLoader.astro';
     
     let allOrders: any[] = [];
     let currentFilter = 'all';
+    let searchTimer: any;
 
     function setFilterButton(activeBtn: HTMLButtonElement) {
       [btnAll, btnPending].forEach(b => {
@@ -137,7 +138,12 @@ import PageLoader from '../../components/PageLoader.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // ⚡ Bolt: Debounce search input to avoid expensive re-renders on every keystroke
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderTable, 150);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();
