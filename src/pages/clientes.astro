@@ -165,9 +165,14 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  // ⚡ Bolt: Retrasar la búsqueda (debounce) para evitar renderizados costosos en cada tecla
+  let searchTimer;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 200);
   });
 
   // Load Customers
