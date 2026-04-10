@@ -477,7 +477,12 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // ===== EVENT LISTENERS =====
-  searchInput?.addEventListener('input', () => applyFilters());
+  // ⚡ Bolt: Debounce search input to prevent expensive array filtering and DOM updates on every keystroke
+  let searchTimer: any;
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => applyFilters(), 150);
+  });
   filterBrand?.addEventListener('change', () => applyFilters());
   filterCategory?.addEventListener('change', () => applyFilters());
 
