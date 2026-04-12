@@ -164,10 +164,15 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     }
   });
 
-  // Search filter (real-time)
+  // Search filter (real-time with debounce)
+  // ⚡ Bolt Performance: Debounce search input to prevent expensive array filtering and DOM re-renders on every keystroke
+  let searchTimer: any;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers
