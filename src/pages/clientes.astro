@@ -165,9 +165,13 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  let searchTimer: any;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers
