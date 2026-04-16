@@ -137,7 +137,17 @@ import PageLoader from '../../components/PageLoader.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // ⚡ Bolt Performance Optimization:
+    // Debounce the search input to avoid expensive DOM re-renders and list filtering
+    // on every keystroke, reducing main-thread blocking.
+    let searchTimer: any;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => {
+        renderTable();
+      }, 150);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();

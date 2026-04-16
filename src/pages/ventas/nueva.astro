@@ -303,10 +303,17 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
+  // ⚡ Bolt Performance Optimization:
+  // Debounce the search input to avoid expensive DOM re-renders and list filtering
+  // on every keystroke, reducing main-thread blocking.
+  let searchTimer: any;
   searchInput?.addEventListener('input', (e) => {
-    const qt = (e.target as HTMLInputElement).value.toLowerCase();
-    const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
-    renderProducts(filtered);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const qt = (e.target as HTMLInputElement).value.toLowerCase();
+      const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
+      renderProducts(filtered);
+    }, 150);
   });
 
   function addToCart(product: any) {
