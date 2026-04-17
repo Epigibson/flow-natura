@@ -521,14 +521,8 @@ import PageLoader from '../components/PageLoader.astro';
   }));
 
   // ---- KPIs ----
-  // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
-  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled').map((o: any) => {
-    let _parsedNotes = {};
-    if (o.notes) {
-      try { _parsedNotes = JSON.parse(o.notes); } catch(e) {}
-    }
-    return { ...o, _parsedNotes };
-  });
+  // ⚡ Bolt: Reusing the pre-parsed JSON from `orders` array to avoid re-parsing again
+  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled');
 
   const totalRevenue = validOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
   const outOfStock = (inventory || []).filter((p: any) => p.stock <= 0).length;
