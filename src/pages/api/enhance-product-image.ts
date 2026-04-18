@@ -22,10 +22,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    let { imageBase64, mimeType = 'image/jpeg', productName, productCode, imageUrl } = body;
+    let { imageBase64, mimeType = 'image/jpeg', productName, productCode, productDesc, imageUrl } = body;
 
-    if (!imageBase64 && !imageUrl && !productName) {
-      return new Response(JSON.stringify({ error: 'Se requiere imageBase64, imageUrl o productName' }), {
+    if (!imageBase64 && !imageUrl && !productName && !productDesc) {
+      return new Response(JSON.stringify({ error: 'Se requiere imageBase64, imageUrl, productName o productDesc' }), {
         status: 400, headers: { 'Content-Type': 'application/json' },
       });
     }
@@ -53,9 +53,10 @@ export const POST: APIRoute = async ({ request }) => {
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
       try {
+        const fullPromptDesc = [productName, productDesc].filter(Boolean).join(" ");
         const response = await ai.models.generateImages({
           model: 'imagen-4.0-fast-generate-001',
-          prompt: productName ? `the ${productName} product` : 'the product',
+          prompt: fullPromptDesc ? `the ${fullPromptDesc} product` : 'the product',
           config: {
             numberOfImages: 1,
             outputMimeType: 'image/png',
@@ -113,6 +114,7 @@ export const POST: APIRoute = async ({ request }) => {
     const context = [
       productName ? `Nombre del producto pre-llenado: "${productName}"` : '',
       productCode ? `Código pre-llenado: ${productCode}` : '',
+      productDesc ? `Descripción / Categoría del producto: "${productDesc}"` : '',
     ].filter(Boolean).join('. ');
 
     const parts: any[] = [{

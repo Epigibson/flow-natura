@@ -1245,7 +1245,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     }
   }
 
-  async function processStudioImage(name: string, code: string, currentImg: string) {
+  async function processStudioImage(name: string, code: string, desc: string, currentImg: string) {
     const newAiStatus = document.getElementById('new-ai-status')!;
     const newAiResult = document.getElementById('new-ai-result')!;
     const newAiError = document.getElementById('new-error') || document.getElementById('new-ai-error') || newAiStatus; // fallback
@@ -1265,7 +1265,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       const res = await fetch('/api/enhance-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName: name, productCode: code, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
+        body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
       });
       const data = await res.json();
 
@@ -1299,13 +1299,14 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     e.preventDefault();
     const name = nameInput.value;
     const code = codeInput.value;
+    const desc = (document.getElementById('description') as HTMLTextAreaElement).value;
     const currentImg = (document.getElementById('new-img-preview-src') as HTMLImageElement).src;
 
-    if (!name && !code && !currentImg) {
-      return alert('Necesitas ingresar un nombre, código o tener una foto actual para procesar la imagen de estudio.');
+    if (!name && !code && !desc && !currentImg) {
+      return alert('Necesitas ingresar un nombre, código, descripción o tener una foto actual para procesar la imagen de estudio.');
     }
 
-    await processStudioImage(name, code, currentImg);
+    await processStudioImage(name, code, desc, currentImg);
   });
 
   document.getElementById('new-ai-apply')?.addEventListener('click', (e) => {

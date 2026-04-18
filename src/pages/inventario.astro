@@ -950,7 +950,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
     // AI Studio Request
-    async function processStudioImage(name: string, code: string, currentImg: string) {
+    async function processStudioImage(name: string, code: string, desc: string, currentImg: string) {
       const editAiStatus = document.getElementById('edit-ai-status')!;
       const editAiResult = document.getElementById('edit-ai-result')!;
       const editAiError = document.getElementById('edit-error')!;
@@ -971,7 +971,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         const res = await fetch('/api/enhance-product-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productName: name, productCode: code, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
+          body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
         });
         const data = await res.json();
 
@@ -1006,15 +1006,16 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     e.preventDefault();
     const name = (document.getElementById('edit-name') as HTMLInputElement).value;
     const code = (document.getElementById('edit-code') as HTMLInputElement).value;
+    const desc = (document.getElementById('edit-description') as HTMLTextAreaElement).value;
     const currentImg = (document.getElementById('edit-img-preview-src') as HTMLImageElement).src;
 
-    if (!name && !code && !currentImg) {
+    if (!name && !code && !desc && !currentImg) {
       const err = document.getElementById('edit-error')!;
-      err.textContent = 'Necesitas un nombre, código o foto original para procesar.';
+      err.textContent = 'Necesitas un nombre, código, descripción o foto original para procesar.';
       err.classList.remove('hidden');
       return;
     }
-    await processStudioImage(name, code, currentImg);
+    await processStudioImage(name, code, desc, currentImg);
   });
 
   document.getElementById('edit-ai-apply')?.addEventListener('click', (e) => {
