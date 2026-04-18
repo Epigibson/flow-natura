@@ -444,19 +444,11 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
     updateStats(fullInventory); 
 
-    // Find inventory entry and sync with Supabase
-    if (product.inv_id) {
-       await supabase.from('inventory').update({ quantity: newQty, updated_at: new Date().toISOString() }).eq('id', product.inv_id);
-    } else {
-       const { data, error } = await supabase.from('inventory').insert([{
-         consultant_id: currentUser,
-         product_id: productId,
-         quantity: newQty
-       }]).select().single();
-       if (data && !error) {
-         product.inv_id = data.id;
-       }
-    }
+    // Sync stock change with backend API
+    try {
+      await api.inventory.add([{ product_id: productId, quantity: newQty }]);
+      if (!product.inv_id) product.inv_id = productId;
+    } catch(e) { console.error('Error syncing stock', e); }
   }
 
   // ===== EVENT LISTENERS =====
