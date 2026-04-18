@@ -177,3 +177,62 @@ async def delete_product(
 
     product.deleted_at = datetime.now(timezone.utc)
     await db.commit()
+
+
+@router.patch("/{product_id}/restore", response_model=ProductResponse)
+async def restore_product(
+    product_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Restore a soft-deleted product."""
+    stmt = select(Product).where(Product.id == product_id)
+    result = await db.execute(stmt)
+    product = result.scalar_one_or_none()
+    if not product:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    product.deleted_at = None
+    await db.commit()
+    await db.refresh(product)
+
+    inv_stmt = select(Inventory.quantity).where(
+        and_(Inventory.product_id == product_id, Inventory.consultant_id == user_id)
+    )
+    stock = (await db.execute(inv_stmt)).scalar() or 0
+    return _product_response(product, stock)
+
+
+@router.get("/all")
+async def list_all_products(
+    include_deleted: bool = Query(True),
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List all products including soft-deleted (replaces RPC list_all_products)."""
+    stmt = select(Product).order_by(Product.name)
+    if not include_deleted:
+        stmt = stmt.where(Product.deleted_at == None)
+
+    result = await db.execute(stmt)
+    products = result.scalars().all()
+
+    return [
+        {
+            "id": str(p.id),
+            "code": p.code,
+            "name": p.name,
+            "category": p.category,
+            "brand": p.brand,
+            "description": p.description,
+            "price": float(p.price),
+            "cost": float(p.cost),
+            "points": p.points,
+            "image_url": p.image_url,
+            "is_active": p.is_active,
+            "deleted_at": p.deleted_at.isoformat() if p.deleted_at else None,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        }
+        for p in products
+    ]
+

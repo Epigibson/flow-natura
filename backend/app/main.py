@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
-from app.routers import dashboard, products, customers, orders, inventory, consultant
+from app.routers import dashboard, products, customers, orders, inventory, consultant, community, mentorship
 
 settings = get_settings()
 
@@ -46,6 +46,8 @@ app.include_router(customers.router, prefix="/api/v1")
 app.include_router(orders.router, prefix="/api/v1")
 app.include_router(inventory.router, prefix="/api/v1")
 app.include_router(consultant.router, prefix="/api/v1")
+app.include_router(community.router, prefix="/api/v1")
+app.include_router(mentorship.router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Health"])

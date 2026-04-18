@@ -187,3 +187,186 @@ class OrderItem(Base):
     # Relationships
     order: Mapped["Order"] = relationship(back_populates="items")
     product: Mapped["Product"] = relationship(back_populates="order_items")
+
+
+class InventoryAdjustment(Base):
+    __tablename__ = "inventory_adjustments"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    consultant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.consultant_profiles.id", ondelete="CASCADE")
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.products.id", ondelete="CASCADE")
+    )
+    adjustment_type: Mapped[str] = mapped_column(Text, nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    previous_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    reason: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+    # Relationships
+    product: Mapped["Product"] = relationship()
+
+
+class ProductBarcode(Base):
+    __tablename__ = "product_barcodes"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.products.id", ondelete="CASCADE")
+    )
+    barcode: Mapped[str] = mapped_column(Text, nullable=False)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+
+class CommunityPost(Base):
+    __tablename__ = "community_posts"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    author_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    author_name: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    topic: Mapped[str] = mapped_column(Text, default="general")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+    # Relationships
+    reactions: Mapped[list["CommunityReaction"]] = relationship(
+        back_populates="post", cascade="all, delete-orphan"
+    )
+    comments: Mapped[list["CommunityComment"]] = relationship(
+        back_populates="post", cascade="all, delete-orphan"
+    )
+
+
+class CommunityReaction(Base):
+    __tablename__ = "community_reactions"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.community_posts.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    reaction_type: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+    # Relationships
+    post: Mapped["CommunityPost"] = relationship(back_populates="reactions")
+
+
+class CommunityComment(Base):
+    __tablename__ = "community_comments"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.community_posts.id", ondelete="CASCADE")
+    )
+    author_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    author_name: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+    # Relationships
+    post: Mapped["CommunityPost"] = relationship(back_populates="comments")
+
+
+class MentorshipSession(Base):
+    __tablename__ = "mentorship_sessions"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    consultant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    session_type: Mapped[str] = mapped_column(Text, nullable=False)
+    scheduled_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(Text, default="scheduled")
+    topic: Mapped[str | None] = mapped_column(Text)
+    notes: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+
+class MentorshipProgress(Base):
+    __tablename__ = "mentorship_progress"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    consultant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    module_id: Mapped[str] = mapped_column(Text, nullable=False)
+    lesson_id: Mapped[str] = mapped_column(Text, nullable=False)
+    completed: Mapped[bool] = mapped_column(Boolean, default=True)
+    completed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=text("timezone('utc', now())")
+    )
+
+
+class MentorshipModule(Base):
+    __tablename__ = "mentorship_modules"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    icon: Mapped[str | None] = mapped_column(Text)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Relationships
+    lessons: Mapped[list["MentorshipLesson"]] = relationship(
+        back_populates="module", order_by="MentorshipLesson.sort_order"
+    )
+
+
+class MentorshipLesson(Base):
+    __tablename__ = "mentorship_lessons"
+    __table_args__ = {"schema": "public"}
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    module_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("public.mentorship_modules.id", ondelete="CASCADE")
+    )
+    title: Mapped[str] = mapped_column(Text, nullable=False)
+    description: Mapped[str | None] = mapped_column(Text)
+    content: Mapped[str | None] = mapped_column(Text)
+    content_type: Mapped[str] = mapped_column(Text, default="article")
+    duration_minutes: Mapped[int] = mapped_column(Integer, default=10)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Relationships
+    module: Mapped["MentorshipModule"] = relationship(back_populates="lessons")
+
+

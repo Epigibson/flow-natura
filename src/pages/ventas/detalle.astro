@@ -546,9 +546,10 @@ import PageLoader from '../../components/PageLoader.astro';
       if (isAbonos && terms) {
         finalNotes = JSON.stringify({ ...terms, comentario: editNotesText.value });
       }
-      const { error } = await supabase.from('orders').update({ notes: finalNotes }).eq('id', orderId);
-      if (error) { alert(error.message); btnSaveNotes.disabled = false; }
-      else window.location.reload();
+      try {
+        await api.orders.updateNotes(orderId!, finalNotes);
+        window.location.reload();
+      } catch(err: any) { alert(err.message); btnSaveNotes.disabled = false; }
     };
 
     const phone = order.customers?.phone;
@@ -621,7 +622,10 @@ import PageLoader from '../../components/PageLoader.astro';
               btnConfirmAbono.disabled = true;
               btnConfirmAbono.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...';
               const newTerms = { ...terms, pagos_completados: pagosCompletados + 1 };
-              await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
+               try {
+                 await api.orders.pay(orderId!, montoCuota);
+                 window.location.reload();
+               } catch(e) { console.error(e); window.location.reload(); }
               window.location.reload();
            };
         };

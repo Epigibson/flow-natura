@@ -104,6 +104,9 @@ export const products = {
     if (params?.offset) query.set('offset', String(params.offset));
     return apiFetch(`/api/v1/products?${query}`);
   },
+  /** List all products including soft-deleted (admin view) */
+  listAll: (includeDeleted: boolean = true) =>
+    apiFetch(`/api/v1/products/all?include_deleted=${includeDeleted}`),
   get: (id: string) => apiFetch(`/api/v1/products/${id}`),
   create: (data: any, level: string = 'Bronce') =>
     apiFetch(`/api/v1/products?level=${level}`, { method: 'POST', body: JSON.stringify(data) }),
@@ -111,6 +114,8 @@ export const products = {
     apiFetch(`/api/v1/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id: string) =>
     apiFetch(`/api/v1/products/${id}`, { method: 'DELETE' }),
+  restore: (id: string) =>
+    apiFetch(`/api/v1/products/${id}/restore`, { method: 'PATCH' }),
 };
 
 // ─────────────────────────────────────────────
@@ -146,8 +151,12 @@ export const orders = {
     apiFetch('/api/v1/orders', { method: 'POST', body: JSON.stringify(data) }),
   cancel: (id: string) =>
     apiFetch(`/api/v1/orders/${id}/cancel`, { method: 'PATCH' }),
+  deliver: (id: string) =>
+    apiFetch(`/api/v1/orders/${id}/deliver`, { method: 'PATCH' }),
   pay: (id: string, amount: number) =>
     apiFetch(`/api/v1/orders/${id}/pay`, { method: 'PATCH', body: JSON.stringify({ amount }) }),
+  updateNotes: (id: string, notes: string) =>
+    apiFetch(`/api/v1/orders/${id}/notes`, { method: 'PATCH', body: JSON.stringify({ notes }) }),
 };
 
 // ─────────────────────────────────────────────
@@ -162,13 +171,66 @@ export const inventory = {
     return apiFetch(`/api/v1/inventory?${query}`);
   },
   add: (items: any[]) =>
-    apiFetch('/api/v1/inventory/add', { method: 'POST', body: JSON.stringify({ items }) }),
+    apiFetch('/api/v1/inventory/add', { method: 'POST', body: JSON.stringify(items) }),
   adjust: (data: any) =>
     apiFetch('/api/v1/inventory/adjust', { method: 'POST', body: JSON.stringify(data) }),
   getPerformance: () => apiFetch('/api/v1/inventory/performance'),
   getCategories: () => apiFetch('/api/v1/inventory/categories'),
+  /** Apply adjustment with history recording (replaces RPC) */
+  applyAdjustment: (data: any) =>
+    apiFetch('/api/v1/inventory/apply-adjustment', { method: 'POST', body: JSON.stringify(data) }),
+  /** Get adjustment history */
+  getAdjustments: (limit: number = 50) =>
+    apiFetch(`/api/v1/inventory/adjustments?limit=${limit}`),
+  /** Register a product barcode */
+  addBarcode: (data: { product_id: string; barcode: string }) =>
+    apiFetch('/api/v1/inventory/barcode', { method: 'POST', body: JSON.stringify(data) }),
+  /** Batch import products and create inventory entries */
+  importProducts: (products: any[]) =>
+    apiFetch('/api/v1/inventory/import-products', { method: 'POST', body: JSON.stringify({ products }) }),
+};
+
+// ─────────────────────────────────────────────
+// Community
+// ─────────────────────────────────────────────
+export const community = {
+  getPosts: (topic?: string) => {
+    const query = topic && topic !== 'all' ? `?topic=${encodeURIComponent(topic)}` : '';
+    return apiFetch(`/api/v1/community/posts${query}`);
+  },
+  createPost: (data: { content: string; author_name: string; topic?: string }) =>
+    apiFetch('/api/v1/community/posts', { method: 'POST', body: JSON.stringify(data) }),
+  deletePost: (id: string) =>
+    apiFetch(`/api/v1/community/posts/${id}`, { method: 'DELETE' }),
+  toggleReaction: (data: { post_id: string; reaction_type: string }) =>
+    apiFetch('/api/v1/community/reactions', { method: 'POST', body: JSON.stringify(data) }),
+  getComments: (postId: string) =>
+    apiFetch(`/api/v1/community/posts/${postId}/comments`),
+  createComment: (data: { post_id: string; author_name: string; content: string }) =>
+    apiFetch('/api/v1/community/comments', { method: 'POST', body: JSON.stringify(data) }),
+  getStats: () => apiFetch('/api/v1/community/stats'),
+};
+
+// ─────────────────────────────────────────────
+// Mentorship
+// ─────────────────────────────────────────────
+export const mentorship = {
+  getModules: () => apiFetch('/api/v1/mentorship/modules'),
+  getSessions: () => apiFetch('/api/v1/mentorship/sessions'),
+  createSession: (data: any) =>
+    apiFetch('/api/v1/mentorship/sessions', { method: 'POST', body: JSON.stringify(data) }),
+  cancelSession: (id: string) =>
+    apiFetch(`/api/v1/mentorship/sessions/${id}/cancel`, { method: 'PATCH' }),
+  getProgress: () => apiFetch('/api/v1/mentorship/progress'),
+  saveProgress: (data: { module_id: string; lesson_id: string; completed?: boolean }) =>
+    apiFetch('/api/v1/mentorship/progress', { method: 'POST', body: JSON.stringify(data) }),
+  clearProgress: (moduleId: string) =>
+    apiFetch(`/api/v1/mentorship/progress?module_id=${moduleId}`, { method: 'DELETE' }),
 };
 
 // Default export with all modules
-const api = { dashboard, consultant, products, customers, orders, inventory, getCurrentUserId };
+const api = {
+  dashboard, consultant, products, customers, orders, inventory,
+  community, mentorship, getCurrentUserId,
+};
 export default api;

@@ -290,6 +290,7 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { esc, sanitizeUrl } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
 
   // ===== SHARED STATE =====
   const reasonLabels: Record<string, string> = {
@@ -519,16 +520,15 @@ import PageLoader from '../../components/PageLoader.astro';
     const btn = document.getElementById('btn-submit-adjust') as HTMLButtonElement;
     btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Registrando...';
     try {
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('apply_inventory_adjustment', {
-        p_consultant_id: userId,
-        p_product_id: selectedProduct.product_id,
-        p_adjustment_type: adjustmentType,
-        p_quantity: rq,
-        p_previous_quantity: cur,
-        p_reason: (document.getElementById('adjust-reason') as HTMLSelectElement).value,
-        p_notes: (document.getElementById('adjust-notes') as HTMLInputElement).value || null
+      const result = await api.inventory.applyAdjustment({
+        product_id: selectedProduct.product_id,
+        adjustment_type: adjustmentType,
+        quantity: rq,
+        previous_quantity: cur,
+        reason: (document.getElementById('adjust-reason') as HTMLSelectElement).value,
+        notes: (document.getElementById('adjust-notes') as HTMLInputElement).value || null
       });
-      if (rpcError) throw rpcError;
+      if (!result) throw new Error('Error en ajuste');
       const lbl = adjustmentType === 'increase' ? `+${qty}` : adjustmentType === 'decrease' ? `-${qty}` : `→ ${qty}`;
       showMsg('submit-result', `✅ ${lbl} uds de ${selectedProduct.products?.name}`, false);
       selectedProduct = null; document.getElementById('selected-product')!.classList.add('hidden');
@@ -710,16 +710,15 @@ import PageLoader from '../../components/PageLoader.astro';
       else { nq = qty; rq = qty - cur; }
 
       try {
-        const { error: rpcErr } = await supabase.rpc('apply_inventory_adjustment', {
-          p_consultant_id: userId,
-          p_product_id: item.productId,
-          p_adjustment_type: bType,
-          p_quantity: rq,
-          p_previous_quantity: cur,
-          p_reason: bReason,
-          p_notes: bNotes
+        const result = await api.inventory.applyAdjustment({
+          product_id: item.productId,
+          adjustment_type: bType,
+          quantity: rq,
+          previous_quantity: cur,
+          reason: bReason,
+          notes: bNotes
         });
-        if (rpcErr) throw rpcErr;
+        if (!result) throw new Error('Error');
       } catch { errors++; }
 
       done++;
@@ -747,12 +746,15 @@ import PageLoader from '../../components/PageLoader.astro';
   //  ACTIVITY LOG
   // ========================
   async function loadAdjustments() {
-    const { data } = await supabase.from('inventory_adjustments').select('*, products ( name, code, brand )').eq('consultant_id', userId).order('created_at', { ascending: false }).limit(50);
+    let data: any[] = [];
+    try { data = await api.inventory.getAdjustments(50); } catch(e) {}
     document.getElementById('adjustments-loading')!.classList.add('hidden');
     if (!data || data.length === 0) { document.getElementById('adjustments-empty')!.classList.remove('hidden'); return; }
     document.getElementById('adjustments-empty')!.classList.add('hidden');
-    renderAdjustments(data);
-    calculateKPIs(data);
+    // Map to expected format
+    const mapped = data.map((a: any) => ({ ...a, products: { name: a.product_name, code: a.product_code, brand: a.product_brand } }));
+    renderAdjustments(mapped);
+    calculateKPIs(mapped);
   }
 
   function renderAdjustments(adjs: any[]) {

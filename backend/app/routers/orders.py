@@ -274,6 +274,58 @@ async def register_payment(
     }
 
 
+@router.patch("/{order_id}/notes")
+async def update_order_notes(
+    order_id: uuid.UUID,
+    data: dict,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Update order notes."""
+    stmt = select(Order).where(
+        and_(Order.id == order_id, Order.consultant_id == user_id)
+    )
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Venta no encontrada")
+
+    order.notes = data.get("notes", order.notes)
+    await db.commit()
+
+    return {"order_id": str(order.id), "notes": order.notes}
+
+
+@router.patch("/{order_id}/deliver", response_model=OrderResponse)
+async def deliver_order(
+    order_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark an order as delivered."""
+    stmt = (
+        select(Order)
+        .options(selectinload(Order.items).selectinload(OrderItem.product),
+                 selectinload(Order.customer))
+        .where(and_(Order.id == order_id, Order.consultant_id == user_id))
+    )
+    result = await db.execute(stmt)
+    order = result.scalar_one_or_none()
+
+    if not order:
+        raise HTTPException(status_code=404, detail="Venta no encontrada")
+
+    if order.status == "cancelled":
+        raise HTTPException(status_code=400, detail="No se puede entregar una venta cancelada")
+
+    order.status = "delivered"
+    await db.commit()
+    await db.refresh(order)
+
+    return _order_to_response(order)
+
+
 def _order_to_response(order: Order) -> OrderResponse:
     """Convert an Order ORM object to an OrderResponse."""
     items = []

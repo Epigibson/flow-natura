@@ -11,7 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
-from app.db.models import Inventory, Product, Order, OrderItem
+from app.db.models import (
+    Inventory, Product, Order, OrderItem, InventoryAdjustment,
+    ProductBarcode, ConsultantProfile,
+)
 from app.dependencies import get_current_user
 from app.models.schemas import (
     InventoryAddRequest, InventoryAdjustRequest, InventoryItemResponse,
@@ -316,3 +319,181 @@ async def list_categories(
         }
         for row in result.all()
     ]
+
+
+@router.get("/adjustments")
+async def list_adjustments(
+    limit: int = Query(50, le=200),
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """List inventory adjustment history."""
+    stmt = (
+        select(InventoryAdjustment)
+        .options(selectinload(InventoryAdjustment.product))
+        .where(InventoryAdjustment.consultant_id == user_id)
+        .order_by(InventoryAdjustment.created_at.desc())
+        .limit(limit)
+    )
+    result = await db.execute(stmt)
+    rows = result.scalars().all()
+
+    return [
+        {
+            "id": str(r.id),
+            "product_id": str(r.product_id),
+            "product_name": r.product.name if r.product else "?",
+            "product_code": r.product.code if r.product else "",
+            "product_brand": r.product.brand if r.product else "",
+            "adjustment_type": r.adjustment_type,
+            "quantity": r.quantity,
+            "previous_quantity": r.previous_quantity,
+            "reason": r.reason,
+            "notes": r.notes,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in rows
+    ]
+
+
+@router.post("/apply-adjustment")
+async def apply_adjustment(
+    data: dict,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Apply inventory adjustment and record history (replaces RPC)."""
+    product_id = uuid.UUID(data["product_id"])
+    adjustment_type = data.get("adjustment_type", "correction")
+    quantity = int(data["quantity"])
+    previous_quantity = int(data.get("previous_quantity", 0))
+    reason = data.get("reason", "")
+    notes = data.get("notes")
+
+    # Find inventory entry
+    inv_stmt = select(Inventory).where(
+        and_(Inventory.product_id == product_id, Inventory.consultant_id == user_id)
+    )
+    inv_result = await db.execute(inv_stmt)
+    inv = inv_result.scalar_one_or_none()
+
+    if not inv:
+        # Create it
+        inv = Inventory(consultant_id=user_id, product_id=product_id, quantity=0)
+        db.add(inv)
+        await db.flush()
+
+    # Apply
+    new_qty = max(0, inv.quantity + quantity)
+    inv.quantity = new_qty
+
+    # Record adjustment
+    adj = InventoryAdjustment(
+        consultant_id=user_id,
+        product_id=product_id,
+        adjustment_type=adjustment_type,
+        quantity=quantity,
+        previous_quantity=previous_quantity,
+        reason=reason,
+        notes=notes,
+    )
+    db.add(adj)
+    await db.commit()
+
+    return {
+        "product_id": str(product_id),
+        "new_quantity": new_qty,
+        "adjustment_id": str(adj.id),
+    }
+
+
+@router.post("/barcode")
+async def add_barcode(
+    data: dict,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Register a barcode for a product."""
+    barcode = ProductBarcode(
+        product_id=uuid.UUID(data["product_id"]),
+        barcode=data["barcode"],
+        created_by=user_id,
+    )
+    db.add(barcode)
+    await db.commit()
+    return {"id": str(barcode.id), "barcode": barcode.barcode}
+
+
+@router.post("/import-products")
+async def import_products(
+    data: dict,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Batch import products and create inventory entries. Replaces Supabase upsert logic."""
+    products_data = data.get("products", [])
+    if not products_data:
+        raise HTTPException(status_code=400, detail="No products provided")
+
+    # Ensure consultant profile exists
+    profile_stmt = select(ConsultantProfile).where(ConsultantProfile.id == user_id)
+    profile_result = await db.execute(profile_stmt)
+    if not profile_result.scalar_one_or_none():
+        profile = ConsultantProfile(id=user_id, full_name="Consultora")
+        db.add(profile)
+        await db.flush()
+
+    imported = 0
+    errors = 0
+
+    for p in products_data:
+        try:
+            code = str(p.get("code", ""))
+            if not code:
+                errors += 1
+                continue
+
+            # Check if product exists by code
+            existing_stmt = select(Product).where(Product.code == code)
+            existing_result = await db.execute(existing_stmt)
+            product = existing_result.scalar_one_or_none()
+
+            if product:
+                # Update existing
+                product.name = p.get("name", product.name)
+                product.brand = p.get("brand", product.brand)
+                product.category = p.get("category", product.category)
+                product.price = p.get("price", product.price)
+                product.cost = p.get("cost", product.cost)
+                product.points = p.get("points", product.points)
+                product.image_url = p.get("image_url", product.image_url)
+            else:
+                # Create new
+                product = Product(
+                    code=code,
+                    name=p.get("name", ""),
+                    brand=p.get("brand", "Natura"),
+                    category=p.get("category"),
+                    price=p.get("price", 0),
+                    cost=p.get("cost", 0),
+                    points=p.get("points", 0),
+                    image_url=p.get("image_url"),
+                )
+                db.add(product)
+                await db.flush()
+
+            # Create inventory entry if not exists
+            inv_stmt = select(Inventory).where(
+                and_(Inventory.product_id == product.id, Inventory.consultant_id == user_id)
+            )
+            inv_result = await db.execute(inv_stmt)
+            if not inv_result.scalar_one_or_none():
+                db.add(Inventory(consultant_id=user_id, product_id=product.id, quantity=0))
+
+            imported += 1
+        except Exception:
+            errors += 1
+
+    await db.commit()
+    return {"imported": imported, "errors": errors}
+
