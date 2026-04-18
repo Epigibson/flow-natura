@@ -950,70 +950,143 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // AI Studio Request
-  const aiStatus = document.getElementById('edit-ai-status')!;
-  const aiResult = document.getElementById('edit-ai-result')!;
-  let aiFoundUrl = '';
+  async function loadImgly() {
+    if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.umd.js";
+      script.onload = () => resolve(window.imglyRemoveBackground);
+      document.head.appendChild(script);
+    });
+  }
+
+  async function processStudioImage(name, code, currentImg) {
+    const editAiStatus = document.getElementById('edit-ai-status')!;
+    const editAiResult = document.getElementById('edit-ai-result')!;
+    const editAiError = document.getElementById('edit-error')!;
+    editAiStatus.classList.remove('hidden');
+    editAiResult.classList.add('hidden');
+    editAiError.classList.add('hidden');
+
+    let originalBase64 = null;
+    let finalImgUrl = null;
+    let aiNotes = "Edición completada.";
+
+    try {
+      if (currentImg && currentImg.startsWith('data:image')) {
+        originalBase64 = currentImg;
+      }
+
+      const fetchGemini = fetch('/api/enhance-product-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName: name, productCode: code, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
+      }).then(r => r.json()).catch(() => ({}));
+
+      let processedBlob = null;
+      if (currentImg) {
+        try {
+          document.getElementById('edit-ai-text')!.textContent = "Recortando el producto...";
+          const removeBg = await loadImgly();
+          const config = {
+            publicPath: "https://static.remove.bg/remove-bg-web/",
+            progress: (key: string, current: number, total: number) => {
+              if (key === 'compute:inference') {
+                document.getElementById('edit-ai-text')!.textContent = `Aplicando recorte inteligente ${Math.round((current/total)*100)}%...`;
+              } else if (key.startsWith('fetch')) {
+                document.getElementById('edit-ai-text')!.textContent = `Cargando motor gráfico...`;
+              }
+            }
+          };
+          processedBlob = await removeBg(currentImg, config);
+        } catch (e) {
+          console.warn("Background removal failed", e);
+        }
+      }
+
+      document.getElementById('edit-ai-text')!.textContent = "Guardando en estudio...";
+      const data = await fetchGemini;
+
+      if (processedBlob) {
+        const imgUrlForCanvas = URL.createObjectURL(processedBlob);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+        const img = new Image();
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = imgUrlForCanvas;
+        });
+
+        const size = Math.max(img.width, img.height) * 1.1; 
+        canvas.width = size;
+        canvas.height = size;
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+        
+        const dx = (size - img.width) / 2;
+        const dy = (size - img.height) / 2;
+        ctx.drawImage(img, dx, dy);
+
+        const finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+        
+        const uploadRes = await fetch('/api/upload-product-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: finalDataUrl, fileName: `studio_${Date.now()}.jpg`, mimeType: 'image/jpeg' }),
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) {
+           finalImgUrl = uploadData.url;
+           aiNotes = "Fondo eliminado con IA (Studio White).";
+        }
+      } else if (data.suggested_image_url) {
+        finalImgUrl = data.suggested_image_url;
+        aiNotes = "Imagen de catálogo oficial encontrada.";
+      }
+
+      editAiStatus.classList.add('hidden');
+
+      if (finalImgUrl) {
+        (window as any).editAiFoundUrl = finalImgUrl;
+        (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl;
+        document.getElementById('edit-ai-name')!.textContent = data.identified_name || name || "Producto AI";
+        document.getElementById('edit-ai-conf')!.textContent = aiNotes;
+        editAiResult.classList.remove('hidden');
+      } else {
+        editAiError.textContent = "La IA no pudo procesar la imagen ni encontrar el oficial.";
+        editAiError.classList.remove('hidden');
+      }
+    } catch (err) {
+      editAiStatus.classList.add('hidden');
+      editAiError.textContent = 'Error conectando con IA Studio.';
+      editAiError.classList.remove('hidden');
+    }
+  }
 
   document.getElementById('edit-img-ai')?.addEventListener('click', async (e) => {
     e.preventDefault();
     const name = (document.getElementById('edit-name') as HTMLInputElement).value;
     const code = (document.getElementById('edit-code') as HTMLInputElement).value;
-    const currentImg = editUrlInput.value;
+    const currentImg = (document.getElementById('edit-img-preview-src') as HTMLImageElement).src;
 
-    if (!name && !currentImg) {
-      return alert('Necesitas un nombre o una imagen actual para buscar con IA.');
+    if (!name && !code && !currentImg) {
+      const err = document.getElementById('edit-error')!;
+      err.textContent = 'Necesitas un nombre, código o foto original para procesar.';
+      err.classList.remove('hidden');
+      return;
     }
-
-    aiStatus.classList.remove('hidden');
-    aiResult.classList.add('hidden');
-
-    try {
-      // If we have an existing local/cdn image we could encode it, but to save bandwidth
-      // let's just use the name and code and existing image URL (if it's not a local blob)
-      let base64 = null;
-      let imgUrl = null;
-      if (currentImg && currentImg.startsWith('data:image')) {
-        base64 = currentImg;
-      } else if (currentImg) {
-        imgUrl = currentImg;
-      }
-
-      const res = await fetch('/api/enhance-product-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName: name, productCode: code, imageBase64: base64, imageUrl: imgUrl }),
-      });
-      
-      const data = await res.json();
-      aiStatus.classList.add('hidden');
-
-      if (data.error) {
-        alert('Error de IA: ' + data.error);
-        return;
-      }
-
-      if (data.suggested_image_url) {
-        aiFoundUrl = data.suggested_image_url;
-        (document.getElementById('edit-ai-img') as HTMLImageElement).src = aiFoundUrl;
-        document.getElementById('edit-ai-name')!.textContent = data.identified_name || name;
-        
-        const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
-        document.getElementById('edit-ai-conf')!.textContent = confText + (data.notes ? ` • ${data.notes}` : '');
-        
-        aiResult.classList.remove('hidden');
-      } else {
-        alert('La IA no pudo encontrar una imagen oficial en el catálogo para este producto.\n\nNota: ' + (data.notes || ''));
-      }
-    } catch (err) {
-      aiStatus.classList.add('hidden');
-      alert('Error conectando con IA Studio.');
-    }
+    await processStudioImage(name, code, currentImg);
   });
 
   document.getElementById('edit-ai-apply')?.addEventListener('click', (e) => {
     e.preventDefault();
-    if (aiFoundUrl) setEditImage(aiFoundUrl);
-    aiResult.classList.add('hidden');
+    const foundUrl = (window as any).editAiFoundUrl;
+    if (foundUrl) {
+      setEditImage(foundUrl);
+    }
+    document.getElementById('edit-ai-result')!.classList.add('hidden');
   });
 
   document.getElementById('edit-cancel')!.addEventListener('click', () => {
