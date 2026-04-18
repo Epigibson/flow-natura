@@ -176,20 +176,12 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   // Load Products using API
   async function loadProducts(consultantId: string) {
     try {
-      // 1. Fetch all products from API
-      const allProducts = await api.products.list({ limit: 5000 });
-
-      if (!allProducts || allProducts.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-
-      // 2. Fetch user's inventory from API
+      // Fetch user's inventory — already includes product details
       const myInv = await api.inventory.list({ limit: 5000 });
 
-      const invMap = new Map();
-      if (myInv) {
-        myInv.forEach((i: any) => invMap.set(i.product_id, { quantity: i.quantity, inv_id: i.product_id }));
+      if (!myInv || myInv.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
       }
 
       emptyState.classList.add('hidden');
@@ -199,15 +191,19 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       container.classList.remove('hidden');
       container.classList.add('content-loaded');
 
-      // Map global catalog with local quantities
-      fullInventory = allProducts.map((p: any) => {
-        const invData = invMap.get(p.id) || { quantity: 0, inv_id: null };
-        return {
-          ...p,
-          inv_id: invData.inv_id,
-          quantity: invData.quantity
-        };
-      });
+      // Map inventory items to expected format
+      fullInventory = myInv.map((item: any) => ({
+        id: item.product_id,
+        inv_id: item.product_id,
+        name: item.product_name,
+        code: item.product_code,
+        category: item.category,
+        brand: item.brand,
+        price: parseFloat(item.price) || 0,
+        cost: parseFloat(item.cost) || 0,
+        quantity: item.quantity || 0,
+        image_url: item.image_url,
+      }));
 
     // Populate filters dynamically
     populateFilters();
