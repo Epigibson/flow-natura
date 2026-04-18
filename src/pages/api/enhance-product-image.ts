@@ -46,12 +46,70 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // The user wants a clean studio background, but Generative Image models (like Imagen) 
-    // hallucinate product shapes without an explicit layer mask API (like remove.bg).
-    // The most accurate solution is to use Gemini 2.5 Flash's multimodal vision to identify 
-    // the EXACT code/name from the user's messy photo, and retrieve the OFFICIAL Natura CDN
-    // URL, which already has a perfect white studio background.
+    // SCENARIO 1: User provided a photo. Use Imagen to strictly REMOVE the background
+    // without altering the existing pixels of the product.
+    if (imageBase64) {
+      // Clean base64 prefix
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
+      try {
+        const response = await ai.models.generateImages({
+          model: 'imagen-4.0-fast-generate-001',
+          prompt: productName ? `the ${productName} product` : 'the product',
+          config: {
+            numberOfImages: 1,
+            outputMimeType: 'image/png',
+            sourceImage: {
+              imageBytes: cleanBase64,
+              mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
+            },
+            editConfig: {
+              editMode: 'BKG_REMOVAL'
+            }
+          }
+        });
+
+        if (response.generatedImages && response.generatedImages.length > 0) {
+          const generatedBase64 = response.generatedImages[0].image.imageBytes;
+          
+          if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+            throw new Error('Configuración de Supabase incompleta para guardar la imagen.');
+          }
+
+          const binaryStr = atob(generatedBase64);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+
+          const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+          const fileName = `generated_studio_${Date.now()}.png`;
+          const filePath = `user-uploads/${fileName}`;
+
+          const { error } = await supabase.storage
+            .from('product-images')
+            .upload(filePath, bytes, { contentType: 'image/png', upsert: true });
+
+          if (error) throw new Error('Error subiendo la imagen generada: ' + error.message);
+
+          const { data: urlData } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(filePath);
+
+          return new Response(JSON.stringify({
+            identified_name: productName || "Producto Editado con IA",
+            identified_code: productCode || null,
+            suggested_image_url: urlData.publicUrl,
+            confidence: "high",
+            notes: "Fondo removido exitosamente sin alterar tu producto original."
+          }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+      } catch (err: any) {
+        console.warn("Imagen background removal failed, falling back to Gemini text search", err);
+      }
+    }
+
+    // SCENARIO 2: No photo provided, OR Imagen failed. Fallback to Gemini 2.5 Flash to search Natura's CDN.
     const context = [
       productName ? `Nombre del producto pre-llenado: "${productName}"` : '',
       productCode ? `Código pre-llenado: ${productCode}` : '',
