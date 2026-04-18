@@ -3,11 +3,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">INTELLIGENCE</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Reportes y Análisis 📊</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Insights profundos de tu negocio con datos en tiempo real.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Reportes y Análisis 📊</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">Insights profundos de tu negocio con datos en tiempo real.</p>
     </div>
     <div class="flex gap-3">
       <select id="period-select" class="bg-surface-container-lowest rounded-xl py-2.5 px-4 shadow-sm border border-outline-variant/10 text-sm font-bold">
@@ -21,7 +21,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </header>
 
   <!-- Revenue Summary -->
-  <section class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
+  <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
     <div class="bg-gradient-to-br from-primary/5 to-primary-container/10 rounded-[2rem] p-6 shadow-sm text-center border border-primary/5">
       <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-lg">payments</span>

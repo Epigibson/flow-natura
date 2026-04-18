@@ -4,15 +4,15 @@ import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">GESTIÓN DE STOCK</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Ajustes de Inventario</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Gestiona entradas, salidas y correcciones de stock.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Ajustes de Inventario</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">Gestiona entradas, salidas y correcciones de stock.</p>
     </div>
-    <a href="/inventario" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+    <a href="/inventario" class="btn-secondary flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors text-sm">
       <span class="material-symbols-outlined text-lg">arrow_back</span>
-      Volver al Inventario
+      Volver
     </a>
   </header>
 
@@ -36,7 +36,7 @@ import PageLoader from '../../components/PageLoader.astro';
     </h3>
 
     <!-- Adjustment type selector -->
-    <div class="grid grid-cols-3 gap-3 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
       <button data-type="increase" class="adj-type-btn active flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-green-500 bg-green-50 text-green-700 font-bold transition-all">
         <span class="material-symbols-outlined text-2xl">add_circle</span>
         <span class="text-sm">Entrada</span>

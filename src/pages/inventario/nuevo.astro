@@ -174,7 +174,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         </div>
 
         <div class="space-y-6">
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <!-- Code -->
             <div>
               <label
@@ -239,7 +239,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <!-- Category -->
             <div class="relative">
               <label
@@ -323,30 +323,35 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
             </span>
           </div>
 
+          <!-- Nivel de Consultora -->
+          <div class="mb-2">
+            <label class="block text-sm font-bold text-on-surface-variant mb-2 ml-1">Tu Nivel de Consultora</label>
+            <div id="level-selector" class="flex flex-wrap gap-2">
+              <button type="button" data-level="Bronce" class="level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-orange-300 bg-orange-50 text-orange-700">
+                🥉 Bronce <span class="text-[10px] opacity-60">×0.7845</span>
+              </button>
+              <button type="button" data-level="Plata" class="level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-outline-variant/20 text-on-surface-variant hover:border-gray-300">
+                🥈 Plata <span class="text-[10px] opacity-60">×0.7414</span>
+              </button>
+              <button type="button" data-level="Oro" class="level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-outline-variant/20 text-on-surface-variant hover:border-yellow-300">
+                🥇 Oro <span class="text-[10px] opacity-60">×0.6983</span>
+              </button>
+              <button type="button" data-level="Zafiro" class="level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-outline-variant/20 text-on-surface-variant hover:border-blue-300">
+                💎 Zafiro <span class="text-[10px] opacity-60">×0.6811</span>
+              </button>
+              <button type="button" data-level="Diamante" class="level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-outline-variant/20 text-on-surface-variant hover:border-purple-300">
+                💠 Diamante <span class="text-[10px] opacity-60">×0.6552</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Pricing -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label
                 class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
-                for="cost"
-              >Costo de Consultora <span class="text-error">*</span></label>
-              <div class="relative flex items-center">
-                <span class="absolute left-5 font-bold text-on-surface-variant"
-                  >$</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  id="cost"
-                  class="w-full pl-10 pr-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container"
-                  placeholder="0.00"
-                />
-              </div>
-            </div>
-            <div class="relative">
-              <label
-                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
                 for="price"
-              >Precio de Venta <span class="text-error">*</span></label>
+              >Precio de Venta (Revista) <span class="text-error">*</span></label>
               <div class="relative flex items-center">
                 <span class="absolute left-5 font-bold text-primary">$</span>
                 <input
@@ -360,6 +365,41 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
               <span class="ai-badge hidden absolute -top-1 -right-1 w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px]">
                 <span class="material-symbols-outlined text-[12px]">auto_awesome</span>
               </span>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="cost"
+              >Tu Costo <span id="cost-level-badge" class="text-xs font-normal text-primary">(Bronce ×0.7845)</span></label>
+              <div class="relative flex items-center">
+                <span class="absolute left-5 font-bold text-on-surface-variant"
+                  >$</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  id="cost"
+                  class="w-full pl-10 pr-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container"
+                  placeholder="Auto"
+                />
+              </div>
+              <p class="text-[10px] text-on-surface-variant mt-1 ml-1">Auto-calculado. Puedes sobrescribirlo.</p>
+            </div>
+          </div>
+
+          <!-- Profit Panel -->
+          <div id="profit-panel" class="hidden bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/30">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span id="profit-icon" class="material-symbols-outlined text-green-600">trending_up</span>
+                <div>
+                  <p class="text-xs font-bold text-green-800">Ganancia Estimada</p>
+                  <p id="profit-amount" class="text-lg font-bold text-green-700 font-headline">$0.00</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p id="profit-percent" class="text-sm font-bold text-green-700">0%</p>
+                <p id="profit-net" class="text-[10px] text-green-600">neto desglosando IVA</p>
+              </div>
             </div>
           </div>
         </div>
@@ -395,7 +435,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
             <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Nombre</p>
             <p id="preview-name" class="font-bold text-on-surface text-sm leading-tight">—</p>
           </div>
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Marca</p>
               <p id="preview-brand" class="font-bold text-primary text-sm">—</p>
@@ -411,13 +451,17 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
           </div>
           <div class="grid grid-cols-2 gap-3 pt-3 border-t border-outline-variant/10">
             <div>
-              <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Costo</p>
+              <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Tu Costo</p>
               <p id="preview-cost" class="font-bold text-on-surface text-lg">$0</p>
             </div>
             <div>
               <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Precio Venta</p>
               <p id="preview-price" class="font-bold text-primary text-lg font-headline">$0</p>
             </div>
+          </div>
+          <div id="preview-profit-wrap" class="hidden pt-3 border-t border-outline-variant/10">
+            <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Ganancia</p>
+            <p id="preview-profit" class="font-bold text-green-600 text-sm">$0</p>
           </div>
           <div id="preview-desc-wrap" class="hidden pt-3 border-t border-outline-variant/10">
             <p class="text-[9px] uppercase font-bold tracking-widest text-on-surface-variant">Descripción</p>
@@ -490,6 +534,8 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 <script>
   import { supabase } from "../../lib/supabase";
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
+  import { CAMINO_CRECIMIENTO, calculateConsultantPrice } from "../../lib/camino-crecimiento";
+  import type { ConsultantLevel } from "../../lib/camino-crecimiento";
 
   // ═══════════ STATE ═══════════
   let currentUserId = "";
@@ -499,6 +545,8 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   let capturedImageBase64 = "";
   let capturedMimeType = "image/jpeg";
   let isAnalyzing = false;
+  let selectedLevel: ConsultantLevel = (localStorage.getItem('natura_level') as ConsultantLevel) || 'Bronce';
+  let costManuallyEdited = false; // Track if user manually changed cost
 
   // ═══════════ DOM ELEMENTS ═══════════
   const codeInput = document.getElementById("product_code") as HTMLInputElement;
@@ -544,11 +592,162 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   const previewDescWrap = document.getElementById("preview-desc-wrap") as HTMLElement;
   const previewPhoto = document.getElementById("preview-card-photo") as HTMLImageElement;
   const previewPlaceholder = document.getElementById("preview-placeholder") as HTMLElement;
+  const previewProfit = document.getElementById("preview-profit") as HTMLElement;
+  const previewProfitWrap = document.getElementById("preview-profit-wrap") as HTMLElement;
 
-  // ═══════════ AUTH ═══════════
-  supabase.auth.getSession().then(({ data: { session } }: any) => {
+  // Level elements
+  const levelChips = document.querySelectorAll('.level-chip') as NodeListOf<HTMLButtonElement>;
+  const costLevelBadge = document.getElementById('cost-level-badge') as HTMLElement;
+  const profitPanel = document.getElementById('profit-panel') as HTMLElement;
+  const profitAmount = document.getElementById('profit-amount') as HTMLElement;
+  const profitPercent = document.getElementById('profit-percent') as HTMLElement;
+  const profitNet = document.getElementById('profit-net') as HTMLElement;
+  const profitIcon = document.getElementById('profit-icon') as HTMLElement;
+
+  // ═══════════ LEVEL STYLES ═══════════
+  const LEVEL_STYLES: Record<ConsultantLevel, { border: string; bg: string; text: string; emoji: string }> = {
+    Bronce:   { border: 'border-orange-300', bg: 'bg-orange-50',  text: 'text-orange-700', emoji: '🥉' },
+    Plata:    { border: 'border-gray-400',   bg: 'bg-gray-50',    text: 'text-gray-700',   emoji: '🥈' },
+    Oro:      { border: 'border-yellow-400', bg: 'bg-yellow-50',  text: 'text-yellow-700', emoji: '🥇' },
+    Zafiro:   { border: 'border-blue-400',   bg: 'bg-blue-50',    text: 'text-blue-700',   emoji: '💎' },
+    Diamante: { border: 'border-purple-400', bg: 'bg-purple-50',  text: 'text-purple-700', emoji: '💠' },
+  };
+
+  // ═══════════ LEVEL SELECTOR ═══════════
+  function selectLevel(level: ConsultantLevel) {
+    selectedLevel = level;
+    localStorage.setItem('natura_level', level);
+    const info = CAMINO_CRECIMIENTO[level];
+    const style = LEVEL_STYLES[level];
+
+    // Update chip styles
+    levelChips.forEach(chip => {
+      const chipLevel = chip.dataset.level as ConsultantLevel;
+      const s = LEVEL_STYLES[chipLevel];
+      if (chipLevel === level) {
+        chip.className = `level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 ${s.border} ${s.bg} ${s.text} ring-2 ring-offset-1 ring-${s.border.replace('border-', '')}/50 scale-105`;
+      } else {
+        chip.className = `level-chip px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all flex items-center gap-1.5 border-outline-variant/20 text-on-surface-variant hover:${s.border}`;
+      }
+    });
+
+    // Update cost label badge
+    costLevelBadge.textContent = `(${style.emoji} ${level} ×${info.priceFactor})`;
+
+    // Recalculate cost from price
+    recalculateCost();
+  }
+
+  function recalculateCost() {
+    const price = parseFloat(priceInput.value);
+    if (!price || price <= 0 || costManuallyEdited) return;
+
+    const cost = calculateConsultantPrice(price, selectedLevel);
+    costInput.value = cost.toFixed(2);
+    updateProfitPanel();
+    updatePreview();
+  }
+
+  function updateProfitPanel() {
+    const price = parseFloat(priceInput.value) || 0;
+    const cost = parseFloat(costInput.value) || 0;
+    const profit = price - cost;
+
+    if (price <= 0) {
+      profitPanel.classList.add('hidden');
+      previewProfitWrap.classList.add('hidden');
+      return;
+    }
+
+    profitPanel.classList.remove('hidden');
+    previewProfitWrap.classList.remove('hidden');
+
+    const info = CAMINO_CRECIMIENTO[selectedLevel];
+
+    if (profit > 0) {
+      profitPanel.className = 'bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/30';
+      profitAmount.textContent = '$' + profit.toFixed(2);
+      profitAmount.className = 'text-lg font-bold text-green-700 font-headline';
+      profitPercent.textContent = info.profitPercentage + '% ganancia';
+      profitPercent.className = 'text-sm font-bold text-green-700';
+      profitNet.textContent = info.netProfitMsg + ' neto sin IVA';
+      profitNet.className = 'text-[10px] text-green-600';
+      profitIcon.textContent = 'trending_up';
+      profitIcon.className = 'material-symbols-outlined text-green-600';
+      previewProfit.textContent = '+$' + profit.toFixed(0) + ' (' + info.profitPercentage + '%)';
+      previewProfit.className = 'font-bold text-green-600 text-sm';
+    } else {
+      profitPanel.className = 'bg-gradient-to-r from-red-50 to-rose-50 rounded-2xl p-4 border border-red-200/30';
+      profitAmount.textContent = '-$' + Math.abs(profit).toFixed(2);
+      profitAmount.className = 'text-lg font-bold text-red-700 font-headline';
+      profitPercent.textContent = 'Sin ganancia';
+      profitPercent.className = 'text-sm font-bold text-red-700';
+      profitNet.textContent = 'El costo supera el precio de venta';
+      profitNet.className = 'text-[10px] text-red-600';
+      profitIcon.textContent = 'trending_down';
+      profitIcon.className = 'material-symbols-outlined text-red-600';
+      previewProfit.textContent = '-$' + Math.abs(profit).toFixed(0);
+      previewProfit.className = 'font-bold text-red-600 text-sm';
+    }
+  }
+
+  // Level chip click handlers
+  levelChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      const level = chip.dataset.level as ConsultantLevel;
+      costManuallyEdited = false; // Reset manual flag when switching levels
+      selectLevel(level);
+    });
+  });
+
+  // Listen for manual cost edits
+  costInput?.addEventListener('input', () => {
+    costManuallyEdited = true;
+    updateProfitPanel();
+    updatePreview();
+  });
+
+  // Listen for price changes -> auto-calculate cost
+  priceInput?.addEventListener('input', () => {
+    costManuallyEdited = false; // Reset so auto-calc kicks in
+    recalculateCost();
+  });
+
+  // ═══════════ AUTH + LEVEL DETECTION ═══════════
+  supabase.auth.getSession().then(async ({ data: { session } }: any) => {
     if (session) {
       currentUserId = session.user.id;
+
+      // Try to auto-detect level from profile
+      try {
+        const { data: profile } = await supabase
+          .from('consultant_profiles')
+          .select('latest_growth_data')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.latest_growth_data?.level?.description) {
+          const desc = profile.latest_growth_data.level.description as string;
+          // Map the level description to our ConsultantLevel type
+          const levelMap: Record<string, ConsultantLevel> = {
+            'Bronce': 'Bronce', 'Plata': 'Plata', 'Oro': 'Oro',
+            'Zafiro': 'Zafiro', 'Diamante': 'Diamante',
+            // Also handle possible Natura API level names
+            'BRONCE': 'Bronce', 'PLATA': 'Plata', 'ORO': 'Oro',
+            'ZAFIRO': 'Zafiro', 'DIAMANTE': 'Diamante',
+          };
+          const detectedLevel = Object.entries(levelMap).find(([key]) => desc.includes(key));
+          if (detectedLevel) {
+            selectedLevel = detectedLevel[1];
+            localStorage.setItem('natura_level', selectedLevel);
+          }
+        }
+      } catch (e) {
+        // Fallback: use localStorage value (already set)
+      }
+
+      // Initialize level selector with detected/saved level
+      selectLevel(selectedLevel);
     }
   });
 
@@ -925,6 +1124,18 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     previewCost.textContent = "$" + (parseFloat(costInput.value) || 0).toFixed(0);
     previewPrice.textContent = "$" + (parseFloat(priceInput.value) || 0).toFixed(0);
 
+    // Profit in preview
+    const price = parseFloat(priceInput.value) || 0;
+    const cost = parseFloat(costInput.value) || 0;
+    if (price > 0 && cost > 0) {
+      const profit = price - cost;
+      previewProfitWrap.classList.remove('hidden');
+      previewProfit.textContent = (profit >= 0 ? '+$' : '-$') + Math.abs(profit).toFixed(0);
+      previewProfit.className = profit >= 0 ? 'font-bold text-green-600 text-sm' : 'font-bold text-red-600 text-sm';
+    } else {
+      previewProfitWrap.classList.add('hidden');
+    }
+
     if (descInput.value) {
       previewDesc.textContent = descInput.value;
       previewDescWrap.classList.remove("hidden");
@@ -934,7 +1145,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   }
 
   // Listen for changes on all inputs
-  [nameInput, brandInput, stockInput, costInput, priceInput, descInput].forEach((el) => {
+  [nameInput, brandInput, stockInput, descInput].forEach((el) => {
     el?.addEventListener("input", updatePreview);
   });
   categorySelect?.addEventListener("change", updatePreview);

@@ -4,23 +4,23 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 ---
 
 <DashboardLayout>
-      <header class="flex justify-between items-center mb-10">
+      <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
         <div>
-          <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Tu Inventario 📦</h2>
-          <p class="text-on-surface-variant mt-2 text-lg">Controla tus productos de pronta entrega y catálogo.</p>
+          <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Tu Inventario 📦</h2>
+          <p class="text-on-surface-variant mt-2 text-base md:text-lg">Controla tus productos de pronta entrega y catálogo.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <a href="/inventario/escanear" class="flex items-center gap-2 py-3 px-5 rounded-xl font-bold bg-secondary text-white shadow-md shadow-secondary/20 hover:scale-[1.02] transition-all">
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="/inventario/escanear" class="flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold bg-secondary text-white shadow-md shadow-secondary/20 hover:scale-[1.02] transition-all text-sm">
             <span class="material-symbols-outlined text-lg">qr_code_scanner</span>
             Escanear
           </a>
-          <a href="/inventario/nuevo" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
+          <a href="/inventario/nuevo" class="btn-secondary flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors text-sm">
             <span class="material-symbols-outlined text-lg">add_circle</span>
-            Crear Producto
+            Crear
           </a>
-          <a href="/inventario/alta" class="btn-primary flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+          <a href="/inventario/alta" class="btn-primary flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all text-sm">
             <span class="material-symbols-outlined text-lg">inventory</span>
-            Alta de Stock
+            Alta
           </a>
         </div>
       </header>
