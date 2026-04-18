@@ -159,6 +159,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
 
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get('id');
@@ -189,7 +190,8 @@ import PageLoader from '../../components/PageLoader.astro';
   let clientData: any = null;
 
   async function loadProfile() {
-    const { data: client } = await supabase.from('customers').select('*').eq('id', clientId).single();
+    let client;
+    try { client = await api.customers.get(clientId!); } catch(e) { window.location.href = '/clientes'; return; }
     if (!client) { window.location.href = '/clientes'; return; }
     clientData = client;
 
@@ -318,15 +320,16 @@ import PageLoader from '../../components/PageLoader.astro';
   btnCloseEdit.addEventListener('click', () => editModal.close());
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from('customers').update({
-      full_name: (document.getElementById('edit-name') as HTMLInputElement).value,
-      phone: (document.getElementById('edit-phone') as HTMLInputElement).value,
-      email: (document.getElementById('edit-email') as HTMLInputElement).value || null,
-      address: (document.getElementById('edit-address') as HTMLInputElement).value || null,
-      preferences: (document.getElementById('edit-prefs') as HTMLTextAreaElement).value || null,
-    }).eq('id', clientId);
-    if (error) alert('Error: ' + error.message);
-    else window.location.reload();
+    try {
+      await api.customers.update(clientId!, {
+        full_name: (document.getElementById('edit-name') as HTMLInputElement).value,
+        phone: (document.getElementById('edit-phone') as HTMLInputElement).value,
+        email: (document.getElementById('edit-email') as HTMLInputElement).value || null,
+        address: (document.getElementById('edit-address') as HTMLInputElement).value || null,
+        preferences: (document.getElementById('edit-prefs') as HTMLTextAreaElement).value || null,
+      });
+      window.location.reload();
+    } catch(err: any) { alert('Error: ' + err.message); }
   });
 
   loadProfile();

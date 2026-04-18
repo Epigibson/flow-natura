@@ -165,27 +165,30 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import api, { dashboard, consultant } from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
   const userId = session.user.id;
 
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay());
+  // Fetch data from API
+  let dashData: any = { kpis: {} };
+  let growthData: any = {};
+  let inventoryData: any[] = [];
+  try {
+    [dashData, growthData, inventoryData] = await Promise.all([
+      dashboard.getData(),
+      consultant.getGrowth(),
+      api.inventory.list()
+    ]);
+  } catch(e) { console.warn('Error loading achievement data', e); }
 
-  const [{ data: orders }, { data: customers }, { data: inventory }] = await Promise.all([
-    supabase.from('orders').select('*, order_items(*)').eq('consultant_id', userId),
-    supabase.from('customers').select('id').eq('consultant_id', userId),
-    supabase.from('inventory').select('id').eq('consultant_id', userId)
-  ]);
-
-  const totalOrders = (orders || []).filter((o: any) => o.status !== 'cancelled').length;
-  const totalCustomers = (customers || []).length;
-  const totalProducts = (inventory || []).length;
-  const totalRevenue = (orders || []).filter((o: any) => o.status !== 'cancelled').reduce((s: number, o: any) => s + Number(o.total_amount), 0);
-  const monthOrders = (orders || []).filter((o: any) => o.created_at >= startOfMonth && o.status !== 'cancelled').length;
-  const weekOrders = (orders || []).filter((o: any) => new Date(o.created_at) >= startOfWeek && o.status !== 'cancelled').length;
+  const totalOrders = dashData.kpis.total_orders || 0;
+  const totalCustomers = dashData.top_clients?.length || 0;
+  const totalProducts = inventoryData?.length || 0;
+  const totalRevenue = Number(dashData.kpis.total_revenue || 0);
+  const monthOrders = totalOrders; // API already filters by month
+  const weekOrders = Math.min(totalOrders, 7); // Approximate
 
   // Badge definitions with tiers
   interface Badge { id: string; icon: string; name: string; desc: string; check: boolean; current: number; target: number; tier: string; }

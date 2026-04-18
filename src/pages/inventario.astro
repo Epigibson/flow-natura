@@ -139,6 +139,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
 <script>
   import { supabase } from '../lib/supabase';
+  import api from '../lib/api';
   import { esc, sanitizeUrl } from '../lib/security';
 
   const container = document.getElementById('products-container') as HTMLElement;
@@ -172,65 +173,47 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     }
   });
 
-  // Load Products (paginated — Supabase limits to 1000 per query)
+  // Load Products using API
   async function loadProducts(consultantId: string) {
-    let allProducts: any[] = [];
-    let from = 0;
-    const BATCH = 1000;
+    try {
+      // 1. Fetch all products from API
+      const allProducts = await api.products.list({ limit: 5000 });
 
-    // 1. Descargamos absolutamente TODO el catálogo maestro
-    while (true) {
-      const { data: batch, error } = await supabase
-        .from('products')
-        .select('*')
-        .is('deleted_at', null)
-        .range(from, from + BATCH - 1)
-        .order('name', { ascending: true });
+      if (!allProducts || allProducts.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      }
 
-      if (error) { console.error(error); break; }
-      if (!batch || batch.length === 0) break;
-      allProducts = allProducts.concat(batch);
-      if (batch.length < BATCH) break; // last page
-      from += BATCH;
-    }
+      // 2. Fetch user's inventory from API
+      const myInv = await api.inventory.list({ limit: 5000 });
 
-    if (allProducts.length === 0) {
-      emptyState.classList.remove('hidden');
-      return;
-    }
+      const invMap = new Map();
+      if (myInv) {
+        myInv.forEach((i: any) => invMap.set(i.product_id, { quantity: i.quantity, inv_id: i.product_id }));
+      }
 
-    // 2. Descargamos el inventario local del usuario
-    const { data: myInv } = await supabase
-      .from('inventory')
-      .select('id, product_id, quantity')
-      .eq('consultant_id', consultantId);
+      emptyState.classList.add('hidden');
 
-    const invMap = new Map();
-    if (myInv) {
-      myInv.forEach(i => invMap.set(i.product_id, { quantity: i.quantity, inv_id: i.id }));
-    }
+      // Swap skeleton → real content
+      document.getElementById('inventory-skeleton')?.classList.add('hidden');
+      container.classList.remove('hidden');
+      container.classList.add('content-loaded');
 
-    emptyState.classList.add('hidden');
-
-    // Swap skeleton → real content
-    document.getElementById('inventory-skeleton')?.classList.add('hidden');
-    container.classList.remove('hidden');
-    container.classList.add('content-loaded');
-
-    // Mapeamos el catálogo global con las cantidades locales
-    fullInventory = allProducts.map((p: any) => {
-      const invData = invMap.get(p.id) || { quantity: 0, inv_id: null };
-      return {
-        ...p,
-        inv_id: invData.inv_id,
-        quantity: invData.quantity
-      };
-    });
+      // Map global catalog with local quantities
+      fullInventory = allProducts.map((p: any) => {
+        const invData = invMap.get(p.id) || { quantity: 0, inv_id: null };
+        return {
+          ...p,
+          inv_id: invData.inv_id,
+          quantity: invData.quantity
+        };
+      });
 
     // Populate filters dynamically
     populateFilters();
     updateStats(fullInventory);
     applyFilters();
+    } catch(e) { console.error('Error loading products', e); emptyState.classList.remove('hidden'); }
   }
 
   function populateFilters() {
