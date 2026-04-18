@@ -1265,7 +1265,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       const res = await fetch('/api/enhance-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productName: name, productCode: code, imageBase64: capturedImageBase64 }),
+        body: JSON.stringify({ productName: name, productCode: code, imageBase64: capturedImageBase64, imageUrl: catalogImageUrl }),
       });
       
       const data = await res.json();

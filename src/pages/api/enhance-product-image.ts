@@ -22,15 +22,29 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const body = await request.json();
-    const { imageBase64, mimeType = 'image/jpeg', productName, productCode } = body;
+    let { imageBase64, mimeType = 'image/jpeg', productName, productCode, imageUrl } = body;
 
-    if (!imageBase64 && !productName) {
-      return new Response(JSON.stringify({ error: 'Se requiere imageBase64 o productName' }), {
+    if (!imageBase64 && !imageUrl && !productName) {
+      return new Response(JSON.stringify({ error: 'Se requiere imageBase64, imageUrl o productName' }), {
         status: 400, headers: { 'Content-Type': 'application/json' },
       });
     }
 
     const ai = new GoogleGenAI({ apiKey });
+
+    // Download image if URL was provided instead of base64
+    if (imageUrl && !imageBase64) {
+      try {
+        const imgRes = await fetch(imageUrl);
+        if (!imgRes.ok) throw new Error('No se pudo descargar la imagen proporcionada');
+        const buffer = await imgRes.arrayBuffer();
+        const b64 = Buffer.from(buffer).toString('base64');
+        imageBase64 = b64;
+        mimeType = imgRes.headers.get('content-type') || mimeType;
+      } catch (e) {
+        console.warn("Could not fetch imageUrl, proceeding with text-only AI", e);
+      }
+    }
 
     // SCENARIO 1: User provided a photo. Use Imagen 4 to turn it into a studio shot.
     if (imageBase64) {
