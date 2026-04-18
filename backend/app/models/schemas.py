@@ -28,6 +28,7 @@ class ProductCreate(ProductBase):
 
 class ProductUpdate(BaseModel):
     name: str | None = None
+    code: str | None = None
     category: str | None = None
     brand: str | None = None
     description: str | None = None
@@ -146,6 +147,8 @@ class InventoryItemResponse(BaseModel):
     cost: Decimal
     quantity: int
     image_url: str | None = None
+    description: str | None = None
+    points: int | None = None
 
     class Config:
         from_attributes = True

@@ -138,9 +138,10 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   <!-- Product Detail Modal -->
   <div id="detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4" style="display:none;">
     <div class="bg-surface-container-lowest rounded-[2rem] max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-surface-container/30 animate-[slideUp_0.3s_ease-out]">
-      <!-- Modal Header -->
-      <div class="relative">
-        <div id="detail-img-container" class="w-full h-56 bg-white flex items-center justify-center overflow-hidden">
+
+      <!-- Image Header -->
+      <div class="relative shrink-0">
+        <div id="detail-img-container" class="w-full h-52 bg-white flex items-center justify-center overflow-hidden">
           <img id="detail-img" src="" alt="" class="max-h-full max-w-full object-contain" />
           <div id="detail-img-placeholder" class="hidden flex-col items-center justify-center text-on-surface-variant/30">
             <span class="material-symbols-outlined text-6xl">spa</span>
@@ -150,17 +151,23 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           <span class="material-symbols-outlined">close</span>
         </button>
         <div id="detail-badge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"></div>
+        <button id="detail-edit-btn" class="absolute bottom-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-xs font-bold text-on-surface shadow-md hover:bg-white transition-all">
+          <span class="material-symbols-outlined text-sm">edit</span> Editar
+        </button>
       </div>
-      <!-- Modal Body -->
-      <div class="p-6 overflow-y-auto flex-1">
-        <div class="flex items-start justify-between gap-3 mb-1">
-          <h3 id="detail-name" class="text-xl font-display font-bold text-on-surface leading-tight"></h3>
-        </div>
-        <p id="detail-code" class="text-xs font-mono text-on-surface-variant mb-1"></p>
+
+      <!-- VIEW MODE -->
+      <div id="detail-view" class="p-6 overflow-y-auto flex-1">
+        <h3 id="detail-name" class="text-xl font-display font-bold text-on-surface leading-tight mb-1"></h3>
+        <p id="detail-code" class="text-xs font-mono text-on-surface-variant mb-0.5"></p>
         <p id="detail-category" class="text-xs text-on-surface-variant mb-4"></p>
 
-        <!-- Price Grid -->
-        <div class="grid grid-cols-3 gap-3 mb-5">
+        <div id="detail-desc-row" class="mb-5 hidden">
+          <p class="text-[9px] uppercase font-bold tracking-wider text-on-surface-variant mb-1">Descripcion</p>
+          <p id="detail-desc" class="text-sm text-on-surface leading-relaxed bg-surface-container-highest/30 rounded-xl p-3"></p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="bg-surface-container-highest/50 rounded-xl p-3 text-center">
             <p class="text-[9px] uppercase font-bold tracking-wider text-on-surface-variant mb-1">Costo</p>
             <p id="detail-cost" class="text-lg font-bold text-on-surface"></p>
@@ -175,8 +182,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           </div>
         </div>
 
-        <!-- Ganancia -->
-        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl p-4 mb-5 border border-green-200/30">
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl p-4 mb-4 border border-green-200/30">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-green-600">trending_up</span>
@@ -186,13 +192,11 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           </div>
         </div>
 
-        <!-- Points -->
-        <div id="detail-points-row" class="flex items-center gap-2 mb-5">
+        <div id="detail-points-row" class="flex items-center gap-2 mb-4">
           <span class="material-symbols-outlined text-amber-500">stars</span>
           <span id="detail-points" class="text-sm font-bold text-amber-600"></span>
         </div>
 
-        <!-- Stock Control -->
         <div class="bg-surface-container-highest/40 rounded-xl p-4">
           <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Stock actual</p>
           <div class="flex items-center justify-center gap-4">
@@ -202,6 +206,65 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
             <span id="detail-qty" class="text-4xl font-display font-bold text-on-surface min-w-[3rem] text-center"></span>
             <button id="detail-plus" class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/20 transition-all shadow-sm">
               <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDIT MODE -->
+      <div id="detail-edit" class="p-6 overflow-y-auto flex-1 hidden">
+        <h4 class="font-display font-bold text-lg text-on-surface mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">edit_note</span> Editar Producto
+        </h4>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Nombre</label>
+            <input id="edit-name" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Codigo</label>
+              <input id="edit-code" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Marca</label>
+              <input id="edit-brand" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Categoria</label>
+            <input id="edit-category" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Costo</label>
+              <input id="edit-cost" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Precio</label>
+              <input id="edit-price" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Puntos</label>
+              <input id="edit-points" type="number" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">URL de imagen</label>
+            <input id="edit-image" type="url" placeholder="https://..." class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            <div id="edit-img-preview" class="mt-2 h-24 bg-white rounded-xl hidden items-center justify-center overflow-hidden border border-outline-variant/10">
+              <img id="edit-img-preview-src" src="" class="max-h-full max-w-full object-contain" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Descripcion</label>
+            <textarea id="edit-description" rows="3" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container resize-none mt-1"></textarea>
+          </div>
+          <div id="edit-error" class="text-sm text-red-500 font-bold hidden"></div>
+          <div class="flex gap-3 pt-2">
+            <button id="edit-cancel" class="flex-1 py-3 rounded-xl font-bold border-2 border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-highest transition-colors text-sm">Cancelar</button>
+            <button id="edit-save" class="flex-1 py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-sm flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-sm">save</span> Guardar
             </button>
           </div>
         </div>
@@ -284,6 +347,8 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         cost: parseFloat(item.cost) || 0,
         quantity: item.quantity || 0,
         image_url: item.image_url,
+        description: item.description || '',
+        points: item.points || 0,
       }));
 
     // Populate filters dynamically
@@ -639,8 +704,21 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       pointsRow.classList.add('hidden');
     }
 
+    // Description
+    const descRow = document.getElementById('detail-desc-row')!;
+    if (p.description) {
+      descRow.classList.remove('hidden');
+      document.getElementById('detail-desc')!.textContent = p.description;
+    } else {
+      descRow.classList.add('hidden');
+    }
+
     // Stock
     document.getElementById('detail-qty')!.textContent = String(p.quantity || 0);
+
+    // Reset to view mode
+    document.getElementById('detail-view')!.classList.remove('hidden');
+    document.getElementById('detail-edit')!.classList.add('hidden');
 
     // Show modal
     detailModal.style.display = 'flex';
@@ -670,5 +748,110 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     updateStock(currentDetailId, 1);
     const p = fullInventory.find(i => i.id === currentDetailId);
     if (p) document.getElementById('detail-qty')!.textContent = String(p.quantity);
+  });
+
+  // ===== EDIT MODE =====
+  document.getElementById('detail-edit-btn')!.addEventListener('click', () => {
+    const p = fullInventory.find(i => i.id === currentDetailId);
+    if (!p) return;
+
+    // Populate edit form
+    (document.getElementById('edit-name') as HTMLInputElement).value = p.name || '';
+    (document.getElementById('edit-code') as HTMLInputElement).value = p.code || '';
+    (document.getElementById('edit-brand') as HTMLInputElement).value = p.brand || '';
+    (document.getElementById('edit-category') as HTMLInputElement).value = p.category || '';
+    (document.getElementById('edit-cost') as HTMLInputElement).value = String(p.cost || '');
+    (document.getElementById('edit-price') as HTMLInputElement).value = String(p.price || '');
+    (document.getElementById('edit-points') as HTMLInputElement).value = String(p.points || '');
+    (document.getElementById('edit-image') as HTMLInputElement).value = p.image_url || '';
+    (document.getElementById('edit-description') as HTMLTextAreaElement).value = p.description || '';
+
+    // Show image preview if exists
+    const previewContainer = document.getElementById('edit-img-preview')!;
+    const previewImg = document.getElementById('edit-img-preview-src') as HTMLImageElement;
+    if (p.image_url) {
+      previewImg.src = p.image_url;
+      previewContainer.classList.remove('hidden');
+      previewContainer.style.display = 'flex';
+    } else {
+      previewContainer.classList.add('hidden');
+      previewContainer.style.display = 'none';
+    }
+
+    document.getElementById('edit-error')!.classList.add('hidden');
+
+    // Toggle modes
+    document.getElementById('detail-view')!.classList.add('hidden');
+    document.getElementById('detail-edit')!.classList.remove('hidden');
+  });
+
+  // Image URL preview on input change
+  document.getElementById('edit-image')?.addEventListener('input', () => {
+    const url = (document.getElementById('edit-image') as HTMLInputElement).value;
+    const previewContainer = document.getElementById('edit-img-preview')!;
+    const previewImg = document.getElementById('edit-img-preview-src') as HTMLImageElement;
+    if (url) {
+      previewImg.src = url;
+      previewContainer.classList.remove('hidden');
+      previewContainer.style.display = 'flex';
+    } else {
+      previewContainer.classList.add('hidden');
+      previewContainer.style.display = 'none';
+    }
+  });
+
+  document.getElementById('edit-cancel')!.addEventListener('click', () => {
+    document.getElementById('detail-view')!.classList.remove('hidden');
+    document.getElementById('detail-edit')!.classList.add('hidden');
+  });
+
+  document.getElementById('edit-save')!.addEventListener('click', async () => {
+    if (!currentDetailId) return;
+    const errEl = document.getElementById('edit-error')!;
+    errEl.classList.add('hidden');
+
+    const name = (document.getElementById('edit-name') as HTMLInputElement).value.trim();
+    const code = (document.getElementById('edit-code') as HTMLInputElement).value.trim();
+    const brand = (document.getElementById('edit-brand') as HTMLInputElement).value.trim();
+    const category = (document.getElementById('edit-category') as HTMLInputElement).value.trim();
+    const cost = parseFloat((document.getElementById('edit-cost') as HTMLInputElement).value) || 0;
+    const price = parseFloat((document.getElementById('edit-price') as HTMLInputElement).value) || 0;
+    const points = parseInt((document.getElementById('edit-points') as HTMLInputElement).value) || 0;
+    const image_url = (document.getElementById('edit-image') as HTMLInputElement).value.trim();
+    const description = (document.getElementById('edit-description') as HTMLTextAreaElement).value.trim();
+
+    if (!name || !code) {
+      errEl.textContent = 'Nombre y código son requeridos.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    const btn = document.getElementById('edit-save') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
+
+    try {
+      await api.products.update(currentDetailId, { name, code, brand, category, cost, price, points, image_url, description });
+
+      // Update local data
+      const p = fullInventory.find(i => i.id === currentDetailId);
+      if (p) {
+        p.name = name; p.code = code; p.brand = brand; p.category = category;
+        p.cost = cost; p.price = price; p.points = points;
+        p.image_url = image_url; p.description = description;
+      }
+
+      // Refresh views
+      renderPage();
+      openDetail(currentDetailId); // reopen in view mode with updated data
+
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar';
+    } catch(e: any) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar';
+      errEl.textContent = 'Error: ' + (e.message || 'No se pudo guardar');
+      errEl.classList.remove('hidden');
+    }
   });
 </script>

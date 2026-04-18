@@ -69,6 +69,8 @@ async def list_inventory(
             cost=row.Product.cost,
             quantity=row.Inventory.quantity,
             image_url=row.Product.image_url,
+            description=row.Product.description,
+            points=row.Product.points,
         )
         for row in rows
     ]
