@@ -533,6 +533,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 
 <script>
   import { supabase } from "../../lib/supabase";
+  import api from '../../lib/api';
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
   import { CAMINO_CRECIMIENTO, calculateConsultantPrice } from "../../lib/camino-crecimiento";
   import type { ConsultantLevel } from "../../lib/camino-crecimiento";
@@ -1232,24 +1233,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       }
     }
 
-    // 2. Check if product already exists globally by code
-    let productId = null;
-    const { data: existingProduct, error: queryError } = await supabase
-      .from("products")
-      .select("id")
-      .eq("code", code)
-      .maybeSingle();
-
-    if (queryError) {
-      showError("Error verificando producto: " + queryError.message);
-      return;
-    }
-
-    if (existingProduct) {
-      productId = existingProduct.id;
-    } else {
-      // Create new global product
-      const productData: Record<string, unknown> = {
+    // 2. Create product via API (handles dedup by code internally or create+stock)
+    try {
+      const productPayload: Record<string, unknown> = {
         code,
         name,
         category: category || null,
@@ -1257,71 +1243,14 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         description: description || null,
         price,
         cost,
+        stock: qty,
       };
-      if (imageUrl) productData.image_url = imageUrl;
+      if (imageUrl) productPayload.image_url = imageUrl;
 
-      const { data: newProd, error: insertProdError } = await supabase
-        .from("products")
-        .insert([productData])
-        .select("id")
-        .single();
-
-      if (insertProdError) {
-        showError("Error registrando producto nuevo: " + insertProdError.message);
-        return;
-      }
-      productId = newProd.id;
-
-      // Auto-link barcode if it was scanned
-      if (scannedEan) {
-        await supabase
-          .from("product_barcodes")
-          .insert({
-            ean: scannedEan,
-            product_id: productId,
-            created_by: currentUserId,
-          })
-          .then(() => {});
-      }
-    }
-
-    // 3. Check if consultant already has inventory of this product
-    const { data: existingInv, error: invQueryError } = await supabase
-      .from("inventory")
-      .select("id, quantity")
-      .eq("consultant_id", currentUserId)
-      .eq("product_id", productId)
-      .maybeSingle();
-
-    if (invQueryError) {
-      showError("Error verificando inventario: " + invQueryError.message);
+      await api.products.create(productPayload, consultantLevel || 'Bronce');
+    } catch (err: any) {
+      showError('Error registrando producto: ' + (err.message || err));
       return;
-    }
-
-    if (existingInv) {
-      const { error: updateInvError } = await supabase
-        .from("inventory")
-        .update({
-          quantity: existingInv.quantity + qty,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", existingInv.id);
-
-      if (updateInvError)
-        return showError("Error sumando inventario: " + updateInvError.message);
-    } else {
-      const { error: insertInvError } = await supabase
-        .from("inventory")
-        .insert([
-          {
-            consultant_id: currentUserId,
-            product_id: productId,
-            quantity: qty,
-          },
-        ]);
-
-      if (insertInvError)
-        return showError("Error creando inventario: " + insertInvError.message);
     }
 
     // Success!
