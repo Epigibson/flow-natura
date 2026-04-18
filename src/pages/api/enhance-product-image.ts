@@ -66,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
             editConfig: {
               editMode: 'BKG_REMOVAL'
             }
-          }
+          } as any
         });
 
         if (response.generatedImages && response.generatedImages.length > 0) {
