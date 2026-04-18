@@ -147,6 +147,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import api from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
@@ -166,14 +167,30 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       default: startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     }
 
-    const [{ data: orders }, { data: customers }, { data: products }] = await Promise.all([
-      supabase.from('orders').select('*, order_items(*, products(*)), customers(full_name, phone, created_at)').eq('consultant_id', userId).gte('created_at', startDate).order('created_at', { ascending: true }),
-      supabase.from('customers').select('*').eq('consultant_id', userId).gte('created_at', startDate),
-      supabase.from('inventory').select('quantity, products(id, name, code, category, brand, price, cost, stock:quantity)').eq('consultant_id', userId)
+    // Load data from API
+    const [orders, customers, inventoryData] = await Promise.all([
+      api.orders.list(),
+      api.customers.list(),
+      api.inventory.list()
     ]);
 
-    const valid = (orders || []).filter((o: any) => o.status !== 'cancelled');
-    const totalRevenue = valid.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+    // Map API responses to expected shapes
+    const allOrders = (orders || []).map((o: any) => ({
+      ...o,
+      customers: { full_name: o.customer_name, phone: '', created_at: o.created_at },
+      order_items: (o.items || []).map((i: any) => ({
+        ...i,
+        products: { name: i.product_name, category: '', brand: '', code: '' }
+      }))
+    }));
+
+    const products = (inventoryData || []).map((inv: any) => ({
+      quantity: inv.quantity,
+      products: { id: inv.product_id, name: inv.product_name, code: inv.product_code, category: inv.category, brand: inv.brand || '', price: inv.price, cost: 0 }
+    }));
+
+    const valid = allOrders.filter((o: any) => o.status !== 'cancelled' && o.created_at >= startDate);
+    const totalRevenue = valid.reduce((s: number, o: any) => s + Number(o.total_amount || o.total), 0);
     const avgTicket = valid.length > 0 ? totalRevenue / valid.length : 0;
     const abonoOrders = valid.filter((o: any) => o.payment_method === 'abonos');
     const contadoOrders = valid.filter((o: any) => o.payment_method !== 'abonos');

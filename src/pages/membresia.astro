@@ -297,6 +297,7 @@ import PageLoader from '../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../lib/supabase';
+  import { dashboard } from '../lib/api';
   import {
     getUserSubscription,
     isTrialActive,
@@ -326,18 +327,17 @@ import PageLoader from '../components/PageLoader.astro';
   // Load subscription
   const sub = await getUserSubscription(userId);
 
-  // Load usage stats
-  const [{ count: productCount }, { count: clientCount }, { count: orderCount }, { data: orders }] = await Promise.all([
-    supabase.from('inventory').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
-    supabase.from('customers').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
-    supabase.from('orders').select('id', { count: 'exact', head: true }).eq('consultant_id', userId),
-    supabase.from('orders').select('total_amount').eq('consultant_id', userId).neq('status', 'cancelled'),
-  ]);
-  const totalRevenue = (orders || []).reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+  // Load usage stats from API
+  let dashData: any = { kpis: {} };
+  try { dashData = await dashboard.getData(); } catch(e) { console.warn('Could not load stats', e); }
+  const productCount = dashData.kpis?.inventory_count || 0;
+  const clientCount = dashData.kpis?.total_customers || dashData.top_clients?.length || 0;
+  const orderCount = dashData.kpis?.total_orders || 0;
+  const totalRevenue = Number(dashData.kpis?.total_revenue || 0);
 
-  (document.getElementById('stat-products') as HTMLElement).textContent = String(productCount || 0);
-  (document.getElementById('stat-clients') as HTMLElement).textContent = String(clientCount || 0);
-  (document.getElementById('stat-orders') as HTMLElement).textContent = String(orderCount || 0);
+  (document.getElementById('stat-products') as HTMLElement).textContent = String(productCount);
+  (document.getElementById('stat-clients') as HTMLElement).textContent = String(clientCount);
+  (document.getElementById('stat-orders') as HTMLElement).textContent = String(orderCount);
   (document.getElementById('stat-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 0 });
 
   // Render plan state
