@@ -44,7 +44,7 @@ async def list_products(
     search: str | None = Query(None, description="Search by name/code/brand"),
     category: str | None = Query(None),
     brand: str | None = Query(None),
-    limit: int = Query(100, le=500),
+    limit: int = Query(100, le=5000),
     offset: int = Query(0, ge=0),
     user_id: uuid.UUID = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
