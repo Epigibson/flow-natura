@@ -1247,7 +1247,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       };
       if (imageUrl) productPayload.image_url = imageUrl;
 
-      await api.products.create(productPayload, consultantLevel || 'Bronce');
+      await api.products.create(productPayload, selectedLevel || 'Bronce');
     } catch (err: any) {
       showError('Error registrando producto: ' + (err.message || err));
       return;
