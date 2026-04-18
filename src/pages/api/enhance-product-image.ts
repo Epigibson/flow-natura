@@ -61,6 +61,9 @@ export const POST: APIRoute = async ({ request }) => {
           sourceImage: {
             imageBytes: cleanBase64,
             mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
+          },
+          editConfig: {
+            editMode: 'BKG_REPLACEMENT'
           }
         }
       });
