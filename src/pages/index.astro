@@ -297,6 +297,7 @@ import PageLoader from '../components/PageLoader.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import api, { dashboard, consultant } from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error('No session'); }
@@ -310,9 +311,9 @@ import PageLoader from '../components/PageLoader.astro';
   (document.getElementById('greeting') as HTMLElement).textContent = `${greeting}, ${nameFromEmail}! ✨`;
   (document.getElementById('user-avatar') as HTMLImageElement).src = `https://api.dicebear.com/8.x/micah/svg?seed=${nameFromEmail}`;
 
-  // 1. Fetch User Profile
-  const profileRes = await supabase.from('consultant_profiles').select('*').eq('id', userId).single();
-  const profile = profileRes.data || {};
+  // 1. Fetch User Profile (from API)
+  let profile: any = {};
+  try { profile = await consultant.getProfile(); } catch(e) { console.warn('Profile fetch failed', e); }
   
   // 2. Hydrate Growth Widget
   const widgetContainer = document.getElementById('growth-widget-container')!;
@@ -489,66 +490,18 @@ import PageLoader from '../components/PageLoader.astro';
     }
   }
 
-  // ---- LOAD REAL DATA ----
+  // ---- LOAD REAL DATA (from API) ----
   const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  let dashData: any = { kpis: {}, recent_orders: [], top_clients: [], stock_alerts: [], top_products: [], upcoming_payments: [] };
+  try { dashData = await dashboard.getData(); } catch(e) { console.warn('Dashboard fetch failed', e); }
 
-  // Fetch all orders this month
-  const { data: ordersRaw } = await supabase
-    .from('orders')
-    .select('*, order_items (*, products (*)), customers (full_name)')
-    .eq('consultant_id', userId)
-    .gte('created_at', startOfMonth)
-    .order('created_at', { ascending: false });
-
-  // Cache parsed JSON to prevent expensive re-parsing in loops
-  const orders = (ordersRaw || []).map((o: any) => {
-    let parsedNotes = null;
-    if (o.notes) {
-      try { parsedNotes = JSON.parse(o.notes); } catch(e) {}
-    }
-    return { ...o, _parsedNotes: parsedNotes };
-  });
-
-  // Fetch all inventory (JOIN inventory → products)
-  const { data: inventoryRaw } = await supabase
-    .from('inventory')
-    .select('quantity, products (id, name, code, category, brand, price, cost, points)')
-    .eq('consultant_id', userId);
-  const inventory = (inventoryRaw || []).map((item: any) => ({
-    ...item.products,
-    stock: item.quantity
-  }));
-
-  // ---- KPIs ----
-  // ⚡ Bolt: Pre-parse JSON to avoid expensive JSON.parse in render loops
-  const validOrders = (orders || []).filter((o: any) => o.status !== 'cancelled').map((o: any) => {
-    let _parsedNotes = {};
-    if (o.notes) {
-      try { _parsedNotes = JSON.parse(o.notes); } catch(e) {}
-    }
-    return { ...o, _parsedNotes };
-  });
-
-  const totalRevenue = validOrders.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
-  const outOfStock = (inventory || []).filter((p: any) => p.stock <= 0).length;
-
-  // Calculate pending debt
-  let totalDebt = 0;
-  validOrders.forEach((o: any) => {
-    if (o.payment_method === 'abonos') {
-      const t = o._parsedNotes || {};
-      const eng = Number(t.enganche || 0);
-      const cuotas = Number(t.pagos || 1);
-      const pagados = Number(t.pagos_completados || 0);
-      const remaining = Number(o.total_amount) - eng;
-      const perCuota = remaining / cuotas;
-      totalDebt += Math.max(0, Number(o.total_amount) - eng - (perCuota * pagados));
-    }
-  });
+  const totalRevenue = Number(dashData.kpis.total_revenue || 0);
+  const totalDebt = Number(dashData.kpis.pending_debt || 0);
+  const outOfStock = dashData.kpis.out_of_stock || 0;
+  const validOrders = dashData.recent_orders || [];
 
   (document.getElementById('kpi-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-  (document.getElementById('kpi-orders') as HTMLElement).textContent = String(validOrders.length);
+  (document.getElementById('kpi-orders') as HTMLElement).textContent = String(dashData.kpis.total_orders || 0);
   (document.getElementById('kpi-debt') as HTMLElement).textContent = totalDebt > 0 ? '$' + totalDebt.toFixed(2) : '$0';
   (document.getElementById('kpi-outofstock') as HTMLElement).textContent = String(outOfStock);
 
@@ -575,59 +528,49 @@ import PageLoader from '../components/PageLoader.astro';
   const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
   subtitle.textContent = `Faltan ${daysLeft} días para cerrar el ciclo. ${validOrders.length} ventas este mes.`;
 
-  // ---- RECENT ORDERS ----
+  // ---- RECENT ORDERS (from API) ----
   const recentContainer = document.getElementById('recent-orders') as HTMLElement;
   (document.getElementById('orders-loading') as HTMLElement).classList.add('hidden');
-  const recentOrders = (orders || []).slice(0, 5);
+  const recentOrders = dashData.recent_orders || [];
 
   if (!recentOrders.length) {
     recentContainer.innerHTML = '<div class="text-center py-8 text-on-surface-variant"><span class="material-symbols-outlined text-4xl">shopping_cart</span><p class="mt-2">Sin ventas este mes. ¡Empieza una!</p></div>';
   } else {
     recentOrders.forEach((o: any, idx: number) => {
-      const d = new Date(o.created_at);
-      const items = (o.order_items || []).map((i: any) => i.products?.name || '?').join(', ');
+      const custName = o.customer_name || 'Cliente';
       const statusLabel = o.status === 'cancelled' ? 'Cancelada' : (o.payment_method === 'abonos' ? 'Abonos' : 'Contado');
       const statusColor = o.status === 'cancelled' ? 'text-error bg-error-container/10' : (o.payment_method === 'abonos' ? 'text-primary bg-primary-container/10' : 'text-secondary bg-secondary-container/10');
-      const custName = o.customers?.full_name || 'Cliente';
 
       const row = document.createElement('a');
       row.href = '/ventas/detalle?id=' + o.id;
       row.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
       row.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="font-bold text-primary text-sm">${esc(custName.charAt(0))}</span></div>` +
-        `<div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${esc(custName)}</h4><p class="text-xs text-on-surface-variant truncate">${esc(items)}</p></div>` +
+        `<div class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${esc(custName)}</h4><p class="text-xs text-on-surface-variant truncate">${esc(o.items_summary || '')}</p></div>` +
         `<div class="text-right shrink-0"><p class="font-bold text-on-surface">$${Number(o.total_amount).toFixed(2)}</p>` +
         `<span class="px-2 py-0.5 rounded-full text-xs font-bold ${statusColor}">${statusLabel}</span></div>`;
       recentContainer.appendChild(row);
     });
   }
 
-  // ---- TOP CLIENTS ----
+  // ---- TOP CLIENTS (from API) ----
   const topClientsEl = document.getElementById('top-clients') as HTMLElement;
-  const clientSpend: Record<string, { name: string; total: number }> = {};
-  validOrders.forEach((o: any) => {
-    const cid = o.customer_id;
-    const name = o.customers?.full_name || 'Cliente';
-    if (!clientSpend[cid]) clientSpend[cid] = { name, total: 0 };
-    clientSpend[cid].total += Number(o.total_amount);
-  });
-  const sortedClients = Object.entries(clientSpend).sort((a, b) => b[1].total - a[1].total).slice(0, 3);
+  const sortedClients = dashData.top_clients || [];
   topClientsEl.innerHTML = '';
   if (!sortedClients.length) {
     topClientsEl.innerHTML = '<p class="text-center py-4 text-on-surface-variant text-sm">Sin datos aún.</p>';
   } else {
     const medals = ['🥇', '🥈', '🥉'];
-    sortedClients.forEach(([cid, data], idx) => {
-      const el = document.createElement('a');
-      el.href = '/clientes/perfil?id=' + cid;
+    sortedClients.forEach((c: any, idx: number) => {
+      const el = document.createElement('div');
       el.className = 'flex items-center gap-3 py-3 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
-      el.innerHTML = `<span class="text-lg">${medals[idx]}</span><div class="flex-1"><p class="font-bold text-on-surface text-sm">${esc(data.name)}</p></div><p class="font-bold text-primary text-sm">$${data.total.toFixed(2)}</p>`;
+      el.innerHTML = `<span class="text-lg">${medals[idx] || ''}</span><div class="flex-1"><p class="font-bold text-on-surface text-sm">${esc(c.name)}</p></div><p class="font-bold text-primary text-sm">$${Number(c.total).toFixed(2)}</p>`;
       topClientsEl.appendChild(el);
     });
   }
 
-  // ---- STOCK ALERTS ----
+  // ---- STOCK ALERTS (from API) ----
   const alertsEl = document.getElementById('stock-alerts') as HTMLElement;
-  const lowStock = (inventory || []).filter((p: any) => p.stock <= 3).sort((a: any, b: any) => a.stock - b.stock).slice(0, 5);
+  const lowStock = dashData.stock_alerts || [];
   alertsEl.innerHTML = '';
   if (!lowStock.length) {
     alertsEl.innerHTML = '<div class="text-center py-6"><span class="material-symbols-outlined text-secondary text-3xl">check_circle</span><p class="text-on-surface-variant mt-2">¡Todo en orden! No hay alertas de stock.</p></div>';
@@ -635,72 +578,52 @@ import PageLoader from '../components/PageLoader.astro';
     lowStock.forEach((p: any, idx: number) => {
       const el = document.createElement('div');
       el.className = 'flex items-center gap-3 py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
-      const color = p.stock <= 0 ? 'text-error bg-error-container/10' : 'text-primary bg-primary-container/10';
-      el.innerHTML = `<span class="px-2 py-1 rounded-lg text-xs font-bold ${color}">${p.stock <= 0 ? 'AGOTADO' : p.stock + ' uds'}</span><p class="flex-1 font-bold text-on-surface text-sm">${esc(p.name)}</p><span class="text-xs text-on-surface-variant">${esc(p.category || '')}</span>`;
+      const color = p.is_out ? 'text-error bg-error-container/10' : 'text-primary bg-primary-container/10';
+      el.innerHTML = `<span class="px-2 py-1 rounded-lg text-xs font-bold ${color}">${p.is_out ? 'AGOTADO' : p.stock + ' uds'}</span><p class="flex-1 font-bold text-on-surface text-sm">${esc(p.product_name)}</p><span class="text-xs text-on-surface-variant">${esc(p.category || '')}</span>`;
       alertsEl.appendChild(el);
     });
   }
 
-  // ---- TOP PRODUCTS ----
+  // ---- TOP PRODUCTS (from API) ----
   const topProdsEl = document.getElementById('top-products') as HTMLElement;
-  const prodSales: Record<string, { name: string; qty: number; rev: number }> = {};
-  validOrders.forEach((o: any) => {
-    (o.order_items || []).forEach((i: any) => {
-      const pid = i.product_id;
-      const name = i.products?.name || 'Producto';
-      if (!prodSales[pid]) prodSales[pid] = { name, qty: 0, rev: 0 };
-      prodSales[pid].qty += i.quantity;
-      prodSales[pid].rev += i.quantity * Number(i.unit_price);
-    });
-  });
-  const sortedProds = Object.entries(prodSales).sort((a, b) => b[1].rev - a[1].rev).slice(0, 5);
+  const sortedProds = dashData.top_products || [];
   topProdsEl.innerHTML = '';
   if (!sortedProds.length) {
     topProdsEl.innerHTML = '<p class="text-center py-6 text-on-surface-variant text-sm">Sin ventas para analizar.</p>';
   } else {
-    const maxRev = sortedProds[0][1].rev;
-    sortedProds.forEach(([pid, data], idx) => {
-      const pct = (data.rev / maxRev) * 100;
+    const maxRev = sortedProds[0]?.revenue || 1;
+    sortedProds.forEach((data: any, idx: number) => {
+      const pct = (data.revenue / maxRev) * 100;
       const el = document.createElement('div');
       el.className = 'py-3' + (idx > 0 ? ' border-t border-surface-container' : '');
-      el.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-bold text-on-surface text-sm">${esc(data.name)}</span><span class="text-sm font-bold text-secondary">$${data.rev.toFixed(0)}</span></div>` +
+      el.innerHTML = `<div class="flex justify-between items-center mb-1"><span class="font-bold text-on-surface text-sm">${esc(data.product_name)}</span><span class="text-sm font-bold text-secondary">$${Number(data.revenue).toFixed(0)}</span></div>` +
         `<div class="w-full h-1.5 bg-surface-container-highest rounded-full"><div class="h-full bg-secondary rounded-full" style="width:${pct}%"></div></div>` +
-        `<p class="text-xs text-on-surface-variant mt-1">${data.qty} unidades vendidas</p>`;
+        `<p class="text-xs text-on-surface-variant mt-1">${data.units_sold} unidades vendidas</p>`;
       topProdsEl.appendChild(el);
     });
   }
 
-  // ---- UPCOMING PAYMENTS ----
+  // ---- UPCOMING PAYMENTS (from API) ----
   const paymentsEl = document.getElementById('upcoming-payments') as HTMLElement;
   const cobrosCount = document.getElementById('cobros-count') as HTMLElement;
-  const abonoOrders = validOrders.filter((o: any) => o.payment_method === 'abonos');
+  const upcomingPayments = dashData.upcoming_payments || [];
   paymentsEl.innerHTML = '';
-  let pendingCobros = 0;
 
-  if (!abonoOrders.length) {
+  if (!upcomingPayments.length) {
     paymentsEl.innerHTML = '<div class="text-center py-6"><span class="material-symbols-outlined text-secondary text-3xl">payments</span><p class="text-on-surface-variant mt-2">No hay pagos pendientes.</p></div>';
   } else {
-    abonoOrders.forEach((o: any, idx: number) => {
-      const t = o._parsedNotes || {};
-      const eng = Number(t.enganche || 0);
-      const cuotas = Number(t.pagos || 1);
-      const pagados = Number(t.pagos_completados || 0);
-      if (pagados >= cuotas) return;
-      pendingCobros++;
-      const remaining = Number(o.total_amount) - eng;
-      const perCuota = remaining / cuotas;
-      const custName = o.customers?.full_name || 'Cliente';
-
+    upcomingPayments.forEach((o: any, idx: number) => {
+      const custName = o.customer_name || 'Cliente';
       const el = document.createElement('a');
       el.href = '/ventas/detalle?id=' + o.id;
       el.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
       el.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-sm">payments</span></div>` +
-        `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${custName}</h4><p class="text-xs text-on-surface-variant">Pago ${pagados + 1} de ${cuotas} • $${perCuota.toFixed(2)}/pago</p></div>` +
+        `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${esc(custName)}</h4><p class="text-xs text-on-surface-variant">${esc(o.items_summary)}</p></div>` +
         `<span class="px-3 py-1 rounded-full text-xs font-bold text-primary bg-primary-container/10">Cobrar →</span>`;
       paymentsEl.appendChild(el);
     });
   }
-  cobrosCount.textContent = pendingCobros > 0 ? String(pendingCobros) : '';
+  cobrosCount.textContent = upcomingPayments.length > 0 ? String(upcomingPayments.length) : '';
 
   // ---- GOAL MODAL ----
   const goalModal = document.getElementById('goal-modal') as HTMLDialogElement;
@@ -729,23 +652,22 @@ import PageLoader from '../components/PageLoader.astro';
   }
 
   document.getElementById('export-ventas-csv')!.addEventListener('click', async () => {
-    const { data } = await supabase.from('orders').select('*, customers (full_name), order_items (*, products (name))').eq('consultant_id', userId).order('created_at', { ascending: false });
+    const data = await api.orders.list();
     const rows = (data || []).map((o: any) => {
-      const items = (o.order_items || []).map((i: any) => (i.products?.name || '') + ' x' + i.quantity).join('; ');
-      return [o.id, o.customers?.full_name || '', o.total_amount, o.payment_method, o.status, items, new Date(o.created_at).toLocaleDateString('es-MX')];
+      return [o.id, o.customer_name || '', o.total_amount, o.payment_method, o.status, o.items_summary || '', new Date(o.created_at).toLocaleDateString('es-MX')];
     });
     downloadCSV('ventas_naturaflow.csv', ['ID', 'Cliente', 'Total', 'Método Pago', 'Estado', 'Productos', 'Fecha'], rows);
   });
 
   document.getElementById('export-clientes-csv')!.addEventListener('click', async () => {
-    const { data } = await supabase.from('customers').select('*').eq('consultant_id', userId).order('full_name');
+    const data = await api.customers.list();
     const rows = (data || []).map((c: any) => [c.id, c.full_name, c.phone, c.email || '', c.address || '', c.preferences || '', new Date(c.created_at).toLocaleDateString('es-MX')]);
     downloadCSV('clientes_naturaflow.csv', ['ID', 'Nombre', 'Teléfono', 'Correo', 'Dirección', 'Preferencias', 'Registro'], rows);
   });
 
   document.getElementById('export-inventario-csv')!.addEventListener('click', async () => {
-    const { data } = await supabase.from('products').select('*').eq('consultant_id', userId).order('name');
-    const rows = (data || []).map((p: any) => [p.id, p.name, p.category || '', p.price, p.stock, new Date(p.created_at).toLocaleDateString('es-MX')]);
+    const data = await api.products.list();
+    const rows = (data || []).map((p: any) => [p.id, p.name, p.category || '', p.price, p.stock || 0, new Date(p.created_at).toLocaleDateString('es-MX')]);
     downloadCSV('inventario_naturaflow.csv', ['ID', 'Nombre', 'Categoría', 'Precio', 'Stock', 'Registro'], rows);
   });
 
