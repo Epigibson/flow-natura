@@ -46,95 +46,44 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // SCENARIO 1: User provided a photo. Use Imagen 4 to turn it into a studio shot.
-    if (imageBase64) {
-      // 1. Clean base64 prefix
-      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      
-      // 2. Call Imagen 4
-      const response = await ai.models.generateImages({
-        model: 'imagen-4.0-fast-generate-001',
-        prompt: `Professional cinematic studio photography of this exact cosmetic product, centered on a pristine white background. High quality studio lighting, hyper-realistic, keep the product's original text and packaging exactly as it is, just remove the background and make it look like an official catalog photo.`,
-        config: {
-          numberOfImages: 1,
-          outputMimeType: 'image/jpeg',
-          sourceImage: {
-            imageBytes: cleanBase64,
-            mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
-          },
-          editConfig: {
-            editMode: 'BKG_REPLACEMENT'
-          }
-        }
-      });
+    // The user wants a clean studio background, but Generative Image models (like Imagen) 
+    // hallucinate product shapes without an explicit layer mask API (like remove.bg).
+    // The most accurate solution is to use Gemini 2.5 Flash's multimodal vision to identify 
+    // the EXACT code/name from the user's messy photo, and retrieve the OFFICIAL Natura CDN
+    // URL, which already has a perfect white studio background.
 
-      if (!response.generatedImages || response.generatedImages.length === 0) {
-        throw new Error("La IA no pudo generar una imagen editada.");
-      }
-
-      const generatedBase64 = response.generatedImages[0].image.imageBytes;
-      
-      // 3. Upload to Supabase explicitly since the client needs a URL
-      if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-        throw new Error('Configuración de Supabase incompleta para guardar la imagen.');
-      }
-
-      const binaryStr = atob(generatedBase64);
-      const bytes = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) {
-        bytes[i] = binaryStr.charCodeAt(i);
-      }
-
-      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-      const fileName = `generated_studio_${Date.now()}.jpg`;
-      const filePath = `user-uploads/${fileName}`;
-
-      const { error } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, bytes, { contentType: 'image/jpeg', upsert: true });
-
-      if (error) throw new Error('Error subiendo la imagen generada: ' + error.message);
-
-      const { data: urlData } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
-      return new Response(JSON.stringify({
-        identified_name: productName || "Producto Editado con IA",
-        identified_code: productCode || null,
-        suggested_image_url: urlData.publicUrl,
-        confidence: "high",
-        notes: "Imagen editada y mejorada a calidad de estudio usando Imagen 4."
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    // SCENARIO 2: No photo provided, only text. 
-    // Fallback to Gemini 2.5 Flash to search Natura's CDN for the official URL.
     const context = [
-      productName ? `Nombre del producto: "${productName}"` : '',
-      productCode ? `Código: ${productCode}` : '',
+      productName ? `Nombre del producto pre-llenado: "${productName}"` : '',
+      productCode ? `Código pre-llenado: ${productCode}` : '',
     ].filter(Boolean).join('. ');
 
-    const parts = [{
+    const parts: any[] = [{
       text: `Eres un experto en productos de belleza de Natura y Avon.
 Contexto: ${context}
 
 Tu tarea:
-1. Identifica el producto exacto.
+1. Identifica el producto EXACTO de Natura (nombre completo, repasa código si es posible). Presta especial atención al texto o caja en la imagen si se envía una.
 2. Busca la URL de la imagen oficial de estudio de este producto en el CDN de Natura: https://gspstatic.natura.com/static/MX/producto/500x500/
-   El formato típico es: .../500x500/XXXXX.jpg donde XXXXX es el ID del producto Natura.
-3. Si no puedes encontrar la URL exacta, sugiere una búsqueda o devuelve null.
+   El formato típico es: .../500x500/XXXXX.jpg donde XXXXX es el código ID de 5 dígitos del producto Natura.
+3. Si no puedes encontrar la URL exacta, devuelve null en ese campo.
 
 Responde EXCLUSIVAMENTE en JSON con esta estructura:
 {
-  "identified_name": "nombre completo del producto",
-  "identified_code": "código si lo detectas",
-  "suggested_image_url": "URL de la imagen de estudio o null",
+  "identified_name": "nombre completo real del producto",
+  "identified_code": "código de 5 dígitos si lo identificas",
+  "suggested_image_url": "URL de la imagen de estudio del CDN o null",
   "confidence": "high" | "medium" | "low",
-  "notes": "observaciones breves"
+  "notes": "ej. Este es el jabón exfoliante oficial."
 }
 NO incluyas markdown, SOLO el JSON crudo.`
     }];
+
+    if (imageBase64) {
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      parts.push({
+        inlineData: { data: cleanBase64, mimeType }
+      });
+    }
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
