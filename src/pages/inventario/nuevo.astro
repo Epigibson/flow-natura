@@ -1245,29 +1245,10 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     }
   }
 
-  const newAiStatus = document.getElementById('new-ai-status') as HTMLDivElement;
-  const newAiResult = document.getElementById('new-ai-result') as HTMLDivElement;
-  let newAiFoundUrl = '';
-
-  async function loadImgly(): Promise<any> {
-    if ((window as any).imglyRemoveBackground) return (window as any).imglyRemoveBackground;
-    return new Promise((resolve) => {
-      const script = document.createElement('script');
-      script.src = "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.umd.js";
-      script.onload = () => resolve((window as any).imglyRemoveBackground);
-      document.head.appendChild(script);
-    });
-  }
-
-  document.getElementById('new-img-ai')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const name = nameInput.value;
-    const code = codeInput.value;
-    const currentImg = (document.getElementById('new-img-preview-src') as HTMLImageElement).src;
-
-    if (!name && !code && !currentImg) {
-      return alert('Necesitas ingresar un nombre, código o tener una foto actual para procesar la imagen de estudio.');
-    }
+  async function processStudioImage(name: string, code: string, currentImg: string) {
+    const newAiStatus = document.getElementById('new-ai-status')!;
+    const newAiResult = document.getElementById('new-ai-result')!;
+    const newAiError = document.getElementById('new-error') || document.getElementById('new-ai-error') || newAiStatus; // fallback
 
     newAiStatus.classList.remove('hidden');
     newAiResult.classList.add('hidden');
@@ -1281,92 +1262,50 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         originalBase64 = currentImg;
       }
 
-      // Parallel 1: Gemini text search
-      const fetchGemini = fetch('/api/enhance-product-image', {
+      const res = await fetch('/api/enhance-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productName: name, productCode: code, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
-      }).then(r => r.json()).catch(() => ({}));
-
-      // Parallel 2: imgly Remove BG
-      let processedBlob: Blob | null = null;
-      if (currentImg) {
-        try {
-          document.getElementById('new-ai-text')!.textContent = "Recortando el producto inteligentemente...";
-          const removeBg = await loadImgly();
-          const config = {
-            publicPath: "https://static.remove.bg/remove-bg-web/",
-            progress: (key: string, current: number, total: number) => {
-              if (key === 'compute:inference') {
-                document.getElementById('new-ai-text')!.textContent = `Aplicando recorte ${Math.round((current/total)*100)}%...`;
-              }
-            }
-          };
-          processedBlob = await removeBg(currentImg, config);
-        } catch (e) {
-          console.warn("Background removal failed", e);
-        }
-      }
-
-      document.getElementById('new-ai-text')!.textContent = "Guardando en estudio...";
-      const data = await fetchGemini;
-
-      // Draw canvas
-      if (processedBlob) {
-        const imgUrlForCanvas = URL.createObjectURL(processedBlob);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d')!;
-        const img = new Image();
-        await new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = imgUrlForCanvas;
-        });
-
-        const size = Math.max(img.width, img.height) * 1.1; 
-        canvas.width = size;
-        canvas.height = size;
-        
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, size, size);
-        
-        const dx = (size - img.width) / 2;
-        const dy = (size - img.height) / 2;
-        ctx.drawImage(img, dx, dy);
-
-        const finalDataUrl = canvas.toDataURL('image/jpeg', 0.95);
-        
-        const uploadRes = await fetch('/api/upload-product-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: finalDataUrl, fileName: `studio_${Date.now()}.jpg`, mimeType: 'image/jpeg' }),
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) {
-           finalImgUrl = uploadData.url;
-           aiNotes = "Fondo eliminado con IA (Studio White).";
-        }
-      } else if (data.suggested_image_url) {
-        finalImgUrl = data.suggested_image_url;
-        aiNotes = "Imagen de catálogo oficial encontrada.";
-      }
+      });
+      const data = await res.json();
 
       newAiStatus.classList.add('hidden');
 
-      if (finalImgUrl) {
-        newAiFoundUrl = finalImgUrl;
+      if (data.error) throw new Error(data.error);
+
+      if (data.suggested_image_url) {
+        finalImgUrl = data.suggested_image_url;
+        aiNotes = data.notes || "Fondo eliminado con IA.";
+        
+        // This is a global var in the scope of this file
+        (window as any).newAiFoundUrl = finalImgUrl;
         (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
-        document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto Editado";
-        document.getElementById('new-ai-conf')!.textContent = aiNotes;
+        document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto AI";
+        
+        const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
+        document.getElementById('new-ai-conf')!.textContent = confText + ` • ${aiNotes}`;
+        
         newAiResult.classList.remove('hidden');
       } else {
         alert("La IA no pudo procesar la imagen ni encontrar el oficial.");
       }
-
-    } catch (err) {
+    } catch (err: any) {
       newAiStatus.classList.add('hidden');
-      alert('Error conectando con IA Studio.');
+      alert('Error conectando con IA Studio: ' + err.message);
     }
+  }
+
+  document.getElementById('new-img-ai')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const name = nameInput.value;
+    const code = codeInput.value;
+    const currentImg = (document.getElementById('new-img-preview-src') as HTMLImageElement).src;
+
+    if (!name && !code && !currentImg) {
+      return alert('Necesitas ingresar un nombre, código o tener una foto actual para procesar la imagen de estudio.');
+    }
+
+    await processStudioImage(name, code, currentImg);
   });
 
   document.getElementById('new-ai-apply')?.addEventListener('click', (e) => {
