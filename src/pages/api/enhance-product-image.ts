@@ -66,7 +66,7 @@ NO incluyas markdown, SOLO el JSON crudo.`
     });
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       contents: [{ role: 'user', parts }],
       config: { temperature: 0.1 },
     });
