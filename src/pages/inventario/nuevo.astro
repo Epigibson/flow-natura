@@ -1279,7 +1279,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         
         // This is a global var in the scope of this file
         (window as any).newAiFoundUrl = finalImgUrl;
-        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
+        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl || '';
         document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto AI";
         
         const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
@@ -1311,8 +1311,10 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 
   document.getElementById('new-ai-apply')?.addEventListener('click', (e) => {
     e.preventDefault();
-    if (newAiFoundUrl) setNewImage(newAiFoundUrl);
-    newAiResult.classList.add('hidden');
+    const foundUrl = (window as any).newAiFoundUrl;
+    if (foundUrl) setNewImage(foundUrl);
+    const newAiResultEl = document.getElementById('new-ai-result');
+    if (newAiResultEl) newAiResultEl.classList.add('hidden');
   });
 
   // ═══════════ LIVE PREVIEW ═══════════

@@ -671,7 +671,12 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // ===== EVENT LISTENERS =====
-  searchInput?.addEventListener('input', () => applyFilters());
+  // Performance optimization: Debounce search input to prevent excessive filtering and DOM updates on every keystroke
+  let searchTimer: any;
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => applyFilters(), 150);
+  });
   filterBrand?.addEventListener('change', () => applyFilters());
   filterCategory?.addEventListener('change', () => applyFilters());
 
@@ -984,7 +989,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           aiNotes = data.notes || "Fondo eliminado con IA.";
           
           (window as any).editAiFoundUrl = finalImgUrl;
-          (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl;
+          (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl || '';
           document.getElementById('edit-ai-name')!.textContent = data.identified_name || name || "Producto AI";
           
           const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
