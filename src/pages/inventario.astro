@@ -250,11 +250,67 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
             </div>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">URL de imagen</label>
-            <input id="edit-image" type="url" placeholder="https://..." class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            <div id="edit-img-preview" class="mt-2 h-24 bg-white rounded-xl hidden items-center justify-center overflow-hidden border border-outline-variant/10">
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Imagen del producto</label>
+            <!-- Current image preview -->
+            <div id="edit-img-preview" class="relative mb-3 h-32 bg-white rounded-xl hidden items-center justify-center overflow-hidden border border-outline-variant/10 group">
               <img id="edit-img-preview-src" src="" class="max-h-full max-w-full object-contain" />
+              <button id="edit-img-delete" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600" title="Eliminar imagen">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
             </div>
+            <!-- Image actions -->
+            <div class="grid grid-cols-3 gap-2 mb-2">
+              <label class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors cursor-pointer text-center">
+                <span class="material-symbols-outlined text-lg text-primary">upload_file</span>
+                <span class="text-[9px] font-bold text-on-surface-variant">Subir foto</span>
+                <input id="edit-img-file" type="file" accept="image/*" class="hidden" />
+              </label>
+              <button id="edit-img-camera" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors text-center">
+                <span class="material-symbols-outlined text-lg text-primary">photo_camera</span>
+                <span class="text-[9px] font-bold text-on-surface-variant">Camara</span>
+              </button>
+              <button id="edit-img-ai" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200/30 hover:from-purple-100 hover:to-indigo-100 transition-colors text-center">
+                <span class="material-symbols-outlined text-lg text-purple-600">auto_awesome</span>
+                <span class="text-[9px] font-bold text-purple-700">IA Studio</span>
+              </button>
+            </div>
+            <!-- AI status -->
+            <div id="edit-ai-status" class="hidden mb-2 p-3 rounded-xl bg-purple-50 border border-purple-200/30">
+              <div class="flex items-center gap-2 text-sm text-purple-700">
+                <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                <span id="edit-ai-text" class="font-bold text-xs">Buscando imagen de estudio con IA...</span>
+              </div>
+            </div>
+            <!-- AI result -->
+            <div id="edit-ai-result" class="hidden mb-2 p-3 rounded-xl bg-green-50 border border-green-200/30">
+              <p class="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">check_circle</span> Imagen encontrada
+              </p>
+              <div class="flex gap-3 items-center">
+                <img id="edit-ai-img" src="" class="w-16 h-16 object-contain bg-white rounded-lg border" />
+                <div class="flex-1">
+                  <p id="edit-ai-name" class="text-[10px] text-on-surface font-bold truncate"></p>
+                  <p id="edit-ai-conf" class="text-[9px] text-on-surface-variant"></p>
+                  <button id="edit-ai-apply" class="mt-1 text-[10px] font-bold text-white bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition-colors">
+                    Usar esta imagen
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Camera capture area -->
+            <div id="edit-camera-area" class="hidden mb-2 rounded-xl overflow-hidden border border-outline-variant/10 bg-black">
+              <video id="edit-camera-video" autoplay playsinline class="w-full h-40 object-cover"></video>
+              <div class="flex gap-2 p-2 bg-surface-container-highest justify-center">
+                <button id="edit-camera-snap" class="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-bold">Capturar</button>
+                <button id="edit-camera-close" class="px-4 py-1.5 rounded-full bg-surface-container-lowest text-on-surface-variant text-xs font-bold">Cancelar</button>
+              </div>
+              <canvas id="edit-camera-canvas" class="hidden"></canvas>
+            </div>
+            <!-- URL fallback -->
+            <details class="text-xs">
+              <summary class="text-on-surface-variant cursor-pointer hover:text-primary transition-colors font-medium">Ingresar URL manualmente</summary>
+              <input id="edit-image" type="url" placeholder="https://..." class="w-full bg-surface-container-highest rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-2" />
+            </details>
           </div>
           <div>
             <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Descripcion</label>
@@ -785,19 +841,179 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     document.getElementById('detail-edit')!.classList.remove('hidden');
   });
 
-  // Image URL preview on input change
-  document.getElementById('edit-image')?.addEventListener('input', () => {
-    const url = (document.getElementById('edit-image') as HTMLInputElement).value;
-    const previewContainer = document.getElementById('edit-img-preview')!;
-    const previewImg = document.getElementById('edit-img-preview-src') as HTMLImageElement;
+  // ===== IMAGE EDITING LOGIC =====
+  const editImgPreview = document.getElementById('edit-img-preview')!;
+  const editImgSrc = document.getElementById('edit-img-preview-src') as HTMLImageElement;
+  const editUrlInput = document.getElementById('edit-image') as HTMLInputElement;
+  const editImgDelete = document.getElementById('edit-img-delete')!;
+
+  function setEditImage(url: string) {
+    editUrlInput.value = url;
     if (url) {
-      previewImg.src = url;
-      previewContainer.classList.remove('hidden');
-      previewContainer.style.display = 'flex';
+      editImgSrc.src = url;
+      editImgPreview.classList.remove('hidden');
+      editImgPreview.style.display = 'flex';
+      editUrlInput.closest('details')?.removeAttribute('open');
     } else {
-      previewContainer.classList.add('hidden');
-      previewContainer.style.display = 'none';
+      editImgSrc.src = '';
+      editImgPreview.classList.add('hidden');
+      editImgPreview.style.display = 'none';
+      editUrlInput.closest('details')?.setAttribute('open', 'true');
     }
+  }
+
+  // URL input change
+  editUrlInput.addEventListener('input', () => setEditImage(editUrlInput.value));
+
+  // Delete image
+  editImgDelete.addEventListener('click', (e) => {
+    e.preventDefault();
+    setEditImage('');
+  });
+
+  // File Upload
+  document.getElementById('edit-img-file')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) return alert('La imagen es muy grande (máximo 5MB).');
+
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target?.result as string;
+      await uploadBase64(base64, file.name, file.type);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Camera Capture
+  const camArea = document.getElementById('edit-camera-area')!;
+  const camVideo = document.getElementById('edit-camera-video') as HTMLVideoElement;
+  let currentStream: MediaStream | null = null;
+
+  document.getElementById('edit-img-camera')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      camVideo.srcObject = currentStream;
+      camArea.classList.remove('hidden');
+    } catch (err) {
+      alert('No se pudo acceder a la cámara. Revisa los permisos.');
+    }
+  });
+
+  document.getElementById('edit-camera-close')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    currentStream?.getTracks().forEach(t => t.stop());
+    camArea.classList.add('hidden');
+  });
+
+  document.getElementById('edit-camera-snap')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (!currentStream) return;
+    
+    const canvas = document.getElementById('edit-camera-canvas') as HTMLCanvasElement;
+    canvas.width = camVideo.videoWidth;
+    canvas.height = camVideo.videoHeight;
+    canvas.getContext('2d')?.drawImage(camVideo, 0, 0);
+    
+    const base64 = canvas.toDataURL('image/jpeg', 0.8);
+    currentStream.getTracks().forEach(t => t.stop());
+    camArea.classList.add('hidden');
+    
+    await uploadBase64(base64, `cam_${Date.now()}.jpg`, 'image/jpeg');
+  });
+
+  // Upload helper
+  async function uploadBase64(base64: string, fileName: string, mimeType: string) {
+    const btn = document.getElementById('edit-save') as HTMLButtonElement;
+    const oldText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Subiendo...';
+
+    try {
+      const res = await fetch('/api/upload-product-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
+      });
+      const data = await res.json();
+      if (data.url) setEditImage(data.url);
+      else alert(data.error || 'Error subiendo imagen');
+    } catch (err) {
+      alert('Error de conexión al subir imagen');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldText;
+      (document.getElementById('edit-img-file') as HTMLInputElement).value = '';
+    }
+  }
+
+  // AI Studio Request
+  const aiStatus = document.getElementById('edit-ai-status')!;
+  const aiResult = document.getElementById('edit-ai-result')!;
+  let aiFoundUrl = '';
+
+  document.getElementById('edit-img-ai')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const name = (document.getElementById('edit-name') as HTMLInputElement).value;
+    const code = (document.getElementById('edit-code') as HTMLInputElement).value;
+    const currentImg = editUrlInput.value;
+
+    if (!name && !currentImg) {
+      return alert('Necesitas un nombre o una imagen actual para buscar con IA.');
+    }
+
+    aiStatus.classList.remove('hidden');
+    aiResult.classList.add('hidden');
+
+    try {
+      // If we have an existing local/cdn image we could encode it, but to save bandwidth
+      // let's just use the name and code and existing image URL (if it's not a local blob)
+      let base64 = null;
+      if (currentImg && currentImg.startsWith('data:image')) {
+        base64 = currentImg;
+      } else if (currentImg) {
+         // Optionally fetch and convert external image to base64 here if needed.
+         // For simplicity and speed, we will rely on name + code if it's already an external HTTP URL.
+      }
+
+      const res = await fetch('/api/enhance-product-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName: name, productCode: code, imageBase64: base64 }),
+      });
+      
+      const data = await res.json();
+      aiStatus.classList.add('hidden');
+
+      if (data.error) {
+        alert('Error de IA: ' + data.error);
+        return;
+      }
+
+      if (data.suggested_image_url) {
+        aiFoundUrl = data.suggested_image_url;
+        (document.getElementById('edit-ai-img') as HTMLImageElement).src = aiFoundUrl;
+        document.getElementById('edit-ai-name')!.textContent = data.identified_name || name;
+        
+        const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
+        document.getElementById('edit-ai-conf')!.textContent = confText + (data.notes ? ` • ${data.notes}` : '');
+        
+        aiResult.classList.remove('hidden');
+      } else {
+        alert('La IA no pudo encontrar una imagen oficial en el catálogo para este producto.\n\nNota: ' + (data.notes || ''));
+      }
+    } catch (err) {
+      aiStatus.classList.add('hidden');
+      alert('Error conectando con IA Studio.');
+    }
+  });
+
+  document.getElementById('edit-ai-apply')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (aiFoundUrl) setEditImage(aiFoundUrl);
+    aiResult.classList.add('hidden');
   });
 
   document.getElementById('edit-cancel')!.addEventListener('click', () => {
