@@ -135,7 +135,88 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         </button>
       </div>
 
+  <!-- Product Detail Modal -->
+  <div id="detail-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4" style="display:none;">
+    <div class="bg-surface-container-lowest rounded-[2rem] max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-surface-container/30 animate-[slideUp_0.3s_ease-out]">
+      <!-- Modal Header -->
+      <div class="relative">
+        <div id="detail-img-container" class="w-full h-56 bg-white flex items-center justify-center overflow-hidden">
+          <img id="detail-img" src="" alt="" class="max-h-full max-w-full object-contain" />
+          <div id="detail-img-placeholder" class="hidden flex-col items-center justify-center text-on-surface-variant/30">
+            <span class="material-symbols-outlined text-6xl">spa</span>
+          </div>
+        </div>
+        <button id="detail-close" class="absolute top-3 right-3 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm text-white flex items-center justify-center hover:bg-black/50 transition-all">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div id="detail-badge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"></div>
+      </div>
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto flex-1">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <h3 id="detail-name" class="text-xl font-display font-bold text-on-surface leading-tight"></h3>
+        </div>
+        <p id="detail-code" class="text-xs font-mono text-on-surface-variant mb-1"></p>
+        <p id="detail-category" class="text-xs text-on-surface-variant mb-4"></p>
+
+        <!-- Price Grid -->
+        <div class="grid grid-cols-3 gap-3 mb-5">
+          <div class="bg-surface-container-highest/50 rounded-xl p-3 text-center">
+            <p class="text-[9px] uppercase font-bold tracking-wider text-on-surface-variant mb-1">Costo</p>
+            <p id="detail-cost" class="text-lg font-bold text-on-surface"></p>
+          </div>
+          <div class="bg-primary/5 rounded-xl p-3 text-center border border-primary/10">
+            <p class="text-[9px] uppercase font-bold tracking-wider text-primary mb-1">Precio</p>
+            <p id="detail-price" class="text-lg font-bold text-primary"></p>
+          </div>
+          <div class="rounded-xl p-3 text-center" id="detail-margin-card">
+            <p class="text-[9px] uppercase font-bold tracking-wider mb-1">Margen</p>
+            <p id="detail-margin" class="text-lg font-bold"></p>
+          </div>
+        </div>
+
+        <!-- Ganancia -->
+        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/10 dark:to-emerald-900/10 rounded-xl p-4 mb-5 border border-green-200/30">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-green-600">trending_up</span>
+              <span class="text-xs font-bold text-green-700">Ganancia por unidad</span>
+            </div>
+            <span id="detail-profit" class="text-lg font-bold text-green-700"></span>
+          </div>
+        </div>
+
+        <!-- Points -->
+        <div id="detail-points-row" class="flex items-center gap-2 mb-5">
+          <span class="material-symbols-outlined text-amber-500">stars</span>
+          <span id="detail-points" class="text-sm font-bold text-amber-600"></span>
+        </div>
+
+        <!-- Stock Control -->
+        <div class="bg-surface-container-highest/40 rounded-xl p-4">
+          <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Stock actual</p>
+          <div class="flex items-center justify-center gap-4">
+            <button id="detail-minus" class="w-12 h-12 rounded-xl bg-surface-container-lowest border border-outline-variant/10 flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error hover:border-error/20 transition-all shadow-sm">
+              <span class="material-symbols-outlined">remove</span>
+            </button>
+            <span id="detail-qty" class="text-4xl font-display font-bold text-on-surface min-w-[3rem] text-center"></span>
+            <button id="detail-plus" class="w-12 h-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/20 transition-all shadow-sm">
+              <span class="material-symbols-outlined">add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </DashboardLayout>
+
+<style>
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+</style>
 
 <script>
   import { supabase } from '../lib/supabase';
@@ -294,7 +375,8 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
     items.forEach(p => {
       const card = document.createElement('div');
-      card.className = "inv-card bg-surface-container-lowest rounded-2xl shadow-[0_8px_20px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/8 hover:shadow-lg hover:border-primary/15 transition-all group overflow-hidden flex flex-col";
+      card.className = "inv-card bg-surface-container-lowest rounded-2xl shadow-[0_8px_20px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/8 hover:shadow-lg hover:border-primary/15 transition-all group overflow-hidden flex flex-col cursor-pointer";
+      card.dataset.productId = p.id;
 
       const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
@@ -351,6 +433,16 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     });
 
     bindStockButtons(container);
+
+    // Click to open detail
+    container.querySelectorAll('.inv-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Don't open if clicking stock buttons
+        if ((e.target as HTMLElement).closest('.btn-minus-stock, .btn-plus-stock')) return;
+        const id = (card as HTMLElement).dataset.productId;
+        if (id) openDetail(id);
+      });
+    });
   }
 
   // ===== LIST VIEW =====
@@ -359,7 +451,8 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
     items.forEach(p => {
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-surface-container-low/50 transition-colors';
+      tr.className = 'hover:bg-surface-container-low/50 transition-colors cursor-pointer';
+      tr.dataset.productId = p.id;
 
       const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
@@ -400,6 +493,15 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     });
 
     bindStockButtons(listTbody);
+
+    // Click to open detail
+    listTbody.querySelectorAll('tr').forEach(tr => {
+      tr.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).closest('.btn-minus-stock, .btn-plus-stock')) return;
+        const id = (tr as HTMLElement).dataset.productId;
+        if (id) openDetail(id);
+      });
+    });
   }
 
   // ===== STOCK MANAGEMENT =====
@@ -467,5 +569,106 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     viewListBtn.className = 'px-3 py-2 text-primary bg-primary/10';
     viewGridBtn.className = 'px-3 py-2 text-on-surface-variant hover:text-primary transition-colors';
     renderPage();
+  });
+
+  // ===== PRODUCT DETAIL MODAL =====
+  let currentDetailId = '';
+  const detailModal = document.getElementById('detail-modal')!;
+
+  function openDetail(productId: string) {
+    const p = fullInventory.find(i => i.id === productId);
+    if (!p) return;
+    currentDetailId = productId;
+
+    // Image
+    const img = document.getElementById('detail-img') as HTMLImageElement;
+    const placeholder = document.getElementById('detail-img-placeholder')!;
+    const imgSrc = sanitizeUrl(p.image_url);
+    if (imgSrc) {
+      img.src = imgSrc;
+      img.alt = p.name;
+      img.classList.remove('hidden');
+      placeholder.classList.add('hidden');
+      placeholder.style.display = 'none';
+    } else {
+      img.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+      placeholder.style.display = 'flex';
+    }
+
+    // Badge
+    const badge = document.getElementById('detail-badge')!;
+    const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700' : p.brand === 'Casa & Estilo' ? 'bg-cyan-100 text-cyan-700' : 'bg-primary/10 text-primary backdrop-blur-sm';
+    badge.className = `absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold ${brandColor}`;
+    badge.textContent = p.brand || 'Natura';
+
+    // Text
+    document.getElementById('detail-name')!.textContent = p.name;
+    document.getElementById('detail-code')!.textContent = `Código: ${p.code}`;
+    document.getElementById('detail-category')!.textContent = p.category || '—';
+
+    // Prices
+    document.getElementById('detail-cost')!.textContent = `$${(p.cost || 0).toFixed(0)}`;
+    document.getElementById('detail-price')!.textContent = `$${(p.price || 0).toFixed(0)}`;
+
+    const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100) : 0;
+    const marginEl = document.getElementById('detail-margin')!;
+    marginEl.textContent = `${margin.toFixed(0)}%`;
+    const marginCard = document.getElementById('detail-margin-card')!;
+    if (margin >= 30) {
+      marginCard.className = 'bg-green-50 rounded-xl p-3 text-center border border-green-200/30';
+      marginEl.className = 'text-lg font-bold text-green-600';
+    } else if (margin >= 15) {
+      marginCard.className = 'bg-amber-50 rounded-xl p-3 text-center border border-amber-200/30';
+      marginEl.className = 'text-lg font-bold text-amber-600';
+    } else {
+      marginCard.className = 'bg-red-50 rounded-xl p-3 text-center border border-red-200/30';
+      marginEl.className = 'text-lg font-bold text-red-500';
+    }
+
+    // Profit
+    const profit = (p.price || 0) - (p.cost || 0);
+    document.getElementById('detail-profit')!.textContent = `$${profit.toFixed(0)}`;
+
+    // Points
+    const pointsRow = document.getElementById('detail-points-row')!;
+    if (p.points) {
+      pointsRow.classList.remove('hidden');
+      document.getElementById('detail-points')!.textContent = `${p.points} puntos`;
+    } else {
+      pointsRow.classList.add('hidden');
+    }
+
+    // Stock
+    document.getElementById('detail-qty')!.textContent = String(p.quantity || 0);
+
+    // Show modal
+    detailModal.style.display = 'flex';
+    detailModal.classList.remove('hidden');
+  }
+
+  function closeDetail() {
+    detailModal.style.display = 'none';
+    detailModal.classList.add('hidden');
+    currentDetailId = '';
+  }
+
+  document.getElementById('detail-close')!.addEventListener('click', closeDetail);
+  detailModal.addEventListener('click', (e) => {
+    if (e.target === detailModal) closeDetail();
+  });
+
+  // Stock controls in modal
+  document.getElementById('detail-minus')!.addEventListener('click', () => {
+    if (!currentDetailId) return;
+    updateStock(currentDetailId, -1);
+    const p = fullInventory.find(i => i.id === currentDetailId);
+    if (p) document.getElementById('detail-qty')!.textContent = String(p.quantity);
+  });
+  document.getElementById('detail-plus')!.addEventListener('click', () => {
+    if (!currentDetailId) return;
+    updateStock(currentDetailId, 1);
+    const p = fullInventory.find(i => i.id === currentDetailId);
+    if (p) document.getElementById('detail-qty')!.textContent = String(p.quantity);
   });
 </script>

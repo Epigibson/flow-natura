@@ -501,7 +501,12 @@ import PageLoader from '../../components/PageLoader.astro';
 
     let data: any[] = [];
     let error: any = null;
-    try { data = await api.products.listAll(true); } catch(e: any) { error = e; }
+    try {
+      data = await api.products.listAll(true);
+    } catch(e: any) {
+      // Fallback to regular list if listAll not deployed yet
+      try { data = await api.products.list({ limit: 5000 }); } catch(e2: any) { error = e2; }
+    }
 
     loadingEl.classList.add('hidden');
 
