@@ -1,12 +1,16 @@
 /**
  * POST /api/enhance-product-image
- * Uses Gemini AI to analyze a product photo and find/suggest
- * a studio-quality image URL from Natura's CDN.
+ * Uses Imagen 4 to generate a studio quality image from a user photo,
+ * OR uses Gemini to find the official Natura URL if only text is provided.
  */
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { GoogleGenAI } from '@google/genai';
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -28,31 +32,81 @@ export const POST: APIRoute = async ({ request }) => {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // Build parts for the AI request
-    const parts: any[] = [];
-
+    // SCENARIO 1: User provided a photo. Use Imagen 4 to turn it into a studio shot.
     if (imageBase64) {
+      // 1. Clean base64 prefix
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-      parts.push({
-        inlineData: { data: cleanBase64, mimeType },
+      
+      // 2. Call Imagen 4
+      const response = await ai.models.generateImages({
+        model: 'imagen-4.0-fast-generate-001',
+        prompt: `Professional cinematic studio photography of this exact cosmetic product, centered on a pristine white background. High quality studio lighting, hyper-realistic, keep the product's original text and packaging exactly as it is, just remove the background and make it look like an official catalog photo.`,
+        config: {
+          numberOfImages: 1,
+          outputMimeType: 'image/jpeg',
+          sourceImage: {
+            imageBytes: cleanBase64,
+            mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
+          }
+        }
       });
+
+      if (!response.generatedImages || response.generatedImages.length === 0) {
+        throw new Error("La IA no pudo generar una imagen editada.");
+      }
+
+      const generatedBase64 = response.generatedImages[0].image.imageBytes;
+      
+      // 3. Upload to Supabase explicitly since the client needs a URL
+      if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+        throw new Error('Configuración de Supabase incompleta para guardar la imagen.');
+      }
+
+      const binaryStr = atob(generatedBase64);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+
+      const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+      const fileName = `generated_studio_${Date.now()}.jpg`;
+      const filePath = `user-uploads/${fileName}`;
+
+      const { error } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, bytes, { contentType: 'image/jpeg', upsert: true });
+
+      if (error) throw new Error('Error subiendo la imagen generada: ' + error.message);
+
+      const { data: urlData } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      return new Response(JSON.stringify({
+        identified_name: productName || "Producto Editado con IA",
+        identified_code: productCode || null,
+        suggested_image_url: urlData.publicUrl,
+        confidence: "high",
+        notes: "Imagen editada y mejorada a calidad de estudio usando Imagen 4."
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
 
+    // SCENARIO 2: No photo provided, only text. 
+    // Fallback to Gemini 2.5 Flash to search Natura's CDN for the official URL.
     const context = [
       productName ? `Nombre del producto: "${productName}"` : '',
       productCode ? `Código: ${productCode}` : '',
     ].filter(Boolean).join('. ');
 
-    parts.push({
+    const parts = [{
       text: `Eres un experto en productos de belleza de Natura y Avon.
-${context ? `Contexto: ${context}` : ''}
-${imageBase64 ? 'Te envío una foto del producto.' : ''}
+Contexto: ${context}
 
 Tu tarea:
-1. Identifica el producto exacto (nombre completo, código si es posible).
+1. Identifica el producto exacto.
 2. Busca la URL de la imagen oficial de estudio de este producto en el CDN de Natura: https://gspstatic.natura.com/static/MX/producto/500x500/
-   El formato típico es: https://gspstatic.natura.com/static/MX/producto/500x500/XXXXX.jpg donde XXXXX es el ID del producto.
-3. Si no puedes encontrar la URL exacta, sugiere una búsqueda.
+   El formato típico es: .../500x500/XXXXX.jpg donde XXXXX es el ID del producto Natura.
+3. Si no puedes encontrar la URL exacta, sugiere una búsqueda o devuelve null.
 
 Responde EXCLUSIVAMENTE en JSON con esta estructura:
 {
@@ -63,7 +117,7 @@ Responde EXCLUSIVAMENTE en JSON con esta estructura:
   "notes": "observaciones breves"
 }
 NO incluyas markdown, SOLO el JSON crudo.`
-    });
+    }];
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -73,7 +127,6 @@ NO incluyas markdown, SOLO el JSON crudo.`
 
     const responseText = (response.text || '').trim();
 
-    // Parse JSON from response
     let jsonStr = responseText;
     if (jsonStr.startsWith('```json')) jsonStr = jsonStr.substring(7);
     if (jsonStr.startsWith('```')) jsonStr = jsonStr.substring(3);
