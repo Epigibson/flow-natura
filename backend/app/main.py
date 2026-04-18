@@ -2,8 +2,10 @@
 Flow Natura Backend - FastAPI Application
 Main entry point. Run with: uvicorn app.main:app --reload
 """
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from app.config import get_settings
 from app.routers import dashboard, products, customers, orders, inventory, consultant
 
@@ -16,6 +18,19 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+# ── Global exception handler (shows real errors) ──
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    tb = traceback.format_exc()
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "type": type(exc).__name__,
+            "traceback": tb if settings.DEBUG else None,
+        },
+    )
 
 # ── CORS ──
 origins = [o.strip() for o in settings.CORS_ORIGINS.split(",")]
@@ -49,3 +64,18 @@ async def root():
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/debug/db", tags=["Debug"])
+async def debug_db():
+    """Test database connectivity (remove in production)."""
+    from sqlalchemy import text
+    from app.db.database import async_session
+    try:
+        async with async_session() as session:
+            result = await session.execute(text("SELECT count(*) FROM public.products"))
+            count = result.scalar()
+            return {"db": "connected", "products_count": count}
+    except Exception as e:
+        return {"db": "error", "detail": str(e), "type": type(e).__name__}
+
