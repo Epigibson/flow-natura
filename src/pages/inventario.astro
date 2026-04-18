@@ -950,17 +950,17 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // AI Studio Request
-  async function loadImgly() {
-    if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
+  async function loadImgly(): Promise<any> {
+    if ((window as any).imglyRemoveBackground) return (window as any).imglyRemoveBackground;
     return new Promise((resolve) => {
       const script = document.createElement('script');
       script.src = "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.umd.js";
-      script.onload = () => resolve(window.imglyRemoveBackground);
+      script.onload = () => resolve((window as any).imglyRemoveBackground);
       document.head.appendChild(script);
     });
   }
 
-  async function processStudioImage(name, code, currentImg) {
+  async function processStudioImage(name: string, code: string, currentImg: string) {
     const editAiStatus = document.getElementById('edit-ai-status')!;
     const editAiResult = document.getElementById('edit-ai-result')!;
     const editAiError = document.getElementById('edit-error')!;
@@ -968,8 +968,8 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     editAiResult.classList.add('hidden');
     editAiError.classList.add('hidden');
 
-    let originalBase64 = null;
-    let finalImgUrl = null;
+    let originalBase64: string | null = null;
+    let finalImgUrl: string | null = null;
     let aiNotes = "Edición completada.";
 
     try {
@@ -983,7 +983,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         body: JSON.stringify({ productName: name, productCode: code, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
       }).then(r => r.json()).catch(() => ({}));
 
-      let processedBlob = null;
+      let processedBlob: Blob | null = null;
       if (currentImg) {
         try {
           document.getElementById('edit-ai-text')!.textContent = "Recortando el producto...";

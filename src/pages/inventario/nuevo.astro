@@ -1245,16 +1245,16 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     }
   }
 
-  const newAiStatus = document.getElementById('new-ai-status')!;
-  const newAiResult = document.getElementById('new-ai-result')!;
+  const newAiStatus = document.getElementById('new-ai-status') as HTMLDivElement;
+  const newAiResult = document.getElementById('new-ai-result') as HTMLDivElement;
   let newAiFoundUrl = '';
 
-  async function loadImgly() {
-    if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
+  async function loadImgly(): Promise<any> {
+    if ((window as any).imglyRemoveBackground) return (window as any).imglyRemoveBackground;
     return new Promise((resolve) => {
       const script = document.createElement('script');
       script.src = "https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/dist/imgly-background-removal.umd.js";
-      script.onload = () => resolve(window.imglyRemoveBackground);
+      script.onload = () => resolve((window as any).imglyRemoveBackground);
       document.head.appendChild(script);
     });
   }
@@ -1263,7 +1263,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     e.preventDefault();
     const name = nameInput.value;
     const code = codeInput.value;
-    const currentImg = document.getElementById('new-img-preview-src').src;
+    const currentImg = (document.getElementById('new-img-preview-src') as HTMLImageElement).src;
 
     if (!name && !code && !currentImg) {
       return alert('Necesitas ingresar un nombre, código o tener una foto actual para procesar la imagen de estudio.');
@@ -1272,8 +1272,8 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     newAiStatus.classList.remove('hidden');
     newAiResult.classList.add('hidden');
 
-    let originalBase64 = null;
-    let finalImgUrl = null;
+    let originalBase64: string | null = null;
+    let finalImgUrl: string | null = null;
     let aiNotes = "Edición completada.";
 
     try {
@@ -1289,16 +1289,16 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       }).then(r => r.json()).catch(() => ({}));
 
       // Parallel 2: imgly Remove BG
-      let processedBlob = null;
+      let processedBlob: Blob | null = null;
       if (currentImg) {
         try {
-          document.getElementById('new-ai-text').textContent = "Recortando el producto inteligentemente...";
+          document.getElementById('new-ai-text')!.textContent = "Recortando el producto inteligentemente...";
           const removeBg = await loadImgly();
           const config = {
             publicPath: "https://static.remove.bg/remove-bg-web/",
-            progress: (key, current, total) => {
+            progress: (key: string, current: number, total: number) => {
               if (key === 'compute:inference') {
-                document.getElementById('new-ai-text').textContent = `Aplicando recorte ${Math.round((current/total)*100)}%...`;
+                document.getElementById('new-ai-text')!.textContent = `Aplicando recorte ${Math.round((current/total)*100)}%...`;
               }
             }
           };
@@ -1308,14 +1308,14 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         }
       }
 
-      document.getElementById('new-ai-text').textContent = "Guardando en estudio...";
+      document.getElementById('new-ai-text')!.textContent = "Guardando en estudio...";
       const data = await fetchGemini;
 
       // Draw canvas
       if (processedBlob) {
         const imgUrlForCanvas = URL.createObjectURL(processedBlob);
         const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d')!;
         const img = new Image();
         await new Promise((resolve, reject) => {
           img.onload = resolve;
@@ -1355,9 +1355,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 
       if (finalImgUrl) {
         newAiFoundUrl = finalImgUrl;
-        (document.getElementById('new-ai-img')).src = finalImgUrl;
-        document.getElementById('new-ai-name').textContent = data.identified_name || name || "Producto Editado";
-        document.getElementById('new-ai-conf').textContent = aiNotes;
+        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
+        document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto Editado";
+        document.getElementById('new-ai-conf')!.textContent = aiNotes;
         newAiResult.classList.remove('hidden');
       } else {
         alert("La IA no pudo procesar la imagen ni encontrar el oficial.");
