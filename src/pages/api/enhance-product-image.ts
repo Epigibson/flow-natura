@@ -54,9 +54,10 @@ export const POST: APIRoute = async ({ request }) => {
 
       try {
         const fullPromptDesc = [productName, productDesc].filter(Boolean).join(" ");
+        // Explicit instruction to ONLY remove the background without redrawing/hallucinating the subject
         const response = await ai.models.generateImages({
           model: 'imagen-4.0-fast-generate-001',
-          prompt: fullPromptDesc ? `the ${fullPromptDesc} product` : 'the product',
+          prompt: 'the exact original foreground subject, keeping all its exact original pixels, texts, and original packaging identical',
           config: {
             numberOfImages: 1,
             outputMimeType: 'image/png',
@@ -71,7 +72,8 @@ export const POST: APIRoute = async ({ request }) => {
         });
 
         if (response.generatedImages && response.generatedImages.length > 0) {
-          const generatedBase64 = response.generatedImages[0].image.imageBytes;
+          const generatedBase64 = response.generatedImages[0].image?.imageBytes;
+          if (!generatedBase64) throw new Error("No image data returned from AI");
           
           if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
             throw new Error('Configuración de Supabase incompleta para guardar la imagen.');
