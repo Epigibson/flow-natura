@@ -984,7 +984,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           aiNotes = data.notes || "Fondo eliminado con IA.";
           
           (window as any).editAiFoundUrl = finalImgUrl;
-          (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl;
+          (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl || '';
           document.getElementById('edit-ai-name')!.textContent = data.identified_name || name || "Producto AI";
           
           const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';

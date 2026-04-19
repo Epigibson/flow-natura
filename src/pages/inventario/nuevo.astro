@@ -1245,9 +1245,11 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     }
   }
 
+  const newAiStatus = document.getElementById('new-ai-status') as HTMLDivElement;
+  const newAiResult = document.getElementById('new-ai-result') as HTMLDivElement;
+  let newAiFoundUrl = '';
+
   async function processStudioImage(name: string, code: string, desc: string, currentImg: string) {
-    const newAiStatus = document.getElementById('new-ai-status')!;
-    const newAiResult = document.getElementById('new-ai-result')!;
     const newAiError = document.getElementById('new-error') || document.getElementById('new-ai-error') || newAiStatus; // fallback
 
     newAiStatus.classList.remove('hidden');
@@ -1278,8 +1280,8 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         aiNotes = data.notes || "Fondo eliminado con IA.";
         
         // This is a global var in the scope of this file
-        (window as any).newAiFoundUrl = finalImgUrl;
-        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
+        newAiFoundUrl = finalImgUrl || '';
+        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl || '';
         document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto AI";
         
         const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';

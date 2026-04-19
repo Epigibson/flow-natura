@@ -1,5 +1,6 @@
-02:36:52 [types] Generated 85ms
-02:36:52 [check] Getting diagnostics for Astro files in /home/ricardominor/Documentos/Desarrollos/flow-natura...
+09:26:10 [vite] Re-optimizing dependencies because vite config has changed
+09:26:10 [types] Generated 267ms
+09:26:11 [check] Getting diagnostics for Astro files in /home/ricardominor/Documentos/Desarrollos/flow-natura...
 [96mscraper-service/server.mjs[0m:[93m77[0m:[93m21[0m - [93mwarning[0m[90m ts(6133): [0m'req' is declared but its value is never read.
 
 [7m77[0m app.get('/health', (req, res) => res.json({ status: 'ok', method: 'natura-api-direct' }));
@@ -60,30 +61,11 @@
 [7m2[0m import fs from 'fs';
 [7m [0m [93m~~~~~~~~~~~~~~~~~~~~[0m
 
-[96msrc/pages/inventario.astro[0m:[93m963[0m:[93m49[0m - [91merror[0m[90m ts(7006): [0mParameter 'currentImg' implicitly has an 'any' type.
+[96msrc/pages/inventario.astro[0m:[93m987[0m:[93m11[0m - [91merror[0m[90m ts(2322): [0mType 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
 
-[7m963[0m   async function processStudioImage(name, code, currentImg) {
-[7m   [0m [91m                                                ~~~~~~~~~~[0m
-[96msrc/pages/inventario.astro[0m:[93m963[0m:[93m43[0m - [91merror[0m[90m ts(7006): [0mParameter 'code' implicitly has an 'any' type.
-
-[7m963[0m   async function processStudioImage(name, code, currentImg) {
-[7m   [0m [91m                                          ~~~~[0m
-[96msrc/pages/inventario.astro[0m:[93m963[0m:[93m37[0m - [91merror[0m[90m ts(7006): [0mParameter 'name' implicitly has an 'any' type.
-
-[7m963[0m   async function processStudioImage(name, code, currentImg) {
-[7m   [0m [91m                                    ~~~~[0m
-[96msrc/pages/inventario.astro[0m:[93m958[0m:[93m44[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m958[0m       script.onload = () => resolve(window.imglyRemoveBackground);
-[7m   [0m [91m                                           ~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario.astro[0m:[93m954[0m:[93m53[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m954[0m     if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
-[7m   [0m [91m                                                    ~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario.astro[0m:[93m954[0m:[93m16[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m954[0m     if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
-[7m   [0m [91m               ~~~~~~~~~~~~~~~~~~~~~[0m
+[7m987[0m           (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl;
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 [96msrc/pages/inventario.astro[0m:[93m637[0m:[93m38[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
 
 [7m637[0m       btn.addEventListener('click', (e) => {
@@ -116,7 +98,7 @@
 [7m154[0m   const userId = session.user.id;
 [7m   [0m [93m        ~~~~~~[0m
 
-[96msrc/pages/api/enhance-product-image.ts[0m:[93m79[0m:[93m34[0m - [91merror[0m[90m ts(2769): [0mNo overload matches this call.
+[96msrc/pages/api/enhance-product-image.ts[0m:[93m80[0m:[93m34[0m - [91merror[0m[90m ts(2769): [0mNo overload matches this call.
   Overload 1 of 2, '(data: string): string', gave the following error.
     Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
       Type 'undefined' is not assignable to type 'string'.
@@ -124,11 +106,11 @@
     Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
       Type 'undefined' is not assignable to type 'string'.
 
-[7m79[0m           const binaryStr = atob(generatedBase64);
+[7m80[0m           const binaryStr = atob(generatedBase64);
 [7m  [0m [91m                                 ~~~~~~~~~~~~~~~[0m
-[96msrc/pages/api/enhance-product-image.ts[0m:[93m73[0m:[93m35[0m - [91merror[0m[90m ts(2532): [0mObject is possibly 'undefined'.
+[96msrc/pages/api/enhance-product-image.ts[0m:[93m74[0m:[93m35[0m - [91merror[0m[90m ts(2532): [0mObject is possibly 'undefined'.
 
-[7m73[0m           const generatedBase64 = response.generatedImages[0].image.imageBytes;
+[7m74[0m           const generatedBase64 = response.generatedImages[0].image.imageBytes;
 [7m  [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
 [96msrc/pages/api/stripe/webhook.ts[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'Stripe' is declared but its value is never read.
@@ -167,78 +149,27 @@
 [7m213[0m     const style = ALTA_LEVEL_STYLES[level];
 [7m   [0m [93m          ~~~~~[0m
 
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1360[0m:[93m9[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1315[0m:[93m5[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiResult'.
 
-[7m1360[0m         document.getElementById('new-ai-conf').textContent = aiNotes;
-[7m    [0m [91m        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1359[0m:[93m9[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
+[7m1315[0m     newAiResult.classList.add('hidden');
+[7m    [0m [91m    ~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1314[0m:[93m36[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiFoundUrl'.
 
-[7m1359[0m         document.getElementById('new-ai-name').textContent = data.identified_name || name || "Producto Editado";
-[7m    [0m [91m        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1358[0m:[93m49[0m - [91merror[0m[90m ts(2339): [0mProperty 'src' does not exist on type 'HTMLElement'.
+[7m1314[0m     if (newAiFoundUrl) setNewImage(newAiFoundUrl);
+[7m    [0m [91m                                   ~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1314[0m:[93m9[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiFoundUrl'.
 
-[7m1358[0m         (document.getElementById('new-ai-img')).src = finalImgUrl;
-[7m    [0m [91m                                                ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1358[0m:[93m9[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
+[7m1314[0m     if (newAiFoundUrl) setNewImage(newAiFoundUrl);
+[7m    [0m [91m        ~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1282[0m:[93m9[0m - [91merror[0m[90m ts(2322): [0mType 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
 
-[7m1358[0m         (document.getElementById('new-ai-img')).src = finalImgUrl;
-[7m    [0m [91m        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1335[0m:[93m9[0m - [91merror[0m[90m ts(18047): [0m'ctx' is possibly 'null'.
+[7m1282[0m         (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
+[7m    [0m [91m        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1251[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'newAiError' is declared but its value is never read.
 
-[7m1335[0m         ctx.drawImage(img, dx, dy);
-[7m    [0m [91m        ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1331[0m:[93m9[0m - [91merror[0m[90m ts(18047): [0m'ctx' is possibly 'null'.
-
-[7m1331[0m         ctx.fillRect(0, 0, size, size);
-[7m    [0m [91m        ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1330[0m:[93m9[0m - [91merror[0m[90m ts(18047): [0m'ctx' is possibly 'null'.
-
-[7m1330[0m         ctx.fillStyle = '#FFFFFF';
-[7m    [0m [91m        ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1311[0m:[93m7[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
-
-[7m1311[0m       document.getElementById('new-ai-text').textContent = "Guardando en estudio...";
-[7m    [0m [91m      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1301[0m:[93m17[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
-
-[7m1301[0m                 document.getElementById('new-ai-text').textContent = `Aplicando recorte ${Math.round((current/total)*100)}%...`;
-[7m    [0m [91m                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1299[0m:[93m38[0m - [91merror[0m[90m ts(7006): [0mParameter 'total' implicitly has an 'any' type.
-
-[7m1299[0m             progress: (key, current, total) => {
-[7m    [0m [91m                                     ~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1299[0m:[93m29[0m - [91merror[0m[90m ts(7006): [0mParameter 'current' implicitly has an 'any' type.
-
-[7m1299[0m             progress: (key, current, total) => {
-[7m    [0m [91m                            ~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1299[0m:[93m24[0m - [91merror[0m[90m ts(7006): [0mParameter 'key' implicitly has an 'any' type.
-
-[7m1299[0m             progress: (key, current, total) => {
-[7m    [0m [91m                       ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1295[0m:[93m11[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
-
-[7m1295[0m           document.getElementById('new-ai-text').textContent = "Recortando el producto inteligentemente...";
-[7m    [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1266[0m:[93m71[0m - [91merror[0m[90m ts(2339): [0mProperty 'src' does not exist on type 'HTMLElement'.
-
-[7m1266[0m     const currentImg = document.getElementById('new-img-preview-src').src;
-[7m    [0m [91m                                                                      ~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1266[0m:[93m24[0m - [91merror[0m[90m ts(2531): [0mObject is possibly 'null'.
-
-[7m1266[0m     const currentImg = document.getElementById('new-img-preview-src').src;
-[7m    [0m [91m                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1257[0m:[93m44[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m1257[0m       script.onload = () => resolve(window.imglyRemoveBackground);
-[7m    [0m [91m                                           ~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1253[0m:[93m53[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m1253[0m     if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
-[7m    [0m [91m                                                    ~~~~~~~~~~~~~~~~~~~~~[0m
-[96msrc/pages/inventario/nuevo.astro[0m:[93m1253[0m:[93m16[0m - [91merror[0m[90m ts(2339): [0mProperty 'imglyRemoveBackground' does not exist on type 'Window & typeof globalThis'.
-
-[7m1253[0m     if (window.imglyRemoveBackground) return window.imglyRemoveBackground;
-[7m    [0m [91m               ~~~~~~~~~~~~~~~~~~~~~[0m
+[7m1251[0m     const newAiError = document.getElementById('new-error') || document.getElementById('new-ai-error') || newAiStatus; // fallback
+[7m    [0m [93m          ~~~~~~~~~~[0m
 [96msrc/pages/inventario/nuevo.astro[0m:[93m601[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'scannedEan' is declared but its value is never read.
 
 [7m601[0m   let scannedEan = "";
@@ -293,7 +224,7 @@
 [7m [0m [93m             ~~~~~~~~~~~~~~~[0m
 
 Result (76 files): 
-- 26 errors
+- 7 errors
 - 0 warnings
-- 40 hints
+- 41 hints
 
