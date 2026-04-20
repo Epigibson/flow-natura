@@ -138,7 +138,15 @@ import PageLoader from '../../components/PageLoader.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // ⚡ Bolt Performance Optimization:
+    // Added 150ms debounce to prevent expensive renderTable calls on every keystroke.
+    // Impact: Significantly reduces main-thread blocking and re-renders during fast typing.
+    let searchTimer: ReturnType<typeof setTimeout>;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderTable, 150);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();

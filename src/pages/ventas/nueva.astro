@@ -299,10 +299,17 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
+  // ⚡ Bolt Performance Optimization:
+  // Added 150ms debounce to prevent expensive filtering and DOM re-renders on every keystroke.
+  // Impact: Reduces main-thread blocking when filtering large product lists.
+  let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', (e) => {
-    const qt = (e.target as HTMLInputElement).value.toLowerCase();
-    const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
-    renderProducts(filtered);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      const qt = (e.target as HTMLInputElement).value.toLowerCase();
+      const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
+      renderProducts(filtered);
+    }, 150);
   });
 
   function addToCart(product: any) {

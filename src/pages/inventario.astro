@@ -671,7 +671,14 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   }
 
   // ===== EVENT LISTENERS =====
-  searchInput?.addEventListener('input', () => applyFilters());
+  // ⚡ Bolt Performance Optimization:
+  // Added 150ms debounce to prevent expensive filtering operations and DOM manipulation on every keystroke.
+  // Impact: Improves search responsiveness and avoids main-thread lag for large inventory sets.
+  let searchTimer: ReturnType<typeof setTimeout>;
+  searchInput?.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(applyFilters, 150);
+  });
   filterBrand?.addEventListener('change', () => applyFilters());
   filterCategory?.addEventListener('change', () => applyFilters());
 

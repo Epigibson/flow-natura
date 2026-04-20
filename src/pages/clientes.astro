@@ -164,9 +164,16 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   });
 
   // Search filter (real-time)
+  // ⚡ Bolt Performance Optimization:
+  // Added 150ms debounce to prevent layout thrashing and unnecessary renderCustomers calls on every keystroke.
+  // Impact: Smoother typing experience and fewer DOM updates.
+  let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', () => {
-    currentPage = 1;
-    renderCustomers();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      currentPage = 1;
+      renderCustomers();
+    }, 150);
   });
 
   // Load Customers
