@@ -138,7 +138,13 @@ import PageLoader from '../../components/PageLoader.astro';
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
-    searchInput.oninput = () => renderTable();
+
+    // Performance: Debounce search to prevent main-thread blocking on every keystroke
+    let searchTimer: any;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderTable, 150);
+    });
 
     function renderTable() {
       const term = searchInput.value.toLowerCase();
