@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 from sqlalchemy import (
-    String, Text, Integer, Numeric, Boolean, DateTime, Date,
+    Text, Integer, Numeric, Boolean, DateTime, Date,
     ForeignKey, UniqueConstraint, Enum as PgEnum, JSON, text
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
