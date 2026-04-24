@@ -4,7 +4,6 @@ Validates Supabase JWT tokens (ES256) from the frontend using PyJWT.
 """
 import uuid
 import jwt as pyjwt
-import httpx
 from jwt import PyJWKClient
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
