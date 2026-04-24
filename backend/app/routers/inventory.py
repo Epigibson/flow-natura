@@ -76,6 +76,66 @@ async def list_inventory(
     ]
 
 
+async def _fetch_stock_entities(db: AsyncSession, product_ids: list[uuid.UUID], user_id: uuid.UUID) -> tuple[dict, dict]:
+    """Helper to bulk fetch products and inventory items."""
+    # Bulk fetch products
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products_by_id = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch inventory
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inv_by_product_id = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
+    return products_by_id, inv_by_product_id
+
+
+def _process_stock_item(
+    item: InventoryAddRequest,
+    user_id: uuid.UUID,
+    db: AsyncSession,
+    products_by_id: dict,
+    inv_by_product_id: dict,
+) -> dict:
+    """Process a single stock addition item."""
+    product = products_by_id.get(item.product_id)
+    if not product:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Producto {item.product_id} no encontrado",
+        )
+
+    # Update cost if provided
+    if item.cost is not None and item.cost > 0:
+        product.cost = item.cost
+
+    inv = inv_by_product_id.get(item.product_id)
+    if inv:
+        inv.quantity += item.quantity
+    else:
+        inv = Inventory(
+            consultant_id=user_id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+        )
+        db.add(inv)
+        # Add to dict so subsequent identical product_ids in the same request don't fail
+        inv_by_product_id[item.product_id] = inv
+
+    return {
+        "product_id": str(item.product_id),
+        "product_name": product.name,
+        "quantity_added": item.quantity,
+        "new_total": inv.quantity,
+    }
+
+
 @router.post("/add", status_code=201)
 async def add_stock(
     items: list[InventoryAddRequest],
@@ -86,49 +146,16 @@ async def add_stock(
     Add stock for one or more products.
     If inventory entry doesn't exist, creates one. Otherwise increments quantity.
     """
+    if not items:
+        return {"message": "0 producto(s) actualizados", "items": []}
+
+    product_ids = [item.product_id for item in items]
+    products_by_id, inv_by_product_id = await _fetch_stock_entities(db, product_ids, user_id)
+
     results = []
-
     for item in items:
-        # Verify product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
-        if not product:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Producto {item.product_id} no encontrado",
-            )
-
-        # Update cost if provided
-        if item.cost is not None and item.cost > 0:
-            product.cost = item.cost
-
-        # Check if inventory entry exists
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
-
-        if inv:
-            inv.quantity += item.quantity
-        else:
-            inv = Inventory(
-                consultant_id=user_id,
-                product_id=item.product_id,
-                quantity=item.quantity,
-            )
-            db.add(inv)
-
-        results.append({
-            "product_id": str(item.product_id),
-            "product_name": product.name,
-            "quantity_added": item.quantity,
-            "new_total": inv.quantity,
-        })
+        res = _process_stock_item(item, user_id, db, products_by_id, inv_by_product_id)
+        results.append(res)
 
     await db.commit()
 
