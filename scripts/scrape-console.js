@@ -1,6 +1,6 @@
 // 🌿 NATURA FLOW — Extractor de Tokens v3
 //
-// En el Showcase (F12 → Console → pega TODO → Enter)
+// En el Showcase (F12 → Console → pega todo el código → Enter)
 // Se descarga "natura-tokens.json" con tu Bearer token.
 //
 // Luego: node scripts/scrape-natura.mjs
