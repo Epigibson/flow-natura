@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.db.database import get_db
-from app.db.models import ConsultantProfile, Order, OrderItem, Product, Inventory, Customer
+from app.db.models import ConsultantProfile, Order, OrderItem, Customer
 from app.dependencies import get_current_user
 from app.models.schemas import ConsultantProfileResponse
 from app.services.pricing import CAMINO_CRECIMIENTO, get_level_by_sales, get_all_level_prices
