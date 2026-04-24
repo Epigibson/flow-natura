@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase } from './supabase.ts';
 
 export interface Subscription {
   id: string;
