@@ -448,6 +448,30 @@ async def import_products(
     imported = 0
     errors = 0
 
+    # 1. Extract all product codes
+    codes = [str(p.get("code", "")) for p in products_data if p.get("code")]
+
+    # 2. Bulk fetch existing products
+    existing_products_dict = {}
+    if codes:
+        products_stmt = select(Product).where(Product.code.in_(codes))
+        products_result = await db.execute(products_stmt)
+        for prod in products_result.scalars().all():
+            existing_products_dict[prod.code] = prod
+
+    # 3. Bulk fetch existing inventories for existing products
+    existing_inventories = set()
+    existing_product_ids = [p.id for p in existing_products_dict.values()]
+    if existing_product_ids:
+        inv_stmt = select(Inventory.product_id).where(
+            and_(
+                Inventory.consultant_id == user_id,
+                Inventory.product_id.in_(existing_product_ids)
+            )
+        )
+        inv_result = await db.execute(inv_stmt)
+        existing_inventories = {row[0] for row in inv_result.all()}
+
     for p in products_data:
         try:
             code = str(p.get("code", ""))
@@ -455,10 +479,7 @@ async def import_products(
                 errors += 1
                 continue
 
-            # Check if product exists by code
-            existing_stmt = select(Product).where(Product.code == code)
-            existing_result = await db.execute(existing_stmt)
-            product = existing_result.scalar_one_or_none()
+            product = existing_products_dict.get(code)
 
             if product:
                 # Update existing
@@ -469,6 +490,11 @@ async def import_products(
                 product.cost = p.get("cost", product.cost)
                 product.points = p.get("points", product.points)
                 product.image_url = p.get("image_url", product.image_url)
+
+                # Check inventory
+                if product.id not in existing_inventories:
+                    db.add(Inventory(consultant_id=user_id, product_id=product.id, quantity=0))
+                    existing_inventories.add(product.id)
             else:
                 # Create new
                 product = Product(
@@ -482,15 +508,13 @@ async def import_products(
                     image_url=p.get("image_url"),
                 )
                 db.add(product)
-                await db.flush()
+                await db.flush()  # Need to flush to get the new product ID for the inventory
 
-            # Create inventory entry if not exists
-            inv_stmt = select(Inventory).where(
-                and_(Inventory.product_id == product.id, Inventory.consultant_id == user_id)
-            )
-            inv_result = await db.execute(inv_stmt)
-            if not inv_result.scalar_one_or_none():
+                # Add to existing products so if duplicates are in products_data we don't recreate
+                existing_products_dict[code] = product
+
                 db.add(Inventory(consultant_id=user_id, product_id=product.id, quantity=0))
+                existing_inventories.add(product.id)
 
             imported += 1
         except Exception:
