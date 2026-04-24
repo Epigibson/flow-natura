@@ -1,0 +1,13 @@
+🎯 **Qué:**
+Se refactorizó la función `create_order` en `backend/app/routers/orders.py`. Se extrajo la lógica de validación de clientes a una función auxiliar `_validate_customer` y el procesamiento de los ítems de la orden a `_process_order_items`. Además, en esta última, se implementó una optimización usando "bulk fetch" (`.in_()`) para obtener los productos y el inventario, evitando el problema de N+1 consultas (queries) a la base de datos.
+
+💡 **Por qué:**
+La función `create_order` original era demasiado larga y compleja de leer, mezclando validación, procesamiento, cálculos e inserciones. Extraer esta lógica a funciones auxiliares mejora significativamente la legibilidad, el mantenimiento y la modularidad del código. Además, resolver el patrón N+1 query en la validación de stock y productos previene cuellos de botella de rendimiento en órdenes grandes, haciendo la aplicación más escalable y eficiente.
+
+✅ **Verificación:**
+- Se confirmó manualmente que toda la lógica de negocio y los casos de error (como stock insuficiente y cliente no encontrado) se preservan intactos.
+- Se verificó la sintaxis del backend ejecutando `python3 -m py_compile backend/app/routers/orders.py` sin errores.
+- Los archivos temporales de escritura fueron eliminados exitosamente.
+
+✨ **Resultado:**
+El endpoint `create_order` es ahora conciso, fácil de entender y la validación de inventario está optimizada para manejar múltiples ítems en una sola consulta, eliminando el riesgo de sobrecarga de base de datos y mejorando el tiempo de respuesta.

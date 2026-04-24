@@ -75,52 +75,50 @@ async def get_order(
     return _order_to_response(order)
 
 
-@router.post("", response_model=OrderResponse, status_code=201)
-async def create_order(
-    data: OrderCreate,
-    user_id: uuid.UUID = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Create a new sale.
-    - Validates stock availability
-    - Deducts inventory automatically
-    - Calculates total from items
-    """
-    # Validate customer belongs to consultant
-    cust_stmt = select(Customer).where(
-        and_(Customer.id == data.customer_id, Customer.consultant_id == user_id)
-    )
-    cust_result = await db.execute(cust_stmt)
-    if not cust_result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
-    # Calculate total and validate stock
+
+async def _process_order_items(
+    db: AsyncSession,
+    items: list[OrderItemCreate],
+    user_id: uuid.UUID
+) -> tuple[Decimal, list[OrderItem], list[tuple[Inventory, int]]]:
+    """
+    Validate stock availability, calculate total, and prepare order items.
+    Uses bulk fetching to avoid N+1 queries.
+    """
+    if not items:
+        return Decimal("0"), [], []
+
+    product_ids = [item.product_id for item in items]
+
+    # Bulk fetch products
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products_by_id = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch inventory
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventory_by_product_id = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
     total = Decimal("0")
     order_items = []
     stock_updates = []
 
-    for item in data.items:
-        # Check product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
+    for item in items:
+        product = products_by_id.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
                 detail=f"Producto {item.product_id} no encontrado",
             )
 
-        # Check stock
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
-
+        inv = inventory_by_product_id.get(item.product_id)
         if not inv or inv.quantity < item.quantity:
             available = inv.quantity if inv else 0
             raise HTTPException(
@@ -138,6 +136,34 @@ async def create_order(
             unit_price=item.unit_price,
         ))
         stock_updates.append((inv, item.quantity))
+
+    return total, order_items, stock_updates
+
+
+async def _validate_customer(db: AsyncSession, customer_id: uuid.UUID, user_id: uuid.UUID) -> None:
+    """Validate that a customer exists and belongs to the consultant."""
+    stmt = select(Customer).where(
+        and_(Customer.id == customer_id, Customer.consultant_id == user_id)
+    )
+    result = await db.execute(stmt)
+    if not result.scalar_one_or_none():
+        raise HTTPException(status_code=404, detail="Cliente no encontrado")
+
+
+@router.post("", response_model=OrderResponse, status_code=201)
+async def create_order(
+    data: OrderCreate,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Create a new sale.
+    - Validates stock availability
+    - Deducts inventory automatically
+    - Calculates total from items
+    """
+    await _validate_customer(db, data.customer_id, user_id)
+    total, order_items, stock_updates = await _process_order_items(db, data.items, user_id)
 
     # Create order
     order = Order(
