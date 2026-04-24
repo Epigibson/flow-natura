@@ -2,7 +2,6 @@
 Flow Natura Backend - FastAPI Application
 Main entry point. Run with: uvicorn app.main:app --reload
 """
-import traceback
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
