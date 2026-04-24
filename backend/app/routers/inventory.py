@@ -76,23 +76,33 @@ async def list_inventory(
     ]
 
 
-@router.post("/add", status_code=201)
-async def add_stock(
-    items: list[InventoryAddRequest],
-    user_id: uuid.UUID = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Add stock for one or more products.
-    If inventory entry doesn't exist, creates one. Otherwise increments quantity.
-    """
+async def _process_stock_additions(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    items: list[InventoryAddRequest]
+) -> list[dict]:
+    # Extract all product IDs to perform bulk queries
+    product_ids = [item.product_id for item in items]
+
+    # Bulk fetch products
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch existing inventory entries for the consultant
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventories = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
     results = []
 
     for item in items:
-        # Verify product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
+        product = products.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
@@ -103,16 +113,7 @@ async def add_stock(
         if item.cost is not None and item.cost > 0:
             product.cost = item.cost
 
-        # Check if inventory entry exists
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
-
+        inv = inventories.get(item.product_id)
         if inv:
             inv.quantity += item.quantity
         else:
@@ -122,6 +123,8 @@ async def add_stock(
                 quantity=item.quantity,
             )
             db.add(inv)
+            # Add to local dict so subsequent identical items in the same request update properly
+            inventories[item.product_id] = inv
 
         results.append({
             "product_id": str(item.product_id),
@@ -129,6 +132,23 @@ async def add_stock(
             "quantity_added": item.quantity,
             "new_total": inv.quantity,
         })
+
+    return results
+
+@router.post("/add", status_code=201)
+async def add_stock(
+    items: list[InventoryAddRequest],
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Add stock for one or more products.
+    If inventory entry doesn't exist, creates one. Otherwise increments quantity.
+    """
+    if not items:
+        return {"message": "0 producto(s) actualizados", "items": []}
+
+    results = await _process_stock_additions(db, user_id, items)
 
     await db.commit()
 
