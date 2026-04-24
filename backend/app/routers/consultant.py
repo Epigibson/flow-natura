@@ -35,24 +35,12 @@ async def get_profile(
     return profile
 
 
-@router.get("/growth")
-async def get_growth_data(
-    user_id: uuid.UUID = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Calculate growth path data from actual sales.
-    Shows current level, progress to next level, and sales breakdown.
-    """
-    now = datetime.now(timezone.utc)
-    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-
-    # Get profile
+async def _get_profile(db: AsyncSession, user_id: uuid.UUID) -> ConsultantProfile | None:
     profile_stmt = select(ConsultantProfile).where(ConsultantProfile.id == user_id)
     profile_result = await db.execute(profile_stmt)
-    profile = profile_result.scalar_one_or_none()
+    return profile_result.scalar_one_or_none()
 
-    # Total sales this month
+async def _get_month_sales(db: AsyncSession, user_id: uuid.UUID, start_of_month: datetime) -> float:
     month_stmt = select(
         func.coalesce(func.sum(Order.total_amount), 0)
     ).where(
@@ -63,9 +51,9 @@ async def get_growth_data(
         )
     )
     month_result = await db.execute(month_stmt)
-    month_sales = float(month_result.scalar() or 0)
+    return float(month_result.scalar() or 0)
 
-    # Total accumulated sales (all time)
+async def _get_total_sales(db: AsyncSession, user_id: uuid.UUID) -> float:
     total_stmt = select(
         func.coalesce(func.sum(Order.total_amount), 0)
     ).where(
@@ -75,13 +63,9 @@ async def get_growth_data(
         )
     )
     total_result = await db.execute(total_stmt)
-    total_sales = float(total_result.scalar() or 0)
+    return float(total_result.scalar() or 0)
 
-    # Determine level
-    level_info = get_level_by_sales(total_sales)
-    current_level = level_info.level
-
-    # Progress to next level
+def _calculate_progress(level_info, current_level, total_sales: float) -> tuple[str | None, float | None, float, float]:
     levels = list(CAMINO_CRECIMIENTO.keys())
     current_idx = levels.index(current_level)
     next_level = levels[current_idx + 1] if current_idx < len(levels) - 1 else None
@@ -95,8 +79,9 @@ async def get_growth_data(
         progress = min(100.0, (progress_amount / range_size) * 100) if range_size > 0 else 100.0
         remaining = max(0, next_level_info.min_sales - total_sales)
 
-    # Monthly breakdown (last 6 months)
-    six_months_ago = now - timedelta(days=180)
+    return next_level, (next_level_info.min_sales if next_level_info else None), progress, remaining
+
+async def _get_monthly_breakdown(db: AsyncSession, user_id: uuid.UUID, six_months_ago: datetime) -> list[dict]:
     monthly_stmt = (
         select(
             extract("year", Order.created_at).label("year"),
@@ -116,7 +101,7 @@ async def get_growth_data(
     )
     monthly_result = await db.execute(monthly_stmt)
 
-    monthly_breakdown = [
+    return [
         {
             "year": int(r.year),
             "month": int(r.month),
@@ -125,6 +110,35 @@ async def get_growth_data(
         }
         for r in monthly_result.all()
     ]
+
+
+@router.get("/growth")
+async def get_growth_data(
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Calculate growth path data from actual sales.
+    Shows current level, progress to next level, and sales breakdown.
+    """
+    now = datetime.now(timezone.utc)
+    start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    # Fetch basic data
+    profile = await _get_profile(db, user_id)
+    month_sales = await _get_month_sales(db, user_id, start_of_month)
+    total_sales = await _get_total_sales(db, user_id)
+
+    # Determine level and calculate progress
+    level_info = get_level_by_sales(total_sales)
+    current_level = level_info.level
+    next_level, next_level_min_sales, progress, remaining = _calculate_progress(
+        level_info, current_level, total_sales
+    )
+
+    # Get monthly breakdown
+    six_months_ago = now - timedelta(days=180)
+    monthly_breakdown = await _get_monthly_breakdown(db, user_id, six_months_ago)
 
     return {
         "profile_level": profile.level if profile else "Semilla",
@@ -135,7 +149,7 @@ async def get_growth_data(
         "price_factor": level_info.price_factor,
         "net_profit_msg": level_info.net_profit_msg,
         "next_level": next_level,
-        "next_level_min_sales": next_level_info.min_sales if next_level_info else None,
+        "next_level_min_sales": next_level_min_sales,
         "progress_to_next": round(progress, 1),
         "remaining_to_next": remaining,
         "monthly_breakdown": monthly_breakdown,
