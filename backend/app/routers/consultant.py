@@ -155,39 +155,15 @@ async def get_pricing_by_level(price: float):
     return get_all_level_prices(price)
 
 
-@router.get("/reports/summary")
-async def get_report_summary(
-    period: str = "month",  # month, week, year
-    user_id: uuid.UUID = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """
-    Summary report for a given period.
-    Returns revenue, costs, profit, top products, and customer stats.
-    """
-    now = datetime.now(timezone.utc)
+def _get_period_start(period: str, now: datetime) -> datetime:
     if period == "week":
-        start = now - timedelta(days=7)
+        return now - timedelta(days=7)
     elif period == "year":
-        start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
-    else:  # month
-        start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-    # Orders with items
-    orders_stmt = (
-        select(Order)
-        .options(selectinload(Order.items).selectinload(OrderItem.product))
-        .where(
-            and_(
-                Order.consultant_id == user_id,
-                Order.created_at >= start,
-                Order.status != "cancelled",
-            )
-        )
-    )
-    result = await db.execute(orders_stmt)
-    orders = result.scalars().unique().all()
 
+def _aggregate_order_stats(orders: list[Order]) -> tuple[Decimal, Decimal, int, list[dict]]:
     total_revenue = Decimal("0")
     total_cost = Decimal("0")
     total_units = 0
@@ -209,12 +185,6 @@ async def get_report_summary(
             product_stats[pid]["qty"] += item.quantity
             product_stats[pid]["revenue"] += item.unit_price * item.quantity
 
-    # Customer count
-    cust_stmt = select(func.count(Customer.id)).where(
-        Customer.consultant_id == user_id
-    )
-    cust_result = await db.execute(cust_stmt)
-
     top_products = sorted(
         [
             {"name": d["name"], "units": d["qty"], "revenue": float(d["revenue"])}
@@ -223,6 +193,45 @@ async def get_report_summary(
         key=lambda x: x["revenue"],
         reverse=True,
     )[:10]
+
+    return total_revenue, total_cost, total_units, top_products
+
+
+@router.get("/reports/summary")
+async def get_report_summary(
+    period: str = "month",  # month, week, year
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Summary report for a given period.
+    Returns revenue, costs, profit, top products, and customer stats.
+    """
+    now = datetime.now(timezone.utc)
+    start = _get_period_start(period, now)
+
+    # Orders with items
+    orders_stmt = (
+        select(Order)
+        .options(selectinload(Order.items).selectinload(OrderItem.product))
+        .where(
+            and_(
+                Order.consultant_id == user_id,
+                Order.created_at >= start,
+                Order.status != "cancelled",
+            )
+        )
+    )
+    result = await db.execute(orders_stmt)
+    orders = result.scalars().unique().all()
+
+    total_revenue, total_cost, total_units, top_products = _aggregate_order_stats(orders)
+
+    # Customer count
+    cust_stmt = select(func.count(Customer.id)).where(
+        Customer.consultant_id == user_id
+    )
+    cust_result = await db.execute(cust_stmt)
 
     return {
         "period": period,
