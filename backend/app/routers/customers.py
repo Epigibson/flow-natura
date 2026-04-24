@@ -3,6 +3,7 @@ Flow Natura Backend - Customers Router
 CRUD for customers with analytics.
 """
 import uuid
+import json
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select, func, and_, or_
@@ -67,14 +68,8 @@ async def get_customer(
     return customer
 
 
-@router.get("/{customer_id}/stats")
-async def get_customer_stats(
-    customer_id: uuid.UUID,
-    user_id: uuid.UUID = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """Get purchase statistics for a customer."""
-    # Total orders and revenue
+async def _get_basic_stats(db: AsyncSession, customer_id: uuid.UUID, user_id: uuid.UUID):
+    """Calculate total orders, revenue, and last purchase date."""
     stats_stmt = select(
         func.count(Order.id).label("total_orders"),
         func.coalesce(func.sum(Order.total_amount), 0).label("total_spent"),
@@ -88,8 +83,15 @@ async def get_customer_stats(
     )
     result = await db.execute(stats_stmt)
     row = result.first()
+    return {
+        "total_orders": row.total_orders if row else 0,
+        "total_spent": float(row.total_spent) if row else 0,
+        "last_purchase": row.last_purchase if row else None,
+    }
 
-    # Top products for this customer
+
+async def _get_top_products(db: AsyncSession, customer_id: uuid.UUID, user_id: uuid.UUID):
+    """Fetch the top 5 purchased products for a customer."""
     top_stmt = (
         select(
             Product.name,
@@ -110,13 +112,14 @@ async def get_customer_stats(
         .limit(5)
     )
     top_result = await db.execute(top_stmt)
-    top_products = [
+    return [
         {"name": r.name, "quantity": int(r.qty), "revenue": float(r.revenue)}
         for r in top_result.all()
     ]
 
-    # Pending debt (abonos)
-    import json
+
+async def _calculate_pending_debt(db: AsyncSession, customer_id: uuid.UUID, user_id: uuid.UUID):
+    """Calculate total pending debt from partial payments (abonos)."""
     debt_stmt = (
         select(Order)
         .where(
@@ -143,12 +146,23 @@ async def get_customer_stats(
                 total_debt += max(Decimal("0"), debt)
             except (json.JSONDecodeError, ValueError):
                 pass
+    return float(total_debt)
+
+
+@router.get("/{customer_id}/stats")
+async def get_customer_stats(
+    customer_id: uuid.UUID,
+    user_id: uuid.UUID = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Get purchase statistics for a customer."""
+    basic_stats = await _get_basic_stats(db, customer_id, user_id)
+    top_products = await _get_top_products(db, customer_id, user_id)
+    pending_debt = await _calculate_pending_debt(db, customer_id, user_id)
 
     return {
-        "total_orders": row.total_orders if row else 0,
-        "total_spent": float(row.total_spent) if row else 0,
-        "last_purchase": row.last_purchase if row else None,
-        "pending_debt": float(total_debt),
+        **basic_stats,
+        "pending_debt": pending_debt,
         "top_products": top_products,
     }
 
