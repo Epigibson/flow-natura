@@ -24,11 +24,17 @@ try {
 const CONFIG = {
   SUPABASE_URL: 'https://etodkwdlsrzrufxxbsgh.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0b2Rrd2Rsc3J6cnVmeHhic2doIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNzUzOTcsImV4cCI6MjA4OTk1MTM5N30.SR0da3nt9Va0qhO3usl14hf3LLL_0Jdt5NKtRjhFSQI',
-  DESKTOP_SYNC_KEY: 'fn-desktop-sync-2026',
+  DESKTOP_SYNC_KEY: process.env.DESKTOP_SYNC_KEY,
   SYNC_ENDPOINT: 'https://flow-natura.vercel.app/api/sync-desktop',
   DASHBOARD_URL: 'https://flow-natura.vercel.app/dashboard',
   LOGIN_URL: 'https://minegocio.natura-avon.com.mx/home',
 };
+
+// Validate required environment variables for security
+if (!CONFIG.DESKTOP_SYNC_KEY) {
+  console.error('❌ CONFIG ERROR: DESKTOP_SYNC_KEY environment variable is missing.');
+  process.exit(1);
+}
 
 // ─── Find system Chrome/Edge ───────────────────────────────────
 function findBrowser() {

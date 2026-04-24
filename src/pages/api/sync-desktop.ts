@@ -3,9 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 
 export const prerender = false;
 
-const DESKTOP_SYNC_KEY = import.meta.env.DESKTOP_SYNC_KEY || 'fn-desktop-sync-2026';
+const DESKTOP_SYNC_KEY = import.meta.env.DESKTOP_SYNC_KEY;
 
 export const POST: APIRoute = async ({ request }) => {
+  if (!DESKTOP_SYNC_KEY) {
+    console.error('Server misconfiguration: DESKTOP_SYNC_KEY is missing.');
+    return new Response(JSON.stringify({ success: false, error: 'Configuración del servidor incompleta.' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   try {
     const { desktop_key, natura_email, growth_data } = await request.json();
 
