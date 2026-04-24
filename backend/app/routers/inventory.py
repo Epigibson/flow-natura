@@ -179,6 +179,77 @@ async def adjust_stock(
     }
 
 
+def _calculate_inventory_metrics(rows: list) -> dict:
+    """Calculate core inventory metrics and category breakdown."""
+    total_units = 0
+    total_cost = Decimal("0")
+    total_retail = Decimal("0")
+    out_of_stock = 0
+    low_stock = 0
+    categories: dict[str, dict] = {}
+
+    for row in rows:
+        inv = row.Inventory
+        prod = row.Product
+        qty = inv.quantity
+
+        total_units += qty
+        total_cost += prod.cost * qty
+        total_retail += prod.price * qty
+
+        if qty <= 0:
+            out_of_stock += 1
+        elif qty <= 3:
+            low_stock += 1
+
+        cat = prod.category or "Sin Categoría"
+        if cat not in categories:
+            categories[cat] = {"products": 0, "units": 0, "value": Decimal("0")}
+        categories[cat]["products"] += 1
+        categories[cat]["units"] += qty
+        categories[cat]["value"] += prod.price * qty
+
+    return {
+        "total_units": total_units,
+        "total_cost": total_cost,
+        "total_retail": total_retail,
+        "out_of_stock": out_of_stock,
+        "low_stock": low_stock,
+        "categories": categories,
+    }
+
+
+async def _get_slow_movers(db: AsyncSession, user_id: uuid.UUID, rows: list) -> list[dict]:
+    """Identify products with stock but no sales in the last 30 days."""
+    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+    sold_stmt = (
+        select(OrderItem.product_id)
+        .join(Order, Order.id == OrderItem.order_id)
+        .where(
+            and_(
+                Order.consultant_id == user_id,
+                Order.created_at >= thirty_days_ago,
+                Order.status != "cancelled",
+            )
+        )
+        .distinct()
+    )
+    sold_result = await db.execute(sold_stmt)
+    sold_ids = {r[0] for r in sold_result.all()}
+
+    slow_movers = [
+        {
+            "product_name": row.Product.name,
+            "stock": row.Inventory.quantity,
+            "cost_value": float(row.Product.cost * row.Inventory.quantity),
+        }
+        for row in rows
+        if row.Inventory.quantity > 0 and row.Product.id not in sold_ids
+    ][:10]
+
+    return slow_movers
+
+
 @router.get("/performance")
 async def inventory_performance(
     user_id: uuid.UUID = Depends(get_current_user),
@@ -218,72 +289,20 @@ async def inventory_performance(
             "slow_movers": [],
         }
 
-    total_units = 0
-    total_cost = Decimal("0")
-    total_retail = Decimal("0")
-    out_of_stock = 0
-    low_stock = 0
-    categories: dict[str, dict] = {}
-
-    for row in rows:
-        inv = row.Inventory
-        prod = row.Product
-        qty = inv.quantity
-
-        total_units += qty
-        total_cost += prod.cost * qty
-        total_retail += prod.price * qty
-
-        if qty <= 0:
-            out_of_stock += 1
-        elif qty <= 3:
-            low_stock += 1
-
-        cat = prod.category or "Sin Categoría"
-        if cat not in categories:
-            categories[cat] = {"products": 0, "units": 0, "value": Decimal("0")}
-        categories[cat]["products"] += 1
-        categories[cat]["units"] += qty
-        categories[cat]["value"] += prod.price * qty
-
-    # Get slow movers (products with stock but no sales in last 30 days)
-    thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-    sold_stmt = (
-        select(OrderItem.product_id)
-        .join(Order, Order.id == OrderItem.order_id)
-        .where(
-            and_(
-                Order.consultant_id == user_id,
-                Order.created_at >= thirty_days_ago,
-                Order.status != "cancelled",
-            )
-        )
-        .distinct()
-    )
-    sold_result = await db.execute(sold_stmt)
-    sold_ids = {r[0] for r in sold_result.all()}
-
-    slow_movers = [
-        {
-            "product_name": row.Product.name,
-            "stock": row.Inventory.quantity,
-            "cost_value": float(row.Product.cost * row.Inventory.quantity),
-        }
-        for row in rows
-        if row.Inventory.quantity > 0 and row.Product.id not in sold_ids
-    ][:10]
+    metrics = _calculate_inventory_metrics(rows)
+    slow_movers = await _get_slow_movers(db, user_id, rows)
 
     return {
         "total_products": len(rows),
-        "total_units": total_units,
-        "total_cost_value": float(total_cost),
-        "total_retail_value": float(total_retail),
-        "potential_profit": float(total_retail - total_cost),
-        "out_of_stock": out_of_stock,
-        "low_stock": low_stock,
+        "total_units": metrics["total_units"],
+        "total_cost_value": float(metrics["total_cost"]),
+        "total_retail_value": float(metrics["total_retail"]),
+        "potential_profit": float(metrics["total_retail"] - metrics["total_cost"]),
+        "out_of_stock": metrics["out_of_stock"],
+        "low_stock": metrics["low_stock"],
         "categories": [
             {"name": k, **{kk: float(vv) if isinstance(vv, Decimal) else vv for kk, vv in v.items()}}
-            for k, v in sorted(categories.items(), key=lambda x: x[1]["value"], reverse=True)
+            for k, v in sorted(metrics["categories"].items(), key=lambda x: x[1]["value"], reverse=True)
         ],
         "slow_movers": slow_movers,
     }
