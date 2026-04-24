@@ -3,13 +3,17 @@ Flow Natura Backend - FastAPI Application
 Main entry point. Run with: uvicorn app.main:app --reload
 """
 import traceback
+import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
 from app.routers import dashboard, products, customers, orders, inventory, consultant, community, mentorship
 
+
 settings = get_settings()
+logger = logging.getLogger(__name__)
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -23,9 +27,10 @@ app = FastAPI(
 # ── Global exception handler (returns detailed errors instead of generic 500) ──
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception on {request.url.path}")
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc), "type": type(exc).__name__},
+        content={"detail": "Internal Server Error"},
     )
 
 
@@ -75,5 +80,6 @@ async def debug_db():
             result = await session.execute(text("SELECT count(*) FROM public.products"))
             return {"db": "connected", "products_count": result.scalar()}
     except Exception as e:
-        return {"db": "error", "detail": str(e), "type": type(e).__name__}
+        logger.exception("Database connectivity test failed")
+        return {"db": "error", "detail": "Database connection failed"}
 
