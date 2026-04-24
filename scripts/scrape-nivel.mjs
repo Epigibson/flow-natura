@@ -6,6 +6,23 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+/**
+ * @typedef {Object} ConsultantLevel
+ * @property {string} [description]
+ */
+
+/**
+ * @typedef {Object} NextLevelProgress
+ * @property {number} [currentValue]
+ */
+
+/**
+ * @typedef {Object} GrowthData
+ * @property {ConsultantLevel} [level]
+ * @property {NextLevelProgress} [nextLevelProgress]
+ */
+
 const LOGIN_URL = 'https://minegocio.natura-avon.com.mx/home';
 
 (async () => {
@@ -26,6 +43,7 @@ const LOGIN_URL = 'https://minegocio.natura-avon.com.mx/home';
   page.setDefaultTimeout(120000);
   page.setDefaultNavigationTimeout(120000);
 
+  /** @type {GrowthData | null} */
   let extractedGrowthData = null;
 
   // Escuchar secretamente la red hasta capturar el GraphQL de crecimiento
@@ -60,7 +78,7 @@ const LOGIN_URL = 'https://minegocio.natura-avon.com.mx/home';
 
     console.log('✅ ¡Perfecto! Se absorbió toda tu información estructural.');
     
-    // Guardar TODO el arbol de datos nativo para el uso de la App
+    // Guardar todo el arbol de datos nativo para el uso de la App
     const fullOutPath = path.join(__dirname, '..', 'full_growth_data.json');
     fs.writeFileSync(fullOutPath, JSON.stringify(extractedGrowthData, null, 2), 'utf-8');
     
