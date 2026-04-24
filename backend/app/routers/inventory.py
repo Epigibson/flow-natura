@@ -426,6 +426,61 @@ async def add_barcode(
     return {"id": str(barcode.id), "barcode": barcode.barcode}
 
 
+
+async def _ensure_consultant_profile(user_id: uuid.UUID, db: AsyncSession) -> None:
+    """Ensure consultant profile exists."""
+    profile_stmt = select(ConsultantProfile).where(ConsultantProfile.id == user_id)
+    profile_result = await db.execute(profile_stmt)
+    if not profile_result.scalar_one_or_none():
+        profile = ConsultantProfile(id=user_id, full_name="Consultora")
+        db.add(profile)
+        await db.flush()
+
+
+async def _process_imported_product(p: dict, user_id: uuid.UUID, db: AsyncSession) -> None:
+    """Process a single imported product, creating or updating it and ensuring inventory exists."""
+    code = str(p.get("code", ""))
+    if not code:
+        raise ValueError("Product code is missing")
+
+    # Check if product exists by code
+    existing_stmt = select(Product).where(Product.code == code)
+    existing_result = await db.execute(existing_stmt)
+    product = existing_result.scalar_one_or_none()
+
+    if product:
+        # Update existing
+        product.name = p.get("name", product.name)
+        product.brand = p.get("brand", product.brand)
+        product.category = p.get("category", product.category)
+        product.price = p.get("price", product.price)
+        product.cost = p.get("cost", product.cost)
+        product.points = p.get("points", product.points)
+        product.image_url = p.get("image_url", product.image_url)
+    else:
+        # Create new
+        product = Product(
+            code=code,
+            name=p.get("name", ""),
+            brand=p.get("brand", "Natura"),
+            category=p.get("category"),
+            price=p.get("price", 0),
+            cost=p.get("cost", 0),
+            points=p.get("points", 0),
+            image_url=p.get("image_url"),
+        )
+        db.add(product)
+        await db.flush()
+
+    # Create inventory entry if not exists
+    inv_stmt = select(Inventory).where(
+        and_(Inventory.product_id == product.id, Inventory.consultant_id == user_id)
+    )
+    inv_result = await db.execute(inv_stmt)
+    if not inv_result.scalar_one_or_none():
+        db.add(Inventory(consultant_id=user_id, product_id=product.id, quantity=0))
+
+
 @router.post("/import-products")
 async def import_products(
     data: dict,
@@ -437,65 +492,17 @@ async def import_products(
     if not products_data:
         raise HTTPException(status_code=400, detail="No products provided")
 
-    # Ensure consultant profile exists
-    profile_stmt = select(ConsultantProfile).where(ConsultantProfile.id == user_id)
-    profile_result = await db.execute(profile_stmt)
-    if not profile_result.scalar_one_or_none():
-        profile = ConsultantProfile(id=user_id, full_name="Consultora")
-        db.add(profile)
-        await db.flush()
+    await _ensure_consultant_profile(user_id, db)
 
     imported = 0
     errors = 0
 
     for p in products_data:
         try:
-            code = str(p.get("code", ""))
-            if not code:
-                errors += 1
-                continue
-
-            # Check if product exists by code
-            existing_stmt = select(Product).where(Product.code == code)
-            existing_result = await db.execute(existing_stmt)
-            product = existing_result.scalar_one_or_none()
-
-            if product:
-                # Update existing
-                product.name = p.get("name", product.name)
-                product.brand = p.get("brand", product.brand)
-                product.category = p.get("category", product.category)
-                product.price = p.get("price", product.price)
-                product.cost = p.get("cost", product.cost)
-                product.points = p.get("points", product.points)
-                product.image_url = p.get("image_url", product.image_url)
-            else:
-                # Create new
-                product = Product(
-                    code=code,
-                    name=p.get("name", ""),
-                    brand=p.get("brand", "Natura"),
-                    category=p.get("category"),
-                    price=p.get("price", 0),
-                    cost=p.get("cost", 0),
-                    points=p.get("points", 0),
-                    image_url=p.get("image_url"),
-                )
-                db.add(product)
-                await db.flush()
-
-            # Create inventory entry if not exists
-            inv_stmt = select(Inventory).where(
-                and_(Inventory.product_id == product.id, Inventory.consultant_id == user_id)
-            )
-            inv_result = await db.execute(inv_stmt)
-            if not inv_result.scalar_one_or_none():
-                db.add(Inventory(consultant_id=user_id, product_id=product.id, quantity=0))
-
+            await _process_imported_product(p, user_id, db)
             imported += 1
         except Exception:
             errors += 1
 
     await db.commit()
     return {"imported": imported, "errors": errors}
-
