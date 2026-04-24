@@ -2,6 +2,24 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 
+
+const requiredEnvVars = [
+  'NATURA_CLIENT_ID',
+  'NATURA_API_KEY',
+  'NATURA_AES_KEY',
+  'NATURA_ANDROID_CLIENT_ID',
+  'NATURA_IOS_CLIENT_ID',
+  'COGNITO_REGION',
+  'SCRAPER_API_SECRET'
+];
+
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Error: Falta la variable de entorno obligatoria: ${envVar}`);
+    process.exit(1);
+  }
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -9,14 +27,15 @@ app.use(express.json());
 const PORT = process.env.PORT || 3001;
 
 const CONFIG = {
-  // Credenciales extraídas del JS de Natura Auth frontend
-  CLIENT_ID: '31ndsgochinbk61v3jk8dhsf2o',
+  // Credenciales extraídas del JS de Natura Auth frontend (ahora mediante variables de entorno)
+  CLIENT_ID: process.env.NATURA_CLIENT_ID,
   NATURA_API: 'https://authenticator-cognito-apigw.prd.naturacloud.com/authentication-api/login',
-  NATURA_API_KEY: '2aa3706e-93b1-4b36-bb93-c76f5076d576',
-  AES_KEY: 'N@tur4=',
+  NATURA_API_KEY: process.env.NATURA_API_KEY,
+  AES_KEY: process.env.NATURA_AES_KEY,
   NATURA_BASE: 'https://minegocio.natura-avon.com.mx',
   COUNTRY: 'mx',
   COMPANY: 'natura',
+  COGNITO_REGION: process.env.COGNITO_REGION,
 };
 
 // === Encriptar password con AES (mismo método que el frontend de Natura) ===
@@ -68,7 +87,7 @@ function evpBytesToKey(passphrase, salt, keyLen, ivLen) {
 }
 
 function authMiddleware(req, res, next) {
-  if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET || 'dev-secret-key')) {
+  if (req.headers['x-api-key'] !== (process.env.SCRAPER_API_SECRET)) {
     return res.status(401).json({ success: false, error: 'No autorizado.' });
   }
   next();
@@ -156,7 +175,7 @@ async function authenticateViaNatura(email, password) {
   // ====================================================================
   // MÉTODO 2: Cognito InitiateAuth con Android Client ID (sin SECRET)
   // ====================================================================
-  const ANDROID_CLIENT_ID = '2mclhp3ui6kf7pjrvh2kv6a6lq';
+  const ANDROID_CLIENT_ID = process.env.NATURA_ANDROID_CLIENT_ID;
   try {
     console.log(`\n📡 [2/3] Cognito directo (Android client: ${ANDROID_CLIENT_ID})...`);
     const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
@@ -202,7 +221,7 @@ async function authenticateViaNatura(email, password) {
   // ====================================================================
   // MÉTODO 3: Cognito InitiateAuth con iOS Client ID (sin SECRET)
   // ====================================================================
-  const IOS_CLIENT_ID = '3u0gp4t079j9g2m249gdghfghm';
+  const IOS_CLIENT_ID = process.env.NATURA_IOS_CLIENT_ID;
   try {
     console.log(`\n📡 [3/3] Cognito directo (iOS client: ${IOS_CLIENT_ID})...`);
     const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
