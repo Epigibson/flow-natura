@@ -1,0 +1,12 @@
+🎯 **Qué**:
+Se ha refactorizado la función `register_payment` en el archivo `backend/app/routers/orders.py` separando su lógica en tres partes. Se extrajo la validación y extracción de notas JSON a la función `_parse_installment_data` y el cálculo del balance restante así como el formato de la respuesta a la función `_calculate_installment_response`.
+
+💡 **Por qué**:
+La función `register_payment` era demasiado larga y combinaba reglas de negocio y lógica de respuesta. Esta refactorización mejora la legibilidad, reduce la complejidad ciclomática de la función principal, y permite una comprensión mucho más ágil y un futuro mantenimiento más sencillo. No hay cambios funcionales ni de dependencias.
+
+✅ **Verificación**:
+- La refactorización se completó extrayendo parámetros idénticos a las variables empleadas de manera inline.
+- Se verificó exitosamente la ausencia de errores de compilación y sintaxis ejecutando `python3 -m py_compile backend/app/routers/orders.py`.
+
+✨ **Resultado**:
+Una función `register_payment` mucho más limpia y fácil de leer y testear, delegando lógicas secundarias en funciones auxiliares.

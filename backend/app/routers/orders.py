@@ -219,6 +219,37 @@ async def cancel_order(
     return _order_to_response(order)
 
 
+def _parse_installment_data(notes: str | None) -> dict:
+    """Safely parse installment JSON data from order notes."""
+    try:
+        return json.loads(notes) if notes else {}
+    except json.JSONDecodeError:
+        return {}
+
+
+def _calculate_installment_response(
+    order_id: uuid.UUID,
+    status: str,
+    total_amount: Decimal,
+    notes_data: dict,
+    cuotas: int,
+    pagados: int,
+) -> dict:
+    """Calculate remaining balance and format installment response."""
+    enganche = Decimal(str(notes_data.get("enganche", 0)))
+    remaining = total_amount - enganche
+    per_cuota = remaining / cuotas if cuotas > 0 else Decimal("0")
+
+    return {
+        "order_id": str(order_id),
+        "pagos_completados": pagados,
+        "pagos_totales": cuotas,
+        "monto_cuota": float(per_cuota),
+        "completado": pagados >= cuotas,
+        "status": status,
+    }
+
+
 @router.patch("/{order_id}/pay")
 async def register_payment(
     order_id: uuid.UUID,
@@ -238,11 +269,7 @@ async def register_payment(
     if order.payment_method != "abonos":
         raise HTTPException(status_code=400, detail="Esta venta no es de abonos")
 
-    # Parse notes to get installment data
-    try:
-        notes_data = json.loads(order.notes) if order.notes else {}
-    except json.JSONDecodeError:
-        notes_data = {}
+    notes_data = _parse_installment_data(order.notes)
 
     cuotas = int(notes_data.get("pagos", 1))
     pagados = int(notes_data.get("pagos_completados", 0))
@@ -251,27 +278,24 @@ async def register_payment(
         raise HTTPException(status_code=400, detail="Todos los pagos ya fueron completados")
 
     # Increment completed payments
-    notes_data["pagos_completados"] = pagados + 1
+    pagados += 1
+    notes_data["pagos_completados"] = pagados
     order.notes = json.dumps(notes_data)
 
     # If all paid, mark as paid
-    if pagados + 1 >= cuotas:
+    if pagados >= cuotas:
         order.status = "paid"
 
     await db.commit()
 
-    enganche = Decimal(str(notes_data.get("enganche", 0)))
-    remaining = order.total_amount - enganche
-    per_cuota = remaining / cuotas if cuotas > 0 else Decimal("0")
-
-    return {
-        "order_id": str(order.id),
-        "pagos_completados": pagados + 1,
-        "pagos_totales": cuotas,
-        "monto_cuota": float(per_cuota),
-        "completado": pagados + 1 >= cuotas,
-        "status": order.status,
-    }
+    return _calculate_installment_response(
+        order.id,
+        order.status,
+        order.total_amount,
+        notes_data,
+        cuotas,
+        pagados,
+    )
 
 
 @router.patch("/{order_id}/notes")
