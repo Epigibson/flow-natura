@@ -95,6 +95,22 @@ async def create_order(
     if not cust_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
+    # Bulk fetch products
+    product_ids = [item.product_id for item in data.items]
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch inventory
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventory_map = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
     # Calculate total and validate stock
     total = Decimal("0")
     order_items = []
@@ -102,9 +118,7 @@ async def create_order(
 
     for item in data.items:
         # Check product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
+        product = products.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
@@ -112,14 +126,7 @@ async def create_order(
             )
 
         # Check stock
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
+        inv = inventory_map.get(item.product_id)
 
         if not inv or inv.quantity < item.quantity:
             available = inv.quantity if inv else 0
@@ -199,16 +206,20 @@ async def cancel_order(
     if order.status == "cancelled":
         raise HTTPException(status_code=400, detail="La venta ya está cancelada")
 
+    # Bulk fetch inventory
+    product_ids = [item.product_id for item in order.items]
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventory_map = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
     # Restore inventory
     for item in order.items:
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
+        inv = inventory_map.get(item.product_id)
         if inv:
             inv.quantity += item.quantity
 
