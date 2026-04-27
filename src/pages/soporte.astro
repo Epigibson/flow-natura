@@ -3,13 +3,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">HELP CENTER</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Centro de Soporte 🛟</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">¿Necesitas ayuda? Encuentra respuestas o contacta a nuestro equipo.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Centro de Soporte 🛟</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">¿Necesitas ayuda? Encuentra respuestas o contacta a nuestro equipo.</p>
     </div>
-    <button id="btn-new-ticket" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+    <button id="btn-new-ticket" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all text-sm">
       <span class="material-symbols-outlined">add</span>
       Nuevo Ticket
     </button>

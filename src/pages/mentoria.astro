@@ -262,6 +262,7 @@ import PageLoader from '../components/PageLoader.astro';
 
 <script>
   import { createClient } from '@supabase/supabase-js';
+  import api from '../lib/api';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -300,24 +301,27 @@ import PageLoader from '../components/PageLoader.astro';
   // ========== PROGRESS ==========
   async function loadProgress() {
     if (!currentUserId) return;
-    const { data } = await supabase
-      .from('mentorship_progress')
-      .select('lesson_id')
-      .eq('user_id', currentUserId);
-    completedLessons = new Set((data || []).map((p: any) => p.lesson_id));
+    try {
+      const data = await api.mentorship.getProgress();
+      completedLessons = new Set((data || []).map((p: any) => p.lesson_id));
+    } catch(e) {}
   }
 
   async function toggleLesson(lessonId: string): Promise<boolean> {
     if (!currentUserId) return false;
     if (completedLessons.has(lessonId)) {
-      await supabase.from('mentorship_progress').delete()
-        .eq('user_id', currentUserId).eq('lesson_id', lessonId);
+      // Find the module_id for this lesson
+      const lesson = allLessons.find((l: any) => l.id === lessonId);
+      try {
+        await api.mentorship.saveProgress({ module_id: lesson?.module_id || 'unknown', lesson_id: lessonId, completed: false });
+      } catch(e) {}
       completedLessons.delete(lessonId);
       return false;
     } else {
-      await supabase.from('mentorship_progress').insert({
-        user_id: currentUserId, lesson_id: lessonId
-      });
+      const lesson = allLessons.find((l: any) => l.id === lessonId);
+      try {
+        await api.mentorship.saveProgress({ module_id: lesson?.module_id || 'unknown', lesson_id: lessonId, completed: true });
+      } catch(e) {}
       completedLessons.add(lessonId);
       return true;
     }
@@ -346,10 +350,11 @@ import PageLoader from '../components/PageLoader.astro';
 
   // ========== MODULES & LESSONS ==========
   async function loadModules() {
-    const { data: modules, error } = await supabase
-      .from('mentorship_modules')
-      .select('*')
-      .order('sort_order');
+    let modules: any[] = [];
+    let error: any = null;
+    try {
+      modules = await api.mentorship.getModules();
+    } catch(e: any) { error = e; }
 
     const modulesLoading = document.getElementById('modules-loading')!;
     const container = document.getElementById('modules-container')!;
@@ -367,18 +372,18 @@ import PageLoader from '../components/PageLoader.astro';
       return;
     }
 
-    const { data: lessons } = await supabase
-      .from('mentorship_lessons')
-      .select('*')
-      .order('sort_order');
-
-    allLessons = lessons || [];
+    // Flatten lessons from modules
+    allLessons = [];
+    for (const mod of modules) {
+      for (const l of (mod.lessons || [])) {
+        allLessons.push(l);
+      }
+    }
     updateProgressUI();
 
     const lessonsByModule: Record<string, any[]> = {};
-    for (const l of allLessons) {
-      if (!lessonsByModule[l.module_id]) lessonsByModule[l.module_id] = [];
-      lessonsByModule[l.module_id].push(l);
+    for (const mod of modules) {
+      lessonsByModule[mod.id] = mod.lessons || [];
     }
 
     container.innerHTML = modules.map((mod: any, idx: number) => {
@@ -508,10 +513,11 @@ import PageLoader from '../components/PageLoader.astro';
     if (!currentUserId) return;
     const today = new Date().toISOString().split('T')[0];
 
-    const { data: upcoming } = await supabase
-      .from('mentorship_sessions').select('*')
-      .eq('user_id', currentUserId).eq('status', 'scheduled')
-      .gte('session_date', today).order('session_date');
+    let allSessions: any[] = [];
+    try { allSessions = await api.mentorship.getSessions(); } catch(e) {}
+
+    const upcoming = allSessions.filter((s: any) => s.status === 'scheduled' && s.scheduled_date >= today);
+    const pastItems = allSessions.filter((s: any) => s.status !== 'scheduled' || s.scheduled_date < today);
 
     const upcomingEl = document.getElementById('upcoming-sessions')!;
     const noUpcoming = document.getElementById('no-upcoming')!;
@@ -520,7 +526,7 @@ import PageLoader from '../components/PageLoader.astro';
     if (upcoming && upcoming.length > 0) {
       noUpcoming.classList.add('hidden');
       upcomingEl.innerHTML = upcoming.map((s: any) => {
-        const d = new Date(s.session_date + 'T12:00:00');
+        const d = new Date(s.scheduled_date);
         const dateStr = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
         return `<div class="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-primary/5 transition-colors group">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center shrink-0">
@@ -528,7 +534,7 @@ import PageLoader from '../components/PageLoader.astro';
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-bold text-sm text-on-surface truncate">${s.topic}</p>
-            <p class="text-[10px] text-on-surface-variant">${dateStr} • ${s.session_time}</p>
+            <p class="text-[10px] text-on-surface-variant">${dateStr}</p>
           </div>
           <button class="btn-cancel-session opacity-0 group-hover:opacity-100 text-xs text-on-surface-variant/50 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition-all" data-session="${s.id}" title="Cancelar">
             <span class="material-symbols-outlined text-sm">close</span>
@@ -539,7 +545,7 @@ import PageLoader from '../components/PageLoader.astro';
         btn.addEventListener('click', async () => {
           const sessionId = (btn as HTMLElement).dataset.session!;
           if (!confirm('¿Cancelar esta sesión?')) return;
-          await supabase.from('mentorship_sessions').update({ status: 'canceled' }).eq('id', sessionId);
+          try { await api.mentorship.cancelSession(sessionId); } catch(e) {}
           loadSessions();
         });
       });
@@ -549,38 +555,23 @@ import PageLoader from '../components/PageLoader.astro';
       children.forEach(c => { if (c.id !== 'no-upcoming') c.remove(); });
     }
 
-    const { data: past } = await supabase
-      .from('mentorship_sessions').select('*')
-      .eq('user_id', currentUserId).in('status', ['completed', 'canceled'])
-      .order('session_date', { ascending: false }).limit(5);
-
-    const { data: pastScheduled } = await supabase
-      .from('mentorship_sessions').select('*')
-      .eq('user_id', currentUserId).eq('status', 'scheduled')
-      .lt('session_date', today)
-      .order('session_date', { ascending: false }).limit(5);
-
-    const allPast = [...(past || []), ...(pastScheduled || [])].sort((a, b) =>
-      new Date(b.session_date).getTime() - new Date(a.session_date).getTime()
-    );
-
     const pastEl = document.getElementById('past-sessions')!;
-    if (allPast.length === 0) {
+    if (pastItems.length === 0) {
       pastEl.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">Sin historial aún</p>';
     } else {
-      pastEl.innerHTML = allPast.map((s: any) => {
-        const d = new Date(s.session_date + 'T12:00:00');
+      pastEl.innerHTML = pastItems.slice(0, 10).map((s: any) => {
+        const d = new Date(s.scheduled_date);
         const dateStr = d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
         const statusColor = s.status === 'canceled' ? 'text-on-surface-variant' : 'text-secondary';
         const statusIcon = s.status === 'canceled' ? 'cancel' : 'check_circle';
-        const statusLabel = s.status === 'canceled' ? 'Cancelada' : 'Completada';
+        const statusLabel = s.status === 'canceled' ? 'Cancelada' : s.status === 'scheduled' ? 'Pasada' : 'Completada';
         return `<div class="flex items-center gap-3 py-2">
           <div class="w-9 h-9 rounded-xl bg-surface-container-highest/60 flex items-center justify-center shrink-0">
             <span class="material-symbols-outlined ${statusColor} text-sm">${statusIcon}</span>
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-bold text-sm text-on-surface truncate">${s.topic}</p>
-            <p class="text-[10px] text-on-surface-variant">${dateStr} • ${s.session_time}</p>
+            <p class="text-[10px] text-on-surface-variant">${dateStr}</p>
           </div>
           <span class="text-[10px] font-bold ${statusColor}">${statusLabel}</span>
         </div>`;
@@ -601,17 +592,21 @@ import PageLoader from '../components/PageLoader.astro';
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Agendando...';
 
-    const { error } = await supabase.from('mentorship_sessions').insert({
-      user_id: currentUserId, session_date: date, session_time: time, topic, notes
-    });
-
-    btn.disabled = false;
-
-    if (error) {
+    try {
+      await api.mentorship.createSession({
+        session_type: 'one_on_one',
+        scheduled_date: `${date}T${time}:00`,
+        topic,
+        notes,
+      });
+    } catch(err: any) {
+      btn.disabled = false;
       btn.innerHTML = '<span class="material-symbols-outlined text-sm">event_available</span> Agendar Sesión';
-      alert('Error: ' + error.message);
+      alert('Error: ' + err.message);
       return;
     }
+
+    btn.disabled = false;
 
     (document.getElementById('session-notes') as HTMLTextAreaElement).value = '';
     btn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> ¡Agendada!';

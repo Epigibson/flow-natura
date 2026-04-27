@@ -4,10 +4,10 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
-      <h2 class="text-4xl md:text-5xl font-display font-medium text-on-surface">Mis Clientes 👥</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Administra a tus clientes y conoce sus preferencias.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-medium text-on-surface">Mis Clientes 👥</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">Administra a tus clientes y conoce sus preferencias.</p>
     </div>
     <button id="btn-nuevo-cliente" class="btn-primary flex items-center gap-2">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
@@ -68,7 +68,7 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
           <input type="text" name="full_name" required class="w-full input-editorial text-sm" placeholder="Ej. Camila Méndez"/>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold text-on-surface-variant mb-1">Teléfono</label>
             <input type="tel" name="phone" required class="w-full input-editorial text-sm" placeholder="55 1234 5678"/>
@@ -100,6 +100,7 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import api from '../lib/api';
 
   const modal = document.getElementById('modal-cliente') as HTMLDialogElement;
   const btnNuevo = document.getElementById('btn-nuevo-cliente');
@@ -144,51 +145,45 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     
     const formData = new FormData(formCliente);
     
-    const { error } = await supabase.from('customers').insert([{
-      consultant_id: currentUserId,
-      full_name: formData.get('full_name'),
-      phone: formData.get('phone'),
-      email: formData.get('email') || null,
-      address: formData.get('address') || null,
-      preferences: formData.get('preferences') || null
-    }]);
-
-    if(error) {
-      errorDiv.textContent = error.message;
-      errorDiv.classList.remove('hidden');
-    } else {
+    try {
+      await api.customers.create({
+        full_name: formData.get('full_name'),
+        phone: formData.get('phone'),
+        email: formData.get('email') || null,
+        address: formData.get('address') || null,
+        preferences: formData.get('preferences') || null
+      });
       formCliente.reset();
       modal.close();
       showToast('Cliente registrado exitosamente');
-      loadCustomers(); 
+      loadCustomers();
+    } catch(err: any) {
+      errorDiv.textContent = err.message;
+      errorDiv.classList.remove('hidden');
     }
   });
 
   // Search filter (real-time)
-  // Optimization: Debounce search input to prevent expensive synchronous DOM operations on every keystroke
-  let searchTimer: any;
+  let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', () => {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
       currentPage = 1;
       renderCustomers();
-    }, 150);
+    }, 200);
   });
 
   // Load Customers
   async function loadCustomers() {
-    const { data: customers, error } = await supabase
-      .from('customers')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error(error);
+    try {
+      const customers = await api.customers.list();
+      allCustomers = customers || [];
+    } catch(e) {
+      console.error(e);
       showToast('Error al cargar clientes', 'error');
       return;
     }
 
-    allCustomers = customers || [];
     // Swap skeleton → real table
     document.getElementById('table-skeleton')?.classList.add('hidden');
     const section = document.getElementById('customers-section');
@@ -273,13 +268,13 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   }
 
   async function deleteCustomer(id: string) {
-    const { error } = await supabase.from('customers').delete().eq('id', id);
-    if (error) {
-      showToast('Error al eliminar: ' + error.message, 'error');
-    } else {
+    try {
+      await api.customers.delete(id);
       showToast('Cliente eliminado');
       allCustomers = allCustomers.filter(c => c.id !== id);
       renderCustomers();
+    } catch(err: any) {
+      showToast('Error al eliminar: ' + err.message, 'error');
     }
   }
 

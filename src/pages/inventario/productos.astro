@@ -4,20 +4,20 @@ import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">ADMINISTRACIÓN</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Catálogo de Productos</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Gestiona, edita y organiza todo tu catálogo global.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Catálogo de Productos</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">Gestiona, edita y organiza todo tu catálogo global.</p>
     </div>
     <div class="flex items-center gap-3">
-      <button id="btn-toggle-deleted" class="flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all text-sm">
+      <button id="btn-toggle-deleted" class="hidden sm:flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-outline-variant/15 text-on-surface-variant hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 transition-all text-sm">
         <span class="material-symbols-outlined text-lg">visibility</span>
         <span id="toggle-deleted-label">Mostrar Eliminados</span>
       </button>
-      <a href="/inventario/nuevo" class="flex items-center gap-2 py-3 px-6 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all">
+      <a href="/inventario/nuevo" class="flex items-center gap-2 py-3 px-5 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] bg-primary text-white transition-all text-sm">
         <span class="material-symbols-outlined text-lg">add_circle</span>
-        Crear Producto
+        Crear
       </a>
     </div>
   </header>
@@ -74,15 +74,15 @@ import PageLoader from '../../components/PageLoader.astro';
   <!-- Search & Filters -->
   <section class="bg-surface-container-lowest rounded-[2rem] p-6 mb-8 shadow-sm border border-outline-variant/5">
     <div class="flex flex-wrap gap-3">
-      <div class="flex-1 min-w-[240px] relative">
+      <div class="w-full sm:flex-1 sm:min-w-[240px] relative">
         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
         <input id="search" type="text" placeholder="Buscar por nombre, código, marca..."
           class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-11 pr-4 text-sm focus:ring-2 focus:ring-primary-container" />
       </div>
-      <select id="filter-brand" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold min-w-[150px]">
+      <select id="filter-brand" class="flex-1 sm:flex-none bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold sm:min-w-[150px]">
         <option value="all">Todas las marcas</option>
       </select>
-      <select id="filter-category" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold min-w-[170px]">
+      <select id="filter-category" class="flex-1 sm:flex-none bg-surface-container-highest border-none rounded-xl py-3 px-4 text-xs font-bold sm:min-w-[170px]">
         <option value="all">Todas las categorías</option>
       </select>
       <div class="flex items-center gap-1 bg-surface-container-highest rounded-xl p-1 ml-auto">
@@ -164,7 +164,7 @@ import PageLoader from '../../components/PageLoader.astro';
       </div>
       <div class="p-6 space-y-5">
         <input type="hidden" id="edit-id" />
-        <div class="grid grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Nombre <span class="text-error">*</span></label>
             <input type="text" id="edit-name" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
@@ -174,7 +174,7 @@ import PageLoader from '../../components/PageLoader.astro';
             <input type="text" id="edit-code" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm font-mono focus:ring-2 focus:ring-primary-container" />
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
             <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Marca</label>
             <input type="text" id="edit-brand" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container" />
@@ -192,7 +192,7 @@ import PageLoader from '../../components/PageLoader.astro';
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <div>
             <label class="text-xs font-bold text-on-surface-variant block mb-1.5">Costo <span class="text-error">*</span></label>
             <div class="relative">
@@ -450,6 +450,7 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
 
   // ═════════ STATE ═════════
   let allProducts: any[] = [];
@@ -498,9 +499,14 @@ import PageLoader from '../../components/PageLoader.astro';
     emptyEl.classList.add('hidden');
     tableBody.innerHTML = '';
 
-    const { data, error } = await supabase.rpc('list_all_products', {
-      p_include_deleted: true
-    });
+    let data: any[] = [];
+    let error: any = null;
+    try {
+      data = await api.products.listAll(true);
+    } catch(e: any) {
+      // Fallback to regular list if listAll not deployed yet
+      try { data = await api.products.list({ limit: 5000 }); } catch(e2: any) { error = e2; }
+    }
 
     loadingEl.classList.add('hidden');
 
@@ -722,10 +728,11 @@ import PageLoader from '../../components/PageLoader.astro';
     tableBody.querySelectorAll('[data-restore]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const id = (btn as HTMLElement).dataset.restore!;
-        const { error } = await supabase.rpc('restore_product', { p_product_id: id });
-        if (error) { showToast('Error al restaurar: ' + error.message, true); return; }
-        showToast('¡Producto restaurado! ✅');
-        await loadProducts();
+        try {
+          await api.products.restore(id);
+          showToast('¡Producto restaurado! ✅');
+          await loadProducts();
+        } catch(e: any) { showToast('Error al restaurar: ' + e.message, true); }
       });
     });
 
@@ -928,8 +935,10 @@ import PageLoader from '../../components/PageLoader.astro';
       detailModal.close();
       if (isDeleted) {
         // Restore
-        const { error } = await supabase.rpc('restore_product', { p_product_id: currentDetailProduct.id });
-        if (!error) { showToast('¡Producto restaurado! ✅'); loadProducts(); }
+        try {
+          await api.products.restore(currentDetailProduct.id);
+          showToast('¡Producto restaurado! ✅'); loadProducts();
+        } catch(e) {}
       } else {
         openDeleteModal(currentDetailProduct.id, currentDetailProduct.name);
       }
@@ -1006,18 +1015,10 @@ import PageLoader from '../../components/PageLoader.astro';
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
 
-    const { error } = await supabase.rpc('update_product', {
-      p_product_id: id,
-      p_name: name,
-      p_code: code,
-      p_brand: brand,
-      p_category: category,
-      p_cost: cost,
-      p_price: price,
-      p_points: points,
-      p_image_url: image_url,
-      p_description: description,
-    });
+    let error: any = null;
+    try {
+      await api.products.update(id, { name, code, brand, category, cost, price, points, image_url, description });
+    } catch(e: any) { error = e; }
 
     btn.disabled = false;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar Cambios';
@@ -1050,7 +1051,8 @@ import PageLoader from '../../components/PageLoader.astro';
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Eliminando...';
 
-    const { error } = await supabase.rpc('soft_delete_product', { p_product_id: id });
+    let error: any = null;
+    try { await api.products.delete(id); } catch(e: any) { error = e; }
 
     btn.disabled = false;
     btn.innerHTML = '<span class="material-symbols-outlined text-sm">delete</span> Sí, desactivar';
