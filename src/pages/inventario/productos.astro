@@ -563,9 +563,9 @@ import PageLoader from '../../components/PageLoader.astro';
     (document.getElementById('kpi-deleted') as HTMLElement).textContent = String(deleted.length);
 
     // Avg margin
-    const withMargin = active.filter(p => p.price > 0 && p.cost > 0);
+    const withMargin = active.filter(p => Number(p.price) > 0 && Number(p.cost) > 0);
     if (withMargin.length > 0) {
-      const avgMargin = withMargin.reduce((sum, p) => sum + ((p.price - p.cost) / p.price * 100), 0) / withMargin.length;
+      const avgMargin = withMargin.reduce((sum, p) => sum + ((Number(p.price) - Number(p.cost)) / Number(p.price) * 100), 0) / withMargin.length;
       (document.getElementById('kpi-avg-margin') as HTMLElement).textContent = avgMargin.toFixed(0) + '%';
     }
   }
@@ -599,7 +599,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
     page.forEach(p => {
       const isDeleted = !!p.deleted_at;
-      const margin = p.price && p.cost ? ((p.price - p.cost) / p.price * 100).toFixed(0) : '—';
+      const margin = Number(p.price) && Number(p.cost) ? ((Number(p.price) - Number(p.cost)) / Number(p.price) * 100).toFixed(0) : '—';
       const marginColor = parseInt(margin) >= 30 ? 'text-green-600' : parseInt(margin) >= 15 ? 'text-amber-600' : 'text-red-500';
       const marginBg = parseInt(margin) >= 30 ? 'bg-green-100/50 text-green-700' : parseInt(margin) >= 15 ? 'bg-amber-100/50 text-amber-700' : 'bg-red-100/50 text-red-700';
       const brandColor = p.brand === 'Avon' ? 'bg-fuchsia-100 text-fuchsia-700'
@@ -628,8 +628,8 @@ import PageLoader from '../../components/PageLoader.astro';
         <td class="px-4 py-2.5"><span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full">${p.brand || '—'}</span></td>
         <td class="px-4 py-2.5 text-xs text-on-surface-variant">${p.category || '—'}</td>
         <td class="px-4 py-2.5 text-center">${variantCell}</td>
-        <td class="px-4 py-2.5 text-right font-mono text-xs">$${(p.cost || 0).toFixed(0)}</td>
-        <td class="px-4 py-2.5 text-right font-mono text-xs font-bold text-primary">$${(p.price || 0).toFixed(0)}</td>
+        <td class="px-4 py-2.5 text-right font-mono text-xs">$${Number(p.cost || 0).toFixed(0)}</td>
+        <td class="px-4 py-2.5 text-right font-mono text-xs font-bold text-primary">$${Number(p.price || 0).toFixed(0)}</td>
         <td class="px-4 py-2.5 text-right text-xs font-bold ${marginColor}">${margin}%</td>
         <td class="px-4 py-2.5 text-center">${p.points ? `<span class="text-[10px] font-bold text-amber-600">${p.points}</span>` : '<span class="text-on-surface-variant/30">—</span>'}</td>
         <td class="px-4 py-2.5 text-center">
@@ -674,8 +674,8 @@ import PageLoader from '../../components/PageLoader.astro';
             <div>
               <p class="text-[10px] text-on-surface-variant uppercase font-bold">Precio / Costo</p>
               <div class="flex items-baseline gap-1.5">
-                <p class="text-lg font-display font-bold text-primary">$${(p.price || 0).toFixed(0)}</p>
-                <p class="text-xs font-mono text-on-surface-variant/60 line-through">$${(p.cost || 0).toFixed(0)}</p>
+                <p class="text-lg font-display font-bold text-primary">$${Number(p.price || 0).toFixed(0)}</p>
+                <p class="text-xs font-mono text-on-surface-variant/60 line-through">$${Number(p.cost || 0).toFixed(0)}</p>
               </div>
             </div>
             <div class="admin-card-actions flex gap-1">

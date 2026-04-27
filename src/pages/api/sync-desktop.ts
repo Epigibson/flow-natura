@@ -3,7 +3,7 @@ import { getServiceSupabase } from '../../lib/supabase-server';
 
 export const prerender = false;
 
-const DESKTOP_SYNC_KEY = import.meta.env.DESKTOP_SYNC_KEY || 'fn-desktop-sync-2026';
+const DESKTOP_SYNC_KEY = import.meta.env.DESKTOP_SYNC_KEY || '';
 
 export const POST: APIRoute = async ({ request }) => {
   try {

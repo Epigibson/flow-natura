@@ -1,0 +1,517 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageLoader from '../../components/PageLoader.astro';
+---
+
+<DashboardLayout>
+  <div class="max-w-2xl mx-auto">
+    <!-- Back navigation -->
+    <a href="/inventario" class="inline-flex items-center gap-1 text-sm font-bold text-on-surface-variant hover:text-primary transition-colors mb-6">
+      <span class="material-symbols-outlined text-lg">arrow_back</span>
+      Volver al inventario
+    </a>
+
+    <!-- Loading state -->
+    <div id="loading-state">
+      <PageLoader id="edit-loader" text="Cargando producto..." />
+    </div>
+
+    <!-- Error state -->
+    <div id="error-state" class="hidden">
+      <div class="bg-red-50 border border-red-200/30 rounded-2xl p-8 text-center">
+        <span class="material-symbols-outlined text-4xl text-red-400 mb-3">error</span>
+        <p id="error-msg" class="text-red-600 font-bold">Producto no encontrado</p>
+        <a href="/inventario" class="mt-4 inline-block text-sm text-primary font-bold hover:underline">← Volver al inventario</a>
+      </div>
+    </div>
+
+    <!-- Edit form -->
+    <div id="edit-form" class="hidden">
+      <header class="flex items-center gap-3 mb-8">
+        <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-primary text-2xl">edit_note</span>
+        </div>
+        <div>
+          <h1 id="page-title" class="text-2xl md:text-3xl font-display font-bold text-on-surface">Editar Producto</h1>
+          <p id="page-subtitle" class="text-sm text-on-surface-variant"></p>
+        </div>
+      </header>
+
+      <!-- Product Image Section -->
+      <section class="bg-surface-container-lowest rounded-2xl p-6 mb-6 shadow-sm border border-outline-variant/5">
+        <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Imagen del producto</h2>
+        
+        <!-- Image preview -->
+        <div id="img-preview" class="relative mb-4 h-48 bg-white rounded-xl hidden items-center justify-center overflow-hidden border border-outline-variant/10 group">
+          <img id="img-preview-src" src="" class="max-h-full max-w-full object-contain" />
+          <button id="img-delete" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600" title="Eliminar imagen">
+            <span class="material-symbols-outlined text-base">delete</span>
+          </button>
+        </div>
+
+        <!-- Image actions -->
+        <div class="grid grid-cols-4 gap-2 mb-3">
+          <label class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors cursor-pointer text-center">
+            <span class="material-symbols-outlined text-xl text-primary">upload_file</span>
+            <span class="text-[10px] font-bold text-on-surface-variant">Subir foto</span>
+            <input id="img-file" type="file" accept="image/*" class="hidden" />
+          </label>
+          <button id="img-camera" class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors text-center">
+            <span class="material-symbols-outlined text-xl text-primary">photo_camera</span>
+            <span class="text-[10px] font-bold text-on-surface-variant">Cámara</span>
+          </button>
+          <button id="img-whitebg" class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/30 hover:from-amber-100 hover:to-yellow-100 transition-colors text-center">
+            <span class="material-symbols-outlined text-xl text-amber-600">crop</span>
+            <span class="text-[10px] font-bold text-amber-700">Fondo Blanco</span>
+          </button>
+          <button id="img-ai" class="flex flex-col items-center gap-1 py-3 px-2 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200/30 hover:from-purple-100 hover:to-indigo-100 transition-colors text-center">
+            <span class="material-symbols-outlined text-xl text-purple-600">auto_awesome</span>
+            <span class="text-[10px] font-bold text-purple-700">IA Studio</span>
+          </button>
+        </div>
+
+        <!-- AI Status -->
+        <div id="ai-status" class="hidden mb-3 p-3 rounded-xl bg-purple-50 border border-purple-200/30">
+          <div class="flex items-center gap-2 text-sm text-purple-700">
+            <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+            <span id="ai-text" class="font-bold text-xs">Procesando con IA...</span>
+          </div>
+        </div>
+
+        <!-- AI Result -->
+        <div id="ai-result" class="hidden mb-3 p-4 rounded-xl bg-green-50 border border-green-200/30">
+          <p class="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">check_circle</span> Imagen encontrada
+          </p>
+          <div class="flex gap-3 items-center">
+            <img id="ai-img" src="" class="w-20 h-20 object-contain bg-white rounded-lg border" />
+            <div class="flex-1">
+              <p id="ai-name" class="text-xs text-on-surface font-bold truncate"></p>
+              <p id="ai-conf" class="text-[10px] text-on-surface-variant"></p>
+              <button id="ai-apply" class="mt-2 text-xs font-bold text-white bg-green-600 px-4 py-1.5 rounded-full hover:bg-green-700 transition-colors">
+                Usar esta imagen
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Camera capture area -->
+        <div id="camera-area" class="hidden mb-3 rounded-xl overflow-hidden border border-outline-variant/10 bg-black">
+          <video id="camera-video" autoplay playsinline class="w-full h-48 object-cover"></video>
+          <div class="flex gap-2 p-3 bg-surface-container-highest justify-center">
+            <button id="camera-snap" class="px-5 py-2 rounded-full bg-primary text-white text-sm font-bold">Capturar</button>
+            <button id="camera-close" class="px-5 py-2 rounded-full bg-surface-container-lowest text-on-surface-variant text-sm font-bold">Cancelar</button>
+          </div>
+          <canvas id="camera-canvas" class="hidden"></canvas>
+        </div>
+
+        <!-- URL manual -->
+        <details class="text-xs">
+          <summary class="text-on-surface-variant cursor-pointer hover:text-primary transition-colors font-medium">Ingresar URL manualmente</summary>
+          <input id="input-image-url" type="url" placeholder="https://..." class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-2" />
+        </details>
+      </section>
+
+      <!-- Product Details Section -->
+      <section class="bg-surface-container-lowest rounded-2xl p-6 mb-6 shadow-sm border border-outline-variant/5">
+        <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Datos del producto</h2>
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Nombre *</label>
+            <input id="input-name" type="text" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Código *</label>
+              <input id="input-code" type="text" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Marca</label>
+              <input id="input-brand" type="text" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+            </div>
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Categoría</label>
+            <input id="input-category" type="text" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section -->
+      <section class="bg-surface-container-lowest rounded-2xl p-6 mb-6 shadow-sm border border-outline-variant/5">
+        <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Precios</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Costo</label>
+            <input id="input-cost" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Precio</label>
+            <input id="input-price" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Puntos</label>
+            <input id="input-points" type="number" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
+          </div>
+        </div>
+        <!-- Live margin indicator -->
+        <div id="margin-indicator" class="mt-4 p-3 rounded-xl bg-green-50 border border-green-200/30 hidden">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-green-700">Margen</span>
+            <span id="margin-value" class="text-sm font-bold text-green-700"></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Description Section -->
+      <section class="bg-surface-container-lowest rounded-2xl p-6 mb-6 shadow-sm border border-outline-variant/5">
+        <h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Descripción</h2>
+        <textarea id="input-description" rows="4" class="w-full bg-surface-container-highest rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-primary-container resize-none"></textarea>
+      </section>
+
+      <!-- Error -->
+      <div id="form-error" class="text-sm text-red-500 font-bold hidden mb-4"></div>
+
+      <!-- Actions -->
+      <div class="flex gap-3 mb-10">
+        <a href="/inventario" class="flex-1 py-3.5 rounded-xl font-bold border-2 border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-highest transition-colors text-sm text-center">
+          Cancelar
+        </a>
+        <button id="btn-save" class="flex-1 py-3.5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-sm flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">save</span> Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</DashboardLayout>
+
+<script>
+  import { supabase } from '../../lib/supabase';
+  import { authFetch } from '../../lib/auth-fetch';
+  import { processWhiteBackground, uploadBase64Image } from '../../lib/image-helpers';
+  import { calcMargin, formatMXN } from '../../lib/inventory-helpers';
+  import api from '../../lib/api';
+
+  // ── Get product ID from URL ──
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get('id');
+
+  const loadingState = document.getElementById('loading-state')!;
+  const errorState = document.getElementById('error-state')!;
+  const editForm = document.getElementById('edit-form')!;
+
+  if (!productId) {
+    loadingState.classList.add('hidden');
+    errorState.classList.remove('hidden');
+    document.getElementById('error-msg')!.textContent = 'No se especificó un producto.';
+  }
+
+  // ── Auth guard & load product ──
+  supabase.auth.getSession().then(async ({ data: { session } }: any) => {
+    if (!session) {
+      window.location.href = '/login';
+      return;
+    }
+
+    if (!productId) return;
+
+    try {
+      const product = await api.products.get(productId);
+      if (!product) throw new Error('Producto no encontrado');
+
+      // Populate form
+      (document.getElementById('input-name') as HTMLInputElement).value = product.name || '';
+      (document.getElementById('input-code') as HTMLInputElement).value = product.code || '';
+      (document.getElementById('input-brand') as HTMLInputElement).value = product.brand || '';
+      (document.getElementById('input-category') as HTMLInputElement).value = product.category || '';
+      (document.getElementById('input-cost') as HTMLInputElement).value = product.cost?.toString() || '';
+      (document.getElementById('input-price') as HTMLInputElement).value = product.price?.toString() || '';
+      (document.getElementById('input-points') as HTMLInputElement).value = product.points?.toString() || '';
+      (document.getElementById('input-image-url') as HTMLInputElement).value = product.image_url || '';
+      (document.getElementById('input-description') as HTMLTextAreaElement).value = product.description || '';
+
+      // Set page title
+      document.getElementById('page-title')!.textContent = product.name || 'Editar Producto';
+      document.getElementById('page-subtitle')!.textContent = product.code ? `Código: ${product.code}` : '';
+
+      // Show image preview
+      if (product.image_url) {
+        setImagePreview(product.image_url);
+      }
+
+      // Show margin
+      updateMarginIndicator();
+
+      loadingState.classList.add('hidden');
+      editForm.classList.remove('hidden');
+    } catch (err: any) {
+      loadingState.classList.add('hidden');
+      errorState.classList.remove('hidden');
+      document.getElementById('error-msg')!.textContent = err.message || 'Error cargando producto';
+    }
+  });
+
+  // ── Image preview management ──
+  function setImagePreview(url: string) {
+    const preview = document.getElementById('img-preview')!;
+    const imgEl = document.getElementById('img-preview-src') as HTMLImageElement;
+    imgEl.src = url;
+    preview.classList.remove('hidden');
+    preview.style.display = 'flex';
+    // Also update the URL input
+    (document.getElementById('input-image-url') as HTMLInputElement).value = url;
+  }
+
+  document.getElementById('img-delete')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const preview = document.getElementById('img-preview')!;
+    (document.getElementById('img-preview-src') as HTMLImageElement).src = '';
+    preview.classList.add('hidden');
+    preview.style.display = 'none';
+    (document.getElementById('input-image-url') as HTMLInputElement).value = '';
+  });
+
+  // URL input → update preview
+  document.getElementById('input-image-url')?.addEventListener('input', () => {
+    const url = (document.getElementById('input-image-url') as HTMLInputElement).value.trim();
+    if (url) setImagePreview(url);
+  });
+
+  // ── File upload ──
+  document.getElementById('img-file')?.addEventListener('change', async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const base64 = ev.target?.result as string;
+      const fileName = `edit_${Date.now()}.${file.type.includes('png') ? 'png' : 'jpg'}`;
+      const url = await uploadBase64Image(base64, fileName, file.type);
+      if (url) setImagePreview(url);
+      else setImagePreview(base64); // fallback to local preview
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // ── Camera ──
+  let cameraStream: MediaStream | null = null;
+
+  document.getElementById('img-camera')?.addEventListener('click', async () => {
+    const cameraArea = document.getElementById('camera-area')!;
+    const video = document.getElementById('camera-video') as HTMLVideoElement;
+    
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      video.srcObject = cameraStream;
+      cameraArea.classList.remove('hidden');
+    } catch {
+      (window as any).toast?.error('No se pudo acceder a la cámara.');
+    }
+  });
+
+  document.getElementById('camera-close')?.addEventListener('click', () => {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    document.getElementById('camera-area')!.classList.add('hidden');
+  });
+
+  document.getElementById('camera-snap')?.addEventListener('click', async () => {
+    const video = document.getElementById('camera-video') as HTMLVideoElement;
+    const canvas = document.getElementById('camera-canvas') as HTMLCanvasElement;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d')!.drawImage(video, 0, 0);
+    const base64 = canvas.toDataURL('image/jpeg', 0.9);
+
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    document.getElementById('camera-area')!.classList.add('hidden');
+
+    const fileName = `cam_${Date.now()}.jpg`;
+    const url = await uploadBase64Image(base64, fileName);
+    if (url) setImagePreview(url);
+    else setImagePreview(base64);
+  });
+
+  // ── Fondo Blanco (Canvas crop + AI) ──
+  document.getElementById('img-whitebg')?.addEventListener('click', async () => {
+    const imgEl = document.getElementById('img-preview-src') as HTMLImageElement;
+    if (!imgEl.src || imgEl.src === window.location.href) {
+      showError('Primero necesitas tener una imagen del producto.');
+      return;
+    }
+
+    const statusEl = document.getElementById('ai-status')!;
+    const textEl = document.getElementById('ai-text')!;
+    statusEl.classList.remove('hidden');
+
+    const productName = (document.getElementById('input-name') as HTMLInputElement).value;
+    const result = await processWhiteBackground(imgEl.src, productName, (step) => {
+      textEl.textContent = step;
+    });
+
+    statusEl.classList.add('hidden');
+
+    if (result.error) {
+      showError(result.error);
+    } else if (result.url) {
+      setImagePreview(result.url);
+    } else if (result.base64) {
+      setImagePreview(result.base64);
+    }
+  });
+
+  // ── IA Studio (enhance endpoint) ──
+  document.getElementById('img-ai')?.addEventListener('click', async () => {
+    const imgEl = document.getElementById('img-preview-src') as HTMLImageElement;
+    const name = (document.getElementById('input-name') as HTMLInputElement).value;
+    const code = (document.getElementById('input-code') as HTMLInputElement).value;
+    const desc = (document.getElementById('input-description') as HTMLTextAreaElement).value;
+    const currentImg = imgEl.src;
+
+    const statusEl = document.getElementById('ai-status')!;
+    const textEl = document.getElementById('ai-text')!;
+    const resultEl = document.getElementById('ai-result')!;
+    statusEl.classList.remove('hidden');
+    resultEl.classList.add('hidden');
+    textEl.textContent = 'Buscando imagen de estudio con IA...';
+
+    let originalBase64: string | null = null;
+    if (currentImg && currentImg.startsWith('data:image')) {
+      originalBase64 = currentImg;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      const res = await authFetch('/api/enhance-product-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productName: name, productCode: code, productDesc: desc,
+          imageBase64: originalBase64,
+          imageUrl: originalBase64 ? null : (currentImg !== window.location.href ? currentImg : null),
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const data = await res.json();
+
+      statusEl.classList.add('hidden');
+
+      if (data.error) throw new Error(data.error);
+
+      if (data.suggested_image_url || data.image_base64) {
+        const strategy = data.strategy === 'imagen_bkg_removal' ? '🎯 Fondo removido' :
+                         data.strategy === 'gemini_image_gen' ? '✨ Generada por IA' :
+                         data.strategy === 'text_catalog_search' ? '📂 Catálogo oficial' : 'IA';
+
+        (window as any)._aiFoundUrl = data.suggested_image_url || null;
+        (document.getElementById('ai-img') as HTMLImageElement).src = data.image_base64 || data.suggested_image_url || '';
+        document.getElementById('ai-name')!.textContent = data.identified_name || name || 'Producto AI';
+        const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
+        document.getElementById('ai-conf')!.textContent = `${strategy} • ${confText} • ${data.notes || ''}`;
+        resultEl.classList.remove('hidden');
+      } else {
+        showError('La IA no pudo procesar la imagen. Intenta con otra foto.');
+      }
+    } catch (err: any) {
+      statusEl.classList.add('hidden');
+      if (err.name === 'AbortError') {
+        showError('La solicitud tardó demasiado (30s). Intenta de nuevo.');
+      } else {
+        showError('Error conectando con IA: ' + (err.message || err));
+      }
+    }
+  });
+
+  document.getElementById('ai-apply')?.addEventListener('click', () => {
+    const foundUrl = (window as any)._aiFoundUrl;
+    if (foundUrl) setImagePreview(foundUrl);
+    document.getElementById('ai-result')!.classList.add('hidden');
+  });
+
+  // ── Live margin indicator ──
+  function updateMarginIndicator() {
+    const cost = parseFloat((document.getElementById('input-cost') as HTMLInputElement).value) || 0;
+    const price = parseFloat((document.getElementById('input-price') as HTMLInputElement).value) || 0;
+    const indicator = document.getElementById('margin-indicator')!;
+    const valueEl = document.getElementById('margin-value')!;
+
+    if (cost > 0 && price > 0) {
+      const margin = calcMargin(cost, price);
+      const profit = price - cost;
+      valueEl.textContent = `${margin}% (${formatMXN(profit)} ganancia)`;
+      
+      // Color based on margin
+      indicator.className = 'mt-4 p-3 rounded-xl border';
+      if (margin >= 30) {
+        indicator.classList.add('bg-green-50', 'border-green-200/30');
+        valueEl.className = 'text-sm font-bold text-green-700';
+      } else if (margin >= 15) {
+        indicator.classList.add('bg-amber-50', 'border-amber-200/30');
+        valueEl.className = 'text-sm font-bold text-amber-700';
+      } else {
+        indicator.classList.add('bg-red-50', 'border-red-200/30');
+        valueEl.className = 'text-sm font-bold text-red-600';
+      }
+      indicator.classList.remove('hidden');
+    } else {
+      indicator.classList.add('hidden');
+    }
+  }
+
+  document.getElementById('input-cost')?.addEventListener('input', updateMarginIndicator);
+  document.getElementById('input-price')?.addEventListener('input', updateMarginIndicator);
+
+  // ── Save ──
+  document.getElementById('btn-save')?.addEventListener('click', async () => {
+    if (!productId) return;
+    const errEl = document.getElementById('form-error')!;
+    errEl.classList.add('hidden');
+
+    const name = (document.getElementById('input-name') as HTMLInputElement).value.trim();
+    const code = (document.getElementById('input-code') as HTMLInputElement).value.trim();
+    const brand = (document.getElementById('input-brand') as HTMLInputElement).value.trim();
+    const category = (document.getElementById('input-category') as HTMLInputElement).value.trim();
+    const cost = parseFloat((document.getElementById('input-cost') as HTMLInputElement).value) || 0;
+    const price = parseFloat((document.getElementById('input-price') as HTMLInputElement).value) || 0;
+    const points = parseInt((document.getElementById('input-points') as HTMLInputElement).value) || 0;
+    const image_url = (document.getElementById('input-image-url') as HTMLInputElement).value.trim();
+    const description = (document.getElementById('input-description') as HTMLTextAreaElement).value.trim();
+
+    if (!name || !code) {
+      showError('Nombre y código son requeridos.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-save') as HTMLButtonElement;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
+
+    try {
+      await api.products.update(productId, { name, code, brand, category, cost, price, points, image_url, description });
+      
+      // Success toast then redirect
+      (window as any).toast?.success('Producto actualizado correctamente');
+      setTimeout(() => { window.location.href = '/inventario'; }, 800);
+    } catch (e: any) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar cambios';
+      showError('Error: ' + (e.message || 'No se pudo guardar'));
+    }
+  });
+
+  // ── Error helper ──
+  function showError(msg: string) {
+    const errEl = document.getElementById('form-error')!;
+    errEl.textContent = msg;
+    errEl.classList.remove('hidden');
+    errEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+</script>

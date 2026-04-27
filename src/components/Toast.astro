@@ -1,0 +1,79 @@
+---
+/**
+ * Toast — Global notification component for Flow Natura.
+ *
+ * Usage from any page:
+ *   window.toast?.success('Producto guardado');
+ *   window.toast?.error('No se pudo conectar');
+ *   window.toast?.info('Procesando...');
+ */
+---
+
+<!-- Toast container (fixed bottom-center) -->
+<div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 items-center pointer-events-none"></div>
+
+<script>
+  interface ToastOptions {
+    duration?: number;
+    icon?: string;
+  }
+
+  const container = document.getElementById('toast-container')!;
+
+  function show(message: string, type: 'success' | 'error' | 'info' | 'warning', opts: ToastOptions = {}) {
+    const { duration = 3500, icon } = opts;
+
+    const styles = {
+      success: {
+        bg: 'bg-green-600',
+        defaultIcon: 'check_circle',
+      },
+      error: {
+        bg: 'bg-red-600',
+        defaultIcon: 'error',
+      },
+      warning: {
+        bg: 'bg-amber-600',
+        defaultIcon: 'warning',
+      },
+      info: {
+        bg: 'bg-primary',
+        defaultIcon: 'info',
+      },
+    };
+
+    const s = styles[type];
+    const el = document.createElement('div');
+    el.className = `pointer-events-auto flex items-center gap-2.5 px-5 py-3 rounded-2xl ${s.bg} text-white text-sm font-bold shadow-2xl backdrop-blur-sm max-w-md animate-[toastIn_0.3s_ease-out]`;
+    el.innerHTML = `
+      <span class="material-symbols-outlined text-lg shrink-0">${icon || s.defaultIcon}</span>
+      <span class="flex-1">${message}</span>
+    `;
+
+    container.appendChild(el);
+
+    setTimeout(() => {
+      el.style.animation = 'toastOut 0.25s ease-in forwards';
+      el.addEventListener('animationend', () => el.remove());
+    }, duration);
+  }
+
+  // Expose globally
+  (window as any).toast = {
+    success: (msg: string, opts?: ToastOptions) => show(msg, 'success', opts),
+    error: (msg: string, opts?: ToastOptions) => show(msg, 'error', opts),
+    warning: (msg: string, opts?: ToastOptions) => show(msg, 'warning', opts),
+    info: (msg: string, opts?: ToastOptions) => show(msg, 'info', opts),
+  };
+</script>
+
+<style>
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(16px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes toastOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(8px) scale(0.95); }
+  }
+</style>

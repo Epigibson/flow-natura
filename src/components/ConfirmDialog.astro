@@ -1,0 +1,89 @@
+---
+/**
+ * ConfirmDialog — Global confirmation modal for destructive actions.
+ *
+ * Usage from any page:
+ *   const confirmed = await window.confirm?.('¿Eliminar este producto?', {
+ *     description: 'Esta acción no se puede deshacer.',
+ *     confirmText: 'Eliminar',
+ *     variant: 'danger'
+ *   });
+ *   if (confirmed) { ... }
+ */
+---
+
+<div id="confirm-dialog" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998] hidden items-center justify-center p-4" style="display:none;">
+  <div class="bg-surface-container-lowest rounded-2xl max-w-sm w-full shadow-2xl animate-[slideUp_0.25s_ease-out] overflow-hidden">
+    <div class="p-6">
+      <div id="confirm-icon-container" class="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+        <span id="confirm-icon" class="material-symbols-outlined text-2xl"></span>
+      </div>
+      <h3 id="confirm-title" class="text-lg font-display font-bold text-on-surface text-center mb-2"></h3>
+      <p id="confirm-desc" class="text-sm text-on-surface-variant text-center"></p>
+    </div>
+    <div class="flex border-t border-outline-variant/10">
+      <button id="confirm-cancel" class="flex-1 py-3.5 text-sm font-bold text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+        Cancelar
+      </button>
+      <button id="confirm-ok" class="flex-1 py-3.5 text-sm font-bold transition-colors border-l border-outline-variant/10">
+        Confirmar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dialog = document.getElementById('confirm-dialog')!;
+  const titleEl = document.getElementById('confirm-title')!;
+  const descEl = document.getElementById('confirm-desc')!;
+  const iconEl = document.getElementById('confirm-icon')!;
+  const iconContainer = document.getElementById('confirm-icon-container')!;
+  const okBtn = document.getElementById('confirm-ok')!;
+  const cancelBtn = document.getElementById('confirm-cancel')!;
+
+  let resolvePromise: ((value: boolean) => void) | null = null;
+
+  function showConfirm(
+    title: string,
+    options: { description?: string; confirmText?: string; cancelText?: string; variant?: 'danger' | 'warning' | 'info' } = {}
+  ): Promise<boolean> {
+    const { description = '', confirmText = 'Confirmar', cancelText = 'Cancelar', variant = 'danger' } = options;
+
+    titleEl.textContent = title;
+    descEl.textContent = description;
+    okBtn.textContent = confirmText;
+    cancelBtn.textContent = cancelText;
+
+    const variants = {
+      danger: { icon: 'delete_forever', iconBg: 'bg-red-100', iconColor: 'text-red-600', btnBg: 'bg-red-600 text-white hover:bg-red-700' },
+      warning: { icon: 'warning', iconBg: 'bg-amber-100', iconColor: 'text-amber-600', btnBg: 'bg-amber-600 text-white hover:bg-amber-700' },
+      info: { icon: 'help', iconBg: 'bg-primary/10', iconColor: 'text-primary', btnBg: 'bg-primary text-white hover:bg-primary/90' },
+    };
+    const v = variants[variant];
+    iconEl.textContent = v.icon;
+    iconContainer.className = `w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center ${v.iconBg}`;
+    iconEl.className = `material-symbols-outlined text-2xl ${v.iconColor}`;
+    okBtn.className = `flex-1 py-3.5 text-sm font-bold transition-colors border-l border-outline-variant/10 ${v.btnBg}`;
+
+    dialog.style.display = 'flex';
+    dialog.classList.remove('hidden');
+
+    return new Promise((resolve) => {
+      resolvePromise = resolve;
+    });
+  }
+
+  function close(result: boolean) {
+    dialog.style.display = 'none';
+    dialog.classList.add('hidden');
+    resolvePromise?.(result);
+    resolvePromise = null;
+  }
+
+  okBtn.addEventListener('click', () => close(true));
+  cancelBtn.addEventListener('click', () => close(false));
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) close(false); });
+
+  // Expose globally
+  (window as any).confirmDialog = showConfirm;
+</script>

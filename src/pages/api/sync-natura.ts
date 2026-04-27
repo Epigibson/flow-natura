@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getServiceSupabase } from '../../lib/supabase-server';
+import { requireAuth } from '../../lib/api-auth';
 import { decrypt } from '../../utils/crypto';
 
 export const prerender = false;
@@ -9,10 +10,11 @@ const SCRAPER_SECRET = import.meta.env.SCRAPER_API_SECRET || 'dev-secret-key';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { userId } = await request.json();
-    if (!userId) {
-       return new Response(JSON.stringify({ success: false, error: 'User ID missing.' }), { status: 400 });
-    }
+    // Auth guard — only the authenticated user can trigger their own sync
+    const authResult = await requireAuth(request);
+    if (authResult.error) return authResult.error;
+
+    const userId = authResult.user.id;
 
     // 1. Fetch credentials from DB using admin client to bypass RLS
     const supabaseAdmin = getServiceSupabase();

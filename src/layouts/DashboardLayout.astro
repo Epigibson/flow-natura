@@ -1,6 +1,8 @@
 ---
 import Layout from './Layout.astro';
 import Sidebar from '../components/Sidebar.astro';
+import Toast from '../components/Toast.astro';
+import ConfirmDialog from '../components/ConfirmDialog.astro';
 ---
 
 <Layout>
@@ -10,6 +12,8 @@ import Sidebar from '../components/Sidebar.astro';
       <slot />
     </main>
   </div>
+  <Toast />
+  <ConfirmDialog />
 </Layout>
 
 <script>

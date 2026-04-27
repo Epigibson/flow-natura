@@ -530,9 +530,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     document.getElementById("result-brand")!.textContent =
       product.brand || "Natura";
     document.getElementById("result-cost")!.textContent =
-      `$${(product.cost || 0).toFixed(0)}`;
+      `$${Number(product.cost || 0).toFixed(0)}`;
     document.getElementById("result-price")!.textContent =
-      `$${(product.price || 0).toFixed(0)}`;
+      `$${Number(product.price || 0).toFixed(0)}`;
     document.getElementById("result-points")!.textContent =
       `${product.points || 0}`;
 
@@ -598,7 +598,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
           }
           <div class="flex-1 min-w-0">
             <p class="text-xs font-bold text-on-surface leading-tight line-clamp-1">${esc(p.name)}</p>
-            <p class="text-[10px] text-on-surface-variant">${p.brand || "Natura"} · ${p.code} · $${(p.price || 0).toFixed(0)}</p>
+            <p class="text-[10px] text-on-surface-variant">${p.brand || "Natura"} · ${p.code} · $${Number(p.price || 0).toFixed(0)}</p>
           </div>
           <span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">link</span>
         </button>

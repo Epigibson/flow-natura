@@ -97,7 +97,7 @@ export const POST: APIRoute = async ({ request }) => {
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
       try {
-        console.log('[enhance] Attempting Gemini 2.5 Flash Image generation...');
+
         const prompt = `Transform this product photo into a professional Amazon-style product listing image.
 
 The output MUST have:
@@ -149,7 +149,7 @@ ${productName ? `\nThe product is: "${productName}"` : ''}`;
 
       // ═══════════ STRATEGY 2: Imagen 4 Background Removal (fallback) ═══════════
       try {
-        console.log('[enhance] Falling back to Imagen 4 BKG_REMOVAL...');
+
         const response = await ai.models.generateImages({
           model: 'imagen-4.0-fast-generate-001',
           prompt: 'the exact original foreground subject, keeping all its exact original pixels, texts, and original packaging identical',

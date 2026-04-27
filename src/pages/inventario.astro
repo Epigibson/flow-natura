@@ -66,26 +66,57 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       </div>
 
       <!-- Search and Filter Bar -->
-      <div class="flex flex-wrap gap-3 mb-8">
+      <div class="flex flex-wrap gap-3 mb-8 items-center">
         <div class="flex-1 min-w-[200px] relative">
-          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-          <input type="text" id="search-input" placeholder="Buscar por nombre, código o marca..." class="w-full bg-surface-container-highest border-none rounded-xl py-3 pl-10 pr-4 focus:ring-2 focus:ring-primary-container" />
+          <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/60 text-lg">search</span>
+          <input type="text" id="search-input" placeholder="Buscar por nombre, código o marca..." class="w-full bg-surface-container-lowest border border-outline-variant/10 rounded-xl py-3 pl-11 pr-4 text-sm font-medium shadow-sm focus:ring-2 focus:ring-primary-container focus:border-primary/20 transition-all placeholder:text-on-surface-variant/40" />
         </div>
-        <select id="filter-brand" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 w-40 text-sm focus:ring-2 focus:ring-primary-container">
-          <option value="all">Todas las marcas</option>
-        </select>
-        <select id="filter-category" class="bg-surface-container-highest border-none rounded-xl py-3 px-4 w-48 text-sm focus:ring-2 focus:ring-primary-container">
-          <option value="all">Todas las categorías</option>
-        </select>
+
+        <!-- Custom Brand Dropdown -->
+        <div class="relative" id="dropdown-brand-wrapper">
+          <select id="filter-brand" class="hidden"><option value="all">Todas las marcas</option></select>
+          <button id="dropdown-brand-btn" type="button" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/10 rounded-xl py-3 pl-3.5 pr-3 text-sm font-bold text-on-surface shadow-sm cursor-pointer hover:border-primary/30 transition-all whitespace-nowrap">
+            <span class="material-symbols-outlined text-on-surface-variant/60 text-base">storefront</span>
+            <span id="dropdown-brand-label">Todas las marcas</span>
+            <span class="material-symbols-outlined text-on-surface-variant/40 text-base transition-transform" id="dropdown-brand-arrow">expand_more</span>
+          </button>
+          <div id="dropdown-brand-menu" class="absolute top-full left-0 mt-1.5 min-w-full w-max bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/10 overflow-hidden z-50 hidden animate-[dropIn_0.15s_ease-out]">
+            <div class="py-1.5 max-h-64 overflow-y-auto" id="dropdown-brand-list"></div>
+          </div>
+        </div>
+
+        <!-- Custom Category Dropdown -->
+        <div class="relative" id="dropdown-category-wrapper">
+          <select id="filter-category" class="hidden"><option value="all">Todas las categorías</option></select>
+          <button id="dropdown-category-btn" type="button" class="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/10 rounded-xl py-3 pl-3.5 pr-3 text-sm font-bold text-on-surface shadow-sm cursor-pointer hover:border-primary/30 transition-all whitespace-nowrap">
+            <span class="material-symbols-outlined text-on-surface-variant/60 text-base">category</span>
+            <span id="dropdown-category-label">Todas las categorías</span>
+            <span class="material-symbols-outlined text-on-surface-variant/40 text-base transition-transform" id="dropdown-category-arrow">expand_more</span>
+          </button>
+          <div id="dropdown-category-menu" class="absolute top-full left-0 mt-1.5 min-w-full w-max bg-surface-container-lowest rounded-xl shadow-2xl border border-outline-variant/10 overflow-hidden z-50 hidden animate-[dropIn_0.15s_ease-out]">
+            <div class="py-1.5 max-h-64 overflow-y-auto" id="dropdown-category-list"></div>
+          </div>
+        </div>
+
         <!-- View Toggle -->
-        <div class="flex bg-surface-container-highest rounded-xl overflow-hidden">
-          <button id="view-grid" class="px-3 py-2 text-primary bg-primary/10" title="Vista cuadrícula">
+        <div class="flex bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/10 shadow-sm">
+          <button id="view-grid" class="px-3 py-2.5 text-primary bg-primary/10" title="Vista cuadrícula">
             <span class="material-symbols-outlined text-lg">grid_view</span>
           </button>
-          <button id="view-list" class="px-3 py-2 text-on-surface-variant hover:text-primary transition-colors" title="Vista lista">
+          <button id="view-list" class="px-3 py-2.5 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-colors" title="Vista lista">
             <span class="material-symbols-outlined text-lg">view_list</span>
           </button>
         </div>
+      </div>
+
+      <!-- Active Filters & Results Count -->
+      <div id="active-filters-bar" class="hidden flex flex-wrap items-center gap-2 mb-5">
+        <span id="results-count" class="text-xs font-bold text-on-surface-variant"></span>
+        <div id="filter-chips" class="flex flex-wrap gap-1.5"></div>
+        <button id="clear-filters" class="hidden text-[11px] font-bold text-primary hover:text-primary/80 transition-colors ml-1 flex items-center gap-0.5">
+          <span class="material-symbols-outlined text-sm">close</span>
+          Limpiar filtros
+        </button>
       </div>
 
       <!-- Skeleton for products grid -->
@@ -94,7 +125,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       </div>
 
       <!-- Products Grid (hidden until loaded) -->
-      <section id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 hidden">
+      <section id="products-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 pb-20 hidden">
         <div class="col-span-full text-center py-12 text-on-surface-variant hidden" id="empty-state">
           <span class="material-symbols-outlined text-5xl mb-4 text-primary/30">inventory_2</span>
           <p class="text-lg font-bold">No tienes productos en tu inventario aún.</p>
@@ -103,7 +134,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       </section>
 
       <!-- List View (hidden by default) -->
-      <section id="list-container" class="hidden">
+      <section id="list-container" class="hidden pb-20">
         <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/5 overflow-hidden">
           <table class="w-full text-left text-sm">
             <thead class="sticky top-0 bg-surface-container-high z-10">
@@ -124,15 +155,21 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
         </div>
       </section>
 
-      <!-- Pagination -->
-      <div id="pagination" class="flex justify-center items-center gap-3 mt-8 hidden">
-        <button id="prev-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
-          <span class="material-symbols-outlined text-sm">chevron_left</span> Anterior
-        </button>
-        <span id="page-info" class="text-sm text-on-surface-variant font-medium"></span>
-        <button id="next-page" class="px-4 py-2 rounded-xl bg-surface-container-highest text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-colors font-bold text-sm disabled:opacity-30" disabled>
-          Siguiente <span class="material-symbols-outlined text-sm">chevron_right</span>
-        </button>
+      <!-- Pagination — sticky floating bar -->
+      <div id="pagination" class="fixed bottom-0 left-0 right-0 md:left-72 z-40 hidden">
+        <div class="mx-auto max-w-xl px-4 pb-4">
+          <div class="flex items-center justify-between gap-2 bg-surface-container-lowest/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-outline-variant/10 px-4 py-2.5">
+            <button id="prev-page" class="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none" disabled>
+              <span class="material-symbols-outlined text-base">chevron_left</span>
+              <span class="hidden sm:inline">Anterior</span>
+            </button>
+            <span id="page-info" class="text-xs font-bold text-on-surface-variant tabular-nums"></span>
+            <button id="next-page" class="flex items-center gap-1 px-3 py-2 rounded-xl text-sm font-bold text-on-surface-variant hover:bg-primary/10 hover:text-primary transition-all disabled:opacity-30 disabled:pointer-events-none" disabled>
+              <span class="hidden sm:inline">Siguiente</span>
+              <span class="material-symbols-outlined text-base">chevron_right</span>
+            </button>
+          </div>
+        </div>
       </div>
 
   <!-- Product Detail Modal -->
@@ -151,9 +188,9 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           <span class="material-symbols-outlined">close</span>
         </button>
         <div id="detail-badge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"></div>
-        <button id="detail-edit-btn" class="absolute bottom-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-xs font-bold text-on-surface shadow-md hover:bg-white transition-all">
+        <a id="detail-edit-btn" href="#" class="absolute bottom-3 right-3 flex items-center gap-1 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-sm text-xs font-bold text-on-surface shadow-md hover:bg-white transition-all">
           <span class="material-symbols-outlined text-sm">edit</span> Editar
-        </button>
+        </a>
       </div>
 
       <!-- VIEW MODE -->
@@ -210,125 +247,6 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           </div>
         </div>
       </div>
-
-      <!-- EDIT MODE -->
-      <div id="detail-edit" class="p-6 overflow-y-auto flex-1 hidden">
-        <h4 class="font-display font-bold text-lg text-on-surface mb-4 flex items-center gap-2">
-          <span class="material-symbols-outlined text-primary">edit_note</span> Editar Producto
-        </h4>
-        <div class="space-y-3">
-          <div>
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Nombre</label>
-            <input id="edit-name" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Codigo</label>
-              <input id="edit-code" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Marca</label>
-              <input id="edit-brand" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            </div>
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Categoria</label>
-            <input id="edit-category" type="text" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-          </div>
-          <div class="grid grid-cols-3 gap-3">
-            <div>
-              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Costo</label>
-              <input id="edit-cost" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Precio</label>
-              <input id="edit-price" type="number" step="0.01" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            </div>
-            <div>
-              <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Puntos</label>
-              <input id="edit-points" type="number" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-1" />
-            </div>
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Imagen del producto</label>
-            <!-- Current image preview -->
-            <div id="edit-img-preview" class="relative mb-3 h-32 bg-white rounded-xl hidden items-center justify-center overflow-hidden border border-outline-variant/10 group">
-              <img id="edit-img-preview-src" src="" class="max-h-full max-w-full object-contain" />
-              <button id="edit-img-delete" class="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600" title="Eliminar imagen">
-                <span class="material-symbols-outlined text-sm">delete</span>
-              </button>
-            </div>
-            <!-- Image actions -->
-            <div class="grid grid-cols-4 gap-2 mb-2">
-              <label class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors cursor-pointer text-center">
-                <span class="material-symbols-outlined text-lg text-primary">upload_file</span>
-                <span class="text-[9px] font-bold text-on-surface-variant">Subir foto</span>
-                <input id="edit-img-file" type="file" accept="image/*" class="hidden" />
-              </label>
-              <button id="edit-img-camera" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors text-center">
-                <span class="material-symbols-outlined text-lg text-primary">photo_camera</span>
-                <span class="text-[9px] font-bold text-on-surface-variant">Camara</span>
-              </button>
-              <button id="edit-img-whitebg" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/30 hover:from-amber-100 hover:to-yellow-100 transition-colors text-center">
-                <span class="material-symbols-outlined text-lg text-amber-600">crop</span>
-                <span class="text-[9px] font-bold text-amber-700">Fondo Blanco</span>
-              </button>
-              <button id="edit-img-ai" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200/30 hover:from-purple-100 hover:to-indigo-100 transition-colors text-center">
-                <span class="material-symbols-outlined text-lg text-purple-600">auto_awesome</span>
-                <span class="text-[9px] font-bold text-purple-700">IA Studio</span>
-              </button>
-            </div>
-            <!-- AI status -->
-            <div id="edit-ai-status" class="hidden mb-2 p-3 rounded-xl bg-purple-50 border border-purple-200/30">
-              <div class="flex items-center gap-2 text-sm text-purple-700">
-                <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                <span id="edit-ai-text" class="font-bold text-xs">Buscando imagen de estudio con IA...</span>
-              </div>
-            </div>
-            <!-- AI result -->
-            <div id="edit-ai-result" class="hidden mb-2 p-3 rounded-xl bg-green-50 border border-green-200/30">
-              <p class="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">check_circle</span> Imagen encontrada
-              </p>
-              <div class="flex gap-3 items-center">
-                <img id="edit-ai-img" src="" class="w-16 h-16 object-contain bg-white rounded-lg border" />
-                <div class="flex-1">
-                  <p id="edit-ai-name" class="text-[10px] text-on-surface font-bold truncate"></p>
-                  <p id="edit-ai-conf" class="text-[9px] text-on-surface-variant"></p>
-                  <button id="edit-ai-apply" class="mt-1 text-[10px] font-bold text-white bg-green-600 px-3 py-1 rounded-full hover:bg-green-700 transition-colors">
-                    Usar esta imagen
-                  </button>
-                </div>
-              </div>
-            </div>
-            <!-- Camera capture area -->
-            <div id="edit-camera-area" class="hidden mb-2 rounded-xl overflow-hidden border border-outline-variant/10 bg-black">
-              <video id="edit-camera-video" autoplay playsinline class="w-full h-40 object-cover"></video>
-              <div class="flex gap-2 p-2 bg-surface-container-highest justify-center">
-                <button id="edit-camera-snap" class="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-bold">Capturar</button>
-                <button id="edit-camera-close" class="px-4 py-1.5 rounded-full bg-surface-container-lowest text-on-surface-variant text-xs font-bold">Cancelar</button>
-              </div>
-              <canvas id="edit-camera-canvas" class="hidden"></canvas>
-            </div>
-            <!-- URL fallback -->
-            <details class="text-xs">
-              <summary class="text-on-surface-variant cursor-pointer hover:text-primary transition-colors font-medium">Ingresar URL manualmente</summary>
-              <input id="edit-image" type="url" placeholder="https://..." class="w-full bg-surface-container-highest rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-primary-container mt-2" />
-            </details>
-          </div>
-          <div>
-            <label class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Descripcion</label>
-            <textarea id="edit-description" rows="3" class="w-full bg-surface-container-highest rounded-xl py-2.5 px-3 text-sm focus:ring-2 focus:ring-primary-container resize-none mt-1"></textarea>
-          </div>
-          <div id="edit-error" class="text-sm text-red-500 font-bold hidden"></div>
-          <div class="flex gap-3 pt-2">
-            <button id="edit-cancel" class="flex-1 py-3 rounded-xl font-bold border-2 border-outline-variant/20 text-on-surface-variant hover:bg-surface-container-highest transition-colors text-sm">Cancelar</button>
-            <button id="edit-save" class="flex-1 py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-sm flex items-center justify-center gap-2">
-              <span class="material-symbols-outlined text-sm">save</span> Guardar
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -339,11 +257,14 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     from { opacity: 0; transform: translateY(20px) scale(0.97); }
     to { opacity: 1; transform: translateY(0) scale(1); }
   }
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
 </style>
 
 <script>
   import { supabase } from '../lib/supabase';
-  import { authFetch } from '../lib/auth-fetch';
   import api from '../lib/api';
   import { esc, sanitizeUrl } from '../lib/security';
 
@@ -423,18 +344,82 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     const brands = [...new Set(fullInventory.map(p => p.brand).filter(Boolean))].sort();
     const categories = [...new Set(fullInventory.map(p => p.category).filter(Boolean))].sort();
 
+    // Keep hidden selects in sync for applyFilters()
     brands.forEach(b => {
       const opt = document.createElement('option');
       opt.value = b; opt.textContent = b;
       filterBrand.appendChild(opt);
     });
-
     categories.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c; opt.textContent = c;
       filterCategory.appendChild(opt);
     });
+
+    // Render custom dropdown items
+    renderDropdownItems('brand', ['all', ...brands], 'Todas las marcas');
+    renderDropdownItems('category', ['all', ...categories], 'Todas las categorías');
   }
+
+  function renderDropdownItems(type: string, values: string[], allLabel: string) {
+    const list = document.getElementById(`dropdown-${type}-list`)!;
+    list.innerHTML = '';
+    values.forEach(val => {
+      const label = val === 'all' ? allLabel : val;
+      const count = val === 'all' ? fullInventory.length : fullInventory.filter(p => type === 'brand' ? p.brand === val : p.category === val).length;
+      const isSelected = (type === 'brand' ? filterBrand.value : filterCategory.value) === val;
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = `w-full flex items-center gap-2.5 px-3.5 py-2.5 text-left text-sm transition-colors ${isSelected ? 'bg-primary/8 text-primary font-bold' : 'text-on-surface hover:bg-surface-container-highest font-medium'}`;
+      item.dataset.value = val;
+      item.innerHTML = `
+        <span class="material-symbols-outlined text-base ${isSelected ? 'text-primary' : 'text-transparent'}" style="font-size:18px">${isSelected ? 'check' : 'check'}</span>
+        <span class="flex-1 truncate">${esc(label)}</span>
+        <span class="text-[10px] font-bold ${isSelected ? 'text-primary/60' : 'text-on-surface-variant/40'} tabular-nums">${count}</span>
+      `;
+      item.addEventListener('click', () => {
+        const select = type === 'brand' ? filterBrand : filterCategory;
+        select.value = val;
+        document.getElementById(`dropdown-${type}-label`)!.textContent = label;
+        document.getElementById(`dropdown-${type}-menu`)!.classList.add('hidden');
+        document.getElementById(`dropdown-${type}-arrow`)!.style.transform = '';
+        // Re-render items to update check marks
+        renderDropdownItems(type, values, allLabel);
+        applyFilters();
+      });
+      list.appendChild(item);
+    });
+  }
+
+  // Custom dropdown toggle logic
+  function setupDropdown(type: string) {
+    const btn = document.getElementById(`dropdown-${type}-btn`)!;
+    const menu = document.getElementById(`dropdown-${type}-menu`)!;
+    const arrow = document.getElementById(`dropdown-${type}-arrow`)!;
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = !menu.classList.contains('hidden');
+      // Close all dropdowns first
+      document.querySelectorAll('[id$="-menu"]').forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('[id$="-arrow"]').forEach(a => (a as HTMLElement).style.transform = '');
+      if (!isOpen) {
+        menu.classList.remove('hidden');
+        arrow.style.transform = 'rotate(180deg)';
+      }
+    });
+  }
+  setupDropdown('brand');
+  setupDropdown('category');
+
+  // Close dropdowns on outside click
+  document.addEventListener('click', () => {
+    document.querySelectorAll('[id$="-menu"]').forEach(m => m.classList.add('hidden'));
+    document.querySelectorAll('[id$="-arrow"]').forEach(a => (a as HTMLElement).style.transform = '');
+  });
+  // Prevent closing when clicking inside dropdown
+  document.getElementById('dropdown-brand-menu')?.addEventListener('click', e => e.stopPropagation());
+  document.getElementById('dropdown-category-menu')?.addEventListener('click', e => e.stopPropagation());
 
   function updateStats(items: any[]) {
     const el = (id: string) => document.getElementById(id) as HTMLElement;
@@ -460,8 +445,81 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     });
 
     currentPage = 1;
+    updateActiveFiltersBar();
     renderPage();
   }
+
+  function updateActiveFiltersBar() {
+    const bar = document.getElementById('active-filters-bar')!;
+    const countEl = document.getElementById('results-count')!;
+    const chipsEl = document.getElementById('filter-chips')!;
+    const clearBtn = document.getElementById('clear-filters')!;
+
+    const query = searchInput.value.trim();
+    const brand = filterBrand.value;
+    const category = filterCategory.value;
+    const hasFilters = query || brand !== 'all' || category !== 'all';
+    const isFiltered = filteredInventory.length !== fullInventory.length;
+
+    if (!isFiltered && !hasFilters) {
+      bar.classList.add('hidden');
+      return;
+    }
+
+    bar.classList.remove('hidden');
+    countEl.textContent = `Mostrando ${filteredInventory.length} de ${fullInventory.length}`;
+    chipsEl.innerHTML = '';
+
+    if (query) {
+      chipsEl.appendChild(makeChip(`"${query}"`, () => { searchInput.value = ''; applyFilters(); }));
+    }
+    if (brand !== 'all') {
+      chipsEl.appendChild(makeChip(brand, () => {
+        filterBrand.value = 'all';
+        document.getElementById('dropdown-brand-label')!.textContent = 'Todas las marcas';
+        const brands = [...new Set(fullInventory.map(p => p.brand).filter(Boolean))].sort();
+        renderDropdownItems('brand', ['all', ...brands], 'Todas las marcas');
+        applyFilters();
+      }));
+    }
+    if (category !== 'all') {
+      chipsEl.appendChild(makeChip(category, () => {
+        filterCategory.value = 'all';
+        document.getElementById('dropdown-category-label')!.textContent = 'Todas las categorías';
+        const categories = [...new Set(fullInventory.map(p => p.category).filter(Boolean))].sort();
+        renderDropdownItems('category', ['all', ...categories], 'Todas las categorías');
+        applyFilters();
+      }));
+    }
+
+    if (hasFilters) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
+  }
+
+  function makeChip(label: string, onRemove: () => void): HTMLElement {
+    const chip = document.createElement('span');
+    chip.className = 'inline-flex items-center gap-1 bg-primary/8 text-primary text-[11px] font-bold px-2.5 py-1 rounded-full';
+    chip.innerHTML = `${esc(label)}<button class="ml-0.5 hover:text-primary/60 transition-colors"><span class="material-symbols-outlined" style="font-size:13px">close</span></button>`;
+    chip.querySelector('button')!.addEventListener('click', (e) => { e.stopPropagation(); onRemove(); });
+    return chip;
+  }
+
+  // "Clear all" button
+  document.getElementById('clear-filters')?.addEventListener('click', () => {
+    searchInput.value = '';
+    filterBrand.value = 'all';
+    filterCategory.value = 'all';
+    document.getElementById('dropdown-brand-label')!.textContent = 'Todas las marcas';
+    document.getElementById('dropdown-category-label')!.textContent = 'Todas las categorías';
+    const brands = [...new Set(fullInventory.map(p => p.brand).filter(Boolean))].sort();
+    const categories = [...new Set(fullInventory.map(p => p.category).filter(Boolean))].sort();
+    renderDropdownItems('brand', ['all', ...brands], 'Todas las marcas');
+    renderDropdownItems('category', ['all', ...categories], 'Todas las categorías');
+    applyFilters();
+  });
 
   function renderPage() {
     const totalPages = Math.ceil(filteredInventory.length / PAGE_SIZE);
@@ -681,11 +739,9 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     clearTimeout(searchTimer);
     searchTimer = setTimeout(applyFilters, 200);
   });
-  filterBrand?.addEventListener('change', () => applyFilters());
-  filterCategory?.addEventListener('change', () => applyFilters());
 
-  prevBtn?.addEventListener('click', () => { currentPage--; renderPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
-  nextBtn?.addEventListener('click', () => { currentPage++; renderPage(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  prevBtn?.addEventListener('click', () => { currentPage--; renderPage(); });
+  nextBtn?.addEventListener('click', () => { currentPage++; renderPage(); });
 
   viewGridBtn?.addEventListener('click', () => {
     viewMode = 'grid';
@@ -781,9 +837,8 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     // Stock
     document.getElementById('detail-qty')!.textContent = String(p.quantity || 0);
 
-    // Reset to view mode
+    // Show view mode
     document.getElementById('detail-view')!.classList.remove('hidden');
-    document.getElementById('detail-edit')!.classList.add('hidden');
 
     // Show modal
     detailModal.style.display = 'flex';
@@ -815,445 +870,11 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     if (p) document.getElementById('detail-qty')!.textContent = String(p.quantity);
   });
 
-  // ===== EDIT MODE =====
-  document.getElementById('detail-edit-btn')!.addEventListener('click', () => {
-    const p = fullInventory.find(i => i.id === currentDetailId);
-    if (!p) return;
-
-    // Populate edit form
-    (document.getElementById('edit-name') as HTMLInputElement).value = p.name || '';
-    (document.getElementById('edit-code') as HTMLInputElement).value = p.code || '';
-    (document.getElementById('edit-brand') as HTMLInputElement).value = p.brand || '';
-    (document.getElementById('edit-category') as HTMLInputElement).value = p.category || '';
-    (document.getElementById('edit-cost') as HTMLInputElement).value = String(p.cost || '');
-    (document.getElementById('edit-price') as HTMLInputElement).value = String(p.price || '');
-    (document.getElementById('edit-points') as HTMLInputElement).value = String(p.points || '');
-    (document.getElementById('edit-image') as HTMLInputElement).value = p.image_url || '';
-    (document.getElementById('edit-description') as HTMLTextAreaElement).value = p.description || '';
-
-    // Show image preview if exists
-    const previewContainer = document.getElementById('edit-img-preview')!;
-    const previewImg = document.getElementById('edit-img-preview-src') as HTMLImageElement;
-    if (p.image_url) {
-      previewImg.src = p.image_url;
-      previewContainer.classList.remove('hidden');
-      previewContainer.style.display = 'flex';
-    } else {
-      previewContainer.classList.add('hidden');
-      previewContainer.style.display = 'none';
-    }
-
-    document.getElementById('edit-error')!.classList.add('hidden');
-
-    // Toggle modes
-    document.getElementById('detail-view')!.classList.add('hidden');
-    document.getElementById('detail-edit')!.classList.remove('hidden');
-  });
-
-  // ===== IMAGE EDITING LOGIC =====
-  const editImgPreview = document.getElementById('edit-img-preview')!;
-  const editImgSrc = document.getElementById('edit-img-preview-src') as HTMLImageElement;
-  const editUrlInput = document.getElementById('edit-image') as HTMLInputElement;
-  const editImgDelete = document.getElementById('edit-img-delete')!;
-
-  function setEditImage(url: string) {
-    editUrlInput.value = url;
-    if (url) {
-      editImgSrc.src = url;
-      editImgPreview.classList.remove('hidden');
-      editImgPreview.style.display = 'flex';
-      editUrlInput.closest('details')?.removeAttribute('open');
-    } else {
-      editImgSrc.src = '';
-      editImgPreview.classList.add('hidden');
-      editImgPreview.style.display = 'none';
-      editUrlInput.closest('details')?.setAttribute('open', 'true');
-    }
-  }
-
-  // URL input change
-  editUrlInput.addEventListener('input', () => setEditImage(editUrlInput.value));
-
-  // Delete image
-  editImgDelete.addEventListener('click', (e) => {
+  // ===== EDIT → Navigate to edit page =====
+  document.getElementById('detail-edit-btn')!.addEventListener('click', (e) => {
     e.preventDefault();
-    setEditImage('');
-  });
-
-  // File Upload
-  document.getElementById('edit-img-file')?.addEventListener('change', async (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) return alert('La imagen es muy grande (máximo 5MB).');
-
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const base64 = ev.target?.result as string;
-      await uploadBase64(base64, file.name, file.type);
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Camera Capture
-  const camArea = document.getElementById('edit-camera-area')!;
-  const camVideo = document.getElementById('edit-camera-video') as HTMLVideoElement;
-  let currentStream: MediaStream | null = null;
-
-  document.getElementById('edit-img-camera')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    try {
-      currentStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      camVideo.srcObject = currentStream;
-      camArea.classList.remove('hidden');
-    } catch (err) {
-      alert('No se pudo acceder a la cámara. Revisa los permisos.');
-    }
-  });
-
-  document.getElementById('edit-camera-close')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    currentStream?.getTracks().forEach(t => t.stop());
-    camArea.classList.add('hidden');
-  });
-
-  document.getElementById('edit-camera-snap')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (!currentStream) return;
-    
-    const canvas = document.getElementById('edit-camera-canvas') as HTMLCanvasElement;
-    canvas.width = camVideo.videoWidth;
-    canvas.height = camVideo.videoHeight;
-    canvas.getContext('2d')?.drawImage(camVideo, 0, 0);
-    
-    const base64 = canvas.toDataURL('image/jpeg', 0.8);
-    currentStream.getTracks().forEach(t => t.stop());
-    camArea.classList.add('hidden');
-    
-    await uploadBase64(base64, `cam_${Date.now()}.jpg`, 'image/jpeg');
-  });
-
-  // Upload helper
-  async function uploadBase64(base64: string, fileName: string, mimeType: string) {
-    const btn = document.getElementById('edit-save') as HTMLButtonElement;
-    const oldText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Subiendo...';
-
-    try {
-      const res = await authFetch('/api/upload-product-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
-      });
-      const data = await res.json();
-      if (data.url) setEditImage(data.url);
-      else alert(data.error || 'Error subiendo imagen');
-    } catch (err) {
-      alert('Error de conexión al subir imagen');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = oldText;
-      (document.getElementById('edit-img-file') as HTMLInputElement).value = '';
-    }
-  }
-
-    // AI Studio Request
-    async function processStudioImage(name: string, code: string, desc: string, currentImg: string) {
-      const editAiStatus = document.getElementById('edit-ai-status')!;
-      const editAiResult = document.getElementById('edit-ai-result')!;
-      const editAiError = document.getElementById('edit-error')!;
-      
-      editAiStatus.classList.remove('hidden');
-      editAiResult.classList.add('hidden');
-      editAiError.classList.add('hidden');
-
-      let originalBase64: string | null = null;
-      let finalImgUrl: string | null = null;
-      let aiNotes = "Edición completada.";
-
-      try {
-        if (currentImg && currentImg.startsWith('data:image')) {
-          originalBase64 = currentImg;
-        }
-
-        // 30s timeout for enhance
-        const enhanceController = new AbortController();
-        const enhanceTimeout = setTimeout(() => enhanceController.abort(), 30000);
-
-        const res = await authFetch('/api/enhance-product-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
-          signal: enhanceController.signal,
-        });
-        clearTimeout(enhanceTimeout);
-        const data = await res.json();
-
-        editAiStatus.classList.add('hidden');
-
-        if (data.error) throw new Error(data.error);
-
-        if (data.suggested_image_url || data.image_base64) {
-          finalImgUrl = data.suggested_image_url || null;
-          aiNotes = data.notes || "Imagen mejorada con IA.";
-          const strategy = data.strategy === 'imagen_bkg_removal' ? '🎯 Fondo removido' :
-                           data.strategy === 'gemini_image_gen' ? '✨ Generada por IA' :
-                           data.strategy === 'text_catalog_search' ? '📂 Catálogo oficial' : 'IA';
-          
-          (window as any).editAiFoundUrl = finalImgUrl;
-          // Show base64 preview for instant feedback, or URL
-          const previewSrc = data.image_base64 || finalImgUrl || '';
-          (document.getElementById('edit-ai-img') as HTMLImageElement).src = previewSrc;
-          document.getElementById('edit-ai-name')!.textContent = data.identified_name || name || "Producto AI";
-          
-          const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
-          document.getElementById('edit-ai-conf')!.textContent = `${strategy} • ${confText} • ${aiNotes}`;
-          
-          editAiResult.classList.remove('hidden');
-        } else {
-          editAiError.textContent = "La IA no pudo procesar la imagen. Intenta con otra foto o agrega más datos del producto.";
-          editAiError.classList.remove('hidden');
-        }
-      } catch (err: any) {
-        editAiStatus.classList.add('hidden');
-        if (err.name === 'AbortError') {
-          editAiError.textContent = 'La solicitud tardó demasiado (30s). Intenta de nuevo.';
-        } else {
-          editAiError.textContent = 'Error conectando con IA Studio: ' + (err.message || err);
-        }
-        editAiError.classList.remove('hidden');
-      }
-    }
-
-  document.getElementById('edit-img-ai')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const name = (document.getElementById('edit-name') as HTMLInputElement).value;
-    const code = (document.getElementById('edit-code') as HTMLInputElement).value;
-    const desc = (document.getElementById('edit-description') as HTMLTextAreaElement).value;
-    const currentImg = (document.getElementById('edit-img-preview-src') as HTMLImageElement).src;
-
-    if (!name && !code && !desc && !currentImg) {
-      const err = document.getElementById('edit-error')!;
-      err.textContent = 'Necesitas un nombre, código, descripción o foto original para procesar.';
-      err.classList.remove('hidden');
-      return;
-    }
-    await processStudioImage(name, code, desc, currentImg);
-  });
-
-  document.getElementById('edit-ai-apply')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    const foundUrl = (window as any).editAiFoundUrl;
-    if (foundUrl) {
-      setEditImage(foundUrl);
-    }
-    document.getElementById('edit-ai-result')!.classList.add('hidden');
-  });
-
-  // ═══════════ FONDO BLANCO — Canvas crop + AI enhance ═══════════
-  document.getElementById('edit-img-whitebg')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const imgEl = document.getElementById('edit-img-preview-src') as HTMLImageElement;
-    const preview = document.getElementById('edit-img-preview') as HTMLDivElement;
-
-    if (!imgEl.src || imgEl.src === window.location.href) {
-      const err = document.getElementById('edit-error')!;
-      err.textContent = 'Primero necesitas tener una imagen del producto para limpiar.';
-      err.classList.remove('hidden');
-      return;
-    }
-
-    const editAiStatus = document.getElementById('edit-ai-status')!;
-    const editAiText = document.getElementById('edit-ai-text')!;
-    editAiText.textContent = 'Paso 1/2: Recortando bordes oscuros...';
-    editAiStatus.classList.remove('hidden');
-
-    try {
-      // STEP 1: Canvas — detect and crop black bars
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      const croppedBase64: string = await new Promise((resolve, reject) => {
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d')!;
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          ctx.drawImage(img, 0, 0);
-
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imageData.data;
-          const w = canvas.width;
-          const h = canvas.height;
-
-          const threshold = 35;
-          const isDark = (x: number, y: number) => {
-            const i = (y * w + x) * 4;
-            return data[i] < threshold && data[i + 1] < threshold && data[i + 2] < threshold;
-          };
-
-          let left = 0;
-          for (let x = 0; x < w * 0.4; x++) {
-            let darkCount = 0;
-            for (let y = 0; y < h; y += 3) { if (isDark(x, y)) darkCount++; }
-            if (darkCount > h / 3 / 2) left = x + 1; else break;
-          }
-          let right = w;
-          for (let x = w - 1; x > w * 0.6; x--) {
-            let darkCount = 0;
-            for (let y = 0; y < h; y += 3) { if (isDark(x, y)) darkCount++; }
-            if (darkCount > h / 3 / 2) right = x; else break;
-          }
-          let top = 0;
-          for (let y = 0; y < h * 0.4; y++) {
-            let darkCount = 0;
-            for (let x = 0; x < w; x += 3) { if (isDark(x, y)) darkCount++; }
-            if (darkCount > w / 3 / 2) top = y + 1; else break;
-          }
-          let bottom = h;
-          for (let y = h - 1; y > h * 0.6; y--) {
-            let darkCount = 0;
-            for (let x = 0; x < w; x += 3) { if (isDark(x, y)) darkCount++; }
-            if (darkCount > w / 3 / 2) bottom = y; else break;
-          }
-
-          const cropW = right - left;
-          const cropH = bottom - top;
-
-          // Crop to content area (even if no bars detected, just use the full image)
-          const out = document.createElement('canvas');
-          if (cropW > 50 && cropH > 50 && !(left === 0 && right === w && top === 0 && bottom === h)) {
-            out.width = cropW;
-            out.height = cropH;
-            const outCtx = out.getContext('2d')!;
-            outCtx.fillStyle = '#FFFFFF';
-            outCtx.fillRect(0, 0, out.width, out.height);
-            outCtx.drawImage(img, left, top, cropW, cropH, 0, 0, cropW, cropH);
-          } else {
-            out.width = w;
-            out.height = h;
-            const outCtx = out.getContext('2d')!;
-            outCtx.drawImage(img, 0, 0);
-          }
-
-          resolve(out.toDataURL('image/jpeg', 0.95));
-        };
-        img.onerror = () => reject(new Error('No se pudo cargar la imagen'));
-        img.src = imgEl.src;
-      });
-
-      // STEP 2: Send cropped (clean) image to Gemini for professional enhancement
-      editAiText.textContent = 'Paso 2/2: Generando foto profesional con IA...';
-
-      const productName = (document.getElementById('edit-name') as HTMLInputElement).value;
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-
-      const res = await authFetch('/api/gemini-generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageBase64: croppedBase64,
-          mimeType: 'image/jpeg',
-          productName: productName || undefined,
-        }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      const result = await res.json();
-
-      editAiStatus.classList.add('hidden');
-
-      if (result.imageUrl) {
-        // AI generated + uploaded — use the URL
-        setEditImage(result.imageUrl);
-      } else if (result.imageBase64) {
-        // AI generated but upload failed — show base64 preview
-        imgEl.src = result.imageBase64;
-        preview.classList.remove('hidden');
-        preview.style.display = 'flex';
-      } else {
-        // AI failed — fall back to the canvas-cropped version, upload it
-        const fileName = `whitebg_${Date.now()}.jpg`;
-        const uploadRes = await authFetch('/api/upload-product-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageBase64: croppedBase64, fileName, mimeType: 'image/jpeg' }),
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) {
-          setEditImage(uploadData.url);
-        } else {
-          imgEl.src = croppedBase64;
-          preview.classList.remove('hidden');
-          preview.style.display = 'flex';
-        }
-      }
-    } catch (err: any) {
-      editAiStatus.classList.add('hidden');
-      const errDiv = document.getElementById('edit-error')!;
-      if (err.name === 'AbortError') {
-        errDiv.textContent = 'La generación tardó demasiado (30s). Intenta de nuevo.';
-      } else {
-        errDiv.textContent = 'Error procesando imagen: ' + (err.message || err);
-      }
-      errDiv.classList.remove('hidden');
-    }
-  });
-
-  document.getElementById('edit-cancel')!.addEventListener('click', () => {
-    document.getElementById('detail-view')!.classList.remove('hidden');
-    document.getElementById('detail-edit')!.classList.add('hidden');
-  });
-
-  document.getElementById('edit-save')!.addEventListener('click', async () => {
-    if (!currentDetailId) return;
-    const errEl = document.getElementById('edit-error')!;
-    errEl.classList.add('hidden');
-
-    const name = (document.getElementById('edit-name') as HTMLInputElement).value.trim();
-    const code = (document.getElementById('edit-code') as HTMLInputElement).value.trim();
-    const brand = (document.getElementById('edit-brand') as HTMLInputElement).value.trim();
-    const category = (document.getElementById('edit-category') as HTMLInputElement).value.trim();
-    const cost = parseFloat((document.getElementById('edit-cost') as HTMLInputElement).value) || 0;
-    const price = parseFloat((document.getElementById('edit-price') as HTMLInputElement).value) || 0;
-    const points = parseInt((document.getElementById('edit-points') as HTMLInputElement).value) || 0;
-    const image_url = (document.getElementById('edit-image') as HTMLInputElement).value.trim();
-    const description = (document.getElementById('edit-description') as HTMLTextAreaElement).value.trim();
-
-    if (!name || !code) {
-      errEl.textContent = 'Nombre y código son requeridos.';
-      errEl.classList.remove('hidden');
-      return;
-    }
-
-    const btn = document.getElementById('edit-save') as HTMLButtonElement;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
-
-    try {
-      await api.products.update(currentDetailId, { name, code, brand, category, cost, price, points, image_url, description });
-
-      // Update local data
-      const p = fullInventory.find(i => i.id === currentDetailId);
-      if (p) {
-        p.name = name; p.code = code; p.brand = brand; p.category = category;
-        p.cost = cost; p.price = price; p.points = points;
-        p.image_url = image_url; p.description = description;
-      }
-
-      // Refresh views
-      renderPage();
-      openDetail(currentDetailId); // reopen in view mode with updated data
-
-      btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar';
-    } catch(e: any) {
-      btn.disabled = false;
-      btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar';
-      errEl.textContent = 'Error: ' + (e.message || 'No se pudo guardar');
-      errEl.classList.remove('hidden');
+    if (currentDetailId) {
+      window.location.href = `/inventario/editar?id=${currentDetailId}`;
     }
   });
 </script>
