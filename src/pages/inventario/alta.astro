@@ -300,7 +300,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     // First try by exact code
     let { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, name, code, category, price, cost')
       .eq('code', q)
       .maybeSingle();
 
@@ -308,7 +308,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     if (!data) {
       const { data: nameData } = await supabase
         .from('products')
-        .select('*')
+        .select('id, name, code, category, price, cost')
         .ilike('name', `%${q}%`)
         .limit(1)
         .maybeSingle();

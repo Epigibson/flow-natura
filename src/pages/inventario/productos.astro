@@ -761,7 +761,7 @@ import PageLoader from '../../components/PageLoader.astro';
     // Fetch variants from Supabase
     const { data: variants, error } = await supabase
       .from('product_variants')
-      .select('*')
+      .select('id, code, variant_label, variant_type, price, points, image_url, sort_order')
       .eq('product_id', product.id)
       .is('deleted_at', null)
       .order('sort_order', { ascending: true });
@@ -884,7 +884,7 @@ import PageLoader from '../../components/PageLoader.astro';
       
       const { data: variants } = await supabase
         .from('product_variants')
-        .select('*')
+        .select('id, code, variant_label, variant_type, price, points, image_url, sort_order')
         .eq('product_id', product.id)
         .is('deleted_at', null)
         .order('sort_order', { ascending: true });
@@ -938,7 +938,7 @@ import PageLoader from '../../components/PageLoader.astro';
         try {
           await api.products.restore(currentDetailProduct.id);
           showToast('¡Producto restaurado! ✅'); loadProducts();
-        } catch(e) {}
+        } catch(e) { console.warn('[Productos] Failed to restore product:', e); }
       } else {
         openDeleteModal(currentDetailProduct.id, currentDetailProduct.name);
       }

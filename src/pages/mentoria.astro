@@ -261,12 +261,8 @@ import PageLoader from '../components/PageLoader.astro';
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { supabase } from '../lib/supabase';
   import api from '../lib/api';
-
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseKey);
 
   let currentUserId = '';
   let completedLessons: Set<string> = new Set();
@@ -304,7 +300,7 @@ import PageLoader from '../components/PageLoader.astro';
     try {
       const data = await api.mentorship.getProgress();
       completedLessons = new Set((data || []).map((p: any) => p.lesson_id));
-    } catch(e) {}
+    } catch(e) { console.warn('[Mentoria] Failed to load progress:', e); }
   }
 
   async function toggleLesson(lessonId: string): Promise<boolean> {
@@ -314,14 +310,14 @@ import PageLoader from '../components/PageLoader.astro';
       const lesson = allLessons.find((l: any) => l.id === lessonId);
       try {
         await api.mentorship.saveProgress({ module_id: lesson?.module_id || 'unknown', lesson_id: lessonId, completed: false });
-      } catch(e) {}
+      } catch(e) { console.warn('[Mentoria] Failed to save progress (uncomplete):', e); }
       completedLessons.delete(lessonId);
       return false;
     } else {
       const lesson = allLessons.find((l: any) => l.id === lessonId);
       try {
         await api.mentorship.saveProgress({ module_id: lesson?.module_id || 'unknown', lesson_id: lessonId, completed: true });
-      } catch(e) {}
+      } catch(e) { console.warn('[Mentoria] Failed to save progress (complete):', e); }
       completedLessons.add(lessonId);
       return true;
     }
@@ -514,7 +510,7 @@ import PageLoader from '../components/PageLoader.astro';
     const today = new Date().toISOString().split('T')[0];
 
     let allSessions: any[] = [];
-    try { allSessions = await api.mentorship.getSessions(); } catch(e) {}
+    try { allSessions = await api.mentorship.getSessions(); } catch(e) { console.warn('[Mentoria] Failed to load sessions:', e); }
 
     const upcoming = allSessions.filter((s: any) => s.status === 'scheduled' && s.scheduled_date >= today);
     const pastItems = allSessions.filter((s: any) => s.status !== 'scheduled' || s.scheduled_date < today);
@@ -545,7 +541,7 @@ import PageLoader from '../components/PageLoader.astro';
         btn.addEventListener('click', async () => {
           const sessionId = (btn as HTMLElement).dataset.session!;
           if (!confirm('¿Cancelar esta sesión?')) return;
-          try { await api.mentorship.cancelSession(sessionId); } catch(e) {}
+          try { await api.mentorship.cancelSession(sessionId); } catch(e) { console.warn('[Mentoria] Failed to cancel session:', e); }
           loadSessions();
         });
       });

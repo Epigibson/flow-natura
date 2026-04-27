@@ -747,7 +747,7 @@ import PageLoader from '../../components/PageLoader.astro';
   // ========================
   async function loadAdjustments() {
     let data: any[] = [];
-    try { data = await api.inventory.getAdjustments(50); } catch(e) {}
+    try { data = await api.inventory.getAdjustments(50); } catch(e) { console.warn('[Ajustes] Failed to load adjustments:', e); }
     document.getElementById('adjustments-loading')!.classList.add('hidden');
     if (!data || data.length === 0) { document.getElementById('adjustments-empty')!.classList.remove('hidden'); return; }
     document.getElementById('adjustments-empty')!.classList.add('hidden');

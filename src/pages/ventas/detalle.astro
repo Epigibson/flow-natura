@@ -446,7 +446,7 @@ import PageLoader from '../../components/PageLoader.astro';
         }))
       };
       if (order.notes && order.payment_method?.toLowerCase() === 'abonos') {
-        try { globalTerms = JSON.parse(order.notes); } catch(e) {}
+        try { globalTerms = JSON.parse(order.notes); } catch(e) { /* order.notes is not JSON, this is expected for free-text notes */ }
       }
       renderOrder();
     } catch (e) { showError(); }

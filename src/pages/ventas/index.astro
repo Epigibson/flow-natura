@@ -273,7 +273,7 @@ import PageLoader from '../../components/PageLoader.astro';
             const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
             const montoCuota = remaining / Number(terms.pagos || 1);
             o._debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-          } catch(e) {}
+          } catch(e) { console.warn('[Ventas] Failed to parse order notes:', o.id, e); }
         } else if (o.status === 'pending') {
           o._debt = Number(o.total_amount);
         }

@@ -156,13 +156,9 @@ import PageLoader from '../components/PageLoader.astro';
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { supabase } from '../lib/supabase';
   import { esc } from '../lib/security';
   import api from '../lib/api';
-
-  const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-  const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-  const supabase = createClient(supabaseUrl, supabaseKey);
 
   const feed = document.getElementById('feed')!;
   const feedLoading = document.getElementById('feed-loading')!;
@@ -455,7 +451,7 @@ import PageLoader from '../components/PageLoader.astro';
     const list = section.querySelector('.comments-list')!;
 
     let comments: any[] = [];
-    try { comments = await api.community.getComments(postId); } catch(e) {}
+    try { comments = await api.community.getComments(postId); } catch(e) { console.warn('[Comunidad] Failed to load comments:', e); }
 
     if (!comments || comments.length === 0) {
       list.innerHTML = '<p class="text-xs text-on-surface-variant text-center py-2">Sin comentarios aún</p>';
@@ -485,7 +481,7 @@ import PageLoader from '../components/PageLoader.astro';
       document.getElementById('stat-posts')!.textContent = String(stats.post_count || 0);
       document.getElementById('stat-reactions')!.textContent = String(stats.reaction_count || 0);
       document.getElementById('stat-comments')!.textContent = String(stats.comment_count || 0);
-    } catch(e) {}
+    } catch(e) { console.warn('[Comunidad] Failed to create comment:', e); }
   }
 
   // Top contributors
