@@ -7,13 +7,15 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { GoogleGenAI } from '@google/genai';
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+import { requireAuth } from '../../lib/api-auth';
+import { getServiceSupabase } from '../../lib/supabase-server';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Auth guard
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const apiKey = import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'Falta GEMINI_API_KEY' }), {
@@ -75,17 +77,13 @@ export const POST: APIRoute = async ({ request }) => {
           const generatedBase64 = response.generatedImages[0].image?.imageBytes;
           if (!generatedBase64) throw new Error("No image data returned from AI");
           
-          if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-            throw new Error('Configuración de Supabase incompleta para guardar la imagen.');
-          }
-
           const binaryStr = atob(generatedBase64);
           const bytes = new Uint8Array(binaryStr.length);
           for (let i = 0; i < binaryStr.length; i++) {
             bytes[i] = binaryStr.charCodeAt(i);
           }
 
-          const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+          const supabase = getServiceSupabase();
           const fileName = `generated_studio_${Date.now()}.png`;
           const filePath = `user-uploads/${fileName}`;
 

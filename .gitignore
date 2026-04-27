@@ -13,13 +13,28 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+*.log
 
 # environment variables
 .env
 .env.production
+.env.local
 
 # macOS-specific files
 .DS_Store
 
 # jetbrains setting folder
 .idea/
+
+# Data files & temporary artifacts (should not be in repo)
+*.csv
+natura-*.json
+*_api_logs.json
+*_progress.json
+*_growth_data.json
+bad_names*.json
+tmp_*.json
+natura-tokens.json
+check.txt
+auto_sync_error.png
+test-bkg.mjs

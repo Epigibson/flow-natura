@@ -28,7 +28,7 @@ export const GET: APIRoute = async ({ request }) => {
     const serviceSupabase = getServiceSupabase();
     const { data: sub, error } = await serviceSupabase
       .from('subscriptions')
-      .select('*')
+      .select('id, consultant_id, stripe_customer_id, stripe_subscription_id, plan, billing_period, status, trial_ends_at, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at')
       .eq('consultant_id', userId)
       .single();
 

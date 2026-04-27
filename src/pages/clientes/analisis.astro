@@ -87,6 +87,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { esc } from '../../lib/security';
 
   const kpiTotalClients = document.getElementById('kpi-total-clients') as HTMLElement;
   const kpiWithDebt = document.getElementById('kpi-with-debt') as HTMLElement;
@@ -111,7 +112,7 @@ import PageLoader from '../../components/PageLoader.astro';
     // Get all customers
     const { data: customers } = await supabase
       .from('customers')
-      .select('*')
+      .select('id, full_name, consultant_id')
       .eq('consultant_id', userId);
 
     // Get all orders with items
@@ -202,10 +203,10 @@ import PageLoader from '../../components/PageLoader.astro';
       const row = document.createElement('div');
       row.className = 'client-row flex items-center gap-4 py-5 ' + (idx > 0 ? 'border-t border-surface-container' : '');
       row.innerHTML = '<div class="w-12 h-12 rounded-full ' + (hasDebt ? 'bg-primary-container/20' : 'bg-secondary-container/30') + ' flex items-center justify-center shrink-0">' +
-        '<span class="font-bold text-sm ' + (hasDebt ? 'text-primary' : 'text-secondary') + '">' + initial + '</span>' +
+        '<span class="font-bold text-sm ' + (hasDebt ? 'text-primary' : 'text-secondary') + '">' + esc(initial) + '</span>' +
         '</div>' +
         '<div class="flex-1">' +
-          '<h4 class="font-bold text-on-surface">' + c.full_name + '</h4>' +
+          '<h4 class="font-bold text-on-surface">' + esc(c.full_name) + '</h4>' +
           '<p class="text-sm text-on-surface-variant">' + c.orderCount + ' compras • Total: $' + c.totalSpent.toFixed(2) + '</p>' +
         '</div>' +
         '<div class="text-right">' +
@@ -227,7 +228,7 @@ import PageLoader from '../../components/PageLoader.astro';
       const card = document.createElement('div');
       card.className = 'bg-surface-container-low rounded-2xl p-6 text-center';
       card.innerHTML = '<p class="text-4xl mb-2">' + medals[idx] + '</p>' +
-        '<p class="font-bold text-on-surface text-lg">' + c.full_name + '</p>' +
+        '<p class="font-bold text-on-surface text-lg">' + esc(c.full_name) + '</p>' +
         '<p class="text-2xl font-display font-bold text-primary mt-2">$' + c.totalSpent.toLocaleString('es-MX', { minimumFractionDigits: 2 }) + '</p>' +
         '<p class="text-sm text-on-surface-variant mt-1">' + c.orderCount + ' compras</p>';
       topBuyersList.appendChild(card);

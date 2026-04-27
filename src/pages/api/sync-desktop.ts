@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
+import { getServiceSupabase } from '../../lib/supabase-server';
 
 export const prerender = false;
 
@@ -25,10 +25,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 2. Connect to Supabase with admin client
-    const supabaseAdmin = createClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    const supabaseAdmin = getServiceSupabase();
 
     // 3. Find consultant by their Natura email
     const { data: profile, error: findError } = await supabaseAdmin

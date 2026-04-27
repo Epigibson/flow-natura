@@ -42,7 +42,7 @@ const PLAN_LIMITS: Record<string, { products: number; clients: number; features:
 export async function getUserSubscription(userId: string): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('*')
+    .select('id, consultant_id, stripe_customer_id, stripe_subscription_id, plan, billing_period, status, trial_ends_at, current_period_start, current_period_end, cancel_at_period_end, created_at, updated_at')
     .eq('consultant_id', userId)
     .single();
 

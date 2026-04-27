@@ -1,15 +1,21 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '../../lib/api-auth';
+import { getServiceSupabase } from '../../lib/supabase-server';
 import { encrypt } from '../../utils/crypto';
 
 export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const { userId, natura_email, natura_password } = await request.json();
+    // Auth guard
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
 
-    if (!userId || !natura_email || !natura_password) {
-      return new Response(JSON.stringify({ success: false, error: 'Faltan credenciales o el ID del usuario.' }), {
+    const { natura_email, natura_password } = await request.json();
+    const userId = auth.user.id;
+
+    if (!natura_email || !natura_password) {
+      return new Response(JSON.stringify({ success: false, error: 'Faltan credenciales.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -18,10 +24,8 @@ export const POST: APIRoute = async ({ request }) => {
     // 1. Cifrar la contraseña
     const encryptedPassword = encrypt(natura_password);
 
-    // 2. Instanciar Supabase Admin Server-side (Bypasses RLS)
-    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    // Use the centralized service client
+    const supabaseAdmin = getServiceSupabase();
 
     // 3. Actualizar el perfil
     const { error } = await supabaseAdmin

@@ -112,6 +112,7 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
+  import { esc } from '../../lib/security';
 
   async function loadData() {
     const loader = document.getElementById('loader') as HTMLElement;
@@ -214,10 +215,10 @@ import PageLoader from '../../components/PageLoader.astro';
           <td class="bg-surface rounded-l-3xl px-6 py-6 md:py-4 border-b md:border-b-0 border-outline-variant/10">
             <div class="flex items-center gap-4">
               <div class="w-10 h-10 rounded-full font-headline ${o._isAbonos ? 'bg-tertiary-fixed text-on-tertiary-fixed' : 'bg-primary-fixed text-on-primary-fixed'} flex items-center justify-center font-bold">
-                ${initials}
+                ${esc(initials)}
               </div>
               <div>
-                <p class="font-headline font-bold text-on-surface text-base">${cName}</p>
+                <p class="font-headline font-bold text-on-surface text-base">${esc(cName)}</p>
                 <p class="text-xs text-on-surface-variant font-mono text-[10px] mt-0.5">ID: ${o.id.split('-')[0].toUpperCase()}</p>
               </div>
             </div>

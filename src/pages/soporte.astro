@@ -281,6 +281,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </style>
 
 <script>
+  import { esc } from '../lib/security';
   const btnNewTicket = document.getElementById('btn-new-ticket') as HTMLButtonElement;
   const ticketForm = document.getElementById('ticket-form') as HTMLElement;
   const btnCancel = document.getElementById('btn-cancel-ticket') as HTMLButtonElement;
@@ -375,8 +376,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <span class="material-symbols-outlined ${isOpen ? 'text-primary' : 'text-secondary'} text-lg">confirmation_number</span>
           </div>
           <div class="flex-1 min-w-0">
-            <h4 class="font-bold text-on-surface text-sm truncate">${t.subject}</h4>
-            <p class="text-xs text-on-surface-variant">${t.category} • ${new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+            <h4 class="font-bold text-on-surface text-sm truncate">${esc(t.subject)}</h4>
+            <p class="text-xs text-on-surface-variant">${esc(t.category)} • ${new Date(t.date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
           </div>
           <span class="text-[10px] font-bold px-2.5 py-1 rounded-full ${priClass} hidden md:inline-block">${(t.priority || 'low') === 'low' ? 'Baja' : t.priority === 'medium' ? 'Media' : 'Alta'}</span>
           <span class="text-xs font-bold px-3 py-1 rounded-full ${isOpen ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}">${isOpen ? '● Abierto' : '✓ Cerrado'}</span>`;

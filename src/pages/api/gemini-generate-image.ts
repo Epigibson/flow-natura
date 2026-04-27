@@ -7,6 +7,7 @@ export const prerender = false;
 
 import type { APIRoute } from 'astro';
 import { GoogleGenAI } from '@google/genai';
+import { requireAuth } from '../../lib/api-auth';
 
 const GEMINI_API_KEY = import.meta.env.GEMINI_API_KEY;
 
@@ -22,6 +23,10 @@ const IMAGE_PROMPT = `Observa esta foto de un producto cosmético. Genera una im
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Auth guard
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     if (!GEMINI_API_KEY) {
       return new Response(
         JSON.stringify({ error: 'GEMINI_API_KEY no configurada' }),

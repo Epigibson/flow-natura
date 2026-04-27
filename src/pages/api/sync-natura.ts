@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
+import { getServiceSupabase } from '../../lib/supabase-server';
 import { decrypt } from '../../utils/crypto';
 
 export const prerender = false;
@@ -15,10 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 1. Fetch credentials from DB using admin client to bypass RLS
-    const supabaseAdmin = createClient(
-      import.meta.env.PUBLIC_SUPABASE_URL,
-      import.meta.env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    const supabaseAdmin = getServiceSupabase();
 
     const { data: profile, error } = await supabaseAdmin
       .from('consultant_profiles')

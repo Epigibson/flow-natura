@@ -6,19 +6,16 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '../../lib/api-auth';
+import { getServiceSupabase } from '../../lib/supabase-server';
 
-const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-      return new Response(
-        JSON.stringify({ error: 'Configuración de Supabase incompleta' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+    // Auth guard
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
 
     const body = await request.json();
     const { imageBase64, fileName, mimeType = 'image/jpeg' } = body;
@@ -41,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Use service role client (bypasses RLS and storage policies)
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const supabase = getServiceSupabase();
 
     const filePath = `user-uploads/${fileName}`;
 

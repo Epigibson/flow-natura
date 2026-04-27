@@ -1,8 +1,15 @@
 import type { APIRoute } from 'astro';
 import { GoogleGenAI } from '@google/genai';
+import { requireAuth } from '../../lib/api-auth';
+
+export const prerender = false;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
+    // Auth guard
+    const auth = await requireAuth(request);
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body || !body.file) {
       return new Response(JSON.stringify({ error: 'Falta el archivo PDF en la petición' }), { status: 400 });
