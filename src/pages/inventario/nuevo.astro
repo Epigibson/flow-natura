@@ -590,6 +590,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 
 <script>
   import { supabase } from "../../lib/supabase";
+  import { authFetch } from "../../lib/auth-fetch";
   import api from '../../lib/api';
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
   import { CAMINO_CRECIMIENTO, calculateConsultantPrice } from "../../lib/camino-crecimiento";
@@ -925,7 +926,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     btnAnalyze.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> Analizando...';
 
     try {
-      const response = await fetch("/api/gemini-analyze", {
+      const response = await authFetch("/api/gemini-analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -976,7 +977,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     aiLoading.classList.remove("hidden");
 
     try {
-      const res = await fetch("/api/gemini-generate-image", {
+      const res = await authFetch("/api/gemini-generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1228,7 +1229,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     btnSave.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Subiendo...';
 
     try {
-      const res = await fetch('/api/upload-product-image', {
+      const res = await authFetch('/api/upload-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
@@ -1264,7 +1265,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         originalBase64 = currentImg;
       }
 
-      const res = await fetch('/api/enhance-product-image', {
+      const res = await authFetch('/api/enhance-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
@@ -1414,7 +1415,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       // Upload the camera photo to Supabase Storage as fallback
       try {
         const fileName = `${code}_${Date.now()}.jpg`;
-        const uploadRes = await fetch("/api/upload-product-image", {
+        const uploadRes = await authFetch("/api/upload-product-image", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

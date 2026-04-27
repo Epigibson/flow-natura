@@ -297,6 +297,7 @@ import PageLoader from '../components/PageLoader.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import { authFetch } from '../lib/auth-fetch';
   import api, { dashboard, consultant } from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -376,7 +377,7 @@ import PageLoader from '../components/PageLoader.astro';
       btn.innerHTML = `<span class="material-symbols-outlined animate-spin">refresh</span>`;
       
       try {
-        const res = await fetch('/api/connect-natura', {
+        const res = await authFetch('/api/connect-natura', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, natura_email: email, natura_password: pwd })

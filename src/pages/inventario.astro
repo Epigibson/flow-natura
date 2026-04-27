@@ -339,6 +339,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
 <script>
   import { supabase } from '../lib/supabase';
+  import { authFetch } from '../lib/auth-fetch';
   import api from '../lib/api';
   import { esc, sanitizeUrl } from '../lib/security';
 
@@ -936,7 +937,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Subiendo...';
 
     try {
-      const res = await fetch('/api/upload-product-image', {
+      const res = await authFetch('/api/upload-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
@@ -972,7 +973,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           originalBase64 = currentImg;
         }
 
-        const res = await fetch('/api/enhance-product-image', {
+        const res = await authFetch('/api/enhance-product-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
