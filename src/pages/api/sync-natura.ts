@@ -32,8 +32,6 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 2. Decrypt password
     const plainPassword = decrypt(profile.natura_password_encrypted);
-    
-    console.log(`📡 Enviando solicitud al Scraper Service para ${profile.natura_email.substring(0, 5)}***...`);
 
     // 3. Call the external Render scraper service
     const scraperResponse = await fetch(`${SCRAPER_URL}/scrape`, {
@@ -59,7 +57,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 4. Save growth data to DB
-    console.log('✅ Datos recibidos del scraper. Guardando en base de datos...');
     await supabaseAdmin.from('consultant_profiles').update({
       latest_growth_data: scraperResult.data,
       growth_sync_date: new Date().toISOString()
