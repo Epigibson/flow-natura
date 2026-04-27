@@ -3,13 +3,13 @@
  *
  * Multi-strategy image enhancement pipeline:
  *
- * Strategy 1: Imagen 4 Background Removal (if user provided a photo)
- *   → Uses BKG_REMOVAL edit mode to cleanly remove background
- *   → Uploads the result to Supabase Storage
- *
- * Strategy 2: Gemini 2.5 Flash Image (fallback if Imagen fails)
+ * Strategy 1: Gemini 2.5 Flash Image (best quality, primary)
  *   → Uses native image generation to recreate the product on white background
- *   → Uploads the result to Supabase Storage
+ *   → Faithfully preserves product appearance with studio-quality results
+ *
+ * Strategy 2: Imagen 4 Background Removal (fallback if Gemini fails)
+ *   → Uses BKG_REMOVAL edit mode to cleanly remove background
+ *   → Note: produces lower quality results for angled/cluttered photos
  *
  * Strategy 3: Gemini Text Search (if no photo, or both image strategies fail)
  *   → Uses Gemini to identify the product and find official catalog image URL
@@ -92,58 +92,27 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ═══════════ STRATEGY 1: Imagen 4 Background Removal ═══════════
+    // ═══════════ STRATEGY 1: Gemini Native Image Generation (best quality) ═══════════
     if (imageBase64) {
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
       try {
-        console.log('[enhance] Attempting Imagen 4 BKG_REMOVAL...');
-        const response = await ai.models.generateImages({
-          model: 'imagen-4.0-fast-generate-001',
-          prompt: 'the exact original foreground subject, keeping all its exact original pixels, texts, and original packaging identical',
-          config: {
-            numberOfImages: 1,
-            outputMimeType: 'image/png',
-            sourceImage: {
-              imageBytes: cleanBase64,
-              mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
-            },
-            editConfig: {
-              editMode: 'BKG_REMOVAL'
-            }
-          } as any
-        });
+        console.log('[enhance] Attempting Gemini 2.5 Flash Image generation...');
+        const prompt = `You are a professional e-commerce product photographer. Look at this photo of a cosmetics/beauty product and generate a CLEAN, PROFESSIONAL studio photograph of the EXACT same product.
 
-        if (response.generatedImages && response.generatedImages.length > 0) {
-          const generatedBase64 = response.generatedImages[0].image?.imageBytes;
-          if (generatedBase64) {
-            const publicUrl = await uploadToStorage(generatedBase64, 'image/png', 'bkg_removed');
+CRITICAL REQUIREMENTS:
+1. PRODUCT FIDELITY: The product MUST look identical to the original photo — same packaging, same labels, same colors, same brand logos, same text on the box/bottle. Do NOT invent or change any detail.
+2. BACKGROUND: MANDATORY pure white background (#FFFFFF). The ENTIRE background must be solid bright white — no black, no dark colors, no gray, no gradients, no colored surfaces. If the input image has black bars, black borders, black letterboxing, or any dark padding around the product — COMPLETELY IGNORE those. They are NOT part of the product. Replace ALL of that with pure white.
+3. LIGHTING: Soft, diffused studio lighting. No harsh shadows. Very subtle soft shadow directly beneath the product only.
+4. COMPOSITION: Product centered in frame with generous white space (~20% padding). Product fills approximately 60-70% of the image height.
+5. ANGLE: Slight 3/4 front-facing angle to show depth and dimensionality.
+6. QUALITY: Sharp focus, high resolution, professional color accuracy.
+7. STYLE: Clean e-commerce catalog style, like Natura.com.mx or Amazon listings. These always use WHITE backgrounds.
+8. If the product is a SET or KIT (multiple items in a box), show the box AND the individual items arranged professionally next to it.
 
-            return new Response(JSON.stringify({
-              identified_name: productName || 'Producto Editado con IA',
-              identified_code: productCode || null,
-              suggested_image_url: publicUrl,
-              image_base64: `data:image/png;base64,${generatedBase64}`,
-              confidence: 'high',
-              strategy: 'imagen_bkg_removal',
-              notes: 'Fondo removido exitosamente con Imagen 4 sin alterar el producto original.',
-            }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-          }
-        }
-        console.warn('[enhance] Imagen 4 returned no images');
-      } catch (err: any) {
-        console.warn('[enhance] Imagen 4 BKG_REMOVAL failed:', err.message || err);
-      }
+IMPORTANT: The background MUST be pure white (#FFFFFF). NEVER use black, dark, gray, or any colored background. If the original photo has black bars on the sides, top, or bottom — those are camera artifacts, NOT part of the product. Remove them entirely and use white.
 
-      // ═══════════ STRATEGY 2: Gemini Native Image Generation ═══════════
-      try {
-        console.log('[enhance] Falling back to Gemini 2.5 Flash Image...');
-        const prompt = `Look at this photo of a cosmetics/beauty product. Generate a CLEAN, PROFESSIONAL product photograph:
-- Pure white background (#FFFFFF), no shadows on background
-- Same exact product, same packaging, logos, and text — do NOT change any detail
-- Soft studio lighting, product centered, 3/4 angle
-- E-commerce catalog quality, like Amazon or Natura.com.mx listings
-- If it's a kit/set, show box AND items arranged professionally
+DO NOT add any text, watermarks, borders, or props not in the original photo.
 ${productName ? `\nThe product is: "${productName}"` : ''}`;
 
         const response = await ai.models.generateContent({
@@ -171,7 +140,7 @@ ${productName ? `\nThe product is: "${productName}"` : ''}`;
                 identified_code: productCode || null,
                 suggested_image_url: publicUrl,
                 image_base64: `data:${genMime};base64,${part.inlineData.data}`,
-                confidence: 'medium',
+                confidence: 'high',
                 strategy: 'gemini_image_gen',
                 notes: 'Imagen profesional generada con Gemini IA.',
               }), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -181,6 +150,46 @@ ${productName ? `\nThe product is: "${productName}"` : ''}`;
         console.warn('[enhance] Gemini image gen returned no image');
       } catch (err: any) {
         console.warn('[enhance] Gemini image gen failed:', err.message || err);
+      }
+
+      // ═══════════ STRATEGY 2: Imagen 4 Background Removal (fallback) ═══════════
+      try {
+        console.log('[enhance] Falling back to Imagen 4 BKG_REMOVAL...');
+        const response = await ai.models.generateImages({
+          model: 'imagen-4.0-fast-generate-001',
+          prompt: 'the exact original foreground subject, keeping all its exact original pixels, texts, and original packaging identical',
+          config: {
+            numberOfImages: 1,
+            outputMimeType: 'image/png',
+            sourceImage: {
+              imageBytes: cleanBase64,
+              mimeType: mimeType === 'image/png' ? 'image/png' : 'image/jpeg'
+            },
+            editConfig: {
+              editMode: 'BKG_REMOVAL'
+            }
+          } as any
+        });
+
+        if (response.generatedImages && response.generatedImages.length > 0) {
+          const generatedBase64 = response.generatedImages[0].image?.imageBytes;
+          if (generatedBase64) {
+            const publicUrl = await uploadToStorage(generatedBase64, 'image/png', 'bkg_removed');
+
+            return new Response(JSON.stringify({
+              identified_name: productName || 'Producto Editado con IA',
+              identified_code: productCode || null,
+              suggested_image_url: publicUrl,
+              image_base64: `data:image/png;base64,${generatedBase64}`,
+              confidence: 'medium',
+              strategy: 'imagen_bkg_removal',
+              notes: 'Fondo removido con Imagen 4.',
+            }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+          }
+        }
+        console.warn('[enhance] Imagen 4 returned no images');
+      } catch (err: any) {
+        console.warn('[enhance] Imagen 4 BKG_REMOVAL failed:', err.message || err);
       }
     }
 
