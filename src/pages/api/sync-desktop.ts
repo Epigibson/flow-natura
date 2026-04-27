@@ -49,8 +49,6 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 4. Update growth data
-    console.log(`📊 Desktop sync para ${natura_email.substring(0, 5)}*** (ID: ${profile.id})`);
-
     const { error: updateError } = await supabaseAdmin
       .from('consultant_profiles')
       .update({
@@ -66,8 +64,6 @@ export const POST: APIRoute = async ({ request }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    console.log('✅ Datos de crecimiento actualizados via desktop sync');
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

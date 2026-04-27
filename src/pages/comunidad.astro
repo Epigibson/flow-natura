@@ -9,7 +9,7 @@ import PageLoader from '../components/PageLoader.astro';
     <div class="lg:col-span-2">
       <header class="mb-8">
         <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">COMMUNITY HUB</p>
-        <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Comunidad Natura Manager</h2>
+        <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Comunidad Natura Manager</h2>
         <p class="text-on-surface-variant mt-2 text-lg">Conecta con otras consultoras, comparte consejos y celebra logros.</p>
       </header>
 
@@ -41,8 +41,8 @@ import PageLoader from '../components/PageLoader.astro';
           <div class="flex-1">
             <textarea id="post-input" rows="3" placeholder="¿Qué quieres compartir con la comunidad? 💬"
               class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container resize-none text-sm"></textarea>
-            <div class="flex items-center justify-between mt-3">
-              <div class="flex items-center gap-1">
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3">
+              <div class="flex flex-wrap items-center gap-1">
                 <button class="tag-btn flex items-center gap-1 text-xs py-1.5 px-3 rounded-full text-on-surface-variant border border-outline-variant/10 hover:bg-primary/5 hover:text-primary transition-all" data-tag="logro">
                   🏆 Logro
                 </button>
@@ -158,6 +158,7 @@ import PageLoader from '../components/PageLoader.astro';
 <script>
   import { createClient } from '@supabase/supabase-js';
   import { esc } from '../lib/security';
+  import api from '../lib/api';
 
   const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
   const supabaseKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
@@ -210,15 +211,9 @@ import PageLoader from '../components/PageLoader.astro';
     return user;
   }
 
-  // Load user's reactions
+  // Load user's reactions - now part of posts response
   async function loadUserReactions() {
-    if (!currentUserId) return;
-    const { data } = await supabase
-      .from('community_reactions')
-      .select('post_id, reaction_type')
-      .eq('user_id', currentUserId);
-
-    userReactions = new Set((data || []).map((r: any) => `${r.post_id}:${r.reaction_type}`));
+    // No-op: user_reactions come embedded in the posts API response
   }
 
   // Time ago helper
@@ -322,23 +317,34 @@ import PageLoader from '../components/PageLoader.astro';
     feedEmpty.classList.add('hidden');
     feed.innerHTML = '';
 
-    let query = supabase
-      .from('community_posts_with_stats')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (currentTopic !== 'all') {
-      query = query.eq('topic', currentTopic);
-    }
-
-    const { data: posts, error } = await query;
+    let posts: any[] = [];
+    let error: any = null;
+    try {
+      posts = await api.community.getPosts(currentTopic);
+      // Rebuild userReactions from posts data
+      userReactions = new Set();
+      for (const p of posts) {
+        if (p.user_reactions) {
+          for (const rt of p.user_reactions) {
+            userReactions.add(`${p.id}:${rt}`);
+          }
+        }
+      }
+      // Map to expected shape
+      posts = posts.map((p: any) => ({
+        ...p,
+        love_count: p.reactions?.love || 0,
+        fire_count: p.reactions?.fire || 0,
+        clap_count: p.reactions?.clap || 0,
+        save_count: p.reactions?.save || 0,
+      }));
+    } catch(e: any) { error = e; }
 
     feedLoading.classList.add('hidden');
 
     if (error) {
       console.error('Error loading posts:', error);
-      feed.innerHTML = `<div class="text-center py-12"><p class="text-on-surface-variant">Error al cargar posts. ¿Ya ejecutaste la migración SQL?</p><p class="text-xs text-on-surface-variant/50 mt-2">${error.message}</p></div>`;
+      feed.innerHTML = `<div class="text-center py-12"><p class="text-on-surface-variant">Error al cargar posts.</p><p class="text-xs text-on-surface-variant/50 mt-2">${error.message}</p></div>`;
       return;
     }
 
@@ -368,17 +374,14 @@ import PageLoader from '../components/PageLoader.astro';
 
         if (userReactions.has(key)) {
           // Remove reaction
-          await supabase.from('community_reactions').delete()
-            .eq('post_id', postId).eq('user_id', currentUserId).eq('reaction_type', type);
+          await api.community.toggleReaction({ post_id: postId, reaction_type: type });
           userReactions.delete(key);
           btn.classList.remove('reacted');
           countEl.textContent = String(Math.max(0, parseInt(countEl.textContent || '0') - 1));
           if (type === 'love') iconEl.textContent = icons.love[0];
         } else {
           // Add reaction
-          await supabase.from('community_reactions').insert({
-            post_id: postId, user_id: currentUserId, reaction_type: type
-          });
+          await api.community.toggleReaction({ post_id: postId, reaction_type: type });
           userReactions.add(key);
           btn.classList.add('reacted');
           countEl.textContent = String(parseInt(countEl.textContent || '0') + 1);
@@ -412,15 +415,12 @@ import PageLoader from '../components/PageLoader.astro';
         if (!text || !currentUserId) return;
 
         input.value = '';
-        const { error } = await supabase.from('community_comments').insert({
-          post_id: postId, author_id: currentUserId, author_name: currentUserName, content: text
-        });
-        if (!error) {
+        try {
+          await api.community.createComment({ post_id: postId, author_name: currentUserName, content: text });
           await loadComments(postId);
-          // Update comment count label
           const label = feed.querySelector(`[data-post-id="${postId}"] .comment-count-label`);
           if (label) label.textContent = String(parseInt(label.textContent || '0') + 1);
-        }
+        } catch(e) { console.error(e); }
       });
     });
 
@@ -440,7 +440,7 @@ import PageLoader from '../components/PageLoader.astro';
       btn.addEventListener('click', async () => {
         const postId = (btn as HTMLElement).dataset.post!;
         if (!confirm('¿Eliminar este post?')) return;
-        await supabase.from('community_posts').delete().eq('id', postId);
+        await api.community.deletePost(postId);
         const article = feed.querySelector(`[data-post-id="${postId}"]`);
         if (article) article.remove();
         loadSidebarStats();
@@ -454,11 +454,8 @@ import PageLoader from '../components/PageLoader.astro';
     if (!section) return;
     const list = section.querySelector('.comments-list')!;
 
-    const { data: comments } = await supabase
-      .from('community_comments')
-      .select('*')
-      .eq('post_id', postId)
-      .order('created_at', { ascending: true });
+    let comments: any[] = [];
+    try { comments = await api.community.getComments(postId); } catch(e) {}
 
     if (!comments || comments.length === 0) {
       list.innerHTML = '<p class="text-xs text-on-surface-variant text-center py-2">Sin comentarios aún</p>';
@@ -482,54 +479,45 @@ import PageLoader from '../components/PageLoader.astro';
 
   // Sidebar stats
   async function loadSidebarStats() {
-    const { count: postCount } = await supabase.from('community_posts').select('*', { count: 'exact', head: true });
-    const { count: reactionCount } = await supabase.from('community_reactions').select('*', { count: 'exact', head: true });
-    const { count: commentCount } = await supabase.from('community_comments').select('*', { count: 'exact', head: true });
-
-    // Count unique authors
-    const { data: authors } = await supabase.from('community_posts').select('author_id');
-    const uniqueAuthors = new Set((authors || []).map((a: any) => a.author_id)).size;
-
-    document.getElementById('stat-consultoras')!.textContent = String(uniqueAuthors || 0);
-    document.getElementById('stat-posts')!.textContent = String(postCount || 0);
-    document.getElementById('stat-reactions')!.textContent = String(reactionCount || 0);
-    document.getElementById('stat-comments')!.textContent = String(commentCount || 0);
+    try {
+      const stats = await api.community.getStats();
+      document.getElementById('stat-consultoras')!.textContent = String(stats.unique_authors || 0);
+      document.getElementById('stat-posts')!.textContent = String(stats.post_count || 0);
+      document.getElementById('stat-reactions')!.textContent = String(stats.reaction_count || 0);
+      document.getElementById('stat-comments')!.textContent = String(stats.comment_count || 0);
+    } catch(e) {}
   }
 
   // Top contributors
   async function loadTopContributors() {
     const container = document.getElementById('top-contributors')!;
-    const { data: posts } = await supabase.from('community_posts').select('author_id, author_name');
+    try {
+      const stats = await api.community.getStats();
+      const sorted = stats.top_contributors || [];
 
-    if (!posts || posts.length === 0) {
+      if (sorted.length === 0) {
+        container.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">Aún no hay contribuidoras</p>';
+        return;
+      }
+
+      const medals = ['🥇', '🥈', '🥉'];
+      container.innerHTML = sorted.map((c: any, i: number) => {
+        const initials = c.author_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+        const gradient = avatarGradient(c.author_name);
+        return `<div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
+            <span class="font-bold text-xs">${esc(initials)}</span>
+          </div>
+          <div class="flex-1">
+            <p class="font-bold text-sm text-on-surface">${esc(c.author_name)}</p>
+            <p class="text-[10px] text-on-surface-variant">${c.count} posts</p>
+          </div>
+          <span class="text-lg">${medals[i]}</span>
+        </div>`;
+      }).join('');
+    } catch(e) {
       container.innerHTML = '<p class="text-sm text-on-surface-variant text-center py-4">Aún no hay contribuidoras</p>';
-      return;
     }
-
-    // Count posts per author
-    const counts: Record<string, { name: string; count: number }> = {};
-    for (const p of posts) {
-      if (!counts[p.author_id]) counts[p.author_id] = { name: p.author_name, count: 0 };
-      counts[p.author_id].count++;
-    }
-
-    const sorted = Object.values(counts).sort((a, b) => b.count - a.count).slice(0, 3);
-    const medals = ['🥇', '🥈', '🥉'];
-
-    container.innerHTML = sorted.map((c, i) => {
-      const initials = c.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
-      const gradient = avatarGradient(c.name);
-      return `<div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
-          <span class="font-bold text-xs">${esc(initials)}</span>
-        </div>
-        <div class="flex-1">
-          <p class="font-bold text-sm text-on-surface">${esc(c.name)}</p>
-          <p class="text-[10px] text-on-surface-variant">${c.count} posts</p>
-        </div>
-        <span class="text-lg">${medals[i]}</span>
-      </div>`;
-    }).join('');
   }
 
   // Tag selection for new posts
@@ -567,21 +555,18 @@ import PageLoader from '../components/PageLoader.astro';
     btnPost.disabled = true;
     btnPost.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Publicando...';
 
-    const { error } = await supabase.from('community_posts').insert({
-      author_id: currentUserId,
-      author_name: currentUserName,
-      content: text,
-      topic: selectedTag || 'general',
-    });
+    try {
+      await api.community.createPost({ content: text, author_name: currentUserName, topic: selectedTag || 'general' });
+    } catch(err: any) {
+      console.error('Error creating post:', err);
+      alert('Error al publicar: ' + err.message);
+      btnPost.disabled = false;
+      btnPost.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Publicar';
+      return;
+    }
 
     btnPost.disabled = false;
     btnPost.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Publicar';
-
-    if (error) {
-      console.error('Error creating post:', error);
-      alert('Error al publicar: ' + error.message);
-      return;
-    }
 
     postInput.value = '';
     selectedTag = '';

@@ -1,0 +1,230 @@
+09:26:10 [vite] Re-optimizing dependencies because vite config has changed
+09:26:10 [types] Generated 267ms
+09:26:11 [check] Getting diagnostics for Astro files in /home/ricardominor/Documentos/Desarrollos/flow-natura...
+[96mscraper-service/server.mjs[0m:[93m77[0m:[93m21[0m - [93mwarning[0m[90m ts(6133): [0m'req' is declared but its value is never read.
+
+[7m77[0m app.get('/health', (req, res) => res.json({ status: 'ok', method: 'natura-api-direct' }));
+[7m  [0m [93m                    ~~~[0m
+
+[96mscripts/fetch-ean-v2.mjs[0m:[93m167[0m:[93m16[0m - [93mwarning[0m[90m ts(6133): [0m'fetchBluesoftDetail' is declared but its value is never read.
+
+[7m167[0m async function fetchBluesoftDetail(gtin) {
+[7m   [0m [93m               ~~~~~~~~~~~~~~~~~~~[0m
+[96mscripts/fetch-ean-v2.mjs[0m:[93m137[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'nameRegex' is declared but its value is never read.
+
+[7m137[0m     const nameRegex = /<div class="description"[^>]*>([^<]+)<\/div>/g;
+[7m   [0m [93m          ~~~~~~~~~[0m
+
+[96msrc/components/CatalogScanner.tsx[0m:[93m1[0m:[93m27[0m - [93mwarning[0m[90m ts(6133): [0m'useRef' is declared but its value is never read.
+
+[7m1[0m import React, { useState, useRef } from 'react';
+[7m [0m [93m                          ~~~~~~[0m
+
+[96msrc/components/skeletons/TableSkeleton.astro[0m:[93m25[0m:[93m47[0m - [93mwarning[0m[90m ts(6133): [0m'rowIdx' is declared but its value is never read.
+
+[7m25[0m         {Array.from({ length: rows }).map((_, rowIdx) => (
+[7m  [0m [93m                                              ~~~~~~[0m
+[96msrc/components/skeletons/TableSkeleton.astro[0m:[93m17[0m:[93m49[0m - [93mwarning[0m[90m ts(6133): [0m'i' is declared but its value is never read.
+
+[7m17[0m           {Array.from({ length: cols }).map((_, i) => (
+[7m  [0m [93m                                                ~[0m
+
+[96msrc/lib/barcode-scanner.ts[0m:[93m240[0m:[93m23[0m - [93mwarning[0m[90m ts(6133): [0m'err' is declared but its value is never read.
+
+[7m240[0m         (result: any, err: any) => {
+[7m   [0m [93m                      ~~~[0m
+[96msrc/lib/barcode-scanner.ts[0m:[93m192[0m:[93m15[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m192[0m       .catch((e) => {
+[7m   [0m [93m              ~[0m
+[96msrc/lib/barcode-scanner.ts[0m:[93m38[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'useFallback' is declared but its value is never read.
+
+[7m38[0m   private useFallback = false;
+[7m  [0m [93m          ~~~~~~~~~~~[0m
+
+[96msrc/pages/catalogo.astro[0m:[93m185[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'viewMode' is declared but its value is never read.
+
+[7m185[0m   let viewMode: 'grid' | 'list' = 'grid';
+[7m   [0m [93m      ~~~~~~~~[0m
+
+[96msrc/pages/clientes.astro[0m:[93m114[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'currentUserId' is declared but its value is never read.
+
+[7m114[0m   let currentUserId = '';
+[7m   [0m [93m      ~~~~~~~~~~~~~[0m
+
+[96msrc/pages/index.astro[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'path' is declared but its value is never read.
+
+[7m3[0m import path from 'path';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/index.astro[0m:[93m2[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'fs' is declared but its value is never read.
+
+[7m2[0m import fs from 'fs';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/inventario.astro[0m:[93m987[0m:[93m11[0m - [91merror[0m[90m ts(2322): [0mType 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+
+[7m987[0m           (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl;
+[7m   [0m [91m          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario.astro[0m:[93m637[0m:[93m38[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m637[0m       btn.addEventListener('click', (e) => {
+[7m   [0m [93m                                     ~[0m
+[96msrc/pages/inventario.astro[0m:[93m631[0m:[93m38[0m - [93mwarning[0m[90m ts(6133): [0m'e' is declared but its value is never read.
+
+[7m631[0m       btn.addEventListener('click', (e) => {
+[7m   [0m [93m                                     ~[0m
+[96msrc/pages/inventario.astro[0m:[93m377[0m:[93m31[0m - [93mwarning[0m[90m ts(6133): [0m'consultantId' is declared but its value is never read.
+
+[7m377[0m   async function loadProducts(consultantId: string) {
+[7m   [0m [93m                              ~~~~~~~~~~~~[0m
+
+[96msrc/pages/logros.astro[0m:[93m176[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'growthData' is declared but its value is never read.
+
+[7m176[0m   let growthData: any = {};
+[7m   [0m [93m      ~~~~~~~~~~[0m
+[96msrc/pages/logros.astro[0m:[93m172[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'userId' is declared but its value is never read.
+
+[7m172[0m   const userId = session.user.id;
+[7m   [0m [93m        ~~~~~~[0m
+
+[96msrc/pages/membresia.astro[0m:[93m308[0m:[93m10[0m - [93mwarning[0m[90m ts(6133): [0m'Subscription' is declared but its value is never read.
+
+[7m308[0m     type Subscription,
+[7m   [0m [93m         ~~~~~~~~~~~~[0m
+
+[96msrc/pages/reportes.astro[0m:[93m154[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'userId' is declared but its value is never read.
+
+[7m154[0m   const userId = session.user.id;
+[7m   [0m [93m        ~~~~~~[0m
+
+[96msrc/pages/api/enhance-product-image.ts[0m:[93m80[0m:[93m34[0m - [91merror[0m[90m ts(2769): [0mNo overload matches this call.
+  Overload 1 of 2, '(data: string): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+  Overload 2 of 2, '(data: string): string', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+
+[7m80[0m           const binaryStr = atob(generatedBase64);
+[7m  [0m [91m                                 ~~~~~~~~~~~~~~~[0m
+[96msrc/pages/api/enhance-product-image.ts[0m:[93m74[0m:[93m35[0m - [91merror[0m[90m ts(2532): [0mObject is possibly 'undefined'.
+
+[7m74[0m           const generatedBase64 = response.generatedImages[0].image.imageBytes;
+[7m  [0m [91m                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/api/stripe/webhook.ts[0m:[93m3[0m:[93m1[0m - [93mwarning[0m[90m ts(6133): [0m'Stripe' is declared but its value is never read.
+
+[7m3[0m import type { Stripe } from 'stripe';
+[7m [0m [93m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[96msrc/pages/clientes/perfil.astro[0m:[93m306[0m:[93m26[0m - [93mwarning[0m[90m ts(6133): [0m'pid' is declared but its value is never read.
+
+[7m306[0m         sorted.forEach(([pid, data]) => {
+[7m   [0m [93m                         ~~~[0m
+[96msrc/pages/clientes/perfil.astro[0m:[93m190[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'clientData' is declared but its value is never read.
+
+[7m190[0m   let clientData: any = null;
+[7m   [0m [93m      ~~~~~~~~~~[0m
+
+[96msrc/pages/inventario/ajustes.astro[0m:[93m731[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'result' is declared but its value is never read.
+
+[7m731[0m     const result = document.getElementById('batch-result')!;
+[7m   [0m [93m          ~~~~~~[0m
+[96msrc/pages/inventario/ajustes.astro[0m:[93m706[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'nq' is declared but its value is never read.
+
+[7m706[0m       let nq: number, rq: number;
+[7m   [0m [93m          ~~[0m
+[96msrc/pages/inventario/ajustes.astro[0m:[93m515[0m:[93m9[0m - [93mwarning[0m[90m ts(6133): [0m'nq' is declared but its value is never read.
+
+[7m515[0m     let nq: number, rq: number;
+[7m   [0m [93m        ~~[0m
+
+[96msrc/pages/inventario/alta.astro[0m:[93m301[0m:[93m17[0m - [93mwarning[0m[90m ts(6133): [0m'error' is declared but its value is never read.
+
+[7m301[0m     let { data, error } = await supabase
+[7m   [0m [93m                ~~~~~[0m
+[96msrc/pages/inventario/alta.astro[0m:[93m213[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'style' is declared but its value is never read.
+
+[7m213[0m     const style = ALTA_LEVEL_STYLES[level];
+[7m   [0m [93m          ~~~~~[0m
+
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1315[0m:[93m5[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiResult'.
+
+[7m1315[0m     newAiResult.classList.add('hidden');
+[7m    [0m [91m    ~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1314[0m:[93m36[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiFoundUrl'.
+
+[7m1314[0m     if (newAiFoundUrl) setNewImage(newAiFoundUrl);
+[7m    [0m [91m                                   ~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1314[0m:[93m9[0m - [91merror[0m[90m ts(2304): [0mCannot find name 'newAiFoundUrl'.
+
+[7m1314[0m     if (newAiFoundUrl) setNewImage(newAiFoundUrl);
+[7m    [0m [91m        ~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1282[0m:[93m9[0m - [91merror[0m[90m ts(2322): [0mType 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+
+[7m1282[0m         (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl;
+[7m    [0m [91m        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m1251[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'newAiError' is declared but its value is never read.
+
+[7m1251[0m     const newAiError = document.getElementById('new-error') || document.getElementById('new-ai-error') || newAiStatus; // fallback
+[7m    [0m [93m          ~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m601[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'scannedEan' is declared but its value is never read.
+
+[7m601[0m   let scannedEan = "";
+[7m   [0m [93m      ~~~~~~~~~~[0m
+[96msrc/pages/inventario/nuevo.astro[0m:[93m599[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'currentUserId' is declared but its value is never read.
+
+[7m599[0m   let currentUserId = "";
+[7m   [0m [93m      ~~~~~~~~~~~~~[0m
+
+[96msrc/pages/inventario/productos.astro[0m:[93m862[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'btnEdit' is declared but its value is never read.
+
+[7m862[0m     const btnEdit = document.getElementById('detail-btn-edit') as HTMLButtonElement;
+[7m   [0m [93m          ~~~~~~~[0m
+[96msrc/pages/inventario/productos.astro[0m:[93m715[0m:[93m35[0m - [93mwarning[0m[90m ts(6133): [0m'btn' is declared but its value is never read.
+
+[7m715[0m     bindGroup('[data-variants]', (btn, p) => openVariantsDetail(p));
+[7m   [0m [93m                                  ~~~[0m
+[96msrc/pages/inventario/productos.astro[0m:[93m714[0m:[93m31[0m - [93mwarning[0m[90m ts(6133): [0m'btn' is declared but its value is never read.
+
+[7m714[0m     bindGroup('[data-edit]', (btn, p) => openEditModal(p));
+[7m   [0m [93m                              ~~~[0m
+[96msrc/pages/inventario/productos.astro[0m:[93m713[0m:[93m31[0m - [93mwarning[0m[90m ts(6133): [0m'btn' is declared but its value is never read.
+
+[7m713[0m     bindGroup('[data-view]', (btn, p) => openDetailSlideover(p));
+[7m   [0m [93m                              ~~~[0m
+
+[96msrc/pages/ventas/detalle.astro[0m:[93m624[0m:[93m21[0m - [93mwarning[0m[90m ts(6133): [0m'newTerms' is declared but its value is never read.
+
+[7m624[0m               const newTerms = { ...terms, pagos_completados: pagosCompletados + 1 };
+[7m   [0m [93m                    ~~~~~~~~[0m
+
+[96msrc/pages/ventas/nueva.astro[0m:[93m440[0m:[93m13[0m - [93mwarning[0m[90m ts(6133): [0m'orderData' is declared but its value is never read.
+
+[7m440[0m       const orderData = await api.orders.create({
+[7m   [0m [93m            ~~~~~~~~~[0m
+[96msrc/pages/ventas/nueva.astro[0m:[93m422[0m:[93m11[0m - [93mwarning[0m[90m ts(6133): [0m'totalAmount' is declared but its value is never read.
+
+[7m422[0m     const totalAmount = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
+[7m   [0m [93m          ~~~~~~~~~~~[0m
+[96msrc/pages/ventas/nueva.astro[0m:[93m196[0m:[93m7[0m - [93mwarning[0m[90m ts(6133): [0m'currentUserId' is declared but its value is never read.
+
+[7m196[0m   let currentUserId = '';
+[7m   [0m [93m      ~~~~~~~~~~~~~[0m
+
+[96msync-app/sync.js[0m:[93m13[0m:[93m15[0m - [93mwarning[0m[90m ts(6133): [0m'execSync' is declared but its value is never read.
+
+[7m13[0m const { exec, execSync } = require('child_process');
+[7m  [0m [93m              ~~~~~~~~[0m
+[96msync-app/sync.js[0m:[93m7[0m:[93m14[0m - [93mwarning[0m[90m ts(80001): [0mFile is a CommonJS module; it may be converted to an ES module.
+
+[7m7[0m const http = require('http');
+[7m [0m [93m             ~~~~~~~~~~~~~~~[0m
+
+Result (76 files): 
+- 7 errors
+- 0 warnings
+- 41 hints
+

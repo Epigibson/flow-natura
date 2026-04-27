@@ -16,6 +16,7 @@
     "@astrojs/react": "^5.0.1",
     "@astrojs/vercel": "^10.0.3",
     "@google/genai": "^1.47.0",
+    "@imgly/background-removal": "^1.7.0",
     "@supabase/supabase-js": "^2.100.0",
     "@tailwindcss/vite": "^4.2.2",
     "@types/react": "^19.2.14",
@@ -30,7 +31,9 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.8",
     "playwright": "^1.58.2",
-    "puppeteer": "^24.40.0"
+    "puppeteer": "^24.40.0",
+    "typescript": "^5.9.3"
   }
 }
