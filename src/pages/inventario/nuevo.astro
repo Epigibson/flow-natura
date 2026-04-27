@@ -604,6 +604,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   let capturedImageBase64 = "";
   let capturedMimeType = "image/jpeg";
   let isAnalyzing = false;
+  let aiGeneratedImageUrl = ""; // Pre-uploaded URL from AI generation
   let selectedLevel: ConsultantLevel = (localStorage.getItem('natura_level') as ConsultantLevel) || 'Bronce';
   let costManuallyEdited = false; // Track if user manually changed cost
 
@@ -967,14 +968,52 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     }
   }
 
-  // ═══════════ GENERATE CLEAN PRODUCT IMAGE ═══════════
-  async function generateCleanImage() {
-    // Update loading indicator
+  // ═══════════ GENERATE CLEAN PRODUCT IMAGE (3-step pipeline) ═══════════
+  function updateLoadingStep(step: number, text: string, subtext: string) {
     const loadingText = aiLoading.querySelector("p.font-bold");
     const loadingSub = aiLoading.querySelector("p.text-xs");
-    if (loadingText) loadingText.textContent = "Generando foto profesional del producto...";
-    if (loadingSub) loadingSub.textContent = "Esto puede tomar 5-10 segundos";
+    if (loadingText) loadingText.textContent = text;
+    if (loadingSub) loadingSub.textContent = subtext;
     aiLoading.classList.remove("hidden");
+
+    // Update step indicators if they exist
+    const steps = aiLoading.querySelectorAll('.ai-step-dot');
+    steps.forEach((dot, i) => {
+      if (i < step) dot.className = 'ai-step-dot w-2 h-2 rounded-full bg-green-500';
+      else if (i === step) dot.className = 'ai-step-dot w-2 h-2 rounded-full bg-primary animate-pulse';
+      else dot.className = 'ai-step-dot w-2 h-2 rounded-full bg-surface-container-highest';
+    });
+  }
+
+  function showAiIndicator(message: string, color: string = 'purple') {
+    // Remove any previous indicator
+    document.querySelectorAll('.ai-image-indicator').forEach(el => el.remove());
+
+    const indicator = document.createElement("div");
+    indicator.className = `ai-image-indicator absolute bottom-3 left-3 right-3 bg-${color}-600/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 backdrop-blur-sm z-10`;
+    indicator.innerHTML = `
+      <span class="material-symbols-outlined text-sm">auto_awesome</span>
+      ${message}
+      <button class="ml-auto text-[10px] underline opacity-80 hover:opacity-100 btn-use-original" title="Volver a usar la foto original">Usar mi foto</button>
+    `;
+    document.getElementById("camera-area")!.appendChild(indicator);
+
+    // Allow switching back to original
+    indicator.querySelector(".btn-use-original")?.addEventListener("click", () => {
+      // We don't have the original anymore if it was replaced, but catalogImageUrl can be cleared
+      catalogImageUrl = "";
+      aiGeneratedImageUrl = "";
+      indicator.remove();
+    });
+  }
+
+  async function generateCleanImage() {
+    // Step 1: Generate professional image with AI
+    updateLoadingStep(0, "Generando foto profesional del producto...", "Esto puede tomar 5-15 segundos");
+
+    // Add a 30-second timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     try {
       const res = await authFetch("/api/gemini-generate-image", {
@@ -983,15 +1022,23 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         body: JSON.stringify({
           imageBase64: capturedImageBase64,
           mimeType: capturedMimeType,
+          productName: nameInput.value || undefined,
         }),
+        signal: controller.signal,
       });
 
+      clearTimeout(timeout);
       const result = await res.json();
 
       if (result.imageBase64) {
-        // Replace the camera photo with the generated clean image
+        // Replace preview with the generated clean image
         capturedImageBase64 = result.imageBase64;
         capturedMimeType = result.mimeType || "image/png";
+
+        // Store the pre-uploaded URL (saves an upload at save time)
+        if (result.imageUrl) {
+          aiGeneratedImageUrl = result.imageUrl;
+        }
 
         // Update previews
         photoPreview.src = capturedImageBase64;
@@ -999,21 +1046,21 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         previewPhoto.classList.remove("hidden");
         previewPlaceholder.classList.add("hidden");
 
-        // Show indicator
-        const indicator = document.createElement("div");
-        indicator.className = "absolute bottom-3 left-3 right-3 bg-purple-600/90 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-2 backdrop-blur-sm z-10";
-        indicator.innerHTML = `
-          <span class="material-symbols-outlined text-sm">auto_awesome</span>
-          Foto generada por IA ✨
-        `;
-        document.getElementById("camera-area")!.appendChild(indicator);
+        showAiIndicator("Foto profesional generada por IA ✨", "purple");
       } else {
         console.warn("Image generation failed:", result.error);
-        // Keep the original camera photo — it's fine as fallback
+        // Step 2: fallback — keep the original camera photo and upload it directly
+        showAiIndicator("Usando foto original (la IA no pudo mejorarla)", "amber");
       }
-    } catch (err) {
-      console.warn("Image generation error:", err);
-      // Keep original photo
+    } catch (err: any) {
+      clearTimeout(timeout);
+      if (err.name === 'AbortError') {
+        console.warn("Image generation timed out after 30s");
+        showAiIndicator("Usando foto original (tiempo de espera agotado)", "amber");
+      } else {
+        console.warn("Image generation error:", err);
+        showAiIndicator("Usando foto original", "amber");
+      }
     } finally {
       aiLoading.classList.add("hidden");
       // Restore loading text for future use
@@ -1265,36 +1312,50 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         originalBase64 = currentImg;
       }
 
+      // 30s timeout for enhance
+      const enhanceController = new AbortController();
+      const enhanceTimeout = setTimeout(() => enhanceController.abort(), 30000);
+
       const res = await authFetch('/api/enhance-product-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
+        signal: enhanceController.signal,
       });
+      clearTimeout(enhanceTimeout);
       const data = await res.json();
 
       newAiStatus.classList.add('hidden');
 
       if (data.error) throw new Error(data.error);
 
-      if (data.suggested_image_url) {
-        finalImgUrl = data.suggested_image_url;
-        aiNotes = data.notes || "Fondo eliminado con IA.";
+      if (data.suggested_image_url || data.image_base64) {
+        finalImgUrl = data.suggested_image_url || null;
+        aiNotes = data.notes || "Imagen mejorada con IA.";
+        const strategy = data.strategy === 'imagen_bkg_removal' ? '🎯 Fondo removido' :
+                         data.strategy === 'gemini_image_gen' ? '✨ Generada por IA' :
+                         data.strategy === 'text_catalog_search' ? '📂 Catálogo oficial' : 'IA';
         
-        // This is a global var in the scope of this file
         newAiFoundUrl = finalImgUrl || '';
-        (document.getElementById('new-ai-img') as HTMLImageElement).src = finalImgUrl || '';
+        // Show base64 preview for instant feedback, or URL
+        const previewSrc = data.image_base64 || finalImgUrl || '';
+        (document.getElementById('new-ai-img') as HTMLImageElement).src = previewSrc;
         document.getElementById('new-ai-name')!.textContent = data.identified_name || name || "Producto AI";
         
         const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
-        document.getElementById('new-ai-conf')!.textContent = confText + ` • ${aiNotes}`;
+        document.getElementById('new-ai-conf')!.textContent = `${strategy} • ${confText} • ${aiNotes}`;
         
         newAiResult.classList.remove('hidden');
       } else {
-        alert("La IA no pudo procesar la imagen ni encontrar el oficial.");
+        alert("La IA no pudo procesar la imagen ni encontrar el oficial. Intenta con otra foto o ingresa más datos del producto.");
       }
     } catch (err: any) {
       newAiStatus.classList.add('hidden');
-      alert('Error conectando con IA Studio: ' + err.message);
+      if (err.name === 'AbortError') {
+        alert('La solicitud tardó demasiado (30s). Intenta de nuevo.');
+      } else {
+        alert('Error conectando con IA Studio: ' + (err.message || err));
+      }
     }
   }
 
@@ -1411,6 +1472,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     if (catalogImageUrl) {
       // Use the official catalog image found by AI search
       imageUrl = catalogImageUrl;
+    } else if (aiGeneratedImageUrl) {
+      // Use the pre-uploaded AI-generated image (already in Supabase)
+      imageUrl = aiGeneratedImageUrl;
     } else if (capturedImageBase64) {
       // Upload the camera photo to Supabase Storage as fallback
       try {
@@ -1478,7 +1542,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     // Reset AI badges
     document.querySelectorAll(".ai-badge").forEach((b) => b.classList.add("hidden"));
     document.querySelectorAll(".ai-filled").forEach((el) => el.classList.remove("ai-filled"));
+    document.querySelectorAll(".ai-image-indicator").forEach((el) => el.remove());
     aiSuccess.classList.add("hidden");
+    aiGeneratedImageUrl = "";
 
     // Reset preview
     previewPhoto.classList.add("hidden");

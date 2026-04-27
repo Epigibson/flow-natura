@@ -973,36 +973,51 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
           originalBase64 = currentImg;
         }
 
+        // 30s timeout for enhance
+        const enhanceController = new AbortController();
+        const enhanceTimeout = setTimeout(() => enhanceController.abort(), 30000);
+
         const res = await authFetch('/api/enhance-product-image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ productName: name, productCode: code, productDesc: desc, imageBase64: originalBase64, imageUrl: originalBase64 ? null : currentImg }),
+          signal: enhanceController.signal,
         });
+        clearTimeout(enhanceTimeout);
         const data = await res.json();
 
         editAiStatus.classList.add('hidden');
 
         if (data.error) throw new Error(data.error);
 
-        if (data.suggested_image_url) {
-          finalImgUrl = data.suggested_image_url;
-          aiNotes = data.notes || "Fondo eliminado con IA.";
+        if (data.suggested_image_url || data.image_base64) {
+          finalImgUrl = data.suggested_image_url || null;
+          aiNotes = data.notes || "Imagen mejorada con IA.";
+          const strategy = data.strategy === 'imagen_bkg_removal' ? '🎯 Fondo removido' :
+                           data.strategy === 'gemini_image_gen' ? '✨ Generada por IA' :
+                           data.strategy === 'text_catalog_search' ? '📂 Catálogo oficial' : 'IA';
           
           (window as any).editAiFoundUrl = finalImgUrl;
-          (document.getElementById('edit-ai-img') as HTMLImageElement).src = finalImgUrl || '';
+          // Show base64 preview for instant feedback, or URL
+          const previewSrc = data.image_base64 || finalImgUrl || '';
+          (document.getElementById('edit-ai-img') as HTMLImageElement).src = previewSrc;
           document.getElementById('edit-ai-name')!.textContent = data.identified_name || name || "Producto AI";
           
           const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
-          document.getElementById('edit-ai-conf')!.textContent = confText + ` • ${aiNotes}`;
+          document.getElementById('edit-ai-conf')!.textContent = `${strategy} • ${confText} • ${aiNotes}`;
           
           editAiResult.classList.remove('hidden');
         } else {
-          editAiError.textContent = "La IA no pudo procesar la imagen ni encontrar el oficial.";
+          editAiError.textContent = "La IA no pudo procesar la imagen. Intenta con otra foto o agrega más datos del producto.";
           editAiError.classList.remove('hidden');
         }
       } catch (err: any) {
         editAiStatus.classList.add('hidden');
-        editAiError.textContent = 'Error conectando con IA Studio: ' + err.message;
+        if (err.name === 'AbortError') {
+          editAiError.textContent = 'La solicitud tardó demasiado (30s). Intenta de nuevo.';
+        } else {
+          editAiError.textContent = 'Error conectando con IA Studio: ' + (err.message || err);
+        }
         editAiError.classList.remove('hidden');
       }
     }
