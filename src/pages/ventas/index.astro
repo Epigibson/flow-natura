@@ -111,6 +111,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
 
   async function loadData() {
     const loader = document.getElementById('loader') as HTMLElement;
@@ -138,6 +139,7 @@ import PageLoader from '../../components/PageLoader.astro';
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
 
+    // ⚡ Bolt: Debounce search input para evitar costosos renderizados en cada pulsación de tecla
     let searchTimer: ReturnType<typeof setTimeout>;
     searchInput.addEventListener('input', () => {
       clearTimeout(searchTimer);
@@ -245,32 +247,20 @@ import PageLoader from '../../components/PageLoader.astro';
     }
 
     try {
-      const { data: userResp } = await supabase.auth.getUser();
-      if (!userResp.user) return window.location.href = '/login';
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '/login';
 
-      const { data: orders, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          customers ( full_name )
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {  
-        console.error('Error loading orders:', error);
-        loader.classList.add('hidden');
-        emptyState.classList.remove('hidden');
-        return;
-      }
+      const orders = await api.orders.list();
 
       loader.classList.add('hidden');
       tableContainer.classList.add('content-loaded');
       
       // Pre-calculate expensive parsed data to avoid parsing in loops
-      allOrders = (orders || []).map(o => {
-        const cName = o.customers?.full_name || 'Cliente Mostrador';
+      allOrders = (orders || []).map((o: any) => {
+        const cName = o.customer_name || 'Cliente Mostrador';
         const folio = o.id ? o.id.split('-')[0] : 'N/A';
         o._searchString = (cName + ' ' + folio).toLowerCase();
+        o.customers = { full_name: cName };
 
         o._isAbonos = o.payment_method?.toLowerCase() === 'abonos';
         o._debt = 0;

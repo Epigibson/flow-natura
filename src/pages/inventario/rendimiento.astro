@@ -4,10 +4,10 @@ import PageLoader from '../../components/PageLoader.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">ANALYTICS</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Rendimiento de Productos</h2>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Rendimiento de Productos</h2>
       <p class="text-on-surface-variant mt-2 text-lg">Descubre cuáles productos generan más ingresos y demanda.</p>
     </div>
     <a href="/inventario" class="btn-secondary flex items-center gap-2 py-3 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors">
@@ -17,7 +17,7 @@ import PageLoader from '../../components/PageLoader.astro';
   </header>
 
   <!-- KPI Summary -->
-  <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
     <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
       <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Productos Vendidos</p>
       <p id="kpi-total-sold" class="text-4xl font-display font-bold text-on-surface">0</p>
