@@ -259,7 +259,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
               </button>
             </div>
             <!-- Image actions -->
-            <div class="grid grid-cols-3 gap-2 mb-2">
+            <div class="grid grid-cols-4 gap-2 mb-2">
               <label class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors cursor-pointer text-center">
                 <span class="material-symbols-outlined text-lg text-primary">upload_file</span>
                 <span class="text-[9px] font-bold text-on-surface-variant">Subir foto</span>
@@ -268,6 +268,10 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
               <button id="edit-img-camera" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-surface-container-highest hover:bg-primary/10 transition-colors text-center">
                 <span class="material-symbols-outlined text-lg text-primary">photo_camera</span>
                 <span class="text-[9px] font-bold text-on-surface-variant">Camara</span>
+              </button>
+              <button id="edit-img-whitebg" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/30 hover:from-amber-100 hover:to-yellow-100 transition-colors text-center">
+                <span class="material-symbols-outlined text-lg text-amber-600">crop</span>
+                <span class="text-[9px] font-bold text-amber-700">Fondo Blanco</span>
               </button>
               <button id="edit-img-ai" class="flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200/30 hover:from-purple-100 hover:to-indigo-100 transition-colors text-center">
                 <span class="material-symbols-outlined text-lg text-purple-600">auto_awesome</span>
@@ -1045,6 +1049,157 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       setEditImage(foundUrl);
     }
     document.getElementById('edit-ai-result')!.classList.add('hidden');
+  });
+
+  // ═══════════ FONDO BLANCO — Canvas crop + AI enhance ═══════════
+  document.getElementById('edit-img-whitebg')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const imgEl = document.getElementById('edit-img-preview-src') as HTMLImageElement;
+    const preview = document.getElementById('edit-img-preview') as HTMLDivElement;
+
+    if (!imgEl.src || imgEl.src === window.location.href) {
+      const err = document.getElementById('edit-error')!;
+      err.textContent = 'Primero necesitas tener una imagen del producto para limpiar.';
+      err.classList.remove('hidden');
+      return;
+    }
+
+    const editAiStatus = document.getElementById('edit-ai-status')!;
+    const editAiText = document.getElementById('edit-ai-text')!;
+    editAiText.textContent = 'Paso 1/2: Recortando bordes oscuros...';
+    editAiStatus.classList.remove('hidden');
+
+    try {
+      // STEP 1: Canvas — detect and crop black bars
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      const croppedBase64: string = await new Promise((resolve, reject) => {
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d')!;
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          const w = canvas.width;
+          const h = canvas.height;
+
+          const threshold = 35;
+          const isDark = (x: number, y: number) => {
+            const i = (y * w + x) * 4;
+            return data[i] < threshold && data[i + 1] < threshold && data[i + 2] < threshold;
+          };
+
+          let left = 0;
+          for (let x = 0; x < w * 0.4; x++) {
+            let darkCount = 0;
+            for (let y = 0; y < h; y += 3) { if (isDark(x, y)) darkCount++; }
+            if (darkCount > h / 3 / 2) left = x + 1; else break;
+          }
+          let right = w;
+          for (let x = w - 1; x > w * 0.6; x--) {
+            let darkCount = 0;
+            for (let y = 0; y < h; y += 3) { if (isDark(x, y)) darkCount++; }
+            if (darkCount > h / 3 / 2) right = x; else break;
+          }
+          let top = 0;
+          for (let y = 0; y < h * 0.4; y++) {
+            let darkCount = 0;
+            for (let x = 0; x < w; x += 3) { if (isDark(x, y)) darkCount++; }
+            if (darkCount > w / 3 / 2) top = y + 1; else break;
+          }
+          let bottom = h;
+          for (let y = h - 1; y > h * 0.6; y--) {
+            let darkCount = 0;
+            for (let x = 0; x < w; x += 3) { if (isDark(x, y)) darkCount++; }
+            if (darkCount > w / 3 / 2) bottom = y; else break;
+          }
+
+          const cropW = right - left;
+          const cropH = bottom - top;
+
+          // Crop to content area (even if no bars detected, just use the full image)
+          const out = document.createElement('canvas');
+          if (cropW > 50 && cropH > 50 && !(left === 0 && right === w && top === 0 && bottom === h)) {
+            out.width = cropW;
+            out.height = cropH;
+            const outCtx = out.getContext('2d')!;
+            outCtx.fillStyle = '#FFFFFF';
+            outCtx.fillRect(0, 0, out.width, out.height);
+            outCtx.drawImage(img, left, top, cropW, cropH, 0, 0, cropW, cropH);
+          } else {
+            out.width = w;
+            out.height = h;
+            const outCtx = out.getContext('2d')!;
+            outCtx.drawImage(img, 0, 0);
+          }
+
+          resolve(out.toDataURL('image/jpeg', 0.95));
+        };
+        img.onerror = () => reject(new Error('No se pudo cargar la imagen'));
+        img.src = imgEl.src;
+      });
+
+      // STEP 2: Send cropped (clean) image to Gemini for professional enhancement
+      editAiText.textContent = 'Paso 2/2: Generando foto profesional con IA...';
+
+      const productName = (document.getElementById('edit-name') as HTMLInputElement).value;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+
+      const res = await authFetch('/api/gemini-generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          imageBase64: croppedBase64,
+          mimeType: 'image/jpeg',
+          productName: productName || undefined,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const result = await res.json();
+
+      editAiStatus.classList.add('hidden');
+
+      if (result.imageUrl) {
+        // AI generated + uploaded — use the URL
+        setEditImage(result.imageUrl);
+      } else if (result.imageBase64) {
+        // AI generated but upload failed — show base64 preview
+        imgEl.src = result.imageBase64;
+        preview.classList.remove('hidden');
+        preview.style.display = 'flex';
+      } else {
+        // AI failed — fall back to the canvas-cropped version, upload it
+        const fileName = `whitebg_${Date.now()}.jpg`;
+        const uploadRes = await authFetch('/api/upload-product-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: croppedBase64, fileName, mimeType: 'image/jpeg' }),
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.url) {
+          setEditImage(uploadData.url);
+        } else {
+          imgEl.src = croppedBase64;
+          preview.classList.remove('hidden');
+          preview.style.display = 'flex';
+        }
+      }
+    } catch (err: any) {
+      editAiStatus.classList.add('hidden');
+      const errDiv = document.getElementById('edit-error')!;
+      if (err.name === 'AbortError') {
+        errDiv.textContent = 'La generación tardó demasiado (30s). Intenta de nuevo.';
+      } else {
+        errDiv.textContent = 'Error procesando imagen: ' + (err.message || err);
+      }
+      errDiv.classList.remove('hidden');
+    }
   });
 
   document.getElementById('edit-cancel')!.addEventListener('click', () => {

@@ -20,24 +20,19 @@ import { getServiceSupabase } from '../../lib/supabase-server';
 const GEMINI_API_KEY = import.meta.env.GEMINI_API_KEY;
 
 /**
- * Ultra-specific prompt for Natura/Avon cosmetics product photography.
- * Designed to produce e-commerce catalog quality images.
+ * Concise, effective prompt for product photography.
+ * Key principles: short, positive framing, clear reference, minimal negatives.
  */
-const IMAGE_PROMPT = `You are a professional e-commerce product photographer. Look at this photo of a cosmetics/beauty product and generate a CLEAN, PROFESSIONAL studio photograph of the EXACT same product.
+const IMAGE_PROMPT = `Transform this product photo into a professional Amazon-style product listing image.
 
-CRITICAL REQUIREMENTS:
-1. PRODUCT FIDELITY: The product MUST look identical to the original photo — same packaging, same labels, same colors, same brand logos, same text on the box/bottle. Do NOT invent or change any detail.
-2. BACKGROUND: MANDATORY pure white background (#FFFFFF). The ENTIRE background must be solid bright white — no black, no dark colors, no gray, no gradients, no colored surfaces. If the input image has black bars, black borders, black letterboxing, or any dark padding around the product — COMPLETELY IGNORE those. They are NOT part of the product. Replace ALL of that with pure white.
-3. LIGHTING: Soft, diffused studio lighting from the front-left and front-right. No harsh shadows. Very subtle soft shadow directly beneath the product only.
-4. COMPOSITION: Product centered in frame with generous white space around it (~20% padding on all sides). Product fills approximately 60-70% of the image height.
-5. ANGLE: Slight 3/4 front-facing angle to show depth and dimensionality of the packaging.
-6. QUALITY: Sharp focus, high resolution appearance, professional color accuracy.
-7. STYLE: Clean e-commerce catalog style, similar to product listings on Amazon, Mercado Libre, or the official Natura.com.mx website. These always use WHITE backgrounds.
-8. If the product is a SET or KIT (multiple items in a box), show the box AND the individual items arranged professionally next to it.
+The output MUST have:
+- A pure white seamless background, like a product shot on white paper in a photo studio
+- The EXACT same product from the input photo, preserving all packaging details, logos, text, and colors faithfully
+- Professional soft studio lighting with no harsh shadows
+- Product centered with white space around it
+- Sharp focus, vibrant accurate colors
 
-IMPORTANT: The background MUST be pure white (#FFFFFF). NEVER use black, dark, gray, or any colored background. If the original photo has black bars on the sides, top, or bottom — those are camera artifacts, NOT part of the product. Remove them entirely and use white.
-
-DO NOT add any text, watermarks, borders, backgrounds, hands, or props that are not in the original photo.`;
+Ignore any black bars, dark borders, or cluttered backgrounds in the input — those are not part of the product. Extract only the product itself and place it on clean white.`;
 
 export const POST: APIRoute = async ({ request }) => {
   try {
