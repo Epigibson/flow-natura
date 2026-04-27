@@ -127,7 +127,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        // Unhandled event type
     }
   } catch (err: unknown) {
     console.error('Webhook processing error:', err);

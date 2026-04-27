@@ -25,9 +25,8 @@ export const GET: APIRoute = async () => {
       premium_annual: import.meta.env.STRIPE_PRICE_PREMIUM_ANNUAL || process.env.STRIPE_PRICE_PREMIUM_ANNUAL || '',
     };
 
-    // Debug: log which IDs we have
+    // Check which IDs we have
     const validIds = Object.entries(priceIds).filter(([, v]) => v && v.length > 5);
-    console.log('Stripe price IDs found:', validIds.map(([k, v]) => `${k}=${v.slice(0, 15)}...`));
 
     if (validIds.length === 0) {
       return new Response(JSON.stringify({
@@ -91,8 +90,6 @@ export const GET: APIRoute = async () => {
         plan.discount = Math.round((1 - plan.annual_per_month / plan.monthly) * 100);
       }
     }
-
-    console.log('Stripe prices loaded:', JSON.stringify(plans));
 
     return new Response(JSON.stringify({ plans }), {
       status: 200,
