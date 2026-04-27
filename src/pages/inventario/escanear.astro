@@ -4,24 +4,24 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 
 <DashboardLayout>
   <!-- Header -->
-  <header class="flex justify-between items-center mb-6">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
     <div>
       <h2
-        class="text-3xl md:text-4xl font-display font-bold text-on-surface flex items-center gap-3"
+        class="text-2xl md:text-4xl font-display font-bold text-on-surface flex items-center gap-3"
       >
-        <span class="material-symbols-outlined text-primary text-3xl"
+        <span class="material-symbols-outlined text-primary text-2xl md:text-3xl"
           >qr_code_scanner</span
         >
         Escáner de Productos
       </h2>
-      <p class="text-on-surface-variant mt-1">
+      <p class="text-on-surface-variant mt-1 text-sm md:text-base">
         Escanea el código de barras para buscar o agregar productos al
         inventario.
       </p>
     </div>
     <a
       href="/inventario"
-      class="flex items-center gap-2 py-2.5 px-5 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors text-sm"
+      class="flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold border-2 border-primary/20 hover:bg-primary/5 text-primary transition-colors text-sm"
     >
       <span class="material-symbols-outlined text-lg">arrow_back</span>
       Inventario
@@ -210,7 +210,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
                   class="text-xs font-mono text-on-surface-variant mt-1"
                 >
                 </p>
-                <div class="grid grid-cols-3 gap-3 mt-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                   <div>
                     <p
                       class="text-[9px] text-on-surface-variant uppercase font-bold"
@@ -383,6 +383,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 <script>
   import { esc } from '../../lib/security';
   import { supabase } from "../../lib/supabase";
+  import api from '../../lib/api';
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
 
   let currentUserId = "";
@@ -619,19 +620,14 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     const ean = lastScannedEan;
     if (!ean || !productId) return;
 
-    // Save to product_barcodes
-    const { error } = await supabase.from("product_barcodes").insert({
-      ean,
-      product_id: productId,
-      created_by: currentUserId,
-    });
-
-    if (error) {
-      if (error.code === "23505") {
-        // unique violation
+    // Save barcode via API
+    try {
+      await api.inventory.addBarcode({ product_id: productId, barcode: ean });
+    } catch (err: any) {
+      if (err.message?.includes('duplicate') || err.message?.includes('23505')) {
         showToast("Este código de barras ya está vinculado", true);
       } else {
-        showToast("Error al vincular: " + error.message, true);
+        showToast("Error al vincular: " + err.message, true);
       }
       return;
     }
@@ -655,28 +651,10 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     btnAddInventory.innerHTML =
       '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Agregando...';
 
-    // Check if already in inventory
-    const { data: existing } = await supabase
-      .from("inventory")
-      .select("id, quantity")
-      .eq("consultant_id", currentUserId)
-      .eq("product_id", currentProductId)
-      .maybeSingle();
-
-    if (existing) {
-      // Update quantity
-      await supabase
-        .from("inventory")
-        .update({ quantity: (existing.quantity || 0) + qty })
-        .eq("id", existing.id);
-    } else {
-      // Insert new
-      await supabase.from("inventory").insert({
-        consultant_id: currentUserId,
-        product_id: currentProductId,
-        quantity: qty,
-      });
-    }
+    // Add to inventory via API
+    try {
+      await api.inventory.add([{ product_id: currentProductId, quantity: qty }]);
+    } catch(e) { console.error('Error adding to inventory', e); }
 
     btnAddInventory.disabled = false;
     btnAddInventory.innerHTML =

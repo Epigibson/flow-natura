@@ -3,11 +3,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
 <DashboardLayout>
-  <header class="flex justify-between items-center mb-10">
+  <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">INTELLIGENCE</p>
-      <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Reportes y Análisis 📊</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Insights profundos de tu negocio con datos en tiempo real.</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Reportes y Análisis 📊</h2>
+      <p class="text-on-surface-variant mt-2 text-base md:text-lg">Insights profundos de tu negocio con datos en tiempo real.</p>
     </div>
     <div class="flex gap-3">
       <select id="period-select" class="bg-surface-container-lowest rounded-xl py-2.5 px-4 shadow-sm border border-outline-variant/10 text-sm font-bold">
@@ -21,7 +21,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </header>
 
   <!-- Revenue Summary -->
-  <section class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-10">
+  <section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
     <div class="bg-gradient-to-br from-primary/5 to-primary-container/10 rounded-[2rem] p-6 shadow-sm text-center border border-primary/5">
       <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
         <span class="material-symbols-outlined text-primary text-lg">payments</span>
@@ -147,6 +147,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
+  import api from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
@@ -166,14 +167,30 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       default: startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     }
 
-    const [{ data: orders }, { data: customers }, { data: products }] = await Promise.all([
-      supabase.from('orders').select('*, order_items(*, products(*)), customers(full_name, phone, created_at)').eq('consultant_id', userId).gte('created_at', startDate).order('created_at', { ascending: true }),
-      supabase.from('customers').select('*').eq('consultant_id', userId).gte('created_at', startDate),
-      supabase.from('inventory').select('quantity, products(id, name, code, category, brand, price, cost, stock:quantity)').eq('consultant_id', userId)
+    // Load data from API
+    const [orders, customers, inventoryData] = await Promise.all([
+      api.orders.list(),
+      api.customers.list(),
+      api.inventory.list()
     ]);
 
-    const valid = (orders || []).filter((o: any) => o.status !== 'cancelled');
-    const totalRevenue = valid.reduce((s: number, o: any) => s + Number(o.total_amount), 0);
+    // Map API responses to expected shapes
+    const allOrders = (orders || []).map((o: any) => ({
+      ...o,
+      customers: { full_name: o.customer_name, phone: '', created_at: o.created_at },
+      order_items: (o.items || []).map((i: any) => ({
+        ...i,
+        products: { name: i.product_name, category: '', brand: '', code: '' }
+      }))
+    }));
+
+    const products = (inventoryData || []).map((inv: any) => ({
+      quantity: inv.quantity,
+      products: { id: inv.product_id, name: inv.product_name, code: inv.product_code, category: inv.category, brand: inv.brand || '', price: inv.price, cost: 0 }
+    }));
+
+    const valid = allOrders.filter((o: any) => o.status !== 'cancelled' && o.created_at >= startDate);
+    const totalRevenue = valid.reduce((s: number, o: any) => s + Number(o.total_amount || o.total), 0);
     const avgTicket = valid.length > 0 ? totalRevenue / valid.length : 0;
     const abonoOrders = valid.filter((o: any) => o.payment_method === 'abonos');
     const contadoOrders = valid.filter((o: any) => o.payment_method !== 'abonos');

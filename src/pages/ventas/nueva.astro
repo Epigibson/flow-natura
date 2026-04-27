@@ -6,7 +6,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   <!-- Progress Header -->
   <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
     <div>
-      <h2 class="text-4xl md:text-5xl font-display font-extrabold text-primary tracking-tight">Registro de Venta</h2>
+      <h2 class="text-3xl md:text-5xl font-display font-extrabold text-primary tracking-tight">Registro de Venta</h2>
       <p class="text-sm text-on-surface-variant mt-2 font-body">Completa los 3 pasos para procesar el pedido.</p>
     </div>
     <a href="/ventas" class="btn-secondary flex items-center gap-2 h-fit">
@@ -190,6 +190,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
   import { esc } from '../../lib/security';
 
   let currentUserId = '';
@@ -231,40 +232,35 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   });
 
   async function loadData() {
-    // 1. Load customers
-    const { data: customers } = await supabase.from('customers').select('id, full_name').order('full_name');
-    if (customers) {
-      customers.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.id;
-        opt.textContent = c.full_name;
-        selectCustomer.appendChild(opt);
-      });
-    }
+    // 1. Load customers from API
+    try {
+      const customers = await api.customers.list();
+      if (customers) {
+        customers.forEach((c: any) => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.full_name;
+          selectCustomer.appendChild(opt);
+        });
+      }
+    } catch(e) { console.warn('Error loading customers', e); }
 
-    // 2. Load inventory items instead of global products
-    const { data: inventoryData, error } = await supabase
-      .from('inventory')
-      .select(`
-        quantity,
-        products ( id, name, code, category, price )
-      `)
-      .eq('consultant_id', currentUserId)
-      .gt('quantity', 0); // Only products with stock
-
-    if (inventoryData) {
-      availableProducts = inventoryData.map((inv: any) => ({
-        id: inv.products.id,
-        name: inv.products.name,
-        code: inv.products.code,
-        category: inv.products.category,
-        price: inv.products.price,
-        max_quantity: inv.quantity
-      }));
-      
-      availableProducts.sort((a,b) => a.name.localeCompare(b.name));
-      renderProducts(availableProducts);
-    }
+    // 2. Load inventory items from API
+    try {
+      const inventoryData = await api.inventory.list();
+      if (inventoryData) {
+        availableProducts = inventoryData.map((inv: any) => ({
+          id: inv.product_id,
+          name: inv.product_name,
+          code: inv.product_code,
+          category: inv.category,
+          price: Number(inv.price),
+          max_quantity: inv.quantity
+        }));
+        availableProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
+        renderProducts(availableProducts);
+      }
+    } catch(e) { console.warn('Error loading inventory', e); }
   }
 
   function renderProducts(products: any[]) {
@@ -303,8 +299,6 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
-  // ⚡ Bolt: Implementación de debounce para optimizar el filtrado de productos.
-  // Reduce la carga de procesamiento al evitar ejecutar la lógica en cada pulsación.
   let searchTimer: ReturnType<typeof setTimeout>;
   searchInput?.addEventListener('input', (e) => {
     clearTimeout(searchTimer);
@@ -312,7 +306,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       const qt = (e.target as HTMLInputElement).value.toLowerCase();
       const filtered = availableProducts.filter(p => p.name.toLowerCase().includes(qt) || (p.code && p.code.toLowerCase().includes(qt)));
       renderProducts(filtered);
-    }, 150);
+    }, 200);
   });
 
   function addToCart(product: any) {
@@ -416,23 +410,17 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     // If no customer selected, use or create a "walk-in" customer
     if (!customerId) {
-      const { data: existing } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('consultant_id', currentUserId)
-        .eq('full_name', 'Cliente Mostrador')
-        .limit(1)
-        .single();
-
-      if (existing) {
-        customerId = existing.id;
-      } else {
-        const { data: newCust } = await supabase
-          .from('customers')
-          .insert({ consultant_id: currentUserId, full_name: 'Cliente Mostrador', phone: '', email: '' })
-          .select('id')
-          .single();
-        customerId = newCust?.id || null;
+      try {
+        const allCustomers = await api.customers.list('Cliente Mostrador');
+        const existing = allCustomers?.find((c: any) => c.full_name === 'Cliente Mostrador');
+        if (existing) {
+          customerId = existing.id;
+        } else {
+          const newCust = await api.customers.create({ full_name: 'Cliente Mostrador', phone: '', email: '' });
+          customerId = newCust?.id || null;
+        }
+      } catch(e) {
+        console.warn('Error with walk-in customer', e);
       }
     }
     const totalAmount = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
@@ -451,48 +439,30 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       });
     }
 
-    const { data: orderData, error: orderError } = await supabase
-      .from('orders')
-      .insert([{
-        consultant_id: currentUserId,
+    try {
+      // Create order with items via API
+      const orderData = await api.orders.create({
         customer_id: customerId,
-        total_amount: totalAmount,
-        status: 'delivered',
+        items: cart.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price
+        })),
         payment_method: paymentMethod,
         notes: orderNotes
-      }])
-      .select('id')
-      .single();
+      });
 
-    if (orderError) {
-      errorDiv.textContent = 'Error: ' + orderError.message;
+      document.getElementById('checkout-success')?.classList.remove('hidden');
+      cart = [];
+      renderCart();
+
+      setTimeout(() => {
+        window.location.href = '/ventas';
+      }, 1500);
+    } catch(err: any) {
+      errorDiv.textContent = 'Error: ' + err.message;
       errorDiv.classList.remove('hidden');
       btnCheckout.disabled = false;
-      return;
     }
-
-    const itemsToInsert = cart.map(item => ({
-      order_id: orderData.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price
-    }));
-
-    const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
-
-    if (itemsError) {
-      errorDiv.textContent = 'Error guardando productos: ' + itemsError.message;
-      errorDiv.classList.remove('hidden');
-      btnCheckout.disabled = false;
-      return;
-    }
-
-    document.getElementById('checkout-success')?.classList.remove('hidden');
-    cart = [];
-    renderCart();
-
-    setTimeout(() => {
-      window.location.href = '/ventas';
-    }, 1500);
   });
 </script>
