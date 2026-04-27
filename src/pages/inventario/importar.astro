@@ -5,8 +5,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 <DashboardLayout>
   <header class="mb-10">
     <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">HERRAMIENTA</p>
-    <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Importar Productos Natura 🌿</h2>
-    <p class="text-on-surface-variant mt-2 text-lg">Conecta con tu portal de consultora y descarga el catálogo del ciclo actual.</p>
+    <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Importar Productos Natura 🌿</h2>
+    <p class="text-on-surface-variant mt-2 text-base md:text-lg">Conecta con tu portal de consultora y descarga el catálogo del ciclo actual.</p>
   </header>
 
   <!-- Step 1: Load Products -->
@@ -92,6 +92,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
   import { esc } from '../../lib/security';
 
   let fetchedProducts: any[] = [];
@@ -156,31 +157,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     });
   }
 
-  // ===== IMPORT TO SUPABASE =====
+  // ===== IMPORT VIA API =====
   document.getElementById('btn-import-supabase')!.addEventListener('click', async () => {
     if (!fetchedProducts.length) return;
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { alert('Necesitas iniciar sesión en Natura Manager primero.'); return; }
-    const userId = session.user.id;
-
-    // Ensure consultant_profiles exists for this user
-    const { data: profile } = await supabase
-      .from('consultant_profiles')
-      .select('id')
-      .eq('id', userId)
-      .maybeSingle();
-    
-    if (!profile) {
-      const { error: profileErr } = await supabase.from('consultant_profiles').insert({
-        id: userId,
-        full_name: session.user.email || 'Consultora',
-      });
-      if (profileErr) {
-        alert('Error creando perfil de consultora: ' + profileErr.message);
-        return;
-      }
-    }
 
     const progress = document.getElementById('import-progress') as HTMLElement;
     const bar = document.getElementById('import-bar') as HTMLElement;
@@ -191,13 +173,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     progress.classList.remove('hidden');
     result.classList.add('hidden');
     btn.disabled = true;
-    let imported = 0;
-    let updated = 0;
-    let errors = 0;
 
-    // Process in batches of 100
+    // Process in batches of 100 via API
     const BATCH_SIZE = 100;
     const totalBatches = Math.ceil(fetchedProducts.length / BATCH_SIZE);
+    let totalImported = 0;
+    let totalErrors = 0;
 
     for (let batch = 0; batch < totalBatches; batch++) {
       const start = batch * BATCH_SIZE;
@@ -206,8 +187,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       bar.style.width = `${pct}%`;
       text.textContent = `Lote ${batch + 1}/${totalBatches} (${start + 1}-${start + chunk.length} de ${fetchedProducts.length})`;
 
-      // Upsert products (ON CONFLICT code)
-      const productRows = chunk.map(p => ({
+      const productRows = chunk.map((p: any) => ({
         code: String(p.code),
         name: p.name || '',
         brand: p.brand || 'Natura',
@@ -218,59 +198,18 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         image_url: p.image || null,
       }));
 
-      const { error: upsertErr } = await supabase
-        .from('products')
-        .upsert(productRows, { onConflict: 'code', ignoreDuplicates: false });
-
-      if (upsertErr) {
-        console.error('Upsert error batch', batch, upsertErr);
-        // Fallback: insert one by one
-        for (const row of productRows) {
-          const { error: singleErr } = await supabase
-            .from('products')
-            .upsert(row, { onConflict: 'code', ignoreDuplicates: false });
-          if (singleErr) { errors++; } else { imported++; }
-        }
-        continue;
-      }
-
-      imported += chunk.length;
-
-      // Get product IDs for inventory
-      const codes = chunk.map(p => String(p.code));
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, code')
-        .in('code', codes);
-
-      if (products && products.length > 0) {
-        // Check existing inventory entries
-        const productIds = products.map(p => p.id);
-        const { data: existingInv } = await supabase
-          .from('inventory')
-          .select('product_id')
-          .eq('consultant_id', userId)
-          .in('product_id', productIds);
-
-        const existingSet = new Set((existingInv || []).map(i => i.product_id));
-        const newInventory = products
-          .filter(p => !existingSet.has(p.id))
-          .map(p => ({
-            consultant_id: userId,
-            product_id: p.id,
-            quantity: 0
-          }));
-
-        if (newInventory.length > 0) {
-          const { error: invErr } = await supabase.from('inventory').insert(newInventory);
-          if (invErr) console.error('Inventory insert error:', invErr);
-        }
+      try {
+        const res = await api.inventory.importProducts(productRows);
+        totalImported += res.imported || 0;
+        totalErrors += res.errors || 0;
+      } catch(e) {
+        totalErrors += chunk.length;
       }
     }
 
     bar.style.width = '100%';
-    const msg = `✅ ${imported} productos importados${errors > 0 ? ` (${errors} errores)` : ''}. ¡Ve a Inventario > Alta de Stock para registrar cantidades!`;
-    showStatus(result, msg, errors > 0);
+    const msg = `✅ ${totalImported} productos importados${totalErrors > 0 ? ` (${totalErrors} errores)` : ''}. ¡Ve a Inventario > Alta de Stock para registrar cantidades!`;
+    showStatus(result, msg, totalErrors > 0);
     progress.classList.add('hidden');
     btn.disabled = false;
   });

@@ -347,6 +347,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
 
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
@@ -413,22 +414,37 @@ import PageLoader from '../../components/PageLoader.astro';
     if(!confirm('¿Estás seguro de modificar esta venta?')) return;
     btnUpdateStatus.disabled = true;
     btnCancel.disabled = true;
-    await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+    try {
+      if (newStatus === 'cancelled') {
+        await api.orders.cancel(orderId!);
+      } else {
+        // For other status changes, use a generic PATCH
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        await fetch(`${import.meta.env.PUBLIC_API_URL || 'https://flow-natura.onrender.com'}/api/v1/orders/${orderId}/pay`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: 0 })
+        });
+      }
+    } catch(e) { console.error(e); }
     window.location.reload();
   }
 
   async function loadData() {
     if(!orderId) { showError(); return; }
     try {
-      const { data: order, error } = await supabase
-        .from('orders')
-        .select('*, order_items (*, products (*)), customers (*)')
-        .eq('id', orderId)
-        .single();
+      const order = await api.orders.get(orderId);
+      if (!order) { showError(); return; }
 
-      if (error || !order) { showError(); return; }
-
-      globalOrder = order;
+      // Restructure API response to match expected format
+      globalOrder = {
+        ...order,
+        customers: { id: order.customer_id, full_name: order.customer_name },
+        order_items: (order.items || []).map((i: any) => ({
+          ...i,
+          products: { name: i.product_name, category: '' }
+        }))
+      };
       if (order.notes && order.payment_method?.toLowerCase() === 'abonos') {
         try { globalTerms = JSON.parse(order.notes); } catch(e) {}
       }
@@ -505,13 +521,14 @@ import PageLoader from '../../components/PageLoader.astro';
       if (!order.customers?.id) return;
       btnSaveClient.disabled = true;
       btnSaveClient.textContent = 'Guardando...';
-      const { error } = await supabase.from('customers').update({
-        full_name: editClientName.value,
-        phone: editClientPhone.value,
-        email: editClientEmail.value
-      }).eq('id', order.customers.id);
-      if (error) { alert(error.message); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar'; }
-      else window.location.reload();
+      try {
+        await api.customers.update(order.customers.id, {
+          full_name: editClientName.value,
+          phone: editClientPhone.value,
+          email: editClientEmail.value
+        });
+        window.location.reload();
+      } catch(err: any) { alert(err.message); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar'; }
     };
 
     btnEditNotes.onclick = () => {
@@ -529,9 +546,10 @@ import PageLoader from '../../components/PageLoader.astro';
       if (isAbonos && terms) {
         finalNotes = JSON.stringify({ ...terms, comentario: editNotesText.value });
       }
-      const { error } = await supabase.from('orders').update({ notes: finalNotes }).eq('id', orderId);
-      if (error) { alert(error.message); btnSaveNotes.disabled = false; }
-      else window.location.reload();
+      try {
+        await api.orders.updateNotes(orderId!, finalNotes);
+        window.location.reload();
+      } catch(err: any) { alert(err.message); btnSaveNotes.disabled = false; }
     };
 
     const phone = order.customers?.phone;
@@ -604,7 +622,10 @@ import PageLoader from '../../components/PageLoader.astro';
               btnConfirmAbono.disabled = true;
               btnConfirmAbono.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...';
               const newTerms = { ...terms, pagos_completados: pagosCompletados + 1 };
-              await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
+               try {
+                 await api.orders.pay(orderId!, montoCuota);
+                 window.location.reload();
+               } catch(e) { console.error(e); window.location.reload(); }
               window.location.reload();
            };
         };
