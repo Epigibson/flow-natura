@@ -60,50 +60,60 @@ export default function CatalogScanner() {
       setTotalToProcess(total);
       setCurrentProgress(0);
 
-      const newProducts: Product[] = [];
+      const pagePromises = [];
 
       for (let i = startIdx; i <= endIdx; i++) {
-        setCurrentProgress(i - startIdx + 1);
-        addLog(`Procesando página ${i + 1}...`);
-        
-        try {
-          const subPdf = await PDFDocument.create();
-          const [copiedPage] = await subPdf.copyPages(pdfDoc, [i]);
-          subPdf.addPage(copiedPage);
-          const subPdfBytes = await subPdf.save();
+        const pageIdx = i;
+        const promise = (async () => {
+          // Delay to respect rate limits (Gemini Free has 15 RPM)
+          // We start one request every 4 seconds to average 15 RPM
+          const delay = (pageIdx - startIdx) * 4000;
+          await new Promise(r => setTimeout(r, delay));
           
-          const blob = new Blob([subPdfBytes as unknown as BlobPart], { type: 'application/pdf' });
-          const formData = new FormData();
-          formData.append('file', blob, `page_${i + 1}.pdf`);
+          addLog(`Procesando página ${pageIdx + 1}...`);
 
-          const res = await fetch('/api/process-catalog', {
-            method: 'POST',
-            body: formData
-          });
+          try {
+            const subPdf = await PDFDocument.create();
+            const [copiedPage] = await subPdf.copyPages(pdfDoc, [pageIdx]);
+            subPdf.addPage(copiedPage);
+            const subPdfBytes = await subPdf.save();
 
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || `HTTP ${res.status}`);
+            const blob = new Blob([subPdfBytes as unknown as BlobPart], { type: 'application/pdf' });
+            const formData = new FormData();
+            formData.append('file', blob, `page_${pageIdx + 1}.pdf`);
+
+            const res = await fetch('/api/process-catalog', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.error || `HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            if (data.products && data.products.length > 0) {
+              setProducts(prev => [...prev, ...data.products]);
+              addLog(`Se encontraron ${data.products.length} productos en la pág ${pageIdx + 1}.`);
+              return data.products as Product[];
+            } else {
+              addLog(`Pág ${pageIdx + 1}: Sin productos válidos.`);
+              return [] as Product[];
+            }
+          } catch (err: any) {
+            addLog(`Error en pág ${pageIdx + 1}: ${err.message}`);
+            return [] as Product[];
+          } finally {
+            setCurrentProgress(prev => prev + 1);
           }
-
-          const data = await res.json();
-          if (data.products && data.products.length > 0) {
-            newProducts.push(...data.products);
-            setProducts([...newProducts]);
-            addLog(`Se encontraron ${data.products.length} productos en la pág ${i + 1}.`);
-          } else {
-            addLog(`Pág ${i + 1}: Sin productos válidos.`);
-          }
-          
-          // Delay to respect rate limits (Gemini Free has 15 RPM, we wait 4s to average 15 RPM)
-          await new Promise(r => setTimeout(r, 4000));
-          
-        } catch (err: any) {
-          addLog(`Error en pág ${i + 1}: ${err.message}`);
-        }
+        })();
+        pagePromises.push(promise);
       }
-      
-      addLog(`Proceso finalizado. Total extraído: ${newProducts.length} productos.`);
+
+      const results = await Promise.all(pagePromises);
+      const totalCount = results.reduce((acc, curr) => acc + curr.length, 0);
+      addLog(`Proceso finalizado. Total extraído: ${totalCount} productos.`);
     } catch (err: any) {
       addLog(`Error general: ${err.message}`);
     } finally {
