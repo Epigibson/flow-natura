@@ -100,11 +100,26 @@ async def create_order(
     order_items = []
     stock_updates = []
 
+    product_ids = [item.product_id for item in data.items]
+
+    # Bulk fetch products
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch inventory
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventories = {i.product_id: i for i in inv_result.scalars().all()}
+
     for item in data.items:
         # Check product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
+        product = products.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
@@ -112,15 +127,7 @@ async def create_order(
             )
 
         # Check stock
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
-
+        inv = inventories.get(item.product_id)
         if not inv or inv.quantity < item.quantity:
             available = inv.quantity if inv else 0
             raise HTTPException(
@@ -200,17 +207,21 @@ async def cancel_order(
         raise HTTPException(status_code=400, detail="La venta ya está cancelada")
 
     # Restore inventory
-    for item in order.items:
+    product_ids = [item.product_id for item in order.items]
+    if product_ids:
         inv_stmt = select(Inventory).where(
             and_(
-                Inventory.product_id == item.product_id,
+                Inventory.product_id.in_(product_ids),
                 Inventory.consultant_id == user_id,
             )
         )
         inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
-        if inv:
-            inv.quantity += item.quantity
+        inventories = {i.product_id: i for i in inv_result.scalars().all()}
+
+        for item in order.items:
+            inv = inventories.get(item.product_id)
+            if inv:
+                inv.quantity += item.quantity
 
     order.status = "cancelled"
     await db.commit()
