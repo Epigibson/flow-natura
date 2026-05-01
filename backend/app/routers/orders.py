@@ -100,12 +100,13 @@ async def create_order(
     order_items = []
     stock_updates = []
 
-    # ⚡ Bolt: Obtener productos e inventario en bloque para evitar consultas N+1 en el bucle
+    # ⚡ Bolt Optimization: Bulk fetch products and inventory to avoid N+1 queries
+    # Fetch all requested products and inventory records in two queries instead of 2N queries
     product_ids = [item.product_id for item in data.items]
 
-    prod_stmt = select(Product).where(Product.id.in_(product_ids))
-    prod_result = await db.execute(prod_stmt)
-    products_map = {p.id: p for p in prod_result.scalars().all()}
+    products_stmt = select(Product).where(Product.id.in_(product_ids))
+    products_result = await db.execute(products_stmt)
+    products_dict = {p.id: p for p in products_result.scalars().all()}
 
     inv_stmt = select(Inventory).where(
         and_(
@@ -114,19 +115,19 @@ async def create_order(
         )
     )
     inv_result = await db.execute(inv_stmt)
-    inventory_map = {inv.product_id: inv for inv in inv_result.scalars().all()}
+    inv_dict = {i.product_id: i for i in inv_result.scalars().all()}
 
     for item in data.items:
-        # Check product exists
-        product = products_map.get(item.product_id)
+        # Check product exists (O(1) dictionary lookup)
+        product = products_dict.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
                 detail=f"Producto {item.product_id} no encontrado",
             )
 
-        # Check stock
-        inv = inventory_map.get(item.product_id)
+        # Check stock (O(1) dictionary lookup)
+        inv = inv_dict.get(item.product_id)
 
         if not inv or inv.quantity < item.quantity:
             available = inv.quantity if inv else 0
@@ -207,9 +208,10 @@ async def cancel_order(
         raise HTTPException(status_code=400, detail="La venta ya está cancelada")
 
     # Restore inventory
-    # ⚡ Bolt: Obtener inventario en bloque para evitar consultas N+1 en el bucle
-    if order.items:
-        product_ids = [item.product_id for item in order.items]
+    # ⚡ Bolt Optimization: Bulk fetch inventory records to avoid N+1 queries
+    # Fetch all relevant inventory records in one query instead of N queries
+    product_ids = [item.product_id for item in order.items]
+    if product_ids:
         inv_stmt = select(Inventory).where(
             and_(
                 Inventory.product_id.in_(product_ids),
@@ -217,10 +219,11 @@ async def cancel_order(
             )
         )
         inv_result = await db.execute(inv_stmt)
-        inventory_map = {inv.product_id: inv for inv in inv_result.scalars().all()}
+        inv_dict = {i.product_id: i for i in inv_result.scalars().all()}
 
         for item in order.items:
-            inv = inventory_map.get(item.product_id)
+            # O(1) dictionary lookup
+            inv = inv_dict.get(item.product_id)
             if inv:
                 inv.quantity += item.quantity
 
