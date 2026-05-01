@@ -95,6 +95,22 @@ async def create_order(
     if not cust_result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
+    # Fetch all needed Products and Inventory in bulk
+    product_ids = [item.product_id for item in data.items]
+
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products_by_id = {p.id: p for p in prod_result.scalars().all()}
+
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inv_by_product_id = {inv.product_id: inv for inv in inv_result.scalars().all()}
+
     # Calculate total and validate stock
     total = Decimal("0")
     order_items = []
