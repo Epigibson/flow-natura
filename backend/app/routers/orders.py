@@ -116,14 +116,14 @@ async def create_order(
     order_items = []
     stock_updates = []
 
-    # ⚡ Bolt Optimization: Bulk fetch products and inventory to avoid N+1 queries
-    # Fetch all requested products and inventory records in two queries instead of 2N queries
     product_ids = [item.product_id for item in data.items]
 
-    products_stmt = select(Product).where(Product.id.in_(product_ids))
-    products_result = await db.execute(products_stmt)
-    products_dict = {p.id: p for p in products_result.scalars().all()}
+    # Bulk fetch products
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products = {p.id: p for p in prod_result.scalars().all()}
 
+    # Bulk fetch inventory
     inv_stmt = select(Inventory).where(
         and_(
             Inventory.product_id.in_(product_ids),
@@ -131,11 +131,11 @@ async def create_order(
         )
     )
     inv_result = await db.execute(inv_stmt)
-    inv_dict = {i.product_id: i for i in inv_result.scalars().all()}
+    inventories = {i.product_id: i for i in inv_result.scalars().all()}
 
     for item in data.items:
         # Check product exists
-        product = products_by_id.get(item.product_id)
+        product = products.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
@@ -143,8 +143,7 @@ async def create_order(
             )
 
         # Check stock
-        inv = inv_by_product_id.get(item.product_id)
-
+        inv = inventories.get(item.product_id)
         if not inv or inv.quantity < item.quantity:
             available = inv.quantity if inv else 0
             raise HTTPException(
@@ -225,19 +224,20 @@ async def cancel_order(
 
     # Restore inventory
     product_ids = [item.product_id for item in order.items]
-    inv_stmt = select(Inventory).where(
-        and_(
-            Inventory.product_id.in_(product_ids),
-            Inventory.consultant_id == user_id,
+    if product_ids:
+        inv_stmt = select(Inventory).where(
+            and_(
+                Inventory.product_id.in_(product_ids),
+                Inventory.consultant_id == user_id,
+            )
         )
-    )
-    inv_result = await db.execute(inv_stmt)
-    inv_by_product_id = {inv.product_id: inv for inv in inv_result.scalars().all()}
+        inv_result = await db.execute(inv_stmt)
+        inventories = {i.product_id: i for i in inv_result.scalars().all()}
 
-    for item in order.items:
-        inv = inv_by_product_id.get(item.product_id)
-        if inv:
-            inv.quantity += item.quantity
+        for item in order.items:
+            inv = inventories.get(item.product_id)
+            if inv:
+                inv.quantity += item.quantity
 
     order.status = "cancelled"
     await db.commit()
