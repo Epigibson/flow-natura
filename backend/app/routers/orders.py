@@ -116,6 +116,23 @@ async def create_order(
     order_items = []
     stock_updates = []
 
+    # ⚡ Bolt Optimization: Bulk fetch products and inventory to avoid N+1 queries
+    # Fetch all requested products and inventory records in two queries instead of 2N queries
+    product_ids = [item.product_id for item in data.items]
+
+    products_stmt = select(Product).where(Product.id.in_(product_ids))
+    products_result = await db.execute(products_stmt)
+    products_dict = {p.id: p for p in products_result.scalars().all()}
+
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inv_dict = {i.product_id: i for i in inv_result.scalars().all()}
+
     for item in data.items:
         # Check product exists
         product = products_by_id.get(item.product_id)
