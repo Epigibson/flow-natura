@@ -87,12 +87,26 @@ async def add_stock(
     If inventory entry doesn't exist, creates one. Otherwise increments quantity.
     """
     results = []
+    product_ids = {item.product_id for item in items}
+
+    # Bulk fetch products to avoid N+1 query
+    prod_stmt = select(Product).where(Product.id.in_(product_ids))
+    prod_result = await db.execute(prod_stmt)
+    products_map = {p.id: p for p in prod_result.scalars().all()}
+
+    # Bulk fetch existing inventory entries for this user
+    inv_stmt = select(Inventory).where(
+        and_(
+            Inventory.product_id.in_(product_ids),
+            Inventory.consultant_id == user_id,
+        )
+    )
+    inv_result = await db.execute(inv_stmt)
+    inventory_map = {inv.product_id: inv for inv in inv_result.scalars().all()}
 
     for item in items:
-        # Verify product exists
-        prod_stmt = select(Product).where(Product.id == item.product_id)
-        prod_result = await db.execute(prod_stmt)
-        product = prod_result.scalar_one_or_none()
+        # Verify product exists using pre-fetched map
+        product = products_map.get(item.product_id)
         if not product:
             raise HTTPException(
                 status_code=404,
@@ -103,15 +117,8 @@ async def add_stock(
         if item.cost is not None and item.cost > 0:
             product.cost = item.cost
 
-        # Check if inventory entry exists
-        inv_stmt = select(Inventory).where(
-            and_(
-                Inventory.product_id == item.product_id,
-                Inventory.consultant_id == user_id,
-            )
-        )
-        inv_result = await db.execute(inv_stmt)
-        inv = inv_result.scalar_one_or_none()
+        # Check if inventory entry exists using pre-fetched map
+        inv = inventory_map.get(item.product_id)
 
         if inv:
             inv.quantity += item.quantity
@@ -122,6 +129,8 @@ async def add_stock(
                 quantity=item.quantity,
             )
             db.add(inv)
+            # Update map in case the same product appears multiple times in input
+            inventory_map[item.product_id] = inv
 
         results.append({
             "product_id": str(item.product_id),

@@ -6,6 +6,6 @@
 **Learning:** Found synchronous `oninput` handlers causing expensive DOM operations and data filtering on every keystroke in certain views.
 **Action:** Always implement a `setTimeout` debounce (typically ~150-200ms) on text input fields that trigger list filtering or re-rendering to prevent main thread blocking and jank.
 
-## 2026-03-26 - SQLAlchemy N+1 Queries in Order Processing
-**Learning:** The FastAPI backend had classic O(N) "N+1" database query anti-patterns inside the `create_order` and `cancel_order` functions, querying for individual `Product` and `Inventory` records within a `for item in items:` loop. In SQLAlchemy, doing database await calls inside an iterative loop creates enormous latency scaling linearly with cart size.
-**Action:** Always pre-fetch related entities in bulk using `Model.id.in_([ids])` outside of the loop, map them into a Python dictionary via `{x.id: x for x in result.scalars().all()}`, and then perform O(1) in-memory `.get()` lookups inside the loop to avoid redundant query overhead.
+## 2026-03-27 - N+1 Query in Inventory Updates
+**Learning:** The `add_stock` endpoint was performing two separate database queries (`select Product` and `select Inventory`) inside a loop for each item in the request. For a request with many items, this results in significant I/O overhead.
+**Action:** Use the SQLAlchemy `.in_()` operator to bulk fetch all required `Product` and `Inventory` records before entering the loop. Store them in dictionaries for O(1) lookup during iteration. This reduces the number of database roundtrips from 2N to 2, regardless of the number of items.
