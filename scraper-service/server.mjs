@@ -2,6 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 
+const logger = {
+  info: (...args) => console.log(`[${new Date().toISOString()}] [INFO]`, ...args),
+  error: (...args) => console.error(`[${new Date().toISOString()}] [ERROR]`, ...args),
+};
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -20,7 +25,7 @@ const REQUIRED_ENV = [
 
 const missingEnv = REQUIRED_ENV.filter(key => !process.env[key]);
 if (missingEnv.length > 0) {
-  console.error(`❌ Error: Faltan variables de entorno obligatorias: ${missingEnv.join(', ')}`);
+  logger.error(`❌ Error: Faltan variables de entorno obligatorias: ${missingEnv.join(', ')}`);
   process.exit(1);
 }
 
@@ -102,7 +107,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', method: 'natura-api-di
 // =====================================================
 
 async function authenticateViaNatura(email, password) {
-  console.log('🔑 Intentando múltiples métodos de autenticación...\n');
+  logger.info('🔑 Intentando múltiples métodos de autenticación...\n');
 
   // ====================================================================
   // MÉTODO 1: Natura authentication-api (como lo hace el frontend React)
@@ -116,7 +121,7 @@ async function authenticateViaNatura(email, password) {
   ];
 
   const encryptedPassword = encryptPassword(password);
-  console.log(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
+  logger.info(`   Password encriptada: ${encryptedPassword.substring(0, 30)}...`);
 
   const body = {
     clientId: CONFIG.CLIENT_ID,
@@ -130,7 +135,7 @@ async function authenticateViaNatura(email, password) {
 
   for (const apiUrl of API_URLS) {
     try {
-      console.log(`📡 [1] Natura API → ${apiUrl}`);
+      logger.info(`📡 [1] Natura API → ${apiUrl}`);
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -147,15 +152,15 @@ async function authenticateViaNatura(email, password) {
       });
 
       const responseText = await response.text();
-      console.log(`   Status: ${response.status}`);
-      console.log(`   Response: ${responseText.substring(0, 400)}`);
+      logger.info(`   Status: ${response.status}`);
+      logger.info(`   Response: ${responseText.substring(0, 400)}`);
 
       // Si NO es 403 "Missing Authentication Token", procesamos
       if (response.status !== 403) {
         try {
           const data = JSON.parse(responseText);
           if (data?.data?.id_token || data?.id_token || data?.AuthenticationResult) {
-            console.log('   ✅ ¡Login exitoso!');
+            logger.info('   ✅ ¡Login exitoso!');
             const tokens = data?.data || data?.AuthenticationResult || data;
             return {
               id_token: tokens.id_token || tokens.IdToken,
@@ -166,9 +171,9 @@ async function authenticateViaNatura(email, password) {
           }
         } catch (e) { /* not JSON */ }
       }
-      console.log(`   ❌ ${response.status} en ${apiUrl}`);
+      logger.info(`   ❌ ${response.status} en ${apiUrl}`);
     } catch (err) {
-      console.log(`   ❌ Error: ${err.message}`);
+      logger.info(`   ❌ Error: ${err.message}`);
     }
   }
 
@@ -177,7 +182,7 @@ async function authenticateViaNatura(email, password) {
   // ====================================================================
   const ANDROID_CLIENT_ID = CONFIG.ANDROID_CLIENT_ID;
   try {
-    console.log(`\n📡 [2/3] Cognito directo (Android client: ${ANDROID_CLIENT_ID})...`);
+    logger.info(`\n📡 [2/3] Cognito directo (Android client: ${ANDROID_CLIENT_ID})...`);
     const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
 
     const response = await fetch(cognitoUrl, {
@@ -198,11 +203,11 @@ async function authenticateViaNatura(email, password) {
     });
 
     const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+    logger.info(`   Status: ${response.status}`);
+    logger.info(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
 
     if (data?.AuthenticationResult) {
-      console.log('   ✅ ¡Login exitoso via Cognito Android!');
+      logger.info('   ✅ ¡Login exitoso via Cognito Android!');
       return {
         id_token: data.AuthenticationResult.IdToken,
         access_token: data.AuthenticationResult.AccessToken,
@@ -211,11 +216,11 @@ async function authenticateViaNatura(email, password) {
       };
     }
     if (data?.ChallengeName) {
-      console.log(`   ⚠️ Challenge: ${data.ChallengeName}`);
+      logger.info(`   ⚠️ Challenge: ${data.ChallengeName}`);
     }
-    console.log(`   ❌ Cognito Android falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
+    logger.info(`   ❌ Cognito Android falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
   } catch (err) {
-    console.log(`   ❌ Cognito Android error: ${err.message}`);
+    logger.info(`   ❌ Cognito Android error: ${err.message}`);
   }
 
   // ====================================================================
@@ -223,7 +228,7 @@ async function authenticateViaNatura(email, password) {
   // ====================================================================
   const IOS_CLIENT_ID = CONFIG.IOS_CLIENT_ID;
   try {
-    console.log(`\n📡 [3/3] Cognito directo (iOS client: ${IOS_CLIENT_ID})...`);
+    logger.info(`\n📡 [3/3] Cognito directo (iOS client: ${IOS_CLIENT_ID})...`);
     const cognitoUrl = `https://cognito-idp.${CONFIG.COGNITO_REGION}.amazonaws.com/`;
 
     const response = await fetch(cognitoUrl, {
@@ -244,11 +249,11 @@ async function authenticateViaNatura(email, password) {
     });
 
     const data = await response.json();
-    console.log(`   Status: ${response.status}`);
-    console.log(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
+    logger.info(`   Status: ${response.status}`);
+    logger.info(`   Response: ${JSON.stringify(data).substring(0, 400)}`);
 
     if (data?.AuthenticationResult) {
-      console.log('   ✅ ¡Login exitoso via Cognito iOS!');
+      logger.info('   ✅ ¡Login exitoso via Cognito iOS!');
       return {
         id_token: data.AuthenticationResult.IdToken,
         access_token: data.AuthenticationResult.AccessToken,
@@ -257,11 +262,11 @@ async function authenticateViaNatura(email, password) {
       };
     }
     if (data?.ChallengeName) {
-      console.log(`   ⚠️ Challenge: ${data.ChallengeName}`);
+      logger.info(`   ⚠️ Challenge: ${data.ChallengeName}`);
     }
-    console.log(`   ❌ Cognito iOS falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
+    logger.info(`   ❌ Cognito iOS falló: ${data?.__type?.split('#').pop()} - ${data?.message}`);
   } catch (err) {
-    console.log(`   ❌ Cognito iOS error: ${err.message}`);
+    logger.info(`   ❌ Cognito iOS error: ${err.message}`);
   }
 
   throw new Error('Todos los métodos de autenticación fallaron. Ver logs para detalles.');
@@ -273,12 +278,12 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     return res.status(400).json({ success: false, error: 'Faltan credenciales.' });
   }
 
-  console.log(`🚀 Sync para: ${natura_email.substring(0, 5)}***`);
+  logger.info(`🚀 Sync para: ${natura_email.substring(0, 5)}***`);
 
   try {
     const tokenData = await authenticateViaNatura(natura_email, natura_password);
 
-    console.log('✅ ¡TOKENS OBTENIDOS!');
+    logger.info('✅ ¡TOKENS OBTENIDOS!');
     const token = tokenData.access_token || tokenData.id_token;
 
     // Obtener datos de crecimiento
@@ -295,13 +300,13 @@ app.post('/scrape', authMiddleware, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌', err.message);
+    logger.error('❌', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
 async function fetchGrowthData(token) {
-  console.log('\n📊 Obteniendo datos de crecimiento...');
+  logger.info('\n📊 Obteniendo datos de crecimiento...');
 
   const headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
@@ -320,16 +325,16 @@ async function fetchGrowthData(token) {
       const ct = r.headers.get('content-type') || '';
       if (ct.includes('json')) {
         const d = await r.json();
-        console.log(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 300)}`);
+        logger.info(`   ${url} → ${r.status}: ${JSON.stringify(d).substring(0, 300)}`);
         if (d?.data) return d.data;
       } else {
-        console.log(`   ${url} → ${r.status} (${ct})`);
+        logger.info(`   ${url} → ${r.status} (${ct})`);
       }
     } catch (e) {
-      console.log(`   → ${e.message?.substring(0, 50)}`);
+      logger.info(`   → ${e.message?.substring(0, 50)}`);
     }
   }
   return null;
 }
 
-app.listen(PORT, () => console.log(`🔧 Natura Scraper en puerto ${PORT} (modo: API directa con AES)`));
+app.listen(PORT, () => logger.info(`🔧 Natura Scraper en puerto ${PORT} (modo: API directa con AES)`));
