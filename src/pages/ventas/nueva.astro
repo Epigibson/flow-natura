@@ -190,7 +190,6 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
-  import api from '../../lib/api';
   import { esc } from '../../lib/security';
 
   let currentUserId = '';
@@ -232,9 +231,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   });
 
   async function loadData() {
-    // 1. Load customers from API
+    // 1. Load customers from Supabase
     try {
-      const customers = await api.customers.list();
+      const { data: customers } = await supabase
+        .from('customers')
+        .select('id, full_name')
+        .eq('consultant_id', currentUserId)
+        .order('full_name');
       if (customers) {
         customers.forEach((c: any) => {
           const opt = document.createElement('option');
@@ -245,16 +248,21 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       }
     } catch(e) { console.warn('Error loading customers', e); }
 
-    // 2. Load inventory items from API
+    // 2. Load inventory items with product details from Supabase
     try {
-      const inventoryData = await api.inventory.list();
+      const { data: inventoryData } = await supabase
+        .from('inventory')
+        .select('product_id, quantity, products(id, name, code, category, price, image_url)')
+        .eq('consultant_id', currentUserId)
+        .gt('quantity', 0);
       if (inventoryData) {
         availableProducts = inventoryData.map((inv: any) => ({
-          id: inv.product_id,
-          name: inv.product_name,
-          code: inv.product_code,
-          category: inv.category,
-          price: Number(inv.price),
+          id: inv.products?.id || inv.product_id,
+          name: inv.products?.name || 'Producto',
+          code: inv.products?.code || '',
+          category: inv.products?.category || '',
+          price: Number(inv.products?.price || 0),
+          image_url: inv.products?.image_url || '',
           max_quantity: inv.quantity
         }));
         availableProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
@@ -281,9 +289,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       };
       const badgeClass = categoryColorMap[p.category] || 'bg-surface-container-high text-on-surface-variant';
       
+      const imgUrl = p.image_url ? esc(p.image_url) : '';
       card.innerHTML = `
         <div class="w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center shrink-0">
-          <span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${esc(p.category) || 'Varios'}</span>
+          ${imgUrl
+            ? `<img src="${imgUrl}" alt="${esc(p.name)}" class="w-full h-full object-contain p-1" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\'text-xs font-bold text-on-surface-variant uppercase ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words\'>${esc(p.category) || 'Varios'}</span>'" />`
+            : `<span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${esc(p.category) || 'Varios'}</span>`
+          }
         </div>
         <div class="flex-1 min-w-0">
           <h4 class="font-bold text-on-surface leading-tight truncate" title="${esc(p.name)}">${esc(p.name)}</h4>
@@ -411,24 +423,40 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     // If no customer selected, use or create a "walk-in" customer
     if (!customerId) {
       try {
-        const allCustomers = await api.customers.list('Cliente Mostrador');
-        const existing = allCustomers?.find((c: any) => c.full_name === 'Cliente Mostrador');
+        const { data: existing } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('consultant_id', currentUserId)
+          .eq('full_name', 'Cliente Mostrador')
+          .maybeSingle();
         if (existing) {
           customerId = existing.id;
         } else {
-          const newCust = await api.customers.create({ full_name: 'Cliente Mostrador', phone: '', email: '' });
+          const { data: newCust } = await supabase
+            .from('customers')
+            .insert({ consultant_id: currentUserId, full_name: 'Cliente Mostrador', phone: '', email: '' })
+            .select('id')
+            .single();
           customerId = newCust?.id || null;
         }
       } catch(e) {
         console.warn('Error with walk-in customer', e);
       }
     }
+
+    if (!customerId) {
+      errorDiv.textContent = 'Error: No se pudo asignar un cliente a la venta.';
+      errorDiv.classList.remove('hidden');
+      btnCheckout.disabled = false;
+      return;
+    }
+
     const totalAmount = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
     
     // Process Payment Method
     const paymentRadio = document.querySelector('input[name="payment_type"]:checked') as HTMLInputElement;
     const paymentMethod = paymentRadio ? paymentRadio.value : 'contado';
-    let orderNotes = null;
+    let orderNotes: string | null = null;
     
     if (paymentMethod === 'abonos') {
       orderNotes = JSON.stringify({
@@ -440,17 +468,57 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     }
 
     try {
-      // Create order with items via API
-      const orderData = await api.orders.create({
-        customer_id: customerId,
-        items: cart.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price
-        })),
-        payment_method: paymentMethod,
-        notes: orderNotes
-      });
+      // 1. Create order in Supabase
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          consultant_id: currentUserId,
+          customer_id: customerId,
+          total_amount: totalAmount,
+          payment_method: paymentMethod,
+          notes: orderNotes,
+          status: 'pending'
+        })
+        .select('id')
+        .single();
+
+      if (orderError || !order) {
+        throw new Error(orderError?.message || 'No se pudo crear la orden');
+      }
+
+      // 2. Insert order items
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) {
+        throw new Error(itemsError.message || 'Error al guardar los productos');
+      }
+
+      // 3. Deduct inventory
+      for (const item of cart) {
+        const { data: inv } = await supabase
+          .from('inventory')
+          .select('id, quantity')
+          .eq('consultant_id', currentUserId)
+          .eq('product_id', item.product_id)
+          .single();
+
+        if (inv) {
+          const newQty = Math.max(0, inv.quantity - item.quantity);
+          await supabase
+            .from('inventory')
+            .update({ quantity: newQty })
+            .eq('id', inv.id);
+        }
+      }
 
       document.getElementById('checkout-success')?.classList.remove('hidden');
       cart = [];
