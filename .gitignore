@@ -38,3 +38,9 @@ natura-tokens.json
 check.txt
 auto_sync_error.png
 test-bkg.mjs
+
+# Antigravity Context
+NEXUS_CONTEXT.md
+
+# Supabase temp files
+supabase/.temp/
