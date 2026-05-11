@@ -339,12 +339,104 @@ import PageLoader from '../../components/PageLoader.astro';
         </div>
       </div>
     </div>
+    </div>
+  </div>
+
+  <!-- Premium UI Alert / Confirm Modals -->
+  <div id="ui-alert-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border/50 p-6 animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-3 text-secondary mb-3">
+        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+        <h3 class="text-xl font-bold font-serif text-on-surface" id="ui-alert-title">Atención</h3>
+      </div>
+      <p class="text-secondary/90 text-sm mb-6 leading-relaxed" id="ui-alert-desc"></p>
+      <div class="flex justify-end">
+        <button id="btn-ui-alert-ok" class="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all font-bold text-sm shadow-md active:scale-95">
+          Entendido
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ui-confirm-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" id="ui-confirm-backdrop"></div>
+    <div class="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border/50 p-6 animate-in zoom-in-95 duration-200">
+      <div class="flex items-center gap-3 text-secondary mb-3">
+        <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+        <h3 class="text-xl font-bold font-serif text-on-surface" id="ui-confirm-title">Confirmar</h3>
+      </div>
+      <p class="text-secondary/90 text-sm mb-6 leading-relaxed" id="ui-confirm-desc"></p>
+      <div class="flex justify-end gap-3">
+        <button id="btn-ui-confirm-cancel" class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all font-bold text-sm">
+          Cancelar
+        </button>
+        <button id="btn-ui-confirm-ok" class="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 shadow-md transition-all font-bold text-sm active:scale-95">
+          Aceptar
+        </button>
+      </div>
+    </div>
   </div>
 
 </DashboardLayout>
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
+
+  // Premium UI Alert / Confirm Logic
+  function uiAlert(message: string, title = 'Atención') {
+    return new Promise<void>((resolve) => {
+      const modal = document.getElementById('ui-alert-modal') as HTMLElement;
+      const titleEl = document.getElementById('ui-alert-title') as HTMLElement;
+      const descEl = document.getElementById('ui-alert-desc') as HTMLElement;
+      const btnOk = document.getElementById('btn-ui-alert-ok') as HTMLButtonElement;
+      
+      titleEl.textContent = title;
+      descEl.textContent = message;
+      modal.classList.remove('hidden');
+      
+      const close = () => {
+        modal.classList.add('hidden');
+        btnOk.removeEventListener('click', close);
+        resolve();
+      };
+      btnOk.addEventListener('click', close);
+    });
+  }
+
+  function uiConfirm(message: string, title = 'Confirmar') {
+    return new Promise<boolean>((resolve) => {
+      const modal = document.getElementById('ui-confirm-modal') as HTMLElement;
+      const titleEl = document.getElementById('ui-confirm-title') as HTMLElement;
+      const descEl = document.getElementById('ui-confirm-desc') as HTMLElement;
+      const btnOk = document.getElementById('btn-ui-confirm-ok') as HTMLButtonElement;
+      const btnCancel = document.getElementById('btn-ui-confirm-cancel') as HTMLButtonElement;
+      const backdrop = document.getElementById('ui-confirm-backdrop') as HTMLElement;
+      
+      titleEl.textContent = title;
+      descEl.textContent = message;
+      modal.classList.remove('hidden');
+      
+      const cleanUp = () => {
+        modal.classList.add('hidden');
+        btnOk.removeEventListener('click', onOk);
+        btnCancel.removeEventListener('click', onCancel);
+        backdrop.removeEventListener('click', onCancel);
+      };
+      
+      const onOk = () => { cleanUp(); resolve(true); };
+      const onCancel = () => { cleanUp(); resolve(false); };
+      
+      btnOk.addEventListener('click', onOk);
+      btnCancel.addEventListener('click', onCancel);
+      backdrop.addEventListener('click', onCancel);
+    });
+  }
 
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
@@ -407,11 +499,17 @@ import PageLoader from '../../components/PageLoader.astro';
   let currentUserId = '';
 
   async function updateStatus(newStatus: string) {
-    if(!confirm('¿Estás seguro de modificar esta venta?')) return;
+    if(!(await uiConfirm(`¿Estás seguro de modificar esta venta al estado: ${newStatus}?`))) return;
     btnUpdateStatus.disabled = true;
     btnCancel.disabled = true;
     try {
-      await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      if (newStatus === 'cancelled') {
+        await api.orders.cancel(orderId as string);
+      } else if (newStatus === 'delivered') {
+        await api.orders.deliver(orderId as string);
+      } else {
+        await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      }
     } catch(e) { console.error(e); }
     window.location.reload();
   }
@@ -502,6 +600,8 @@ import PageLoader from '../../components/PageLoader.astro';
     }
     const isFullyPaid = isAbonos ? (debtRemaining <= 0.01) : true;
 
+    btnCancel.onclick = () => updateStatus('cancelled');
+
     if (order.status === 'delivered') {
       estadoBadge.textContent = isAbonos && !isFullyPaid ? 'Entregado (Con Deuda)' : 'Entregado / Pagado';
       estadoBadge.className = 'bg-secondary-fixed text-on-secondary-fixed-variant px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
@@ -511,7 +611,6 @@ import PageLoader from '../../components/PageLoader.astro';
       estadoBadge.textContent = 'Pendiente de Entrega';
       estadoBadge.className = 'bg-primary-fixed text-on-primary-fixed-variant px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
       btnUpdateStatus.onclick = () => updateStatus('delivered');
-      btnCancel.onclick = () => updateStatus('cancelled');
     } else {
       estadoBadge.textContent = 'Cancelado';
       estadoBadge.className = 'bg-error-container text-error px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
@@ -540,7 +639,7 @@ import PageLoader from '../../components/PageLoader.astro';
       try {
         await supabase.from('orders').update({ customer_id: newCustId }).eq('id', orderId);
         window.location.reload();
-      } catch(err: any) { alert(err.message); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar Cambios'; }
+      } catch(err: any) { await uiAlert(err.message); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar Cambios'; }
     };
 
     btnEditNotes.onclick = () => {
@@ -561,7 +660,7 @@ import PageLoader from '../../components/PageLoader.astro';
       try {
         await supabase.from('orders').update({ notes: finalNotes }).eq('id', orderId);
         window.location.reload();
-      } catch(err: any) { alert(err.message); btnSaveNotes.disabled = false; }
+      } catch(err: any) { await uiAlert(err.message); btnSaveNotes.disabled = false; }
     };
 
     const phone = order.customers?.phone;
@@ -645,7 +744,7 @@ import PageLoader from '../../components/PageLoader.astro';
            btnConfirmAbono.onclick = async () => {
               const inputVal = Number(modalAmountInput.value);
               if (inputVal <= 0 || isNaN(inputVal)) {
-                alert("Por favor ingresa un monto válido mayor a 0.");
+                await uiAlert("Por favor ingresa un monto válido mayor a 0.");
                 return;
               }
               btnConfirmAbono.disabled = true;
@@ -674,16 +773,41 @@ import PageLoader from '../../components/PageLoader.astro';
       const engancheNum = Number(terms.enganche || 0);
       
       const engancheEl = document.createElement('div');
-      engancheEl.className = 'flex items-start gap-3 relative pb-6';
+      engancheEl.className = 'flex items-start gap-3 relative pb-6 group';
       engancheEl.innerHTML = '<div class="absolute left-[11px] top-6 bottom-0 w-[2px] bg-secondary-container"></div>' +
         '<div class="z-10 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: \'FILL\' 1;">check</span></div>' +
-        '<div class="flex-1"><div class="flex justify-between"><span class="font-bold text-on-surface">Enganche (Cobrado)</span><span class="text-secondary font-bold">$' + engancheNum.toFixed(2) + '</span></div><p class="text-xs text-on-surface-variant">Pagado al registrar</p></div>';
+        '<div class="flex-1">' +
+          '<div class="flex justify-between items-center">' +
+            '<span class="font-bold text-on-surface">Enganche (Cobrado)</span>' +
+            '<div class="flex items-center gap-2">' +
+              '<span class="text-secondary font-bold">$' + engancheNum.toFixed(2) + '</span>' +
+              '<button class="delete-enganche-btn opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-500 hover:bg-red-50 rounded-full flex items-center justify-center cursor-pointer" title="Eliminar enganche">' +
+                '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+          '<p class="text-xs text-on-surface-variant">Pagado al registrar</p>' +
+        '</div>';
+        
+      const delEngancheBtn = engancheEl.querySelector('.delete-enganche-btn');
+      if (delEngancheBtn) {
+        delEngancheBtn.addEventListener('click', async () => {
+          if (await uiConfirm('¿Estás seguro de eliminar el enganche? Esto sumará el monto al saldo pendiente.', 'Eliminar Enganche')) {
+            const newTerms = { ...terms, enganche: 0 };
+            try {
+              await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
+              window.location.reload();
+            } catch(e) { console.error(e); }
+          }
+        });
+      }
+
       cronogramaList.appendChild(engancheEl);
 
       historial.forEach((abono: any, index: number) => {
         const el = document.createElement('div');
         const isLastItem = (index === historial.length - 1) && !hasPending;
-        el.className = 'flex items-start gap-3 relative ' + (isLastItem ? '' : 'pb-6');
+        el.className = 'flex items-start gap-3 relative group ' + (isLastItem ? '' : 'pb-6');
         
         let lineHtml = '';
         if (!isLastItem) {
@@ -695,12 +819,32 @@ import PageLoader from '../../components/PageLoader.astro';
         el.innerHTML = lineHtml + 
           '<div class="z-10 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: \'FILL\' 1;">check</span></div>' +
           '<div class="flex-1">' +
-            '<div class="flex justify-between">' +
+            '<div class="flex justify-between items-center">' +
               '<span class="font-bold text-on-surface">Abono Registrado</span>' +
-              '<span class="text-secondary font-bold">$' + Number(abono.monto).toFixed(2) + '</span>' +
+              '<div class="flex items-center gap-2">' +
+                '<span class="text-secondary font-bold">$' + Number(abono.monto).toFixed(2) + '</span>' +
+                '<button class="delete-abono-btn opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-500 hover:bg-red-50 rounded-full flex items-center justify-center cursor-pointer" title="Eliminar abono">' +
+                  '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
+                '</button>' +
+              '</div>' +
             '</div>' +
             '<p class="text-xs text-secondary font-medium">Cobrado el ' + fecha + '</p>' +
           '</div>';
+
+        const delAbonoBtn = el.querySelector('.delete-abono-btn');
+        if (delAbonoBtn) {
+          delAbonoBtn.addEventListener('click', async () => {
+            if (await uiConfirm('¿Estás seguro de eliminar este abono de $' + Number(abono.monto).toFixed(2) + '?', 'Eliminar Abono')) {
+              const newHistorial = [...historial];
+              newHistorial.splice(index, 1);
+              const newTerms = { ...terms, historial_abonos: newHistorial, pagos_completados: newHistorial.length };
+              try {
+                await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
+                window.location.reload();
+              } catch(e) { console.error(e); }
+            }
+          });
+        }
         cronogramaList.appendChild(el);
       });
 

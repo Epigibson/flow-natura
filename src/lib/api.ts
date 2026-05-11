@@ -283,6 +283,20 @@ export const orders = {
     return data;
   },
   cancel: async (id: string) => {
+    const userId = await getCurrentUserId();
+    
+    // Fetch order items to restore inventory
+    const { data: order } = await supabase.from('orders').select('status, order_items(product_id, quantity)').eq('id', id).single();
+    if (order && order.status !== 'cancelled') {
+      for (const item of (order.order_items || [])) {
+        // Fetch current inventory
+        const { data: inv } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).single();
+        if (inv) {
+          await supabase.from('inventory').update({ quantity: inv.quantity + item.quantity }).eq('id', inv.id);
+        }
+      }
+    }
+
     const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', id);
     if (error) throw error;
     return true;
