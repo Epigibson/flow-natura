@@ -158,9 +158,16 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
             <span id="cart-subtotal" class="font-semibold">$0.00</span>
           </div>
           
+          <div class="flex justify-between text-on-surface-variant font-body mb-2 items-center">
+            <span>Descuento Global</span>
+            <div class="flex items-center gap-1">
+              <button id="global-discount-type-btn" class="text-xs font-bold bg-surface-container-high px-2 py-1 rounded-md text-primary hover:bg-primary-container transition-colors w-8 text-center" title="Cambiar a % o $">$</button>
+              <input type="number" id="global-discount-input" value="0" min="0" step="1" class="w-20 bg-white border border-outline-variant/30 rounded-md px-2 py-1 text-right text-sm text-secondary focus:ring-1 focus:ring-secondary focus:border-secondary transition-all" />
+            </div>
+          </div>
           <div class="flex justify-between text-on-surface-variant font-body mb-2">
-            <span>Descuentos</span>
-            <span class="text-secondary">-$0.00</span>
+            <span>Total Descuentos</span>
+            <span id="cart-total-discounts" class="text-secondary">-$0.00</span>
           </div>
           
           <div class="pt-4 border-t border-outline-variant/20 flex justify-between items-end">
@@ -195,6 +202,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   let currentUserId = '';
   let availableProducts: any[] = [];
   let cart: any[] = [];
+  let globalDiscount = 0;
+  let globalDiscountType: 'amount' | 'percentage' = 'amount';
 
   const productsGrid = document.getElementById('products-grid') as HTMLElement;
   const selectCustomer = document.getElementById('select-customer') as HTMLSelectElement;
@@ -205,6 +214,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   const btnCheckout = document.getElementById('btn-checkout') as HTMLButtonElement;
   const errorDiv = document.getElementById('checkout-error') as HTMLElement;
   const searchInput = document.getElementById('search-products') as HTMLInputElement;
+  const globalDiscountInput = document.getElementById('global-discount-input') as HTMLInputElement;
+  const globalDiscountTypeBtn = document.getElementById('global-discount-type-btn') as HTMLButtonElement;
   
   // Payment methods
   const paymentRadios = document.getElementsByName('payment_type');
@@ -337,6 +348,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           product_id: product.id,
           name: product.name,
           unit_price: product.price,
+          discount: 0,
+          discount_type: 'amount',
           quantity: 1,
           max_quantity: product.max_quantity
         });
@@ -367,6 +380,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       cartContainer.appendChild(emptyCartMsg);
       btnCheckout.disabled = true;
       cartSubtotal.textContent = '$0.00';
+      document.getElementById('cart-total-discounts')!.textContent = '-$0.00';
       cartTotal.textContent = '$0.00';
       return;
     }
@@ -376,11 +390,28 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     }
     cartContainer.innerHTML = '';
     
-    let total = 0;
+    let subtotal = 0;
+    let totalItemDiscounts = 0;
 
     cart.forEach(item => {
-      const lineTotal = item.unit_price * item.quantity;
-      total += lineTotal;
+      let itemDiscount = item.discount || 0;
+      let discountAmount = 0;
+      
+      if (item.discount_type === 'percentage') {
+        discountAmount = item.unit_price * (itemDiscount / 100);
+      } else {
+        discountAmount = itemDiscount;
+      }
+      
+      if (discountAmount > item.unit_price) discountAmount = item.unit_price;
+
+      item._calculated_discount = discountAmount;
+      
+      const finalUnitPrice = Math.max(0, item.unit_price - discountAmount);
+      const lineTotal = finalUnitPrice * item.quantity;
+      
+      subtotal += (item.unit_price * item.quantity);
+      totalItemDiscounts += (discountAmount * item.quantity);
 
       const div = document.createElement('div');
       div.className = "flex gap-4 items-center bg-white p-4 rounded-xl shadow-[0_4px_12px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/10";
@@ -397,20 +428,79 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
             </button>
           </div>
         </div>
-        <div class="text-right flex flex-col justify-end">
+        <div class="text-right flex flex-col justify-end items-end gap-1">
           <p class="text-sm font-bold text-primary">$${lineTotal.toFixed(2)}</p>
-          <p class="text-[10px] text-on-surface-variant">($${item.unit_price.toFixed(2)} c/u)</p>
+          <p class="text-[10px] text-on-surface-variant">($${finalUnitPrice.toFixed(2)} c/u)</p>
+          <div class="flex items-center gap-1 mt-1">
+            <span class="text-[10px] text-secondary">Desc.</span>
+            <button class="text-[10px] font-bold bg-surface-container-high px-1.5 py-0.5 rounded text-primary hover:bg-primary-container transition-colors w-5 text-center" onclick="window.toggleItemDiscountType('${item.product_id}')">${item.discount_type === 'percentage' ? '%' : '$'}</button>
+            <input type="number" value="${itemDiscount}" min="0" step="1" class="w-12 bg-surface-container-low border border-outline-variant/30 rounded px-1 py-0.5 text-right text-[10px] text-secondary focus:ring-1 focus:ring-secondary" onchange="window.updateDiscount('${item.product_id}', this.value)" />
+          </div>
         </div>
       `;
       cartContainer.appendChild(div);
     });
 
+    let calculatedGlobalDiscount = 0;
+    if (globalDiscountType === 'percentage') {
+      calculatedGlobalDiscount = subtotal * (globalDiscount / 100);
+    } else {
+      calculatedGlobalDiscount = globalDiscount;
+    }
+
+    const maxGlobalAllowed = subtotal - totalItemDiscounts;
+    if (calculatedGlobalDiscount > maxGlobalAllowed) {
+      calculatedGlobalDiscount = maxGlobalAllowed;
+    }
+
+    (window as any)._calculatedGlobalDiscount = calculatedGlobalDiscount;
+
+    const totalDiscount = totalItemDiscounts + calculatedGlobalDiscount;
+    const finalTotal = Math.max(0, subtotal - totalDiscount);
+
     btnCheckout.disabled = false;
-    cartSubtotal.textContent = `$${total.toFixed(2)}`;
-    cartTotal.textContent = `$${total.toFixed(2)}`;
+    cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('cart-total-discounts')!.textContent = `-$${totalDiscount.toFixed(2)}`;
+    cartTotal.textContent = `$${finalTotal.toFixed(2)}`;
   }
 
+  function updateDiscount(productId: string, value: string) {
+    const item = cart.find(i => i.product_id === productId);
+    if (item) {
+      let val = Number(value) || 0;
+      if (item.discount_type === 'percentage' && val > 100) val = 100;
+      else if (item.discount_type === 'amount' && val > item.unit_price) val = item.unit_price;
+      if (val < 0) val = 0;
+      item.discount = val;
+      renderCart();
+    }
+  }
+
+  function toggleItemDiscountType(productId: string) {
+    const item = cart.find(i => i.product_id === productId);
+    if (item) {
+      item.discount_type = item.discount_type === 'amount' ? 'percentage' : 'amount';
+      item.discount = 0;
+      renderCart();
+    }
+  }
+
+  globalDiscountInput?.addEventListener('input', (e) => {
+    globalDiscount = Number((e.target as HTMLInputElement).value) || 0;
+    renderCart();
+  });
+
+  globalDiscountTypeBtn?.addEventListener('click', () => {
+    globalDiscountType = globalDiscountType === 'amount' ? 'percentage' : 'amount';
+    globalDiscountTypeBtn.textContent = globalDiscountType === 'amount' ? '$' : '%';
+    globalDiscount = 0;
+    globalDiscountInput.value = '0';
+    renderCart();
+  });
+
   (window as any).updateQuantity = updateQuantity;
+  (window as any).updateDiscount = updateDiscount;
+  (window as any).toggleItemDiscountType = toggleItemDiscountType;
 
   btnCheckout?.addEventListener('click', async () => {
     if (cart.length === 0) return;
@@ -451,21 +541,46 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       return;
     }
 
-    const totalAmount = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
+    const subtotal = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
+    const itemDiscounts = cart.reduce((acc, item) => acc + ((item._calculated_discount || 0) * item.quantity), 0);
+    const calculatedGlobalDiscount = (window as any)._calculatedGlobalDiscount || 0;
+    const totalDiscountAmount = itemDiscounts + calculatedGlobalDiscount;
+    const finalTotalAmount = Math.max(0, subtotal - totalDiscountAmount);
     
     // Process Payment Method
     const paymentRadio = document.querySelector('input[name="payment_type"]:checked') as HTMLInputElement;
     const paymentMethod = paymentRadio ? paymentRadio.value : 'contado';
-    let orderNotes: string | null = null;
+    
+    let orderNotesObj: any = {};
     
     if (paymentMethod === 'abonos') {
-      orderNotes = JSON.stringify({
+      orderNotesObj = {
         tipo: 'Abonos',
         enganche: engancheInput.value || '0',
         frecuencia: frecuenciaInput.value,
         pagos: pagosInput.value || '1'
-      });
+      };
     }
+
+    // Agregar historial de descuentos a las notas si existen
+    if (totalDiscountAmount > 0) {
+      orderNotesObj.descuentos = {
+        global: {
+          tipo: globalDiscountType,
+          valor_original: globalDiscount,
+          monto_descontado: calculatedGlobalDiscount
+        },
+        productos: cart.filter(i => (i._calculated_discount || 0) > 0).map(i => ({
+          producto: i.name,
+          precio_original: i.unit_price,
+          tipo: i.discount_type,
+          valor_original: i.discount,
+          descuento_unitario: i._calculated_discount
+        }))
+      };
+    }
+
+    const orderNotes = Object.keys(orderNotesObj).length > 0 ? JSON.stringify(orderNotesObj) : null;
 
     try {
       // 1. Create order in Supabase
@@ -474,7 +589,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         .insert({
           consultant_id: currentUserId,
           customer_id: customerId,
-          total_amount: totalAmount,
+          total_amount: finalTotalAmount,
           payment_method: paymentMethod,
           notes: orderNotes,
           status: 'pending'
@@ -491,7 +606,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         order_id: order.id,
         product_id: item.product_id,
         quantity: item.quantity,
-        unit_price: item.unit_price
+        unit_price: Math.max(0, item.unit_price - (item._calculated_discount || 0)) // Guardar precio ya descontado
       }));
 
       const { error: itemsError } = await supabase
