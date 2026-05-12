@@ -158,15 +158,50 @@ export const dashboard = {
 export const consultant = {
   getProfile: async () => {
     const userId = await getCurrentUserId();
-    const { data, error } = await supabase.from('consultant_profiles').select('*').eq('id', userId).single();
+    const { data, error } = await supabase.from('consultant_profiles').select('*').eq('id', userId).maybeSingle();
     if (error) throw error;
     return data;
   },
   updateProfile: async (updates: any) => {
     const userId = await getCurrentUserId();
-    const { data, error } = await supabase.from('consultant_profiles').update(updates).eq('id', userId).select().single();
+    const { data, error } = await supabase.from('consultant_profiles').upsert({ id: userId, ...updates }).select().single();
     if (error) throw error;
     return data;
+  },
+  uploadAvatar: async (uri: string, base64Data?: string) => {
+    const userId = await getCurrentUserId();
+    if (!userId) throw new Error('No user');
+
+    const fileExt = uri.split('.').pop() || 'jpeg';
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    let fileBody: any;
+    if (base64Data) {
+      const { decode } = require('base64-arraybuffer');
+      fileBody = decode(base64Data);
+    } else {
+      const response = await fetch(uri);
+      fileBody = await response.blob();
+    }
+
+    // Upload to Supabase
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, fileBody, { 
+        upsert: true,
+        contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL
+    const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    
+    // Update profile
+    await consultant.updateProfile({ avatar_url: data.publicUrl });
+    
+    return data.publicUrl;
   },
   getSubscription: async () => {
     const userId = await getCurrentUserId();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput, ActivityIndicator, Alert, Share, Linking, Modal } from 'react-native';
+import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput, ActivityIndicator, Alert, Share, Linking, Modal, Image } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import api from '../../../src/lib/api';
 import { supabase } from '../../../src/lib/supabase';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import * as Updates from 'expo-updates';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
@@ -33,6 +34,8 @@ export default function SettingsScreen() {
   const [naturaCode, setNaturaCode] = useState('');
   const [email, setEmail] = useState('');
   const [currentUserId, setCurrentUserId] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // Password states
   const [newPassword, setNewPassword] = useState('');
@@ -54,12 +57,35 @@ export default function SettingsScreen() {
       setFullName(data?.full_name || '');
       setNaturaCode(data?.natura_code || '');
       setEmail(data?.natura_email || '');
+      setAvatarUrl(data?.avatar_url || null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   }
+
+  const handlePickAvatar = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled) {
+        setUploadingAvatar(true);
+        const url = await api.consultant.uploadAvatar(result.assets[0].uri, result.assets[0].base64 || undefined);
+        setAvatarUrl(url);
+      }
+    } catch (err: any) {
+      Alert.alert('Error', 'No se pudo subir la foto: ' + err.message);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   async function saveProfile() {
     setSaving(true);
@@ -206,6 +232,29 @@ export default function SettingsScreen() {
               <ActivityIndicator color={t.primary} />
             ) : (
               <>
+                <View className="items-center mb-6">
+                  <TouchableOpacity 
+                    onPress={handlePickAvatar}
+                    disabled={uploadingAvatar}
+                    className="relative w-24 h-24 rounded-full bg-surface-container-highest border-2 border-outline-variant/20 overflow-hidden items-center justify-center shadow-sm"
+                  >
+                    {avatarUrl ? (
+                      <Image source={{ uri: avatarUrl }} className="w-full h-full" />
+                    ) : (
+                      <Image source={{ uri: `https://api.dicebear.com/8.x/micah/png?seed=${fullName || 'Consultor'}` }} className="w-full h-full opacity-80" />
+                    )}
+                    
+                    <View className="absolute bottom-0 w-full h-1/3 bg-black/40 items-center justify-center">
+                      {uploadingAvatar ? (
+                        <ActivityIndicator size="small" color="#ffffff" />
+                      ) : (
+                        <MaterialIcons name="camera-alt" size={14} color="#ffffff" />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                  <Text className="text-[10px] text-on-surface-variant mt-2 uppercase tracking-widest">Toca para cambiar</Text>
+                </View>
+
                 <View className="mb-4">
                   <Text className="text-xs text-on-surface-variant font-bold mb-1">Nombre Completo</Text>
                   <View className="bg-surface-container-highest rounded-xl px-4 py-3">

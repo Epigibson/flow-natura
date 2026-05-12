@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Modal, Animated, StyleSheet, Dimensions, 
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import api from '../../src/lib/api';
 import { useColorScheme } from 'nativewind';
 
 interface SidebarProps {
@@ -38,14 +39,32 @@ export default function CustomSidebar({ visible, onClose }: SidebarProps) {
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data?.session?.user) {
-        setProfile({ email: data.session.user.email });
-      }
-    });
+    loadProfileData();
   }, []);
 
-  const username = profile?.email?.split('@')[0] || 'Consultora';
+  const loadProfileData = async () => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        // Set email immediately as fallback
+        setProfile({ email: data.session.user.email });
+        
+        try {
+          const fullProfile = await api.consultant.getProfile();
+          if (fullProfile) {
+            setProfile({ email: data.session.user.email, ...fullProfile });
+          }
+        } catch (profileErr) {
+          console.log('No profile found or error fetching:', profileErr);
+        }
+      }
+    } catch (err) {
+      console.log('Error loading session in sidebar:', err);
+    }
+  };
+
+  const username = profile?.full_name || profile?.email?.split('@')[0] || 'Consultora';
+  const avatarUrl = profile?.avatar_url || `https://api.dicebear.com/8.x/micah/png?seed=${username}`;
 
   useEffect(() => {
     if (visible) {
@@ -143,7 +162,7 @@ export default function CustomSidebar({ visible, onClose }: SidebarProps) {
             {/* User Card */}
             <View style={{ marginBottom: 24, paddingHorizontal: 12, paddingVertical: 16, borderRadius: 16, backgroundColor: colors.cardBg, borderWidth: 1, borderColor: colors.cardBorder, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <View style={{ width: 40, height: 40, borderRadius: 20, overflow: 'hidden', backgroundColor: colors.activeBg, borderWidth: 1, borderColor: colors.cardBorder }}>
-                <Image source={{ uri: `https://api.dicebear.com/8.x/micah/svg?seed=${username}` }} style={{ width: '100%', height: '100%' }} />
+                <Image source={{ uri: avatarUrl }} style={{ width: '100%', height: '100%' }} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }} numberOfLines={1}>{username}</Text>

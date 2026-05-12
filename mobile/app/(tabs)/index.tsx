@@ -85,7 +85,7 @@ export default function DashboardScreen() {
               <Text className="text-white font-bold text-sm">⬇️ Exportar</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} className="w-10 h-10 rounded-full overflow-hidden border border-primary ml-auto" style={{ backgroundColor: t.primaryContainer }}>
-              <Image source={{ uri: `https://api.dicebear.com/8.x/micah/svg?seed=${username}` }} className="w-full h-full" />
+              <Image source={{ uri: userProfile?.avatar_url || `https://api.dicebear.com/8.x/micah/png?seed=${username}` }} className="w-full h-full" />
             </TouchableOpacity>
           </View>
 
