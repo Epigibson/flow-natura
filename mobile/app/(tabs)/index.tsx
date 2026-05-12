@@ -4,8 +4,9 @@ import api from '../../../src/lib/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '../../components/SidebarContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import React from 'react';
 
 export default function DashboardScreen() {
   const t = useThemeColors();
@@ -22,10 +23,12 @@ export default function DashboardScreen() {
   const [naturaEmail, setNaturaEmail] = useState('');
   const [naturaPassword, setNaturaPassword] = useState('');
 
-  useEffect(() => {
-    loadData();
-    calculateGreeting();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      loadData();
+      calculateGreeting();
+    }, [])
+  );
 
   function calculateGreeting() {
     const hour = new Date().getHours();

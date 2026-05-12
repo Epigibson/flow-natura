@@ -91,7 +91,11 @@ export default function SalesScreen() {
     const initials = cName.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
     
     return (
-      <View className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant">
+      <TouchableOpacity 
+        onPress={() => router.push(`/sales/${item.id}` as any)}
+        className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant"
+        activeOpacity={0.7}
+      >
         <View className="flex-row justify-between items-start mb-4">
           <View className="flex-row items-center flex-1">
             <View className="w-10 h-10 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: item._isAbonos ? t.primaryContainer + '33' : t.primary + '33' }}>
@@ -151,7 +155,7 @@ export default function SalesScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </TouchableOpacity>
     );
   };
 

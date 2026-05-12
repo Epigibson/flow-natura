@@ -39,8 +39,10 @@ export default function CustomSidebar({ visible, onClose }: SidebarProps) {
   };
 
   useEffect(() => {
-    loadProfileData();
-  }, []);
+    if (visible) {
+      loadProfileData();
+    }
+  }, [visible]);
 
   const loadProfileData = async () => {
     try {
