@@ -100,8 +100,12 @@ export default function AdjustmentsScreen() {
     <SafeAreaView className="flex-1 bg-surface">
       {/* Header */}
       <View className="flex-row items-center px-6 py-4 border-b border-outline-variant bg-surface">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center mr-4 border border-outline-variant">
-          <Text className="text-xl" style={{ color: t.onSurfaceVariant }}>←</Text>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          className="w-10 h-10 rounded-full flex items-center justify-center mr-4 border"
+          style={{ backgroundColor: t.surfaceContainerHighest, borderColor: t.outlineVariant, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 }}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={t.onSurface} />
         </TouchableOpacity>
         <View>
           <Text className="font-bold text-lg text-on-surface">Ajustes de Stock</Text>

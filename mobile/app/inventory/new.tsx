@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import api from '../../../src/lib/api';
 import { CAMINO_CRECIMIENTO, calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 const CATEGORIES = [
   'Perfumería',
@@ -18,6 +19,7 @@ const CATEGORIES = [
 ];
 
 export default function NewProductScreen() {
+  const t = useThemeColors();
   const [loading, setLoading] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const [showScanner, setShowScanner] = useState(false);
@@ -134,8 +136,12 @@ export default function NewProductScreen() {
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       {/* Header */}
       <View className="flex-row items-center px-4 py-4 border-b border-outline-variant/10 bg-surface">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2 rounded-full hover:bg-surface-container">
-          <MaterialIcons name="arrow-back" size={24} color="#1d1a22" />
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          className="w-10 h-10 rounded-full items-center justify-center border mr-2"
+          style={{ backgroundColor: t.surfaceContainerHighest, borderColor: t.outlineVariant, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 }}
+        >
+          <MaterialIcons name="arrow-back" size={24} color={t.onSurface} />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-on-surface ml-2 flex-1">Crear Producto</Text>
       </View>

@@ -63,6 +63,8 @@ export default function RootLayout() {
             <Stack.Screen name="support/index" options={{ headerShown: false }} />
             <Stack.Screen name="settings/index" options={{ headerShown: false }} />
             <Stack.Screen name="sales/new" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/new" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/adjustments" options={{ headerShown: false }} />
           </Stack>
         </SidebarProvider>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />

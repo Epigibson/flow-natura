@@ -21,19 +21,19 @@
 }
 
 .dark {
-  --color-primary: #FFB890; /* Elegant Pastel Peach/Orange */
-  --color-primary-container: #5A2C0E;
-  --color-on-primary-container: #FFE0C7;
-  --color-secondary: #A8D08D; /* Elegant Pastel Mint/Sage */
-  --color-secondary-container: #2C421B;
-  --color-error: #E57373;
-  --color-error-container: #4A1919;
-  --color-background: #000000;
-  --color-surface: #000000; /* App Background */
-  --color-surface-container: #262626; /* Inputs background */
-  --color-surface-container-highest: #333333; /* Inputs highlight */
-  --color-surface-container-lowest: #1A1A1A; /* Cards background */
-  --color-on-surface: #FFFFFF; /* Blanco puro para legibilidad total */
-  --color-on-surface-variant: #B3B3B3; /* Gris claro para subtítulos */
-  --color-outline-variant: #404040; /* Bordes sutiles */
+  --color-primary: #FF985E; /* Naranja/Durazno vibrante y sofisticado */
+  --color-primary-container: #5C2D0C;
+  --color-on-primary-container: #FFDDB8;
+  --color-secondary: #96C97A; /* Verde salvia elegante */
+  --color-secondary-container: #2D4518;
+  --color-error: #F87171;
+  --color-error-container: #450A0A;
+  --color-background: #09090B; /* Zinc 950 - Premium dark background */
+  --color-surface: #09090B; /* App Background */
+  --color-surface-container: #27272A; /* Inputs background (Zinc 800) */
+  --color-surface-container-highest: #3F3F46; /* Inputs highlight (Zinc 700) */
+  --color-surface-container-lowest: #18181B; /* Cards background (Zinc 900) */
+  --color-on-surface: #F4F4F5; /* Zinc 100 - Off-white para legibilidad elegante */
+  --color-on-surface-variant: #A1A1AA; /* Zinc 400 - Gris para subtítulos */
+  --color-outline-variant: #3F3F46; /* Zinc 700 - Bordes sutiles */
 }

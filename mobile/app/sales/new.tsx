@@ -288,8 +288,12 @@ export default function NewSaleScreen() {
       {/* Header */}
       <View className="px-6 py-4 border-b border-outline-variant flex-row items-center justify-between z-10 bg-surface">
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center border border-outline-variant">
-            <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
+          <TouchableOpacity 
+            onPress={() => router.back()} 
+            className="w-10 h-10 rounded-full items-center justify-center border"
+            style={{ backgroundColor: t.surfaceContainerHighest, borderColor: t.outlineVariant, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 4 }}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={t.onSurface} />
           </TouchableOpacity>
           <View>
             <Text className="text-2xl font-serif font-bold text-on-surface leading-tight">Punto de Venta</Text>
