@@ -6,6 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { supabase } from '../../../src/lib/supabase';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import * as Updates from 'expo-updates';
 
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
@@ -117,6 +118,34 @@ export default function SettingsScreen() {
     Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'No se pudo abrir WhatsApp. ¿Lo tienes instalado?');
     });
+  };
+
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  const checkForUpdates = async () => {
+    try {
+      setCheckingUpdate(true);
+      const update = await Updates.checkForUpdateAsync();
+      if (update.isAvailable) {
+        Alert.alert('Actualización Disponible', 'Descargando nueva versión...');
+        await Updates.fetchUpdateAsync();
+        Alert.alert(
+          'Actualización Lista',
+          'La aplicación se reiniciará para aplicar los cambios.',
+          [{ text: 'Reiniciar', onPress: () => Updates.reloadAsync() }]
+        );
+      } else {
+        Alert.alert('Al día', 'Tienes la última versión instalada.');
+      }
+    } catch (error: any) {
+      if (__DEV__) {
+        Alert.alert('Modo Desarrollo', 'Las actualizaciones (OTA) solo funcionan en builds de producción.');
+      } else {
+        Alert.alert('Error', 'No se pudo buscar actualizaciones.');
+      }
+    } finally {
+      setCheckingUpdate(false);
+    }
   };
 
   return (
@@ -300,8 +329,16 @@ export default function SettingsScreen() {
           <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden p-4 items-center">
             <Text className="font-serif font-bold text-on-surface text-lg">Natura Manager</Text>
             <Text className="text-on-surface-variant text-xs mt-1">Versión 1.0.0 (Build 42)</Text>
-            <TouchableOpacity className="mt-4 bg-surface-container py-2 px-4 rounded-full">
-              <Text className="text-on-surface text-xs font-bold">Buscar Actualizaciones</Text>
+            <TouchableOpacity 
+              onPress={checkForUpdates}
+              disabled={checkingUpdate}
+              className={`mt-4 py-2 px-4 rounded-full flex-row items-center justify-center ${checkingUpdate ? 'bg-outline-variant' : 'bg-surface-container'}`}
+            >
+              {checkingUpdate ? (
+                <ActivityIndicator size="small" color={t.onSurface} />
+              ) : (
+                <Text className="text-on-surface text-xs font-bold">Buscar Actualizaciones</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
