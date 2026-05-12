@@ -162,6 +162,18 @@ export const consultant = {
     if (error) throw error;
     return data;
   },
+  updateProfile: async (updates: any) => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase.from('consultant_profiles').update(updates).eq('id', userId).select().single();
+    if (error) throw error;
+    return data;
+  },
+  getSubscription: async () => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase.from('subscriptions').select('*').eq('consultant_id', userId).maybeSingle();
+    if (error) throw error;
+    return data;
+  },
   getGrowth: async () => {
     // Stub or fetch from metadata if needed
     return null;
@@ -353,23 +365,19 @@ export const inventory = {
     }
     return true;
   },
-  adjust: async (data: any) => {
+  applyAdjustment: async (data: { product_id: string; adjustment_type: string; quantity: number; previous_quantity: number; reason: string; notes?: string }) => {
     const userId = await getCurrentUserId();
-    const { data: existing } = await supabase.from('inventory').select('id').eq('product_id', data.product_id).eq('consultant_id', userId).single();
-    if (existing) {
-      await supabase.from('inventory').update({ quantity: data.quantity }).eq('id', existing.id);
-    } else {
-      await supabase.from('inventory').insert({ product_id: data.product_id, quantity: data.quantity, consultant_id: userId });
-    }
-    // Record adjustment
-    await supabase.from('inventory_adjustments').insert({
-      product_id: data.product_id,
-      consultant_id: userId,
-      type: data.type || 'manual',
-      quantity_change: data.quantity,
-      reason: data.reason
+    const { data: result, error } = await supabase.rpc('apply_inventory_adjustment', {
+      p_consultant_id: userId,
+      p_product_id: data.product_id,
+      p_adjustment_type: data.adjustment_type,
+      p_quantity: data.quantity,
+      p_previous_quantity: data.previous_quantity,
+      p_reason: data.reason,
+      p_notes: data.notes || null
     });
-    return true;
+    if (error) throw error;
+    return result;
   },
   getAdjustments: async (limit: number = 50) => {
     const userId = await getCurrentUserId();
@@ -386,19 +394,114 @@ export const inventory = {
 // Community / Mentorship (Stubs for direct data mapping)
 // ─────────────────────────────────────────────
 export const community = {
-  getPosts: async () => [],
-  createPost: async () => true,
-  deletePost: async () => true,
-  toggleReaction: async () => true,
-  getComments: async () => [],
-  createComment: async () => true,
+  getPosts: async () => {
+    // Left join with comments and reactions to get counts (for now we'll fetch them separately or do a simple select if views aren't set up)
+    // To keep it fast, we'll fetch posts and then count reactions/comments. In production, a Supabase View is better.
+    const { data: posts, error } = await supabase
+      .from('community_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // For MVP, we'll return posts with 0 likes/comments if we don't have the counts grouped.
+    // Let's fetch all reactions and comments to calculate.
+    const { data: reactions } = await supabase.from('community_reactions').select('post_id');
+    const { data: comments } = await supabase.from('community_comments').select('post_id');
+    
+    const reactionCounts = (reactions || []).reduce((acc: any, curr) => {
+      acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const commentCounts = (comments || []).reduce((acc: any, curr) => {
+      acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    return (posts || []).map(p => ({
+      ...p,
+      likes: reactionCounts[p.id] || 0,
+      comments: commentCounts[p.id] || 0
+    }));
+  },
+  createPost: async (content: string, topic: string = 'general') => {
+    const userId = await getCurrentUserId();
+    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).single();
+    
+    const { data, error } = await supabase.from('community_posts').insert({
+      author_id: userId,
+      author_name: profile?.full_name || 'Consultor Natura',
+      content,
+      topic
+    }).select().single();
+    
+    if (error) throw error;
+    return data;
+  },
+  deletePost: async (id: string) => {
+    const { error } = await supabase.from('community_posts').delete().eq('id', id);
+    if (error) throw error;
+    return true;
+  },
+  toggleReaction: async (postId: string, reactionType: string = 'love') => {
+    const userId = await getCurrentUserId();
+    const { data: existing } = await supabase.from('community_reactions')
+      .select('id').eq('post_id', postId).eq('user_id', userId).eq('reaction_type', reactionType).maybeSingle();
+      
+    if (existing) {
+      await supabase.from('community_reactions').delete().eq('id', existing.id);
+      return false; // Removed
+    } else {
+      await supabase.from('community_reactions').insert({ post_id: postId, user_id: userId, reaction_type: reactionType });
+      return true; // Added
+    }
+  },
+  getComments: async (postId: string) => {
+    const { data, error } = await supabase.from('community_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+  createComment: async (postId: string, content: string) => {
+    const userId = await getCurrentUserId();
+    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).single();
+    const { error } = await supabase.from('community_comments').insert({
+      post_id: postId,
+      author_id: userId,
+      author_name: profile?.full_name || 'Consultor Natura',
+      content
+    });
+    if (error) throw error;
+    return true;
+  },
   getStats: async () => ({})
 };
 
 export const mentorship = {
-  getModules: async () => [],
-  getSessions: async () => [],
-  getProgress: async () => ({})
+  getModules: async () => {
+    const { data: modules, error: modError } = await supabase.from('mentorship_modules').select('*').order('sort_order', { ascending: true });
+    if (modError) throw modError;
+    
+    const { data: lessons, error: lesError } = await supabase.from('mentorship_lessons').select('*').order('sort_order', { ascending: true });
+    if (lesError) throw lesError;
+    
+    return (modules || []).map(m => ({
+      ...m,
+      lessons: (lessons || []).filter(l => l.module_id === m.id)
+    }));
+  },
+  getSessions: async () => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase.from('mentorship_sessions').select('*').eq('user_id', userId).order('session_date', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+  getProgress: async () => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase.from('mentorship_progress').select('*').eq('user_id', userId);
+    if (error) throw error;
+    return data;
+  }
 };
 
 const api = {

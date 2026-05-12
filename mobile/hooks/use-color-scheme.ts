@@ -1,1 +1,6 @@
-export { useColorScheme } from 'react-native';
+import { useColorScheme as useNativeWindColorScheme } from 'nativewind';
+
+export function useColorScheme() {
+  const { colorScheme } = useNativeWindColorScheme();
+  return colorScheme;
+}
