@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { HapticTab } from '@/components/haptic-tab';
 import { useSidebar } from '../../components/SidebarContext';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 

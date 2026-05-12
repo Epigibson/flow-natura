@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import api from '../../../src/lib/api';
@@ -13,24 +13,22 @@ export default function InventoryScreen() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    async function loadInventory() {
+      setLoading(true);
+      try {
+        const data = await api.inventory.list({ search });
+        setItems(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
     loadInventory();
   }, [search]);
 
-  async function loadInventory() {
-    setLoading(true);
-    try {
-      const data = await api.inventory.list({ search });
-      setItems(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   // KPIs
   const totalProducts = items.length;
-  const brandsCount = new Set(items.map(i => i.brand || 'Natura')).size;
   const categoriesCount = new Set(items.map(i => i.category || 'General')).size;
   const inStock = items.filter(i => i.quantity > 0).length;
 
@@ -46,10 +44,11 @@ export default function InventoryScreen() {
       setItems(prev => prev.map(item => item.product_id === productId ? { ...item, quantity: newQuantity } : item));
       
       // Real API call
-      await api.inventory.adjust({
+      await api.inventory.applyAdjustment({
         product_id: productId,
-        quantity: newQuantity,
-        type: 'manual',
+        adjustment_type: delta > 0 ? 'addition' : 'subtraction',
+        quantity: Math.abs(delta),
+        previous_quantity: currentQuantity,
         reason: delta > 0 ? 'Ajuste manual (Mobile +)' : 'Ajuste manual (Mobile -)'
       });
     } catch (e: any) {
@@ -110,7 +109,7 @@ export default function InventoryScreen() {
                 {isUpdating ? (
                   <ActivityIndicator size="small" color={t.primary} />
                 ) : (
-                  <Text className={`text-center text-xs font-bold ${isOutOfStock ? 'text-on-surface-variant' : 'text-green-600'}`}>
+                  <Text className="text-center text-xs font-bold" style={{ color: isOutOfStock ? t.onSurfaceVariant : t.secondary }}>
                     {item.quantity}
                   </Text>
                 )}
@@ -200,9 +199,9 @@ export default function InventoryScreen() {
           renderItem={renderItem}
           numColumns={2}
           ListHeaderComponent={renderHeader}
-          contentContainerClassName="p-4 pb-24"
+          contentContainerStyle={{ padding: 16, paddingBottom: 96 }}
           showsVerticalScrollIndicator={false}
-          columnWrapperClassName="justify-between"
+          columnWrapperStyle={{ justifyContent: 'space-between' }}
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
               <MaterialIcons name="inventory-2" size={64} color={t.surfaceContainerHighest} />
@@ -219,7 +218,7 @@ export default function InventoryScreen() {
         style={{ shadowColor: t.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}
         onPress={() => router.push('/inventory/new')}
       >
-        <MaterialIcons name="add" size={32} color="#fff" />
+        <MaterialIcons name="add" size={32} color={t.isDark ? '#09090B' : '#ffffff'} />
       </TouchableOpacity>
     </SafeAreaView>
   );

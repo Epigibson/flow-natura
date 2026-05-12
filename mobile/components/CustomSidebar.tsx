@@ -75,7 +75,7 @@ export default function CustomSidebar({ visible, onClose }: SidebarProps) {
         })
       ]).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim, fadeAnim]);
 
   const handleNavigate = (path: any) => {
     onClose();

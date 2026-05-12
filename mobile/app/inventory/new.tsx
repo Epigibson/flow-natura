@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import api from '../../../src/lib/api';
-import { CAMINO_CRECIMIENTO, calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
+import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
 const CATEGORIES = [
@@ -31,7 +31,7 @@ export default function NewProductScreen() {
   const [brand, setBrand] = useState('Natura');
   const [stock, setStock] = useState('1');
   const [imageUrl, setImageUrl] = useState('');
-  const [description, setDescription] = useState('');
+  const [description] = useState('');
   const [price, setPrice] = useState('');
   const [cost, setCost] = useState('');
   const [points, setPoints] = useState('0');

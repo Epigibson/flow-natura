@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput, ActivityIndicator, Alert, Share, Linking } from 'react-native';
+import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput, ActivityIndicator, Alert, Share, Linking, Modal } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,9 +17,16 @@ export default function SettingsScreen() {
   const [notifications, setNotifications] = useState(true);
   const [offlineMode, setOfflineMode] = useState(true);
 
-  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Modal states
+  const [updateModal, setUpdateModal] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'info' | 'error' | 'ready';
+  } | null>(null);
 
   // Form states
   const [fullName, setFullName] = useState('');
@@ -44,7 +51,6 @@ export default function SettingsScreen() {
       }
       
       const data = await api.consultant.getProfile();
-      setProfile(data);
       setFullName(data?.full_name || '');
       setNaturaCode(data?.natura_code || '');
       setEmail(data?.natura_email || '');
@@ -127,21 +133,61 @@ export default function SettingsScreen() {
       setCheckingUpdate(true);
       const update = await Updates.checkForUpdateAsync();
       if (update.isAvailable) {
-        Alert.alert('Actualización Disponible', 'Descargando nueva versión...');
+        setUpdateModal({
+          visible: true,
+          title: 'Descargando...',
+          message: 'Hay una nueva versión disponible. Descargando datos...',
+          type: 'info'
+        });
         await Updates.fetchUpdateAsync();
-        Alert.alert(
-          'Actualización Lista',
-          'La aplicación se reiniciará para aplicar los cambios.',
-          [{ text: 'Reiniciar', onPress: () => Updates.reloadAsync() }]
-        );
+        setUpdateModal({
+          visible: true,
+          title: '¡Actualización Lista!',
+          message: 'La aplicación se reiniciará en unos segundos para aplicar los cambios y novedades.',
+          type: 'ready'
+        });
+        
+        setTimeout(() => {
+          Updates.reloadAsync();
+        }, 3500);
       } else {
-        Alert.alert('Al día', 'Tienes la última versión instalada.');
+        setUpdateModal({
+          visible: true,
+          title: 'Todo al día',
+          message: 'Tienes la última versión instalada. ¡El sistema funciona a la perfección!',
+          type: 'success'
+        });
       }
     } catch (error: any) {
-      if (__DEV__) {
-        Alert.alert('Modo Desarrollo', 'Las actualizaciones (OTA) solo funcionan en builds de producción.');
+      const errorMsg = error?.message || String(error);
+      if (!Updates.isEnabled) {
+        setUpdateModal({
+          visible: true,
+          title: 'OTA Desactivado',
+          message: 'El sistema de actualizaciones no está habilitado en esta compilación (Dev/Debug).',
+          type: 'info'
+        });
+      } else if (__DEV__) {
+        setUpdateModal({
+          visible: true,
+          title: 'Modo Desarrollo',
+          message: 'Las actualizaciones OTA solo funcionan en builds de producción.',
+          type: 'info'
+        });
+      } else if (errorMsg.toLowerCase().includes('channel')) {
+        setUpdateModal({
+          visible: true,
+          title: 'Sin Canal',
+          message: 'EAS Build inyecta el canal automáticamente, pero falta en este build local.',
+          type: 'info'
+        });
       } else {
-        Alert.alert('Error', 'No se pudo buscar actualizaciones.');
+        setUpdateModal({
+          visible: true,
+          title: 'Error de Conexión',
+          message: `No pudimos conectar con los servidores.\n\nVerifica tu internet o inténtalo más tarde.`,
+          type: 'error'
+        });
       }
     } finally {
       setCheckingUpdate(false);
@@ -344,6 +390,59 @@ export default function SettingsScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Premium OTA Update Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={updateModal?.visible || false}
+        onRequestClose={() => setUpdateModal(null)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/60 px-6">
+          <View className="bg-surface-container-lowest w-full rounded-3xl p-6 items-center shadow-xl border border-outline-variant/10">
+            <View className={`w-16 h-16 rounded-full mb-4 flex items-center justify-center ${
+              updateModal?.type === 'ready' ? 'bg-primary/20' :
+              updateModal?.type === 'success' ? 'bg-green-500/20' :
+              updateModal?.type === 'error' ? 'bg-error/20' : 'bg-surface-variant'
+            }`}>
+              <MaterialIcons 
+                name={
+                  updateModal?.type === 'ready' ? 'system-update' :
+                  updateModal?.type === 'success' ? 'check-circle' :
+                  updateModal?.type === 'error' ? 'error-outline' : 'info-outline'
+                } 
+                size={32} 
+                color={
+                  updateModal?.type === 'ready' ? t.primary :
+                  updateModal?.type === 'success' ? '#22c55e' :
+                  updateModal?.type === 'error' ? t.error : t.onSurfaceVariant
+                } 
+              />
+            </View>
+            
+            <Text className="text-xl font-bold font-serif text-on-surface mb-2 text-center">
+              {updateModal?.title}
+            </Text>
+            
+            <Text className="text-sm text-on-surface-variant text-center mb-6 leading-5">
+              {updateModal?.message}
+            </Text>
+            
+            {updateModal?.type !== 'ready' && (
+              <TouchableOpacity 
+                onPress={() => setUpdateModal(null)}
+                className="w-full bg-primary py-3 rounded-full items-center shadow-sm"
+              >
+                <Text className="text-on-primary font-bold text-sm">Entendido</Text>
+              </TouchableOpacity>
+            )}
+            
+            {updateModal?.type === 'ready' && (
+              <ActivityIndicator color={t.primary} size="large" className="mb-2" />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SecondaryLayout>
   );
 }

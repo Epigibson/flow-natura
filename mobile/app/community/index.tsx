@@ -51,7 +51,7 @@ export default function CommunityScreen() {
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
       await api.community.toggleReaction(postId);
       // Let's reload to get accurate truth, or just keep optimistic
-    } catch (e) {
+    } catch {
       // Revert optimistic update silently
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: Math.max(0, p.likes - 1) } : p));
     }

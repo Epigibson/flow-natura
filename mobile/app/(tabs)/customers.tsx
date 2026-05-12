@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../../hooks/use-theme-colors';
@@ -18,11 +18,7 @@ export default function CustomersScreen() {
   const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', preferences: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    loadCustomers();
-  }, [search]);
-
-  async function loadCustomers() {
+  const loadCustomers = useCallback(async () => {
     setLoading(true);
     try {
       const data = await api.customers.list(search);
@@ -32,7 +28,11 @@ export default function CustomersScreen() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [search]);
+
+  useEffect(() => {
+    loadCustomers();
+  }, [loadCustomers]);
 
   const handleCall = (phone: string) => {
     if (!phone) return;

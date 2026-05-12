@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, Image, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
@@ -126,7 +127,7 @@ export default function AdjustmentsScreen() {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#8b5a2b" className="mt-10" />
+          <ActivityIndicator size="large" color={t.primary} className="mt-10" />
         ) : (
           <>
             {/* Products List */}
@@ -177,7 +178,7 @@ export default function AdjustmentsScreen() {
                       <Text className="text-[10px] text-on-surface-variant mt-0.5">{getReasonLabel(adj.reason)}</Text>
                     </View>
                     <View className="items-end">
-                      <Text className={`font-bold ${isPos ? 'text-green-600' : 'text-red-500'}`}>
+                      <Text className="font-bold" style={{ color: isPos ? t.secondary : t.error }}>
                         {isPos ? '+' : ''}{adj.quantity}
                       </Text>
                     </View>

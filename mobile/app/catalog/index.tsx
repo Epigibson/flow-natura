@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
-import api from '../../../src/lib/api';
+import { inventory } from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 
 export default function CatalogScreen() {
@@ -10,21 +10,20 @@ export default function CatalogScreen() {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
+    async function loadCatalog() {
+      setLoading(true);
+      try {
+        // Usar inventory.list() como fuente de datos del catálogo del consultor
+        const data = await inventory.list({ search });
+        setItems(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
     loadCatalog();
   }, [search]);
-
-  async function loadCatalog() {
-    setLoading(true);
-    try {
-      // Usar api.inventory.list() como fuente de datos del catálogo del consultor
-      const data = await api.inventory.list({ search });
-      setItems(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const renderProduct = ({ item }: { item: any }) => {
     const brandLabel = "Natura"; // Simulando marca por defecto

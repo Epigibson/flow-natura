@@ -33,7 +33,7 @@ export default function SalesScreen() {
             const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
             const montoCuota = remaining / Number(terms.pagos || 1);
             debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
-          } catch(e) {}
+          } catch {}
         } else if (o.status === 'pending') {
           debt = Number(o.total_amount);
         }
@@ -75,7 +75,7 @@ export default function SalesScreen() {
               if (action === 'deliver') await api.orders.deliver(orderId);
               if (action === 'cancel') await api.orders.cancel(orderId);
               loadOrders();
-            } catch (err) {
+            } catch {
               Alert.alert('Error', 'No se pudo actualizar el estado.');
             }
           }
