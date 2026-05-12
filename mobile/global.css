@@ -21,19 +21,19 @@
 }
 
 .dark {
-  --color-primary: #ffb783;
-  --color-primary-container: #753800;
-  --color-on-primary-container: #ffdbcb;
-  --color-secondary: #a3d961;
-  --color-secondary-container: #2b4f00;
-  --color-error: #ffb4ab;
-  --color-error-container: #93000a;
-  --color-background: #151210;
-  --color-surface: #151210;
-  --color-surface-container: #221e1a;
-  --color-surface-container-highest: #38322e;
-  --color-surface-container-lowest: #1c1917;
-  --color-on-surface: #e9e1dd;
-  --color-on-surface-variant: #d3c4bc;
-  --color-outline-variant: #4f453e;
+  --color-primary: #FFB890; /* Elegant Pastel Peach/Orange */
+  --color-primary-container: #5A2C0E;
+  --color-on-primary-container: #FFE0C7;
+  --color-secondary: #A8D08D; /* Elegant Pastel Mint/Sage */
+  --color-secondary-container: #2C421B;
+  --color-error: #E57373;
+  --color-error-container: #4A1919;
+  --color-background: #000000;
+  --color-surface: #000000; /* App Background */
+  --color-surface-container: #262626; /* Inputs background */
+  --color-surface-container-highest: #333333; /* Inputs highlight */
+  --color-surface-container-lowest: #1A1A1A; /* Cards background */
+  --color-on-surface: #FFFFFF; /* Blanco puro para legibilidad total */
+  --color-on-surface-variant: #B3B3B3; /* Gris claro para subtítulos */
+  --color-outline-variant: #404040; /* Bordes sutiles */
 }

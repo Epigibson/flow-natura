@@ -286,9 +286,9 @@ export default function NewSaleScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       {/* Header */}
-      <View className="px-6 py-4 border-b border-outline-variant/10 flex-row items-center justify-between z-10 bg-surface">
+      <View className="px-6 py-4 border-b border-outline-variant flex-row items-center justify-between z-10 bg-surface">
         <View className="flex-row items-center gap-4">
-          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
+          <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center border border-outline-variant">
             <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
           </TouchableOpacity>
           <View>
@@ -301,13 +301,13 @@ export default function NewSaleScreen() {
       <ScrollView className="flex-1 px-6 pt-6" showsVerticalScrollIndicator={false}>
         
         {/* 1. Cliente */}
-        <Text className="font-bold text-on-surface mb-3 ml-1 text-sm uppercase tracking-widest text-primary/80">1. Cliente</Text>
+        <Text className="font-bold text-on-surface mb-3 ml-1 text-sm uppercase tracking-widest text-primary opacity-80">1. Cliente</Text>
         <TouchableOpacity 
-          className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/20 mb-6 flex-row items-center justify-between shadow-sm"
+          className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant mb-6 flex-row items-center justify-between shadow-sm"
           onPress={() => setShowCustomerModal(true)}
         >
           <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center">
+            <View className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: t.primaryContainer + '66' }}>
               <MaterialIcons name="person" size={20} color={t.onSurfaceVariant} />
             </View>
             <View>
@@ -320,21 +320,21 @@ export default function NewSaleScreen() {
 
         {/* 2. Productos */}
         <View className="flex-row items-center justify-between mb-3 ml-1">
-          <Text className="font-bold text-on-surface text-sm uppercase tracking-widest text-primary/80">2. Productos ({cartWithCalcs.length})</Text>
+          <Text className="font-bold text-on-surface text-sm uppercase tracking-widest text-primary opacity-80">2. Productos ({cartWithCalcs.length})</Text>
           <View className="flex-row gap-2">
-            <TouchableOpacity onPress={openScanner} className="bg-surface-container-high px-3 py-1.5 rounded-full flex-row items-center gap-1 border border-outline-variant/20">
+            <TouchableOpacity onPress={openScanner} className="bg-surface-container-high px-3 py-1.5 rounded-full flex-row items-center gap-1 border border-outline-variant">
               <MaterialIcons name="qr-code-scanner" size={16} color={t.onSurfaceVariant} />
               <Text className="text-on-surface font-bold text-xs">Escanear</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowProductModal(true)} className="bg-primary/10 px-3 py-1.5 rounded-full flex-row items-center gap-1">
-              <MaterialIcons name="add" size={16} color={t.onSurfaceVariant} />
+            <TouchableOpacity onPress={() => setShowProductModal(true)} className="px-3 py-1.5 rounded-full flex-row items-center gap-1 border border-primary" style={{ backgroundColor: t.primary + '1A' }}>
+              <MaterialIcons name="add" size={16} color={t.primary} />
               <Text className="text-primary font-bold text-xs">Añadir</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {cartWithCalcs.length === 0 ? (
-          <View className="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 border-dashed items-center justify-center mb-6">
+          <View className="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant border-dashed items-center justify-center mb-6">
             <MaterialIcons name="shopping-basket" size={40} color={t.muted} />
             <Text className="text-on-surface-variant text-sm mt-2 text-center">El carrito está vacío</Text>
           </View>
@@ -345,10 +345,10 @@ export default function NewSaleScreen() {
               const lineTotal = item._final_unit_price * item.quantity;
               
               return (
-                <View key={idx} className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/10 shadow-sm mb-3">
+                <View key={idx} className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant shadow-sm mb-3">
                   <View className="flex-row justify-between items-start">
                     <View className="flex-row flex-1 pr-2 items-center gap-3">
-                      <View className="w-12 h-12 rounded-xl bg-surface-container-high overflow-hidden items-center justify-center border border-outline-variant/10">
+                      <View className="w-12 h-12 rounded-xl bg-surface-container-high overflow-hidden items-center justify-center border border-outline-variant">
                         {item.image_url ? (
                           <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
                         ) : (
@@ -366,28 +366,28 @@ export default function NewSaleScreen() {
                         <Text className="text-on-surface-variant text-[10px] mt-0.5">(${(item._final_unit_price).toFixed(2)} c/u)</Text>
                       </View>
                     </View>
-                    <View className="flex-row items-center bg-surface-container-high rounded-full overflow-hidden self-center">
+                    <View className="flex-row items-center bg-surface-container-high rounded-full overflow-hidden self-center border border-outline-variant">
                       <TouchableOpacity onPress={() => updateCartQuantity(item.product_id, -1)} className="w-8 h-8 items-center justify-center">
                         <MaterialIcons name="remove" size={16} color={t.onSurfaceVariant} />
                       </TouchableOpacity>
                       <Text className="font-bold text-on-surface w-6 text-center">{item.quantity}</Text>
-                      <TouchableOpacity onPress={() => updateCartQuantity(item.product_id, 1)} className="w-8 h-8 items-center justify-center bg-primary/10">
-                        <MaterialIcons name="add" size={16} color={t.onSurfaceVariant} />
+                      <TouchableOpacity onPress={() => updateCartQuantity(item.product_id, 1)} className="w-8 h-8 items-center justify-center" style={{ backgroundColor: t.primary + '1A' }}>
+                        <MaterialIcons name="add" size={16} color={t.primary} />
                       </TouchableOpacity>
                     </View>
                   </View>
                   
                   {/* Descuento por ítem */}
-                  <View className="flex-row justify-end items-center mt-3 pt-3 border-t border-outline-variant/10">
+                  <View className="flex-row justify-end items-center mt-3 pt-3 border-t border-outline-variant">
                     <Text className="text-[10px] text-secondary mr-2">Desc.</Text>
                     <TouchableOpacity 
-                      className="w-6 h-6 rounded bg-surface-container-high items-center justify-center mr-1"
+                      className="w-6 h-6 rounded bg-surface-container-high items-center justify-center mr-1 border border-outline-variant"
                       onPress={() => updateCartDiscount(item.product_id, isPerc ? 'amount' : 'percentage', String(item.discount))}
                     >
                       <Text className="text-primary font-bold text-[10px]">{isPerc ? '%' : '$'}</Text>
                     </TouchableOpacity>
                     <TextInput 
-                      className="bg-surface-container border border-outline-variant/20 rounded px-2 py-0.5 w-14 text-[10px] text-right text-secondary h-6"
+                      className="bg-surface-container border border-outline-variant rounded px-2 py-0.5 w-14 text-[10px] text-right text-secondary h-6"
                       keyboardType="numeric"
                       value={String(item.discount || '0')}
                       onChangeText={(val) => updateCartDiscount(item.product_id, item.discount_type, val)}
@@ -400,18 +400,22 @@ export default function NewSaleScreen() {
         )}
 
         {/* 3. Pago */}
-        <Text className="font-bold text-on-surface mb-3 ml-1 text-sm uppercase tracking-widest text-primary/80">3. Método de Pago</Text>
+        <Text className="font-bold text-on-surface mb-3 ml-1 text-sm uppercase tracking-widest text-primary opacity-80">3. Método de Pago</Text>
         
         {/* Opciones de Pago (Radio Buttons) */}
         <View className="flex-row gap-3 mb-4">
           <TouchableOpacity 
-            className={`flex-1 p-4 rounded-2xl border-2 flex-col justify-between ${paymentMethod === 'contado' ? 'border-primary bg-primary/5' : 'border-outline-variant/20 bg-surface-container-lowest'}`}
+            className={`flex-1 p-4 rounded-2xl border-2 flex-col justify-between`}
+            style={{ 
+              backgroundColor: paymentMethod === 'contado' ? t.primary + '1A' : t.surfaceContainerLowest,
+              borderColor: paymentMethod === 'contado' ? t.primary : t.outlineVariant
+            }}
             onPress={() => setPaymentMethod('contado')}
           >
             <View className="flex-row justify-between items-start mb-2">
-              <MaterialIcons name="payments" size={24} color={paymentMethod === 'contado' ? '#3e4d2b' : '#564336'} />
-              <View className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'contado' ? 'border-primary' : 'border-outline-variant'}`}>
-                {paymentMethod === 'contado' && <View className="w-2.5 h-2.5 rounded-full bg-primary" />}
+              <MaterialIcons name="payments" size={24} color={paymentMethod === 'contado' ? t.primary : t.onSurfaceVariant} />
+              <View className={`w-5 h-5 rounded-full border-2 flex items-center justify-center`} style={{ borderColor: paymentMethod === 'contado' ? t.primary : t.outlineVariant }}>
+                {paymentMethod === 'contado' && <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.primary }} />}
               </View>
             </View>
             <Text className="font-bold text-base text-on-surface mt-1">Contado</Text>
@@ -419,13 +423,17 @@ export default function NewSaleScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity 
-            className={`flex-1 p-4 rounded-2xl border-2 flex-col justify-between ${paymentMethod === 'abonos' ? 'border-primary bg-primary/5' : 'border-outline-variant/20 bg-surface-container-lowest'}`}
+            className={`flex-1 p-4 rounded-2xl border-2 flex-col justify-between`}
+            style={{ 
+              backgroundColor: paymentMethod === 'abonos' ? t.primary + '1A' : t.surfaceContainerLowest,
+              borderColor: paymentMethod === 'abonos' ? t.primary : t.outlineVariant
+            }}
             onPress={() => setPaymentMethod('abonos')}
           >
             <View className="flex-row justify-between items-start mb-2">
-              <MaterialIcons name="calendar-month" size={24} color={paymentMethod === 'abonos' ? '#3e4d2b' : '#564336'} />
-              <View className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'abonos' ? 'border-primary' : 'border-outline-variant'}`}>
-                {paymentMethod === 'abonos' && <View className="w-2.5 h-2.5 rounded-full bg-primary" />}
+              <MaterialIcons name="calendar-month" size={24} color={paymentMethod === 'abonos' ? t.primary : t.onSurfaceVariant} />
+              <View className={`w-5 h-5 rounded-full border-2 flex items-center justify-center`} style={{ borderColor: paymentMethod === 'abonos' ? t.primary : t.outlineVariant }}>
+                {paymentMethod === 'abonos' && <View className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: t.primary }} />}
               </View>
             </View>
             <Text className="font-bold text-base text-on-surface mt-1">Abonos</Text>
@@ -435,7 +443,7 @@ export default function NewSaleScreen() {
 
         {/* Configuración de Abonos */}
         {paymentMethod === 'abonos' && (
-          <View className="bg-surface-container-lowest p-5 rounded-3xl border border-outline-variant/20 mb-6 shadow-sm">
+          <View className="bg-surface-container-lowest p-5 rounded-3xl border border-outline-variant mb-6 shadow-sm">
             <View className="flex-row flex-wrap gap-4">
               
               <View className="w-[45%]">
@@ -457,7 +465,8 @@ export default function NewSaleScreen() {
                       <TouchableOpacity 
                         key={f} 
                         onPress={() => setFrecuencia(f)}
-                        className={`px-3 py-2 rounded-lg mr-1 ${frecuencia === f ? 'bg-primary/20' : 'bg-transparent'}`}
+                        className={`px-3 py-2 rounded-lg mr-1`}
+                        style={{ backgroundColor: frecuencia === f ? t.primary + '33' : 'transparent' }}
                       >
                         <Text className={`text-xs font-bold ${frecuencia === f ? 'text-primary' : 'text-on-surface-variant'}`}>{f}</Text>
                       </TouchableOpacity>
@@ -482,7 +491,7 @@ export default function NewSaleScreen() {
       </ScrollView>
 
       {/* Footer Checkout con Resumen Dinámico */}
-      <View className="bg-surface-container-lowest border-t border-outline-variant/10 p-6 pt-4">
+      <View className="bg-surface-container-lowest border-t border-outline-variant p-6 pt-4">
         
         {/* Resumen */}
         {cartWithCalcs.length > 0 && (
@@ -496,7 +505,7 @@ export default function NewSaleScreen() {
               <Text className="text-on-surface-variant text-xs">Descuento Global</Text>
               <View className="flex-row items-center gap-1">
                 <TouchableOpacity 
-                  className="w-5 h-5 rounded bg-surface-container-high items-center justify-center"
+                  className="w-5 h-5 rounded bg-surface-container-high border border-outline-variant items-center justify-center"
                   onPress={() => {
                     setGlobalDiscountType(prev => prev === 'amount' ? 'percentage' : 'amount');
                     setGlobalDiscount('0');
@@ -505,7 +514,7 @@ export default function NewSaleScreen() {
                   <Text className="text-primary font-bold text-[10px]">{globalDiscountType === 'percentage' ? '%' : '$'}</Text>
                 </TouchableOpacity>
                 <TextInput 
-                  className="bg-surface-container border border-outline-variant/20 rounded px-1 py-0 w-12 text-[10px] text-right text-secondary h-5"
+                  className="bg-surface-container border border-outline-variant rounded px-1 py-0 w-12 text-[10px] text-right text-secondary h-5"
                   keyboardType="numeric"
                   value={globalDiscount}
                   onChangeText={setGlobalDiscount}
@@ -513,7 +522,7 @@ export default function NewSaleScreen() {
               </View>
             </View>
 
-            <View className="flex-row justify-between mb-2 pb-2 border-b border-outline-variant/10">
+            <View className="flex-row justify-between mb-2 pb-2 border-b border-outline-variant">
               <Text className="text-secondary text-xs">Descuentos Aplicados</Text>
               <Text className="text-secondary text-xs font-bold">-${totalDiscount.toFixed(2)}</Text>
             </View>
@@ -526,7 +535,8 @@ export default function NewSaleScreen() {
         </View>
 
         <TouchableOpacity 
-          className={`py-4 rounded-full flex-row items-center justify-center gap-2 shadow-lg ${cart.length === 0 ? 'bg-surface-container opacity-50' : 'bg-primary shadow-primary/30'}`}
+          className={`py-4 rounded-full flex-row items-center justify-center gap-2 elevation-5 ${cart.length === 0 ? 'bg-surface-container opacity-50' : 'bg-primary'}`}
+          style={cart.length > 0 ? { shadowColor: t.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } } : {}}
           disabled={cart.length === 0 || submitting}
           onPress={handleCheckout}
         >
@@ -551,7 +561,8 @@ export default function NewSaleScreen() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
-            className="p-4 bg-primary/10 rounded-2xl mb-4 border border-primary/20"
+            className="p-4 rounded-2xl mb-4 border"
+            style={{ backgroundColor: t.primary + '1A', borderColor: t.primary + '33' }}
             onPress={() => { setSelectedCustomer(null); setShowCustomerModal(false); }}
           >
             <Text className="font-bold text-primary text-center">Usar Cliente Mostrador</Text>
@@ -561,7 +572,7 @@ export default function NewSaleScreen() {
             keyExtractor={c => c.id}
             renderItem={({item}) => (
               <TouchableOpacity 
-                className="p-4 bg-surface-container-lowest rounded-2xl mb-2 border border-outline-variant/10"
+                className="p-4 bg-surface-container-lowest rounded-2xl mb-2 border border-outline-variant"
                 onPress={() => { setSelectedCustomer(item); setShowCustomerModal(false); }}
               >
                 <Text className="font-bold text-on-surface text-lg">{item.full_name}</Text>
@@ -589,10 +600,10 @@ export default function NewSaleScreen() {
             keyExtractor={p => p.product_id}
             renderItem={({item}) => (
               <TouchableOpacity 
-                className="p-4 bg-surface-container-lowest rounded-2xl mb-3 border border-outline-variant/10 flex-row justify-between items-center"
+                className="p-4 bg-surface-container-lowest rounded-2xl mb-3 border border-outline-variant flex-row justify-between items-center"
                 onPress={() => addToCart({...item, max_quantity: item.quantity})}
               >
-                <View className="w-14 h-14 rounded-xl bg-surface-container-high overflow-hidden items-center justify-center border border-outline-variant/10 mr-3">
+                <View className="w-14 h-14 rounded-xl bg-surface-container-high overflow-hidden items-center justify-center border border-outline-variant mr-3">
                   {item.image_url ? (
                     <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
                   ) : (
@@ -603,7 +614,7 @@ export default function NewSaleScreen() {
                   <Text className="font-bold text-on-surface text-base" numberOfLines={1}>{item.product_name}</Text>
                   <Text className="text-secondary text-xs">{item.quantity} disponibles</Text>
                 </View>
-                <View className="bg-primary/10 px-3 py-1.5 rounded-full">
+                <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: t.primary + '1A' }}>
                   <Text className="text-primary font-bold">${Number(item.price).toFixed(2)}</Text>
                 </View>
               </TouchableOpacity>

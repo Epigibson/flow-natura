@@ -68,15 +68,15 @@ export default function InventoryScreen() {
     const isUpdating = updatingId === item.product_id;
 
     return (
-      <View className="flex-1 bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant/10 m-2 mb-4">
+      <View className="flex-1 bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm border border-outline-variant m-2 mb-4">
         {/* Imagen y badges */}
-        <View className="h-32 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden relative">
+        <View className="h-32 flex items-center justify-center overflow-hidden relative" style={{ backgroundColor: t.primaryContainer + '1A' }}>
           {item.image_url ? (
             <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
           ) : (
             <MaterialIcons name="spa" size={36} color={t.surfaceContainerHighest} />
           )}
-          <View className="absolute top-2 left-2 px-2 py-0.5 bg-primary/10 rounded-full backdrop-blur-md">
+          <View className="absolute top-2 left-2 px-2 py-0.5 rounded-full backdrop-blur-md" style={{ backgroundColor: t.primary + '1A' }}>
             <Text className="text-primary text-[10px] font-bold">{brandLabel}</Text>
           </View>
         </View>
@@ -84,14 +84,14 @@ export default function InventoryScreen() {
         {/* Info */}
         <View className="p-3">
           <View className="flex-row justify-between items-start mb-1">
-            <Text className="text-[9px] font-bold uppercase tracking-wider text-primary/70">{item.category || 'General'}</Text>
-            <Text className="text-[9px] text-on-surface-variant font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">
+            <Text className="text-[9px] font-bold uppercase tracking-wider text-primary opacity-80">{item.category || 'General'}</Text>
+            <Text className="text-[9px] text-on-surface-variant opacity-70 font-mono bg-surface-container-highest px-1.5 py-0.5 rounded">
               {item.product_code || '00000'}
             </Text>
           </View>
           <Text className="font-bold text-on-surface text-xs leading-tight mb-2 h-8" numberOfLines={2}>{item.product_name}</Text>
           
-          <View className="flex-row justify-between items-center pt-2 border-t border-outline-variant/10">
+          <View className="flex-row justify-between items-center pt-2 border-t border-outline-variant">
             <View>
               <Text className="text-[9px] text-on-surface-variant uppercase font-bold tracking-wide">Precio</Text>
               <Text className="text-sm font-bold text-primary">${Number(item.price || 0).toFixed(0)}</Text>
@@ -117,7 +117,8 @@ export default function InventoryScreen() {
               </View>
 
               <TouchableOpacity 
-                className="w-6 h-6 rounded-md flex items-center justify-center bg-primary/10"
+                className="w-6 h-6 rounded-md flex items-center justify-center"
+                style={{ backgroundColor: t.primary + '1A' }}
                 onPress={() => handleAdjustQuantity(item.product_id, item.quantity, 1)}
                 disabled={isUpdating}
               >
@@ -141,8 +142,8 @@ export default function InventoryScreen() {
 
       {/* KPI Cards */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 overflow-visible">
-        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-40 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
-          <View className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-40 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.primary + '1A' }}>
             <MaterialIcons name="inventory-2" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
@@ -151,8 +152,8 @@ export default function InventoryScreen() {
           </View>
         </View>
         
-        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
-          <View className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.secondary + '1A' }}>
             <MaterialIcons name="check-circle" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
@@ -161,8 +162,8 @@ export default function InventoryScreen() {
           </View>
         </View>
 
-        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
-          <View className="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.primaryContainer + '1A' }}>
             <MaterialIcons name="category" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
@@ -173,7 +174,7 @@ export default function InventoryScreen() {
       </ScrollView>
 
       {/* Buscador */}
-      <View className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
+      <View className="bg-surface-container-lowest border border-outline-variant rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
         <MaterialIcons name="search" size={20} color={t.onSurfaceVariant} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"
@@ -214,7 +215,8 @@ export default function InventoryScreen() {
 
       {/* Floating Action Button for New Product */}
       <TouchableOpacity
-        className="absolute bottom-6 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/30 elevation-5"
+        className="absolute bottom-6 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center elevation-5"
+        style={{ shadowColor: t.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}
         onPress={() => router.push('/inventory/new')}
       >
         <MaterialIcons name="add" size={32} color="#fff" />

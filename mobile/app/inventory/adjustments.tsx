@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView, TextInput, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import api from '../../../src/lib/api';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function AdjustmentsScreen() {
+  const t = useThemeColors();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [inventory, setInventory] = useState<any[]>([]);
@@ -97,9 +99,9 @@ export default function AdjustmentsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       {/* Header */}
-      <View className="flex-row items-center px-6 py-4 border-b border-outline-variant/20 bg-surface">
-        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center mr-4">
-          <Text className="text-xl">←</Text>
+      <View className="flex-row items-center px-6 py-4 border-b border-outline-variant bg-surface">
+        <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center mr-4 border border-outline-variant">
+          <Text className="text-xl" style={{ color: t.onSurfaceVariant }}>←</Text>
         </TouchableOpacity>
         <View>
           <Text className="font-bold text-lg text-on-surface">Ajustes de Stock</Text>
@@ -125,12 +127,12 @@ export default function AdjustmentsScreen() {
           <>
             {/* Products List */}
             <Text className="font-serif font-bold text-lg mb-4 text-primary">Selecciona un producto</Text>
-            <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant/20 overflow-hidden mb-8">
+            <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant overflow-hidden mb-8">
               {filteredInventory.slice(0, 10).map((item, idx) => (
                 <TouchableOpacity 
                   key={idx} 
                   onPress={() => setSelectedProduct(item)}
-                  className={`flex-row items-center p-4 ${idx > 0 ? 'border-t border-outline-variant/10' : ''}`}
+                  className={`flex-row items-center p-4 ${idx > 0 ? 'border-t border-outline-variant' : ''}`}
                 >
                   {item.image_url ? (
                     <Image source={{ uri: item.image_url }} className="w-12 h-12 rounded-xl bg-white mr-4" resizeMode="contain" />
@@ -163,7 +165,7 @@ export default function AdjustmentsScreen() {
                 const isPos = adj.quantity > 0;
                 return (
                   <View key={idx} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
-                    <View className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${isPos ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <View className="w-10 h-10 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: isPos ? t.secondary + '33' : t.error + '33' }}>
                       <Text className="text-lg">{isPos ? '➕' : '➖'}</Text>
                     </View>
                     <View className="flex-1 pr-2">
@@ -199,7 +201,7 @@ export default function AdjustmentsScreen() {
 
             {selectedProduct && (
               <ScrollView showsVerticalScrollIndicator={false}>
-                <View className="flex-row items-center p-4 bg-primary/5 rounded-2xl border border-primary/10 mb-6">
+                <View className="flex-row items-center p-4 rounded-2xl border mb-6" style={{ backgroundColor: t.primary + '1A', borderColor: t.primary + '33' }}>
                   {selectedProduct.image_url ? (
                     <Image source={{ uri: selectedProduct.image_url }} className="w-12 h-12 rounded-xl bg-white mr-4" resizeMode="contain" />
                   ) : (
@@ -216,21 +218,24 @@ export default function AdjustmentsScreen() {
                 <View className="flex-row gap-2 mb-6">
                   <TouchableOpacity 
                     onPress={() => setAdjType('increase')}
-                    className={`flex-1 py-3 rounded-xl border ${adjType === 'increase' ? 'bg-green-50 border-green-500' : 'bg-surface-container border-transparent'}`}
+                    className="flex-1 py-3 rounded-xl border"
+                    style={{ backgroundColor: adjType === 'increase' ? t.secondary + '1A' : t.surfaceContainer, borderColor: adjType === 'increase' ? t.secondary : 'transparent' }}
                   >
-                    <Text className={`text-center font-bold ${adjType === 'increase' ? 'text-green-700' : 'text-on-surface-variant'}`}>Entrada</Text>
+                    <Text className="text-center font-bold text-on-surface-variant" style={{ color: adjType === 'increase' ? t.secondary : t.onSurfaceVariant }}>Entrada</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     onPress={() => setAdjType('decrease')}
-                    className={`flex-1 py-3 rounded-xl border ${adjType === 'decrease' ? 'bg-red-50 border-red-500' : 'bg-surface-container border-transparent'}`}
+                    className="flex-1 py-3 rounded-xl border"
+                    style={{ backgroundColor: adjType === 'decrease' ? t.error + '1A' : t.surfaceContainer, borderColor: adjType === 'decrease' ? t.error : 'transparent' }}
                   >
-                    <Text className={`text-center font-bold ${adjType === 'decrease' ? 'text-red-700' : 'text-on-surface-variant'}`}>Salida</Text>
+                    <Text className="text-center font-bold text-on-surface-variant" style={{ color: adjType === 'decrease' ? t.error : t.onSurfaceVariant }}>Salida</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
                     onPress={() => setAdjType('correction')}
-                    className={`flex-1 py-3 rounded-xl border ${adjType === 'correction' ? 'bg-amber-50 border-amber-500' : 'bg-surface-container border-transparent'}`}
+                    className="flex-1 py-3 rounded-xl border"
+                    style={{ backgroundColor: adjType === 'correction' ? t.primary + '1A' : t.surfaceContainer, borderColor: adjType === 'correction' ? t.primary : 'transparent' }}
                   >
-                    <Text className={`text-center font-bold ${adjType === 'correction' ? 'text-amber-700' : 'text-on-surface-variant'}`}>Exacto</Text>
+                    <Text className="text-center font-bold text-on-surface-variant" style={{ color: adjType === 'correction' ? t.primary : t.onSurfaceVariant }}>Exacto</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -253,9 +258,10 @@ export default function AdjustmentsScreen() {
                     <TouchableOpacity 
                       key={r}
                       onPress={() => setAdjReason(r)}
-                      className={`px-4 py-2 rounded-full border ${adjReason === r ? 'bg-primary/10 border-primary' : 'bg-surface-container border-transparent'}`}
+                      className="px-4 py-2 rounded-full border"
+                      style={{ backgroundColor: adjReason === r ? t.primary + '1A' : t.surfaceContainer, borderColor: adjReason === r ? t.primary : 'transparent' }}
                     >
-                      <Text className={`text-xs font-bold ${adjReason === r ? 'text-primary' : 'text-on-surface-variant'}`}>{getReasonLabel(r)}</Text>
+                      <Text className="text-xs font-bold" style={{ color: adjReason === r ? t.primary : t.onSurfaceVariant }}>{getReasonLabel(r)}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>

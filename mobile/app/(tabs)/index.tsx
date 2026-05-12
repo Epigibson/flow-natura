@@ -66,7 +66,7 @@ export default function DashboardScreen() {
           
           {/* Header */}
           <View className="mb-6">
-            <TouchableOpacity onPress={openSidebar} className="w-12 h-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 flex items-center justify-center mb-4">
+            <TouchableOpacity onPress={openSidebar} className="w-12 h-12 bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant flex items-center justify-center mb-4">
               <Text className="text-on-surface text-2xl">≡</Text>
             </TouchableOpacity>
             <Text className="text-4xl font-serif text-on-surface">{greeting},</Text>
@@ -78,13 +78,13 @@ export default function DashboardScreen() {
 
           {/* Action Buttons */}
           <View className="flex-row items-center gap-3 mb-8">
-            <TouchableOpacity onPress={() => setGoalModalVisible(true)} className="flex-row items-center gap-2 py-2 px-5 rounded-full border-2 border-primary/20 bg-surface-container-lowest">
+            <TouchableOpacity onPress={() => setGoalModalVisible(true)} className="flex-row items-center gap-2 py-2 px-5 rounded-full border border-primary bg-surface-container-lowest" style={{ shadowColor: t.primary, elevation: 2, shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
               <Text className="text-primary font-bold text-sm">🏳️ Mi Meta</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setExportModalVisible(true)} className="flex-row items-center gap-2 py-2 px-5 rounded-full bg-secondary">
               <Text className="text-white font-bold text-sm">⬇️ Exportar</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleLogout} className="w-10 h-10 rounded-full overflow-hidden bg-primary-container border border-primary/20 ml-auto">
+            <TouchableOpacity onPress={handleLogout} className="w-10 h-10 rounded-full overflow-hidden border border-primary ml-auto" style={{ backgroundColor: t.primaryContainer }}>
               <Image source={{ uri: `https://api.dicebear.com/8.x/micah/svg?seed=${username}` }} className="w-full h-full" />
             </TouchableOpacity>
           </View>
@@ -96,7 +96,7 @@ export default function DashboardScreen() {
           ) : (
             <>
               {/* Growth Widget */}
-              <View className="bg-surface-container-lowest rounded-[2rem] p-6 mb-6 border border-primary/10 shadow-sm relative overflow-hidden">
+              <View className="bg-surface-container-lowest rounded-[2rem] p-6 mb-6 border border-outline-variant shadow-sm relative overflow-hidden">
                 {!userProfile?.is_natura_connected ? (
                   <View className="items-center py-4">
                     <Text className="text-3xl mb-2 text-primary">🔗</Text>
@@ -124,7 +124,7 @@ export default function DashboardScreen() {
                 ) : (
                   <>
                     <View className="flex-row justify-between items-center mb-4">
-                      <View className="bg-primary-container/15/20 px-3 py-1 rounded-full flex-row items-center">
+                      <View className="px-3 py-1 rounded-full flex-row items-center" style={{ backgroundColor: t.primaryContainer + '33' }}>
                         <Text className="text-primary text-[10px] font-bold tracking-widest uppercase">⭐ Camino de Crecimiento</Text>
                       </View>
                       {userProfile?.latest_growth_data?.period?.daysFinalDate <= 7 && (
@@ -147,7 +147,7 @@ export default function DashboardScreen() {
                       <Text className="text-xs text-on-surface-variant">{userProfile?.latest_growth_data?.period?.daysFinalDate || 0} días para cerrar</Text>
                     </View>
 
-                    <TouchableOpacity className="w-full py-4 bg-surface-container-highest rounded-2xl flex-row justify-center items-center gap-2 border border-outline-variant/30">
+                    <TouchableOpacity className="w-full py-4 bg-surface-container-highest rounded-2xl flex-row justify-center items-center gap-2 border border-outline-variant">
                       <Text className="text-on-surface font-bold">☁️ Sincronización Silenciosa</Text>
                     </TouchableOpacity>
                   </>
@@ -195,7 +195,7 @@ export default function DashboardScreen() {
                     {data.recent_orders.slice(0, 3).map((order: any, idx: number) => (
                       <View key={order.id} className={`flex-row justify-between items-center py-4 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
                         <View className="flex-row items-center flex-1 pr-2">
-                          <View className="w-10 h-10 rounded-full bg-primary-container/20 flex items-center justify-center mr-3 border border-primary/10">
+                          <View className="w-10 h-10 rounded-full flex items-center justify-center mr-3 border border-primary" style={{ backgroundColor: t.primaryContainer + '33' }}>
                             <Text className="font-bold text-primary">{order.customer_name?.charAt(0) || 'C'}</Text>
                           </View>
                           <View className="flex-1">
@@ -221,15 +221,15 @@ export default function DashboardScreen() {
               <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
                 <Text className="text-lg font-serif font-bold text-primary mb-6">⚡ Acciones Rápidas</Text>
                 <View className="flex-row flex-wrap justify-between">
-                  <TouchableOpacity onPress={() => router.push('/sales/new')} className="w-[48%] bg-primary-container/10/20 p-4 rounded-2xl items-center mb-4">
+                  <TouchableOpacity onPress={() => router.push('/sales/new')} className="w-[48%] p-4 rounded-2xl items-center mb-4 border border-outline-variant" style={{ backgroundColor: t.primaryContainer + '1A' }}>
                     <Text className="text-primary text-xl mb-1">🛎️</Text>
                     <Text className="text-primary font-bold text-xs text-center">Nueva Venta</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => router.push('/inventory/new')} className="w-[48%] bg-secondary-container/20/30 p-4 rounded-2xl items-center mb-4">
+                  <TouchableOpacity onPress={() => router.push('/inventory/new')} className="w-[48%] p-4 rounded-2xl items-center mb-4 border border-outline-variant" style={{ backgroundColor: t.secondaryContainer + '1A' }}>
                     <Text className="text-secondary text-xl mb-1">📦</Text>
                     <Text className="text-secondary font-bold text-xs text-center">Alta Stock</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => router.push('/customers')} className="w-[48%] bg-primary-container/10/20 p-4 rounded-2xl items-center">
+                  <TouchableOpacity onPress={() => router.push('/customers')} className="w-[48%] p-4 rounded-2xl items-center border border-outline-variant" style={{ backgroundColor: t.primaryContainer + '1A' }}>
                     <Text className="text-primary text-xl mb-1">👤+</Text>
                     <Text className="text-primary font-bold text-xs text-center">Nuevo Cliente</Text>
                   </TouchableOpacity>
@@ -264,7 +264,7 @@ export default function DashboardScreen() {
                   data.stock_alerts.map((item: any, idx: number) => (
                     <View key={idx} className={`flex-row justify-between items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
                       <Text className="flex-1 font-bold text-on-surface text-sm pr-2" numberOfLines={1}>{item.product_name}</Text>
-                      <Text className="text-error font-bold text-sm bg-error/10 px-2 py-1 rounded-md">{item.quantity} rest</Text>
+                      <Text className="text-error font-bold text-sm px-2 py-1 rounded-md" style={{ backgroundColor: t.error + '1A' }}>{item.quantity} rest</Text>
                     </View>
                   ))
                 ) : (
@@ -314,7 +314,7 @@ export default function DashboardScreen() {
       {/* Modals placed outside ScrollView but inside SafeAreaView */}
       <Modal visible={goalModalVisible} animationType="fade" transparent={true}>
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
-          <View className="bg-surface rounded-[2rem] p-8 w-full border border-outline-variant/20">
+          <View className="bg-surface rounded-[2rem] p-8 w-full border border-outline-variant">
             <Text className="text-2xl font-serif font-bold mb-4 text-on-surface">🎯 Meta del Ciclo</Text>
             <Text className="text-sm text-on-surface-variant mb-6">Define tu meta de ventas para este ciclo y hazle seguimiento.</Text>
             <TextInput 
@@ -334,7 +334,7 @@ export default function DashboardScreen() {
 
       <Modal visible={exportModalVisible} animationType="slide" transparent={true}>
         <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-surface rounded-t-[2rem] p-8 w-full border-t border-outline-variant/20">
+          <View className="bg-surface rounded-t-[2rem] p-8 w-full border-t border-outline-variant">
             <Text className="text-2xl font-serif font-bold mb-6 text-on-surface">⬇️ Exportar Datos</Text>
             
             <TouchableOpacity onPress={() => {Alert.alert('Exportando...', 'En una implementación futura, esto descargará un CSV con Expo File System.'); setExportModalVisible(false);}} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-3">

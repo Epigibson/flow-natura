@@ -91,11 +91,11 @@ export default function SalesScreen() {
     const initials = cName.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
     
     return (
-      <View className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant/10">
+      <View className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant">
         <View className="flex-row justify-between items-start mb-4">
           <View className="flex-row items-center flex-1">
-            <View className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${item._isAbonos ? 'bg-tertiary/20' : 'bg-primary/20'}`}>
-              <Text className={`font-bold ${item._isAbonos ? 'text-tertiary' : 'text-primary'}`}>{initials}</Text>
+            <View className="w-10 h-10 rounded-full flex items-center justify-center mr-3" style={{ backgroundColor: item._isAbonos ? t.primaryContainer + '33' : t.primary + '33' }}>
+              <Text className="font-bold" style={{ color: item._isAbonos ? t.primaryContainer : t.primary }}>{initials}</Text>
             </View>
             <View className="flex-1">
               <Text className="font-bold text-base text-on-surface" numberOfLines={1}>{cName}</Text>
@@ -103,9 +103,7 @@ export default function SalesScreen() {
             </View>
           </View>
           
-          <View className={`px-3 py-1 rounded-full flex-row items-center gap-1 ${
-            isCancelled ? 'bg-error/10' : (isFullyPaid ? 'bg-secondary/10' : 'bg-primary-container/30')
-          }`}>
+          <View className="px-3 py-1 rounded-full flex-row items-center gap-1" style={{ backgroundColor: isCancelled ? t.error + '1A' : (isFullyPaid ? t.secondary + '1A' : t.primary + '1A') }}>
             <View className={`w-2 h-2 rounded-full ${
               isCancelled ? 'bg-error' : (isFullyPaid ? 'bg-secondary' : 'bg-primary')
             }`} />
@@ -120,8 +118,8 @@ export default function SalesScreen() {
         <View className="flex-row justify-between items-end mb-4">
           <View>
             <Text className="text-on-surface-variant text-xs mb-0.5">{new Date(item.created_at).toLocaleDateString('es-MX')}</Text>
-            <View className={`self-start px-2 py-0.5 rounded-md ${item._isAbonos ? 'bg-tertiary/10' : 'bg-surface-container'}`}>
-              <Text className={`text-[10px] font-bold ${item._isAbonos ? 'text-tertiary' : 'text-on-surface-variant'}`}>
+            <View className="self-start px-2 py-0.5 rounded-md" style={{ backgroundColor: item._isAbonos ? t.primaryContainer + '1A' : t.surfaceContainerHighest }}>
+              <Text className="text-[10px] font-bold" style={{ color: item._isAbonos ? t.primaryContainer : t.onSurfaceVariant }}>
                 {item._isAbonos ? 'ABONOS' : 'CONTADO'}
               </Text>
             </View>
@@ -145,7 +143,8 @@ export default function SalesScreen() {
               <Text className="text-on-surface font-bold text-sm">Entregar</Text>
             </TouchableOpacity>
             <TouchableOpacity 
-              className="bg-error/10 py-2.5 px-4 rounded-xl items-center flex-row justify-center"
+              className="py-2.5 px-4 rounded-xl items-center flex-row justify-center"
+              style={{ backgroundColor: t.error + '1A' }}
               onPress={() => handleStatusChange(item.id, 'cancel')}
             >
               <MaterialIcons name="cancel" size={16} color={t.error} />
@@ -166,38 +165,38 @@ export default function SalesScreen() {
 
       {/* KPI Cards */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 overflow-visible">
-        <View className="bg-surface-container-low p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden">
+        <View className="bg-surface-container-lowest p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden border border-outline-variant">
           <Text className="text-on-surface-variant font-medium text-xs mb-1">Ventas Totales</Text>
           <Text className="text-3xl font-serif font-bold text-on-surface">
             ${totalVentas.toLocaleString('es-MX', {minimumFractionDigits: 2})}
           </Text>
-          <MaterialIcons name="payments" size={80} color="rgba(139,90,43,0.05)" style={{position: 'absolute', bottom: -10, right: -10}} />
+          <MaterialIcons name="payments" size={80} color={t.primary + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
         </View>
         
-        <View className="bg-surface-container-high p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden">
+        <View className="bg-surface-container-highest p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden border border-outline-variant">
           <Text className="text-on-surface-variant font-medium text-xs mb-1">Por Cobrar</Text>
           <Text className="text-3xl font-serif font-bold text-primary">
             ${totalCobrar.toLocaleString('es-MX', {minimumFractionDigits: 2})}
           </Text>
           <Text className="text-on-surface-variant text-[10px] font-medium mt-1">{abonosActivos} abonos activos</Text>
-          <MaterialIcons name="schedule" size={80} color="rgba(139,90,43,0.05)" style={{position: 'absolute', bottom: -10, right: -10}} />
+          <MaterialIcons name="schedule" size={80} color={t.primary + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
         </View>
 
         <TouchableOpacity 
-          className="bg-secondary-container p-5 rounded-3xl mr-4 w-48 shadow-sm justify-center items-start relative overflow-hidden"
+          className="bg-secondary-container p-5 rounded-3xl mr-4 w-48 shadow-sm justify-center items-start relative overflow-hidden border border-outline-variant"
           onPress={() => router.push('/sales/new')}
         >
-          <Text className="text-on-secondary-container font-medium text-xs mb-1">Nueva Venta</Text>
-          <View className="bg-white/50 px-4 py-2 mt-2 rounded-full flex-row items-center gap-1 border border-white/40">
-            <MaterialIcons name="add-circle" size={16} color={t.onSurfaceVariant} />
-            <Text className="text-on-secondary-container font-bold text-xs">Registrar</Text>
+          <Text className="text-on-surface font-medium text-xs mb-1">Nueva Venta</Text>
+          <View className="px-4 py-2 mt-2 rounded-full flex-row items-center gap-1 border border-outline-variant" style={{ backgroundColor: t.surfaceContainerLowest + '80' }}>
+            <MaterialIcons name="add-circle" size={16} color={t.onSurface} />
+            <Text className="text-on-surface font-bold text-xs">Registrar</Text>
           </View>
-          <MaterialIcons name="point-of-sale" size={80} color="rgba(62,77,43,0.1)" style={{position: 'absolute', bottom: -10, right: -10}} />
+          <MaterialIcons name="point-of-sale" size={80} color={t.onSurface + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
         </TouchableOpacity>
       </ScrollView>
 
       {/* Buscador y Filtros */}
-      <View className="bg-surface-container-highest rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
+      <View className="bg-surface-container-highest border border-outline-variant rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
         <MaterialIcons name="search" size={20} color={t.onSurfaceVariant} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"

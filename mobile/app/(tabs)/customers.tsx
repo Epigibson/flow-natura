@@ -118,10 +118,10 @@ export default function CustomersScreen() {
     const date = new Date(item.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
 
     return (
-      <View className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant/10">
+      <View className="bg-surface-container-lowest p-5 rounded-3xl mb-4 shadow-sm border border-outline-variant">
         <View className="flex-row items-start justify-between mb-4">
           <View className="flex-row items-center flex-1">
-            <View className="w-12 h-12 rounded-full bg-primary-container/30 flex items-center justify-center mr-4">
+            <View className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: t.primaryContainer + '4D' }}>
               <Text className="text-primary font-serif font-bold text-xl">{initial}</Text>
             </View>
             <View className="flex-1 pr-2">
@@ -139,7 +139,7 @@ export default function CustomersScreen() {
         </View>
 
         {(item.phone || item.email) && (
-          <View className="bg-surface-container-highest/30 rounded-xl p-3 mb-4">
+          <View className="rounded-xl p-3 mb-4" style={{ backgroundColor: t.surfaceContainerHighest + '4D' }}>
             {item.phone && (
               <View className="flex-row items-center gap-2 mb-1.5">
                 <MaterialIcons name="phone" size={14} color={t.muted} />
@@ -157,19 +157,19 @@ export default function CustomersScreen() {
 
         {item.preferences && (
           <View className="mb-4">
-            <Text className="text-[10px] uppercase font-bold tracking-wider text-primary/70 mb-1">Preferencias</Text>
+            <Text className="text-[10px] uppercase font-bold tracking-wider text-primary opacity-70 mb-1">Preferencias</Text>
             <Text className="text-sm text-on-surface-variant" numberOfLines={2}>{item.preferences}</Text>
           </View>
         )}
 
-        <View className="flex-row gap-2 pt-3 border-t border-outline-variant/10">
+        <View className="flex-row gap-2 pt-3 border-t border-outline-variant">
           <TouchableOpacity 
             className="flex-1 bg-surface-container py-2.5 rounded-xl items-center flex-row justify-center gap-2"
             onPress={() => handleCall(item.phone)}
             disabled={!item.phone}
           >
             <MaterialIcons name="call" size={16} color={item.phone ? t.onSurfaceVariant : t.muted} />
-            <Text className={`font-bold text-sm ${item.phone ? 'text-on-surface' : 'text-on-surface-variant/50'}`}>Llamar</Text>
+            <Text className={`font-bold text-sm ${item.phone ? 'text-on-surface' : 'text-on-surface-variant opacity-50'}`}>Llamar</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             className="flex-1 bg-green-50 dark:bg-green-900/20 py-2.5 rounded-xl items-center flex-row justify-center gap-2 border border-green-200/50"
@@ -177,7 +177,7 @@ export default function CustomersScreen() {
             disabled={!item.phone}
           >
             <MaterialIcons name="chat" size={16} color={item.phone ? "#16a34a" : t.muted} />
-            <Text className={`font-bold text-sm ${item.phone ? 'text-green-700' : 'text-on-surface-variant/50'}`}>WhatsApp</Text>
+            <Text className={`font-bold text-sm ${item.phone ? 'text-green-700' : 'text-on-surface-variant opacity-50'}`}>WhatsApp</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -192,14 +192,15 @@ export default function CustomersScreen() {
           <Text className="text-on-surface-variant mt-1 text-sm">Administra a tus clientes.</Text>
         </View>
         <TouchableOpacity 
-          className="bg-primary w-12 h-12 rounded-full items-center justify-center shadow-lg shadow-primary/30"
+          className="bg-primary w-12 h-12 rounded-full items-center justify-center elevation-5"
+          style={{ shadowColor: t.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}
           onPress={openCreate}
         >
           <MaterialIcons name="person-add" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <View className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-2">
+      <View className="bg-surface-container-highest border border-outline-variant rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-2">
         <MaterialIcons name="search" size={20} color={t.muted} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"
@@ -241,7 +242,7 @@ export default function CustomersScreen() {
       <Modal visible={showModal === 'create' || showModal === 'edit'} animationType="slide" presentationStyle="pageSheet">
         <SafeAreaView className="flex-1 bg-surface">
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-            <View className="px-6 py-4 border-b border-outline-variant/10 flex-row justify-between items-center">
+            <View className="px-6 py-4 border-b border-outline-variant flex-row justify-between items-center">
               <Text className="text-2xl font-serif font-bold text-on-surface">{showModal === 'create' ? 'Nuevo Cliente' : 'Editar Cliente'}</Text>
               <TouchableOpacity onPress={() => setShowModal(showModal === 'edit' ? 'detail' : null)}>
                 <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
@@ -252,37 +253,38 @@ export default function CustomersScreen() {
               <View className="mb-4">
                 <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Nombre Completo *</Text>
                 <TextInput 
-                  className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface"
-                  placeholder="Ej. María López" value={formData.full_name} onChangeText={t => setFormData({...formData, full_name: t})}
+                  className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
+                  placeholder="Ej. María López" placeholderTextColor={t.muted} value={formData.full_name} onChangeText={t => setFormData({...formData, full_name: t})}
                 />
               </View>
 
               <View className="mb-4">
                 <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Teléfono / WhatsApp</Text>
                 <TextInput 
-                  className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface"
-                  placeholder="Ej. 5512345678" keyboardType="phone-pad" value={formData.phone} onChangeText={t => setFormData({...formData, phone: t})}
+                  className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
+                  placeholder="Ej. 5512345678" placeholderTextColor={t.muted} keyboardType="phone-pad" value={formData.phone} onChangeText={t => setFormData({...formData, phone: t})}
                 />
               </View>
 
               <View className="mb-4">
                 <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Correo Electrónico</Text>
                 <TextInput 
-                  className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface"
-                  placeholder="ejemplo@correo.com" keyboardType="email-address" value={formData.email} onChangeText={t => setFormData({...formData, email: t})}
+                  className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
+                  placeholder="ejemplo@correo.com" placeholderTextColor={t.muted} keyboardType="email-address" value={formData.email} onChangeText={t => setFormData({...formData, email: t})}
                 />
               </View>
 
               <View className="mb-8">
                 <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Preferencias / Notas</Text>
                 <TextInput 
-                  className="bg-surface-container-lowest border border-outline-variant/20 rounded-xl px-4 py-3 text-on-surface h-24"
-                  placeholder="Le gustan las fragancias florales, paga quincenalmente..." multiline textAlignVertical="top" value={formData.preferences} onChangeText={t => setFormData({...formData, preferences: t})}
+                  className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface h-24"
+                  placeholder="Le gustan las fragancias florales, paga quincenalmente..." placeholderTextColor={t.muted} multiline textAlignVertical="top" value={formData.preferences} onChangeText={t => setFormData({...formData, preferences: t})}
                 />
               </View>
 
               <TouchableOpacity 
-                className="bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 shadow-lg shadow-primary/30"
+                className="bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 elevation-5"
+                style={{ shadowColor: t.primary, shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 } }}
                 disabled={submitting} onPress={handleSave}
               >
                 {submitting ? <ActivityIndicator color="#fff" /> : (
@@ -303,15 +305,15 @@ export default function CustomersScreen() {
         <SafeAreaView className="flex-1 bg-surface">
           {selectedCustomer && (
             <>
-              <View className="px-6 py-4 flex-row justify-between items-center bg-primary-container/20">
-                <TouchableOpacity onPress={() => setShowModal(null)} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
+              <View className="px-6 py-4 flex-row justify-between items-center" style={{ backgroundColor: t.primaryContainer + '33' }}>
+                <TouchableOpacity onPress={() => setShowModal(null)} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center border border-outline-variant">
                   <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
                 </TouchableOpacity>
                 <View className="flex-row gap-2">
-                  <TouchableOpacity onPress={openEdit} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
+                  <TouchableOpacity onPress={openEdit} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center border border-outline-variant">
                     <MaterialIcons name="edit" size={20} color={t.onSurfaceVariant} />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={handleDelete} className="w-10 h-10 bg-error/10 rounded-full items-center justify-center">
+                  <TouchableOpacity onPress={handleDelete} className="w-10 h-10 rounded-full items-center justify-center border border-error" style={{ backgroundColor: t.error + '1A' }}>
                     <MaterialIcons name="delete" size={20} color={t.error} />
                   </TouchableOpacity>
                 </View>
@@ -321,7 +323,7 @@ export default function CustomersScreen() {
                 
                 {/* Header Perfil */}
                 <View className="items-center mb-8">
-                  <View className="w-24 h-24 rounded-full bg-primary-container/50 flex items-center justify-center mb-4 border-4 border-surface">
+                  <View className="w-24 h-24 rounded-full flex items-center justify-center mb-4 border-4 border-surface" style={{ backgroundColor: t.primaryContainer + '80' }}>
                     <Text className="font-serif font-bold text-4xl text-primary">{selectedCustomer.full_name.charAt(0).toUpperCase()}</Text>
                   </View>
                   <Text className="text-2xl font-bold font-serif text-on-surface text-center mb-1">{selectedCustomer.full_name}</Text>
@@ -331,14 +333,14 @@ export default function CustomersScreen() {
                 {/* Métricas Financieras */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Estadísticas de Compra</Text>
                 <View className="flex-row gap-3 mb-6">
-                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant/10 shadow-sm items-center">
+                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
                     <MaterialIcons name="shopping-bag" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-xs mb-1">Órdenes Totales</Text>
                     <Text className="text-2xl font-bold text-on-surface">
                       {customerStats ? customerStats.total_orders : <ActivityIndicator size="small" />}
                     </Text>
                   </View>
-                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant/10 shadow-sm items-center">
+                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
                     <MaterialIcons name="payments" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-xs mb-1">Gastado ($)</Text>
                     <Text className="text-2xl font-bold text-primary">
@@ -349,8 +351,8 @@ export default function CustomersScreen() {
 
                 {/* Información de Contacto */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Información de Contacto</Text>
-                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 shadow-sm p-4 mb-6">
-                  <View className="flex-row items-center justify-between py-2 border-b border-outline-variant/10">
+                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-6">
+                  <View className="flex-row items-center justify-between py-2 border-b border-outline-variant">
                     <View className="flex-row items-center gap-3">
                       <MaterialIcons name="phone" size={20} color={t.muted} />
                       <Text className="text-on-surface">{selectedCustomer.phone || 'No registrado'}</Text>
@@ -369,7 +371,7 @@ export default function CustomersScreen() {
 
                 {/* Preferencias */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Preferencias</Text>
-                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 shadow-sm p-4 mb-8">
+                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-8">
                   <Text className="text-on-surface-variant">
                     {selectedCustomer.preferences || 'Sin preferencias registradas.'}
                   </Text>
