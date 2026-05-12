@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function InventoryScreen() {
+  const t = useThemeColors();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -72,7 +74,7 @@ export default function InventoryScreen() {
           {item.image_url ? (
             <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
           ) : (
-            <MaterialIcons name="spa" size={36} color="#e7e0eb" />
+            <MaterialIcons name="spa" size={36} color={t.surfaceContainerHighest} />
           )}
           <View className="absolute top-2 left-2 px-2 py-0.5 bg-primary/10 rounded-full backdrop-blur-md">
             <Text className="text-primary text-[10px] font-bold">{brandLabel}</Text>
@@ -101,12 +103,12 @@ export default function InventoryScreen() {
                 onPress={() => handleAdjustQuantity(item.product_id, item.quantity, -1)}
                 disabled={isUpdating || isOutOfStock}
               >
-                <MaterialIcons name="remove" size={12} color={isOutOfStock ? "#ccc" : "#564336"} />
+                <MaterialIcons name="remove" size={12} color={isOutOfStock ? t.muted : t.onSurfaceVariant} />
               </TouchableOpacity>
               
               <View className="w-6 items-center justify-center">
                 {isUpdating ? (
-                  <ActivityIndicator size="small" color="#476810" />
+                  <ActivityIndicator size="small" color={t.primary} />
                 ) : (
                   <Text className={`text-center text-xs font-bold ${isOutOfStock ? 'text-on-surface-variant' : 'text-green-600'}`}>
                     {item.quantity}
@@ -119,7 +121,7 @@ export default function InventoryScreen() {
                 onPress={() => handleAdjustQuantity(item.product_id, item.quantity, 1)}
                 disabled={isUpdating}
               >
-                <MaterialIcons name="add" size={12} color="#3e4d2b" />
+                <MaterialIcons name="add" size={12} color={t.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
           </View>
@@ -141,7 +143,7 @@ export default function InventoryScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 overflow-visible">
         <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-40 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
           <View className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <MaterialIcons name="inventory-2" size={20} color="#3e4d2b" />
+            <MaterialIcons name="inventory-2" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
             <Text className="text-xl font-serif font-bold text-on-surface">{totalProducts}</Text>
@@ -151,7 +153,7 @@ export default function InventoryScreen() {
         
         <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
           <View className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-            <MaterialIcons name="check-circle" size={20} color="#564336" />
+            <MaterialIcons name="check-circle" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
             <Text className="text-xl font-serif font-bold text-on-surface">{inStock}</Text>
@@ -161,7 +163,7 @@ export default function InventoryScreen() {
 
         <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant/5">
           <View className="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center">
-            <MaterialIcons name="category" size={20} color="#3e6068" />
+            <MaterialIcons name="category" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
             <Text className="text-xl font-serif font-bold text-on-surface">{categoriesCount}</Text>
@@ -172,11 +174,11 @@ export default function InventoryScreen() {
 
       {/* Buscador */}
       <View className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
-        <MaterialIcons name="search" size={20} color="#888" />
+        <MaterialIcons name="search" size={20} color={t.onSurfaceVariant} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"
           placeholder="Buscar por nombre, código..."
-          placeholderTextColor="#aaa"
+          placeholderTextColor={t.muted}
           value={search}
           onChangeText={setSearch}
         />
@@ -188,7 +190,7 @@ export default function InventoryScreen() {
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       {loading && items.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#476810" />
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : (
         <FlatList
@@ -202,7 +204,7 @@ export default function InventoryScreen() {
           columnWrapperClassName="justify-between"
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
-              <MaterialIcons name="inventory-2" size={64} color="#e7e0eb" />
+              <MaterialIcons name="inventory-2" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">Tu inventario está vacío</Text>
               <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">Carga productos desde la web para verlos aquí.</Text>
             </View>

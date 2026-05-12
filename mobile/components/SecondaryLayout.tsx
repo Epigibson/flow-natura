@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSidebar } from './SidebarContext';
-import { useColorScheme } from 'nativewind';
+import { useThemeColors } from '../hooks/use-theme-colors';
 
 interface SecondaryLayoutProps {
   title: string;
@@ -14,8 +14,7 @@ interface SecondaryLayoutProps {
 
 export default function SecondaryLayout({ title, children, scrollable = true }: SecondaryLayoutProps) {
   const { openSidebar } = useSidebar();
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const t = useThemeColors();
 
   const content = scrollable ? (
     <ScrollView className="flex-1 px-6 pt-4" showsVerticalScrollIndicator={false}>
@@ -37,7 +36,7 @@ export default function SecondaryLayout({ title, children, scrollable = true }: 
             onPress={() => router.back()} 
             className="w-10 h-10 rounded-full items-center justify-center bg-surface-container active:bg-surface-container-high"
           >
-            <MaterialIcons name="arrow-back-ios-new" size={20} color={isDark ? '#d3c4bc' : '#564336'} />
+            <MaterialIcons name="arrow-back-ios-new" size={20} color={t.onSurfaceVariant} />
           </TouchableOpacity>
           <Text className="text-xl font-serif font-bold text-on-surface ml-3">{title}</Text>
         </View>

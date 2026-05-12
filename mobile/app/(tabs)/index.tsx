@@ -5,8 +5,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '../../components/SidebarContext';
 import { useRouter } from 'expo-router';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function DashboardScreen() {
+  const t = useThemeColors();
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ export default function DashboardScreen() {
 
           {loading ? (
             <View className="py-20 items-center justify-center">
-              <ActivityIndicator size="large" color="#964900" />
+              <ActivityIndicator size="large" color={t.primary} />
             </View>
           ) : (
             <>

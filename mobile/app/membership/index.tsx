@@ -4,8 +4,10 @@ import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { supabase } from '../../lib/supabase';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function MembershipScreen() {
+  const t = useThemeColors();
   const [profile, setProfile] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,7 @@ export default function MembershipScreen() {
         
         {loading ? (
           <View className="py-10 items-center justify-center">
-            <ActivityIndicator size="large" color="#476810" />
+            <ActivityIndicator size="large" color={t.primary} />
           </View>
         ) : (
           <>
@@ -103,7 +105,7 @@ export default function MembershipScreen() {
                 Acceso total a inventario, catálogo ilimitado y métricas avanzadas.
               </Text>
               <View className="flex-row items-center gap-2">
-                <MaterialIcons name="event" size={16} color="#888" />
+                <MaterialIcons name="event" size={16} color={t.muted} />
                 <Text className="text-xs font-bold text-on-surface-variant">
                   {subscription?.status === 'trialing' ? 'Prueba finaliza: ' : 'Próximo cobro: '}
                   {formatDate(subscription?.current_period_end || subscription?.trial_ends_at)}
@@ -116,21 +118,21 @@ export default function MembershipScreen() {
               <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-outline-variant/10">
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <MaterialIcons name="credit-card" size={18} color="#3e4d2b" />
+                    <MaterialIcons name="credit-card" size={18} color={t.onSurfaceVariant} />
                   </View>
                   <Text className="font-bold text-on-surface">Actualizar Pago</Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={20} color="#888" />
+                <MaterialIcons name="chevron-right" size={20} color={t.muted} />
               </TouchableOpacity>
               
               <TouchableOpacity className="flex-row items-center justify-between p-4" onPress={handleLogout}>
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center">
-                    <MaterialIcons name="logout" size={18} color="#ba1a1a" />
+                    <MaterialIcons name="logout" size={18} color={t.error} />
                   </View>
                   <Text className="font-bold text-error">Cerrar Sesión de Natura</Text>
                 </View>
-                <MaterialIcons name="chevron-right" size={20} color="#888" />
+                <MaterialIcons name="chevron-right" size={20} color={t.muted} />
               </TouchableOpacity>
             </View>
           </>

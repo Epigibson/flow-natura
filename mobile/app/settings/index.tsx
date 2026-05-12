@@ -5,9 +5,11 @@ import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { supabase } from '../../../src/lib/supabase';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function SettingsScreen() {
   const { colorScheme, setColorScheme } = useColorScheme();
+  const t = useThemeColors();
   const darkMode = colorScheme === 'dark';
   const setDarkMode = (val: boolean) => setColorScheme(val ? 'dark' : 'light');
   
@@ -126,7 +128,7 @@ export default function SettingsScreen() {
           <Text className="text-[10px] uppercase font-bold tracking-widest text-primary/70 mb-2 px-2">Tu Perfil</Text>
           <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden p-5">
             {loading ? (
-              <ActivityIndicator color="#476810" />
+              <ActivityIndicator color={t.primary} />
             ) : (
               <>
                 <View className="mb-4">
@@ -214,7 +216,7 @@ export default function SettingsScreen() {
               onPress={handleChangePassword} disabled={isAuthUpdating}
               className={`py-3 rounded-full flex-row items-center justify-center border border-primary/20 ${isAuthUpdating ? 'bg-outline' : 'bg-transparent'}`}
             >
-              {isAuthUpdating ? <ActivityIndicator size="small" color="#476810" /> : <Text className="text-primary font-bold">Actualizar Contraseña</Text>}
+              {isAuthUpdating ? <ActivityIndicator size="small" color={t.primary} /> : <Text className="text-primary font-bold">Actualizar Contraseña</Text>}
             </TouchableOpacity>
           </View>
         </View>
@@ -262,31 +264,31 @@ export default function SettingsScreen() {
             <View className="flex-row items-center justify-between p-4 border-b border-outline-variant/10">
               <View className="flex-row items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <MaterialIcons name="notifications" size={18} color="#3e4d2b" />
+                  <MaterialIcons name="notifications" size={18} color={t.onSurfaceVariant} />
                 </View>
                 <Text className="font-bold text-on-surface">Notificaciones Push</Text>
               </View>
-              <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: '#3e4d2b', false: '#d1d1d1' }} thumbColor="#fff" />
+              <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
             </View>
 
             <View className="flex-row items-center justify-between p-4 border-b border-outline-variant/10">
               <View className="flex-row items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <MaterialIcons name="dark-mode" size={18} color="#3e4d2b" />
+                  <MaterialIcons name="dark-mode" size={18} color={t.onSurfaceVariant} />
                 </View>
                 <Text className="font-bold text-on-surface">Modo Oscuro</Text>
               </View>
-              <Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ true: '#3e4d2b', false: '#d1d1d1' }} thumbColor="#fff" />
+              <Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
             </View>
 
             <View className="flex-row items-center justify-between p-4">
               <View className="flex-row items-center gap-3">
                 <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <MaterialIcons name="wifi-off" size={18} color="#3e4d2b" />
+                  <MaterialIcons name="wifi-off" size={18} color={t.onSurfaceVariant} />
                 </View>
                 <Text className="font-bold text-on-surface">Modo Offline Automático</Text>
               </View>
-              <Switch value={offlineMode} onValueChange={setOfflineMode} trackColor={{ true: '#3e4d2b', false: '#d1d1d1' }} thumbColor="#fff" />
+              <Switch value={offlineMode} onValueChange={setOfflineMode} trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
             </View>
 
           </View>
@@ -296,7 +298,7 @@ export default function SettingsScreen() {
         <View className="mb-6">
           <Text className="text-[10px] uppercase font-bold tracking-widest text-primary/70 mb-2 px-2">Acerca de</Text>
           <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden p-4 items-center">
-            <Text className="font-serif font-bold text-on-surface text-lg">Flow Natura</Text>
+            <Text className="font-serif font-bold text-on-surface text-lg">Natura Manager</Text>
             <Text className="text-on-surface-variant text-xs mt-1">Versión 1.0.0 (Build 42)</Text>
             <TouchableOpacity className="mt-4 bg-surface-container py-2 px-4 rounded-full">
               <Text className="text-on-surface text-xs font-bold">Buscar Actualizaciones</Text>

@@ -6,8 +6,10 @@ import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { supabase } from '../../../src/lib/supabase';
 import api from '../../../src/lib/api';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function NewSaleScreen() {
+  const t = useThemeColors();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   
@@ -276,7 +278,7 @@ export default function NewSaleScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-surface items-center justify-center">
-        <ActivityIndicator size="large" color="#476810" />
+        <ActivityIndicator size="large" color={t.primary} />
       </SafeAreaView>
     );
   }
@@ -287,7 +289,7 @@ export default function NewSaleScreen() {
       <View className="px-6 py-4 border-b border-outline-variant/10 flex-row items-center justify-between z-10 bg-surface">
         <View className="flex-row items-center gap-4">
           <TouchableOpacity onPress={() => router.back()} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
-            <MaterialIcons name="arrow-back" size={24} color="#564336" />
+            <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
           </TouchableOpacity>
           <View>
             <Text className="text-2xl font-serif font-bold text-on-surface leading-tight">Punto de Venta</Text>
@@ -306,14 +308,14 @@ export default function NewSaleScreen() {
         >
           <View className="flex-row items-center gap-3">
             <View className="w-10 h-10 rounded-full bg-primary-container/40 flex items-center justify-center">
-              <MaterialIcons name="person" size={20} color="#3e4d2b" />
+              <MaterialIcons name="person" size={20} color={t.onSurfaceVariant} />
             </View>
             <View>
               <Text className="font-bold text-on-surface text-base">{selectedCustomer ? selectedCustomer.full_name : 'Cliente Mostrador'}</Text>
               <Text className="text-xs text-on-surface-variant">Toca para cambiar</Text>
             </View>
           </View>
-          <MaterialIcons name="chevron-right" size={24} color="#888" />
+          <MaterialIcons name="chevron-right" size={24} color={t.muted} />
         </TouchableOpacity>
 
         {/* 2. Productos */}
@@ -321,11 +323,11 @@ export default function NewSaleScreen() {
           <Text className="font-bold text-on-surface text-sm uppercase tracking-widest text-primary/80">2. Productos ({cartWithCalcs.length})</Text>
           <View className="flex-row gap-2">
             <TouchableOpacity onPress={openScanner} className="bg-surface-container-high px-3 py-1.5 rounded-full flex-row items-center gap-1 border border-outline-variant/20">
-              <MaterialIcons name="qr-code-scanner" size={16} color="#564336" />
+              <MaterialIcons name="qr-code-scanner" size={16} color={t.onSurfaceVariant} />
               <Text className="text-on-surface font-bold text-xs">Escanear</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setShowProductModal(true)} className="bg-primary/10 px-3 py-1.5 rounded-full flex-row items-center gap-1">
-              <MaterialIcons name="add" size={16} color="#3e4d2b" />
+              <MaterialIcons name="add" size={16} color={t.onSurfaceVariant} />
               <Text className="text-primary font-bold text-xs">Añadir</Text>
             </TouchableOpacity>
           </View>
@@ -333,7 +335,7 @@ export default function NewSaleScreen() {
 
         {cartWithCalcs.length === 0 ? (
           <View className="bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/20 border-dashed items-center justify-center mb-6">
-            <MaterialIcons name="shopping-basket" size={40} color="#ccc" />
+            <MaterialIcons name="shopping-basket" size={40} color={t.muted} />
             <Text className="text-on-surface-variant text-sm mt-2 text-center">El carrito está vacío</Text>
           </View>
         ) : (
@@ -350,7 +352,7 @@ export default function NewSaleScreen() {
                         {item.image_url ? (
                           <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
                         ) : (
-                          <MaterialIcons name="image-not-supported" size={20} color="#888" />
+                          <MaterialIcons name="image-not-supported" size={20} color={t.muted} />
                         )}
                       </View>
                       <View className="flex-1">
@@ -366,11 +368,11 @@ export default function NewSaleScreen() {
                     </View>
                     <View className="flex-row items-center bg-surface-container-high rounded-full overflow-hidden self-center">
                       <TouchableOpacity onPress={() => updateCartQuantity(item.product_id, -1)} className="w-8 h-8 items-center justify-center">
-                        <MaterialIcons name="remove" size={16} color="#564336" />
+                        <MaterialIcons name="remove" size={16} color={t.onSurfaceVariant} />
                       </TouchableOpacity>
                       <Text className="font-bold text-on-surface w-6 text-center">{item.quantity}</Text>
                       <TouchableOpacity onPress={() => updateCartQuantity(item.product_id, 1)} className="w-8 h-8 items-center justify-center bg-primary/10">
-                        <MaterialIcons name="add" size={16} color="#3e4d2b" />
+                        <MaterialIcons name="add" size={16} color={t.onSurfaceVariant} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -545,7 +547,7 @@ export default function NewSaleScreen() {
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-2xl font-serif font-bold text-on-surface">Seleccionar Cliente</Text>
             <TouchableOpacity onPress={() => setShowCustomerModal(false)}>
-              <MaterialIcons name="close" size={28} color="#564336" />
+              <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
@@ -574,7 +576,7 @@ export default function NewSaleScreen() {
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-2xl font-serif font-bold text-on-surface">Añadir Productos</Text>
             <TouchableOpacity onPress={() => setShowProductModal(false)}>
-              <MaterialIcons name="close" size={28} color="#564336" />
+              <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
             </TouchableOpacity>
           </View>
           <TextInput 
@@ -594,7 +596,7 @@ export default function NewSaleScreen() {
                   {item.image_url ? (
                     <Image source={{ uri: item.image_url }} className="w-full h-full" resizeMode="contain" />
                   ) : (
-                    <MaterialIcons name="image-not-supported" size={24} color="#888" />
+                    <MaterialIcons name="image-not-supported" size={24} color={t.muted} />
                   )}
                 </View>
                 <View className="flex-1 pr-2">

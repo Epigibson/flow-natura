@@ -3,8 +3,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function CustomersScreen() {
+  const t = useThemeColors();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -132,7 +134,7 @@ export default function CustomersScreen() {
             className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center"
             onPress={() => openDetail(item)}
           >
-            <MaterialIcons name="chevron-right" size={20} color="#564336" />
+            <MaterialIcons name="chevron-right" size={20} color={t.onSurfaceVariant} />
           </TouchableOpacity>
         </View>
 
@@ -140,13 +142,13 @@ export default function CustomersScreen() {
           <View className="bg-surface-container-highest/30 rounded-xl p-3 mb-4">
             {item.phone && (
               <View className="flex-row items-center gap-2 mb-1.5">
-                <MaterialIcons name="phone" size={14} color="#888" />
+                <MaterialIcons name="phone" size={14} color={t.muted} />
                 <Text className="text-sm font-medium text-on-surface">{item.phone}</Text>
               </View>
             )}
             {item.email && (
               <View className="flex-row items-center gap-2">
-                <MaterialIcons name="email" size={14} color="#888" />
+                <MaterialIcons name="email" size={14} color={t.muted} />
                 <Text className="text-xs text-on-surface-variant" numberOfLines={1}>{item.email}</Text>
               </View>
             )}
@@ -166,7 +168,7 @@ export default function CustomersScreen() {
             onPress={() => handleCall(item.phone)}
             disabled={!item.phone}
           >
-            <MaterialIcons name="call" size={16} color={item.phone ? "#564336" : "#aaa"} />
+            <MaterialIcons name="call" size={16} color={item.phone ? t.onSurfaceVariant : t.muted} />
             <Text className={`font-bold text-sm ${item.phone ? 'text-on-surface' : 'text-on-surface-variant/50'}`}>Llamar</Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -174,7 +176,7 @@ export default function CustomersScreen() {
             onPress={() => handleWhatsApp(item.phone)}
             disabled={!item.phone}
           >
-            <MaterialIcons name="chat" size={16} color={item.phone ? "#16a34a" : "#aaa"} />
+            <MaterialIcons name="chat" size={16} color={item.phone ? "#16a34a" : t.muted} />
             <Text className={`font-bold text-sm ${item.phone ? 'text-green-700' : 'text-on-surface-variant/50'}`}>WhatsApp</Text>
           </TouchableOpacity>
         </View>
@@ -198,7 +200,7 @@ export default function CustomersScreen() {
       </View>
 
       <View className="bg-surface-container-lowest border border-outline-variant/10 rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-2">
-        <MaterialIcons name="search" size={20} color="#888" />
+        <MaterialIcons name="search" size={20} color={t.muted} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"
           placeholder="Buscar por nombre o teléfono..."
@@ -215,7 +217,7 @@ export default function CustomersScreen() {
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       {loading && customers.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#476810" />
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : (
         <FlatList
@@ -227,7 +229,7 @@ export default function CustomersScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
-              <MaterialIcons name="group" size={64} color="#e7e0eb" />
+              <MaterialIcons name="group" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">No hay clientes</Text>
               <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">Agrega clientes para comenzar a llevar un registro.</Text>
             </View>
@@ -242,7 +244,7 @@ export default function CustomersScreen() {
             <View className="px-6 py-4 border-b border-outline-variant/10 flex-row justify-between items-center">
               <Text className="text-2xl font-serif font-bold text-on-surface">{showModal === 'create' ? 'Nuevo Cliente' : 'Editar Cliente'}</Text>
               <TouchableOpacity onPress={() => setShowModal(showModal === 'edit' ? 'detail' : null)}>
-                <MaterialIcons name="close" size={28} color="#564336" />
+                <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
               </TouchableOpacity>
             </View>
             <ScrollView className="flex-1 p-6" showsVerticalScrollIndicator={false}>
@@ -303,14 +305,14 @@ export default function CustomersScreen() {
             <>
               <View className="px-6 py-4 flex-row justify-between items-center bg-primary-container/20">
                 <TouchableOpacity onPress={() => setShowModal(null)} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
-                  <MaterialIcons name="arrow-back" size={24} color="#564336" />
+                  <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
                 </TouchableOpacity>
                 <View className="flex-row gap-2">
                   <TouchableOpacity onPress={openEdit} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center">
-                    <MaterialIcons name="edit" size={20} color="#564336" />
+                    <MaterialIcons name="edit" size={20} color={t.onSurfaceVariant} />
                   </TouchableOpacity>
                   <TouchableOpacity onPress={handleDelete} className="w-10 h-10 bg-error/10 rounded-full items-center justify-center">
-                    <MaterialIcons name="delete" size={20} color="#ba1a1a" />
+                    <MaterialIcons name="delete" size={20} color={t.error} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -330,14 +332,14 @@ export default function CustomersScreen() {
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Estadísticas de Compra</Text>
                 <View className="flex-row gap-3 mb-6">
                   <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant/10 shadow-sm items-center">
-                    <MaterialIcons name="shopping-bag" size={24} color="#564336" style={{marginBottom: 4}} />
+                    <MaterialIcons name="shopping-bag" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-xs mb-1">Órdenes Totales</Text>
                     <Text className="text-2xl font-bold text-on-surface">
                       {customerStats ? customerStats.total_orders : <ActivityIndicator size="small" />}
                     </Text>
                   </View>
                   <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant/10 shadow-sm items-center">
-                    <MaterialIcons name="payments" size={24} color="#3e4d2b" style={{marginBottom: 4}} />
+                    <MaterialIcons name="payments" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-xs mb-1">Gastado ($)</Text>
                     <Text className="text-2xl font-bold text-primary">
                       {customerStats ? `$${customerStats.total_spent.toFixed(2)}` : <ActivityIndicator size="small" />}
@@ -350,16 +352,16 @@ export default function CustomersScreen() {
                 <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant/10 shadow-sm p-4 mb-6">
                   <View className="flex-row items-center justify-between py-2 border-b border-outline-variant/10">
                     <View className="flex-row items-center gap-3">
-                      <MaterialIcons name="phone" size={20} color="#888" />
+                      <MaterialIcons name="phone" size={20} color={t.muted} />
                       <Text className="text-on-surface">{selectedCustomer.phone || 'No registrado'}</Text>
                     </View>
                     <TouchableOpacity onPress={() => handleCall(selectedCustomer.phone)} disabled={!selectedCustomer.phone} className={selectedCustomer.phone ? 'opacity-100' : 'opacity-30'}>
-                      <MaterialIcons name="call" size={20} color="#3e4d2b" />
+                      <MaterialIcons name="call" size={20} color={t.onSurfaceVariant} />
                     </TouchableOpacity>
                   </View>
                   <View className="flex-row items-center justify-between py-2 pt-4">
                     <View className="flex-row items-center gap-3">
-                      <MaterialIcons name="email" size={20} color="#888" />
+                      <MaterialIcons name="email" size={20} color={t.muted} />
                       <Text className="text-on-surface">{selectedCustomer.email || 'No registrado'}</Text>
                     </View>
                   </View>

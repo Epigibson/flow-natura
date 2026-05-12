@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function SalesScreen() {
+  const t = useThemeColors();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -139,14 +141,14 @@ export default function SalesScreen() {
               className="flex-1 bg-surface-container py-2.5 rounded-xl items-center flex-row justify-center gap-1"
               onPress={() => handleStatusChange(item.id, 'deliver')}
             >
-              <MaterialIcons name="local-shipping" size={16} color="#564336" />
+              <MaterialIcons name="local-shipping" size={16} color={t.onSurfaceVariant} />
               <Text className="text-on-surface font-bold text-sm">Entregar</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               className="bg-error/10 py-2.5 px-4 rounded-xl items-center flex-row justify-center"
               onPress={() => handleStatusChange(item.id, 'cancel')}
             >
-              <MaterialIcons name="cancel" size={16} color="#ba1a1a" />
+              <MaterialIcons name="cancel" size={16} color={t.error} />
             </TouchableOpacity>
           </View>
         )}
@@ -187,7 +189,7 @@ export default function SalesScreen() {
         >
           <Text className="text-on-secondary-container font-medium text-xs mb-1">Nueva Venta</Text>
           <View className="bg-white/50 px-4 py-2 mt-2 rounded-full flex-row items-center gap-1 border border-white/40">
-            <MaterialIcons name="add-circle" size={16} color="#3e4d2b" />
+            <MaterialIcons name="add-circle" size={16} color={t.onSurfaceVariant} />
             <Text className="text-on-secondary-container font-bold text-xs">Registrar</Text>
           </View>
           <MaterialIcons name="point-of-sale" size={80} color="rgba(62,77,43,0.1)" style={{position: 'absolute', bottom: -10, right: -10}} />
@@ -196,7 +198,7 @@ export default function SalesScreen() {
 
       {/* Buscador y Filtros */}
       <View className="bg-surface-container-highest rounded-xl flex-row items-center px-4 py-3 shadow-sm mb-4">
-        <MaterialIcons name="search" size={20} color="#564336" />
+        <MaterialIcons name="search" size={20} color={t.onSurfaceVariant} />
         <TextInput
           className="flex-1 ml-3 text-sm text-on-surface font-sans"
           placeholder="Buscar por cliente o folio..."
@@ -227,7 +229,7 @@ export default function SalesScreen() {
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       {loading && orders.length === 0 ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#476810" />
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : (
         <FlatList
@@ -239,7 +241,7 @@ export default function SalesScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
-              <MaterialIcons name="receipt-long" size={64} color="#e7e0eb" />
+              <MaterialIcons name="receipt-long" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">No hay ventas registradas</Text>
               <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">No pudimos encontrar ventas que coincidan con tu búsqueda.</Text>
             </View>
