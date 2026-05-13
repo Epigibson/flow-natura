@@ -35,6 +35,10 @@ export default function LoginScreen() {
         const savedPwd = await SecureStore.getItemAsync('fn_user_password');
         if (savedEmail && savedPwd) {
           setHasSavedCredentials(true);
+          // Auto-trigger biometric login
+          setTimeout(() => {
+            handleBiometricLogin();
+          }, 500);
         }
       }
     } catch (e) {

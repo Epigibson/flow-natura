@@ -7,6 +7,8 @@ import { useSidebar } from '../../components/SidebarContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import React from 'react';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 export default function DashboardScreen() {
   const t = useThemeColors();
@@ -55,6 +57,51 @@ export default function DashboardScreen() {
   async function handleLogout() {
     await supabase.auth.signOut();
   }
+
+  const exportToCSV = async (type: 'sales' | 'customers' | 'inventory') => {
+    try {
+      setExportModalVisible(false);
+      Alert.alert('Generando...', 'Preparando tu archivo Excel/CSV.');
+      
+      let csvContent = '';
+      let filename = '';
+
+      if (type === 'sales') {
+        const orders = await api.orders.list();
+        csvContent = 'ID Venta,Cliente,Total,Metodo,Estado,Fecha\n';
+        orders.forEach((o: any) => {
+          csvContent += `${o.id},"${o.customer_name || ''}",${o.total_amount},${o.payment_method},${o.status},${new Date(o.created_at).toLocaleDateString('es-MX')}\n`;
+        });
+        filename = 'Ventas_Natura.csv';
+      } else if (type === 'customers') {
+        const customers = await api.customers.list();
+        csvContent = 'Nombre,Telefono,Email,Direccion\n';
+        customers.forEach((c: any) => {
+          csvContent += `"${c.full_name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}"\n`;
+        });
+        filename = 'Clientes_Natura.csv';
+      } else if (type === 'inventory') {
+        const inventory = await api.inventory.list();
+        csvContent = 'Producto,Categoria,Precio,Cantidad\n';
+        inventory.forEach((i: any) => {
+          csvContent += `"${i.product_name}","${i.category || ''}",${i.price},${i.quantity}\n`;
+        });
+        filename = 'Inventario_Natura.csv';
+      }
+
+      const fileUri = FileSystem.documentDirectory + filename;
+      await FileSystem.writeAsStringAsync(fileUri, csvContent, { encoding: FileSystem.EncodingType.UTF8 });
+      
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: 'Compartir ' + filename });
+      } else {
+        Alert.alert('Error', 'No se puede compartir en este dispositivo.');
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'No se pudo generar el archivo.');
+    }
+  };
 
   const username = userProfile?.full_name?.split(' ')[0] || 'Consultora';
   
@@ -161,7 +208,7 @@ export default function DashboardScreen() {
               <View className="gap-4 mb-8">
                 <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-secondary">Ventas del Ciclo</Text>
-                  <Text className="text-4xl font-serif mt-2 text-on-surface">$173.00</Text>
+                  <Text className="text-4xl font-serif mt-2 text-on-surface">${data?.kpis?.total_revenue?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</Text>
                   <Text className="text-xs text-on-surface-variant mt-4 text-right">Definir meta →</Text>
                 </View>
 
@@ -340,7 +387,7 @@ export default function DashboardScreen() {
           <View className="bg-surface rounded-t-[2rem] p-8 w-full border-t border-outline-variant">
             <Text className="text-2xl font-serif font-bold mb-6 text-on-surface">⬇️ Exportar Datos</Text>
             
-            <TouchableOpacity onPress={() => {Alert.alert('Exportando...', 'En una implementación futura, esto descargará un CSV con Expo File System.'); setExportModalVisible(false);}} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-3">
+            <TouchableOpacity onPress={() => exportToCSV('sales')} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-3">
               <Text className="text-3xl">📊</Text>
               <View className="flex-1">
                 <Text className="font-bold text-on-surface text-base">Ventas (CSV)</Text>
@@ -348,7 +395,7 @@ export default function DashboardScreen() {
               </View>
             </TouchableOpacity>
             
-            <TouchableOpacity onPress={() => {Alert.alert('Exportando...', 'En una implementación futura, esto descargará un CSV con Expo File System.'); setExportModalVisible(false);}} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-3">
+            <TouchableOpacity onPress={() => exportToCSV('customers')} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-3">
               <Text className="text-3xl">👥</Text>
               <View className="flex-1">
                 <Text className="font-bold text-on-surface text-base">Clientes (CSV)</Text>
@@ -356,7 +403,7 @@ export default function DashboardScreen() {
               </View>
             </TouchableOpacity>
             
-            <TouchableOpacity onPress={() => {Alert.alert('Exportando...', 'En una implementación futura, esto descargará un CSV con Expo File System.'); setExportModalVisible(false);}} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-6">
+            <TouchableOpacity onPress={() => exportToCSV('inventory')} className="flex-row items-center gap-4 bg-surface-container-low p-4 rounded-2xl mb-6">
               <Text className="text-3xl">📦</Text>
               <View className="flex-1">
                 <Text className="font-bold text-on-surface text-base">Inventario (CSV)</Text>

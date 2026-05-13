@@ -50,9 +50,10 @@ export default function SalesScreen() {
   }
 
   // Calculate KPIs
-  const totalVentas = orders.reduce((sum, o) => sum + Number(o.total_amount), 0);
-  const totalCobrar = orders.reduce((sum, o) => sum + (o._debt > 0 ? o._debt : 0), 0);
-  const abonosActivos = orders.filter(o => o._isAbonos && o._debt > 0).length;
+  const validOrders = orders.filter(o => o.status !== 'cancelled');
+  const totalVentas = validOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
+  const totalCobrar = validOrders.reduce((sum, o) => sum + (o._debt > 0 ? o._debt : 0), 0);
+  const abonosActivos = validOrders.filter(o => o._isAbonos && o._debt > 0).length;
 
   const filteredOrders = orders.filter(o => {
     const term = search.toLowerCase();
