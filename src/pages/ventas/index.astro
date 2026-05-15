@@ -191,10 +191,12 @@ import PageLoader from '../../components/PageLoader.astro';
       let abonosActivos = 0;
 
       allOrders.forEach(o => {
-        totalVentas += Number(o.total_amount);
-        totalCobrar += o._debt;
-        if (o._isAbonos && o._debt > 0.01) {
-           abonosActivos++;
+        if (o.status !== 'cancelled') {
+          totalVentas += Number(o.total_amount);
+          totalCobrar += o._debt;
+          if (o._isAbonos && o._debt > 0.01) {
+             abonosActivos++;
+          }
         }
       });
 
