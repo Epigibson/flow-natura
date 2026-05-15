@@ -66,6 +66,12 @@ import PageLoader from '../../components/PageLoader.astro';
             <button id="filter-late" class="hidden px-5 py-2 rounded-xl text-sm font-medium text-on-surface-variant hover:text-primary transition-colors" data-filter="late">Atrasado</button>
           </div>
         </div>
+        <div class="flex items-center">
+          <button id="toggle-cancelled" class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-highest transition-colors text-xs font-bold">
+            <span id="toggle-cancelled-icon" class="material-symbols-outlined text-sm">visibility_off</span>
+            Mostrar Ventas Canceladas
+          </button>
+        </div>
       </div>
       
       <div class="flex items-center gap-3 w-full md:w-auto">
@@ -129,6 +135,19 @@ import PageLoader from '../../components/PageLoader.astro';
     
     let allOrders: any[] = [];
     let currentFilter = 'all';
+    let showCancelled = false;
+
+    const btnToggleCancelled = document.getElementById('toggle-cancelled') as HTMLButtonElement;
+    const toggleCancelledIcon = document.getElementById('toggle-cancelled-icon') as HTMLElement;
+
+    btnToggleCancelled.onclick = () => {
+      showCancelled = !showCancelled;
+      toggleCancelledIcon.textContent = showCancelled ? 'visibility' : 'visibility_off';
+      btnToggleCancelled.className = showCancelled 
+        ? 'flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant bg-surface-container-highest transition-colors text-xs font-bold'
+        : 'flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant bg-surface-container-lowest hover:bg-surface-container-highest transition-colors text-xs font-bold';
+      renderTable();
+    };
 
     function setFilterButton(activeBtn: HTMLButtonElement) {
       [btnAll, btnPending].forEach(b => {
@@ -153,8 +172,9 @@ import PageLoader from '../../components/PageLoader.astro';
       const filtered = allOrders.filter(o => {
         const matchesSearch = !term || o._searchString.includes(term);
         const matchesFilter = currentFilter === 'all' || (currentFilter === 'pending' && o._debt > 0.01);
+        const matchesStatus = showCancelled ? true : o.status !== 'cancelled';
         
-        return matchesSearch && matchesFilter;
+        return matchesSearch && matchesFilter && matchesStatus;
       });
 
       if (filtered.length === 0) {
@@ -270,9 +290,10 @@ import PageLoader from '../../components/PageLoader.astro';
           try {
             const terms = JSON.parse(o.notes);
             o._parsedNotes = terms;
-            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-            const montoCuota = remaining / Number(terms.pagos || 1);
-            o._debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+            const enganche = Number(terms.enganche || 0);
+            const historial = terms.historial_abonos || [];
+            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
+            o._debt = Number(o.total_amount) - enganche - totalAbonado;
           } catch(e) { console.warn('[Ventas] Failed to parse order notes:', o.id, e); }
         } else if (o.status === 'pending') {
           o._debt = Number(o.total_amount);

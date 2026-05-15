@@ -12,6 +12,7 @@ export default function SalesScreen() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending'>('all');
+  const [showCancelled, setShowCancelled] = useState(false);
 
   useEffect(() => {
     loadOrders();
@@ -29,10 +30,11 @@ export default function SalesScreen() {
         
         if (isAbonos && o.notes) {
           try {
-            const terms = JSON.parse(o.notes);
-            const remaining = Number(o.total_amount) - Number(terms.enganche || 0);
-            const montoCuota = remaining / Number(terms.pagos || 1);
-            debt = remaining - (montoCuota * Number(terms.pagos_completados || 0));
+            const terms = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
+            const enganche = Number(terms.enganche || 0);
+            const historial = terms.historial_abonos || [];
+            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
+            debt = Number(o.total_amount) - enganche - totalAbonado;
           } catch {}
         } else if (o.status === 'pending') {
           debt = Number(o.total_amount);
@@ -59,7 +61,8 @@ export default function SalesScreen() {
     const term = search.toLowerCase();
     const matchesSearch = !term || (o.customer_name || '').toLowerCase().includes(term) || o.id.includes(term);
     const matchesFilter = filter === 'all' || (filter === 'pending' && o._debt > 0.01);
-    return matchesSearch && matchesFilter;
+    const matchesStatus = showCancelled ? true : o.status !== 'cancelled';
+    return matchesSearch && matchesFilter && matchesStatus;
   });
 
   const handleStatusChange = (orderId: string, action: 'deliver' | 'cancel') => {
@@ -226,6 +229,14 @@ export default function SalesScreen() {
           <Text className={`text-xs font-bold ${filter === 'pending' ? 'text-white' : 'text-on-surface-variant'}`}>Con Deuda</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity 
+        className="mt-4 flex-row items-center gap-2 self-start px-3 py-1.5 rounded-full border border-outline-variant"
+        style={{ backgroundColor: showCancelled ? t.surfaceContainerHighest : t.surfaceContainerLowest }}
+        onPress={() => setShowCancelled(!showCancelled)}
+      >
+        <MaterialIcons name={showCancelled ? "visibility" : "visibility-off"} size={16} color={t.onSurfaceVariant} />
+        <Text className="text-xs font-bold text-on-surface-variant">Mostrar Ventas Canceladas</Text>
+      </TouchableOpacity>
     </View>
   );
 
