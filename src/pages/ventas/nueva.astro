@@ -263,19 +263,30 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     try {
       const { data: inventoryData } = await supabase
         .from('inventory')
-        .select('product_id, quantity, products(id, name, code, category, price, image_url)')
+        .select('product_id, quantity, products(id, name, code, category, brand, price, cost, image_url)')
         .eq('consultant_id', currentUserId)
         .gt('quantity', 0);
       if (inventoryData) {
-        availableProducts = inventoryData.map((inv: any) => ({
-          id: inv.products?.id || inv.product_id,
-          name: inv.products?.name || 'Producto',
-          code: inv.products?.code || '',
-          category: inv.products?.category || '',
-          price: Number(inv.products?.price || 0),
-          image_url: inv.products?.image_url || '',
-          max_quantity: inv.quantity
-        }));
+        availableProducts = inventoryData.map((inv: any) => {
+          let price = Number(inv.products?.price || 0);
+          let cost = Number(inv.products?.cost || 0);
+          let brand = inv.products?.brand || '';
+          let category = inv.products?.category || '';
+          if (cost === 0 && price > 0) {
+            cost = calculateConsultantPrice(price, userLevel, brand, category);
+          }
+          return {
+            id: inv.products?.id || inv.product_id,
+            name: inv.products?.name || 'Producto',
+            code: inv.products?.code || '',
+            category: category,
+            brand: brand,
+            price: price,
+            cost: cost,
+            image_url: inv.products?.image_url || '',
+            max_quantity: inv.quantity
+          };
+        });
         availableProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
         renderProducts(availableProducts);
       }
@@ -351,7 +362,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           discount: 0,
           discount_type: 'amount',
           quantity: 1,
-          max_quantity: product.max_quantity
+          max_quantity: product.max_quantity,
+          cost: product.cost
         });
       }
     }
@@ -392,6 +404,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     
     let subtotal = 0;
     let totalItemDiscounts = 0;
+    let totalCost = 0;
 
     cart.forEach(item => {
       let itemDiscount = item.discount || 0;
@@ -412,6 +425,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       
       subtotal += (item.unit_price * item.quantity);
       totalItemDiscounts += (discountAmount * item.quantity);
+      totalCost += ((item.cost || 0) * item.quantity);
 
       const div = document.createElement('div');
       div.className = "flex gap-4 items-center bg-white p-4 rounded-xl shadow-[0_4px_12px_-4px_rgba(29,26,34,0.05)] border border-outline-variant/10";
@@ -462,6 +476,23 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     cartSubtotal.textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('cart-total-discounts')!.textContent = `-$${totalDiscount.toFixed(2)}`;
     cartTotal.textContent = `$${finalTotal.toFixed(2)}`;
+    
+    // Calculate and display profit
+    const profit = finalTotal - totalCost;
+    const marginPct = finalTotal > 0 ? ((profit / finalTotal) * 100).toFixed(0) : '0';
+    let profitEl = document.getElementById('cart-profit-summary');
+    if (!profitEl) {
+      const parent = document.getElementById('cart-total-discounts')?.closest('div')?.parentElement;
+      if (parent) {
+        profitEl = document.createElement('div');
+        profitEl.id = 'cart-profit-summary';
+        profitEl.className = 'flex justify-between items-center text-xs font-bold pt-2 mt-2 border-t border-outline-variant/10 text-green-600';
+        parent.insertBefore(profitEl, cartTotal.closest('div'));
+      }
+    }
+    if (profitEl) {
+      profitEl.innerHTML = `<span>Ganancia Estimada:</span> <span>$${profit.toFixed(2)} (${marginPct}%)</span>`;
+    }
   }
 
   function updateDiscount(productId: string, value: string) {

@@ -451,9 +451,12 @@ import PageLoader from '../../components/PageLoader.astro';
   import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
+  import { calculateConsultantPrice } from '../../lib/camino-crecimiento';
+  import type { ConsultantLevel } from '../../lib/camino-crecimiento';
 
   // ═════════ STATE ═════════
   let allProducts: any[] = [];
+  let userLevel: ConsultantLevel = (localStorage.getItem('natura_level') as ConsultantLevel) || 'Bronce';
   let filteredProducts: any[] = [];
   let showDeleted = false;
   let viewMode: 'list' | 'grid' = 'list';
@@ -488,8 +491,32 @@ import PageLoader from '../../components/PageLoader.astro';
   let currentDetailProduct: any = null;
 
   // ═════════ AUTH ═════════
-  supabase.auth.getSession().then(({ data: { session } }: any) => {
+  supabase.auth.getSession().then(async ({ data: { session } }: any) => {
     if (!session) { window.location.href = '/login'; return; }
+    
+    try {
+      const { data: profile } = await supabase
+        .from('consultant_profiles')
+        .select('latest_growth_data')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile?.latest_growth_data?.level?.description) {
+        const desc = profile.latest_growth_data.level.description as string;
+        const levelMap: Record<string, ConsultantLevel> = {
+          'Bronce': 'Bronce', 'Plata': 'Plata', 'Oro': 'Oro',
+          'Zafiro': 'Zafiro', 'Diamante': 'Diamante',
+          'BRONCE': 'Bronce', 'PLATA': 'Plata', 'ORO': 'Oro',
+          'ZAFIRO': 'Zafiro', 'DIAMANTE': 'Diamante',
+        };
+        const detectedLevel = Object.entries(levelMap).find(([key]) => desc.includes(key));
+        if (detectedLevel) {
+          userLevel = detectedLevel[1];
+          localStorage.setItem('natura_level', userLevel);
+        }
+      }
+    } catch (e) { /* use localStorage fallback */ }
+
     loadProducts();
   });
 
@@ -516,7 +543,15 @@ import PageLoader from '../../components/PageLoader.astro';
       return;
     }
 
-    allProducts = data || [];
+    allProducts = (data || []).map((item: any) => {
+      let price = parseFloat(item.price) || 0;
+      let cost = parseFloat(item.cost) || 0;
+      if (cost === 0 && price > 0) {
+        cost = calculateConsultantPrice(price, userLevel, item.brand, item.category);
+      }
+      return { ...item, cost, price };
+    });
+    
     populateFilters();
     updateKPIs();
     applyFilters();

@@ -88,6 +88,7 @@ import PageLoader from '../components/PageLoader.astro';
         <div class="flex flex-col md:flex-row md:items-end gap-4 mt-6">
           <div class="shrink-0">
             <h3 id="gw-level-desc" class="text-4xl font-display font-medium text-on-surface leading-none">Consultor</h3>
+            <span id="gw-profit-badge" class="hidden text-xs font-bold px-2 py-1 rounded-md mt-2 inline-block"></span>
             <p class="text-sm font-medium text-on-surface-variant mt-1">
               <span id="gw-current-pts" class="text-on-surface font-bold">0</span> pts acumulados
             </p>
@@ -341,7 +342,46 @@ import PageLoader from '../components/PageLoader.astro';
       
       const pct = Math.min(100, gData.nextLevelProgress?.progressPercentage || 0);
       document.getElementById('gw-percent-text')!.textContent = pct + '%';
-      document.getElementById('gw-progress-bar')!.style.width = pct + '%';
+      
+      // Dynamic Level Styling
+      const levelColors: Record<string, string> = {
+        'Bronce': 'from-amber-700 to-orange-500',
+        'Plata': 'from-slate-400 to-zinc-300',
+        'Oro': 'from-yellow-400 to-amber-500',
+        'Zafiro': 'from-blue-600 to-cyan-400',
+        'Diamante': 'from-indigo-600 to-purple-500',
+        'Diamante Azul': 'from-sky-500 to-blue-700'
+      };
+      const textColors: Record<string, string> = {
+        'Bronce': 'text-amber-700',
+        'Plata': 'text-slate-500',
+        'Oro': 'text-amber-500',
+        'Zafiro': 'text-blue-600',
+        'Diamante': 'text-indigo-600',
+        'Diamante Azul': 'text-sky-600'
+      };
+      
+      const levelDesc = gData.level.description as string;
+      const progressBgClass = levelColors[levelDesc] || 'from-primary to-secondary';
+      const textColorClass = textColors[levelDesc] || 'text-on-surface';
+      
+      const gwLevelDesc = document.getElementById('gw-level-desc')!;
+      gwLevelDesc.className = `text-4xl font-display font-medium leading-none ${textColorClass}`;
+      
+      const gwProfitBadge = document.getElementById('gw-profit-badge')!;
+      // Import the config from our central module
+      import('../lib/camino-crecimiento').then(({ CAMINO_CRECIMIENTO }) => {
+        const profit = CAMINO_CRECIMIENTO[levelDesc as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage;
+        if (profit) {
+          gwProfitBadge.textContent = `Ganancia del ${profit}%`;
+          gwProfitBadge.className = `text-xs font-bold px-2 py-1 rounded-md mt-2 inline-block bg-surface-container-high ${textColorClass}`;
+          gwProfitBadge.classList.remove('hidden');
+        }
+      });
+      
+      const progressBar = document.getElementById('gw-progress-bar')!;
+      progressBar.className = `absolute top-0 left-0 h-full bg-gradient-to-r ${progressBgClass} rounded-full`;
+      progressBar.style.width = pct + '%';
       
       document.getElementById('gw-gap-pts')!.textContent = (gData.nextLevelProgress?.gap || 0).toLocaleString() + ' pts';
       document.getElementById('gw-days-left')!.textContent = (gData.period?.daysFinalDate || 0) + ' días para cerrar';
@@ -403,7 +443,27 @@ import PageLoader from '../components/PageLoader.astro';
       overlay.id = 'sync-modal-overlay';
       overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);z-index:9999;display:flex;align-items:center;justify-content:center;animation:fadeIn 0.2s ease';
       
-      const contentHasSynced = `
+      const isLinux = navigator.userAgent.toLowerCase().includes('linux') && !navigator.userAgent.toLowerCase().includes('android');
+
+      const contentHasSynced = isLinux ? `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🐧</div>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronización Activa</h3>
+          </div>
+          <p style="color:rgba(255,255,255,0.7);font-size:14px;line-height:1.7;margin-bottom:20px;">
+            Tu sistema detecta datos sincronizados. En <strong>Linux / Pop!_OS</strong>, la automatización ocurre de fondo.
+          </p>
+          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-bottom:20px;">
+            <p style="color:rgba(255,255,255,0.6);font-size:13px;line-height:1.6;margin:0;">
+               Para forzar un escaneo ahora mismo, abre tu terminal y ejecuta:<br>
+               <code style="background:rgba(0,0,0,0.3);padding:6px;border-radius:4px;display:block;margin-top:8px;color:#10b981;font-size:11px;overflow-x:auto;">node scripts/scrape-nivel-auto.mjs</code>
+            </p>
+          </div>
+          <button onclick="this.closest('#sync-modal-overlay').remove()" 
+                  style="display:block;width:100%;padding:14px;background:linear-gradient(135deg,#10b981,#059669);border-radius:12px;color:#fff;font-weight:600;font-size:15px;cursor:pointer;border:none;">
+            Entendido
+          </button>
+      ` : `
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
             <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">✅</div>
             <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronización Activa</h3>
@@ -422,7 +482,22 @@ import PageLoader from '../components/PageLoader.astro';
           </button>
       `;
 
-      const contentNeedsInstall = `
+      const contentNeedsInstall = isLinux ? `
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🐧</div>
+            <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronizar en Pop!_OS</h3>
+          </div>
+          <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.7;margin-bottom:10px;">
+            En Pop!_OS, elige tu editor favorito (ej. nano) y configura cron agregando esta línea (<code style="background:rgba(0,0,0,0.3);padding:2px 4px;border-radius:4px;color:#10b981;">EDITOR=nano crontab -e</code>):
+          </p>
+          <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:12px;padding:16px;margin-bottom:20px;overflow-x:auto;">
+            <pre style="color:rgba(255,255,255,0.8);font-size:11px;line-height:1.6;margin:0;">0 10 * * * NATURA_USER="correo" NATURA_PASS="pass" /usr/bin/node /ruta/a/scripts/scrape-nivel-auto.mjs</pre>
+          </div>
+          <button onclick="this.closest('#sync-modal-overlay').remove()" 
+                  style="display:block;width:100%;margin-top:12px;padding:10px;background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:rgba(255,255,255,0.8);font-size:13px;cursor:pointer;font-family:inherit;">
+            Cerrar
+          </button>
+      ` : `
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
             <div style="width:40px;height:40px;background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;">🔄</div>
             <h3 style="font-size:18px;font-weight:700;color:#fff;">Sincronizar con Natura</h3>

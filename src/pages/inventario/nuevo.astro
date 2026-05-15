@@ -593,7 +593,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   import { authFetch } from "../../lib/auth-fetch";
   import api from '../../lib/api';
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
-  import { CAMINO_CRECIMIENTO, calculateConsultantPrice } from "../../lib/camino-crecimiento";
+  import { CAMINO_CRECIMIENTO, calculateConsultantPrice, getProfitPercentage, getPriceFactor } from "../../lib/camino-crecimiento";
   import type { ConsultantLevel } from "../../lib/camino-crecimiento";
 
   // ═══════════ STATE ═══════════
@@ -692,7 +692,8 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     });
 
     // Update cost label badge
-    costLevelBadge.textContent = `(${style.emoji} ${level} ×${info.priceFactor})`;
+    const factor = getPriceFactor(level, brandInput.value, categorySelect.value);
+    costLevelBadge.textContent = `(${style.emoji} ${level} ×${factor.toFixed(4)})`;
 
     // Recalculate cost from price
     recalculateCost();
@@ -702,16 +703,26 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     const price = parseFloat(priceInput.value);
     if (!price || price <= 0 || costManuallyEdited) return;
 
-    const cost = calculateConsultantPrice(price, selectedLevel);
+    const brand = brandInput.value;
+    const category = categorySelect.value;
+    const cost = calculateConsultantPrice(price, selectedLevel, brand, category);
     costInput.value = cost.toFixed(2);
     updateProfitPanel();
     updatePreview();
+    
+    // Also update badge when brand/category changes
+    const style = LEVEL_STYLES[selectedLevel];
+    const factor = getPriceFactor(selectedLevel, brand, category);
+    costLevelBadge.textContent = `(${style.emoji} ${selectedLevel} ×${factor.toFixed(4)})`;
   }
 
   function updateProfitPanel() {
     const price = parseFloat(priceInput.value) || 0;
     const cost = parseFloat(costInput.value) || 0;
     const profit = price - cost;
+    const percentage = getProfitPercentage(selectedLevel, brandInput.value, categorySelect.value);
+    const factor = getPriceFactor(selectedLevel, brandInput.value, categorySelect.value);
+    const netPercentage = (100 - (factor * 100)).toFixed(2);
 
     if (price <= 0) {
       profitPanel.classList.add('hidden');
@@ -722,19 +733,17 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     profitPanel.classList.remove('hidden');
     previewProfitWrap.classList.remove('hidden');
 
-    const info = CAMINO_CRECIMIENTO[selectedLevel];
-
     if (profit > 0) {
       profitPanel.className = 'bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/30';
       profitAmount.textContent = '$' + profit.toFixed(2);
       profitAmount.className = 'text-lg font-bold text-green-700 font-headline';
-      profitPercent.textContent = info.profitPercentage + '% ganancia';
+      profitPercent.textContent = percentage + '% ganancia';
       profitPercent.className = 'text-sm font-bold text-green-700';
-      profitNet.textContent = info.netProfitMsg + ' neto sin IVA';
+      profitNet.textContent = 'A ' + netPercentage + '% neto sin IVA';
       profitNet.className = 'text-[10px] text-green-600';
       profitIcon.textContent = 'trending_up';
       profitIcon.className = 'material-symbols-outlined text-green-600';
-      previewProfit.textContent = '+$' + profit.toFixed(0) + ' (' + info.profitPercentage + '%)';
+      previewProfit.textContent = '+$' + profit.toFixed(0) + ' (' + percentage + '%)';
       previewProfit.className = 'font-bold text-green-600 text-sm';
     } else {
       profitPanel.className = 'bg-gradient-to-r from-red-50 to-rose-50 rounded-2xl p-4 border border-red-200/30';
@@ -771,6 +780,15 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   priceInput?.addEventListener('input', () => {
     costManuallyEdited = false; // Reset so auto-calc kicks in
     recalculateCost();
+  });
+
+  // Listen for brand and category changes
+  brandInput?.addEventListener('input', () => {
+    if (!costManuallyEdited) recalculateCost();
+  });
+
+  categorySelect?.addEventListener('change', () => {
+    if (!costManuallyEdited) recalculateCost();
   });
 
   // ═══════════ AUTH + LEVEL DETECTION ═══════════

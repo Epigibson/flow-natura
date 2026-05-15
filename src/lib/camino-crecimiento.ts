@@ -14,38 +14,38 @@ export const CAMINO_CRECIMIENTO: Record<ConsultantLevel, LevelInfo> = {
   Bronce: {
     level: 'Bronce',
     minSales: 0,
-    maxSales: 4800,
+    maxSales: 699,
     profitPercentage: 25,
     netProfitMsg: 'A 21.55%',
     priceFactor: 0.7845,
   },
   Plata: {
     level: 'Plata',
-    minSales: 4801,
-    maxSales: 16000,
+    minSales: 700,
+    maxSales: 1799,
     profitPercentage: 30,
     netProfitMsg: 'A 25.86%',
     priceFactor: 0.7414,
   },
   Oro: {
     level: 'Oro',
-    minSales: 16001,
-    maxSales: 80000,
+    minSales: 1800,
+    maxSales: 4499,
     profitPercentage: 35,
     netProfitMsg: 'A 30.17%',
     priceFactor: 0.6983,
   },
   Zafiro: {
     level: 'Zafiro',
-    minSales: 80001,
-    maxSales: 350000,
+    minSales: 4500,
+    maxSales: 12999,
     profitPercentage: 37,
     netProfitMsg: 'A 31.89%',
     priceFactor: 0.6811,
   },
   Diamante: {
     level: 'Diamante',
-    minSales: 350001,
+    minSales: 13000,
     maxSales: null,
     profitPercentage: 40,
     netProfitMsg: 'A 34.48%',
@@ -73,11 +73,48 @@ export function getLevelBySales(accumulatedSales: number): LevelInfo {
 }
 
 /**
+ * Determina si el producto pertenece a la categoría/marca "Casa y Estilo".
+ */
+export function isCasaYEstilo(brand: string = '', category: string = ''): boolean {
+  const b = brand.toLowerCase();
+  const c = category.toLowerCase();
+  return b.includes('casa') || b.includes('estilo') || c.includes('casa') || c.includes('estilo');
+}
+
+/**
+ * Obtiene el porcentaje de ganancia real dependiendo del nivel, la marca y la categoría.
+ */
+export function getProfitPercentage(level: ConsultantLevel, brand: string = '', category: string = ''): number {
+  if (isCasaYEstilo(brand, category)) {
+    // Reglas de Casa y Estilo: 15% para Bronce/Plata/Oro, 18% para Zafiro/Diamante
+    if (level === 'Zafiro' || level === 'Diamante') {
+      return 18;
+    }
+    return 15;
+  }
+  
+  // Por defecto Belleza (Natura / Avon)
+  return CAMINO_CRECIMIENTO[level].profitPercentage;
+}
+
+/**
+ * Obtiene el factor de multiplicación de precio dependiendo del nivel, marca y categoría.
+ */
+export function getPriceFactor(level: ConsultantLevel, brand: string = '', category: string = ''): number {
+  if (isCasaYEstilo(brand, category)) {
+    const percentage = getProfitPercentage(level, brand, category);
+    // Fórmula del factor considerando IVA (16%)
+    return 1 - ((percentage / 100) / 1.16);
+  }
+  return CAMINO_CRECIMIENTO[level].priceFactor;
+}
+
+/**
  * Calcula el Precio Consultor de un producto usando el factor de multiplicación del nivel.
  * Fórmula: Precio Consultor = Precio Revista * Factor
  */
-export function calculateConsultantPrice(magazinePrice: number, level: ConsultantLevel): number {
-  const factor = CAMINO_CRECIMIENTO[level].priceFactor;
+export function calculateConsultantPrice(magazinePrice: number, level: ConsultantLevel, brand: string = '', category: string = ''): number {
+  const factor = getPriceFactor(level, brand, category);
   // Redondeamos a 2 decimales
   return Math.round((magazinePrice * factor) * 100) / 100;
 }

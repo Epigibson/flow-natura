@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import api from '../../../src/lib/api';
+import { CAMINO_CRECIMIENTO } from '../../../src/lib/camino-crecimiento';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import { useSidebar } from '../../components/SidebarContext';
@@ -89,8 +90,9 @@ export default function DashboardScreen() {
         filename = 'Inventario_Natura.csv';
       }
 
-      const fileUri = FileSystem.documentDirectory + filename;
-      await FileSystem.writeAsStringAsync(fileUri, csvContent, { encoding: FileSystem.EncodingType.UTF8 });
+      const FS: any = FileSystem;
+      const fileUri = FS.documentDirectory + filename;
+      await FS.writeAsStringAsync(fileUri, csvContent, { encoding: FS.EncodingType.UTF8 });
       
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, { mimeType: 'text/csv', dialogTitle: 'Compartir ' + filename });
@@ -183,7 +185,12 @@ export default function DashboardScreen() {
                     </View>
                     
                     <Text className="text-4xl font-serif text-on-surface">{userProfile?.latest_growth_data?.level?.description || 'Consultor'}</Text>
-                    <Text className="text-sm font-bold text-on-surface-variant mb-6">{userProfile?.latest_growth_data?.nextLevelProgress?.currentValue?.toLocaleString() || 0} <Text className="font-normal">pts acumulados</Text></Text>
+                    <View className="flex-row items-center gap-2 mb-6">
+                      <View className="px-2 py-1 rounded-md" style={{ backgroundColor: t.secondaryContainer }}>
+                         <Text className="text-secondary font-bold text-xs">Ganancia del {CAMINO_CRECIMIENTO[(userProfile?.latest_growth_data?.level?.description || 'Consultor') as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage || 25}%</Text>
+                      </View>
+                      <Text className="text-sm font-bold text-on-surface-variant">{userProfile?.latest_growth_data?.nextLevelProgress?.currentValue?.toLocaleString() || 0} <Text className="font-normal">pts acumulados</Text></Text>
+                    </View>
 
                     <View className="flex-row justify-between items-end mb-2">
                       <Text className="text-sm font-bold text-on-surface-variant">Próximo: <Text className="text-on-surface">{userProfile?.latest_growth_data?.nextLevel || '?'}</Text></Text>

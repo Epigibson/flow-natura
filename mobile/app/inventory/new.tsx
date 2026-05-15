@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -65,7 +65,7 @@ export default function NewProductScreen() {
     if (!costManuallyEdited) {
       const numPrice = parseFloat(text) || 0;
       if (numPrice > 0) {
-        setCost(calculateConsultantPrice(numPrice, level).toFixed(2));
+        setCost(calculateConsultantPrice(numPrice, level, brand, category).toFixed(2));
       } else {
         setCost('');
       }
@@ -76,9 +76,15 @@ export default function NewProductScreen() {
     setLevel(newLevel);
     setCostManuallyEdited(false);
     if (parsedPrice > 0) {
-      setCost(calculateConsultantPrice(parsedPrice, newLevel).toFixed(2));
+      setCost(calculateConsultantPrice(parsedPrice, newLevel, brand, category).toFixed(2));
     }
   };
+
+  useEffect(() => {
+    if (!costManuallyEdited && parsedPrice > 0) {
+      setCost(calculateConsultantPrice(parsedPrice, level, brand, category).toFixed(2));
+    }
+  }, [brand, category]);
 
   const handleSave = async () => {
     if (!code || !name || parsedPrice <= 0 || parsedCost <= 0 || parseInt(stock) < 1) {

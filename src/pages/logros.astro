@@ -5,9 +5,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <DashboardLayout>
   <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
-      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">GAMIFICATION</p>
-      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Logros y Badges 🏆</h2>
-      <p class="text-on-surface-variant mt-2 text-lg">Celebra tus hitos y sigue desbloqueando recompensas.</p>
+      <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">ANALÍTICAS</p>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Hitos y Desempeño 📊</h2>
+      <p class="text-on-surface-variant mt-2 text-lg">Monitorea el crecimiento real de tu negocio Natura.</p>
     </div>
     <div class="flex items-center gap-3">
       <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl py-2.5 px-5 flex items-center gap-2">
@@ -35,109 +35,87 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     </div>
     <div class="bg-gradient-to-br from-primary/5 to-primary-container/15 rounded-2xl p-5 text-center shadow-sm border border-primary/5">
       <div class="w-10 h-10 mx-auto mb-2 bg-primary/10 rounded-xl flex items-center justify-center">
-        <span class="material-symbols-outlined text-primary text-lg">star</span>
+        <span class="material-symbols-outlined text-primary text-lg">payments</span>
       </div>
-      <p id="badge-points" class="text-3xl font-display font-bold text-primary">—</p>
-      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Puntos XP</p>
+      <p id="stat-revenue" class="text-3xl font-display font-bold text-primary">—</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Ventas Históricas</p>
     </div>
     <div class="bg-gradient-to-br from-tertiary/5 to-tertiary-container/15 rounded-2xl p-5 text-center shadow-sm border border-tertiary/5">
       <div class="w-10 h-10 mx-auto mb-2 bg-tertiary/10 rounded-xl flex items-center justify-center">
-        <span class="material-symbols-outlined text-tertiary text-lg">local_fire_department</span>
+        <span class="material-symbols-outlined text-tertiary text-lg">group</span>
       </div>
-      <p id="badge-streak" class="text-3xl font-display font-bold text-tertiary">—</p>
-      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Racha (días)</p>
+      <p id="stat-clients" class="text-3xl font-display font-bold text-tertiary">—</p>
+      <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Clientes Activos</p>
     </div>
   </section>
 
-  <!-- XP Progress to Next Level -->
-  <section class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-8">
-    <div class="flex items-center justify-between mb-3">
-      <div class="flex items-center gap-3">
-        <span class="material-symbols-outlined text-primary">trending_up</span>
-        <div>
-          <p class="font-bold text-on-surface text-sm">Progreso al Siguiente Nivel</p>
-          <p id="level-desc" class="text-xs text-on-surface-variant">Necesitas más XP para subir</p>
+  <!-- Natura Growth Progress & Benefits -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    
+    <!-- Real Progress -->
+    <div class="lg:col-span-1 bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm flex flex-col justify-between border-2 border-primary/5">
+      <div>
+        <div class="flex items-center gap-3 mb-3">
+          <span class="material-symbols-outlined text-primary text-2xl">stars</span>
+          <div>
+            <p class="font-bold text-on-surface text-sm uppercase tracking-widest">Camino de Crecimiento</p>
+            <p id="level-desc" class="text-xs text-on-surface-variant font-medium">Conectando...</p>
+          </div>
+        </div>
+        <div class="mt-6">
+          <div class="flex justify-between items-end mb-2">
+            <span id="level-current" class="text-3xl font-display font-bold text-primary">0</span>
+            <span class="text-xs font-bold text-on-surface-variant uppercase">Puntos</span>
+          </div>
+          <div class="w-full h-3 bg-surface-container-highest rounded-full overflow-hidden">
+            <div id="level-bar" class="h-full rounded-full transition-all duration-1000 ease-out" style="width:0%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);"></div>
+          </div>
+          <div class="flex justify-between mt-2">
+            <span id="level-gap" class="text-[11px] font-bold text-on-surface-variant">Faltan 0 pts</span>
+            <span id="level-next" class="text-[11px] font-bold text-on-surface-variant">Meta: 0</span>
+          </div>
         </div>
       </div>
-      <span id="level-target" class="text-sm font-bold text-primary"></span>
+      <div id="natura-cycle-info" class="mt-6 pt-4 border-t border-outline-variant/20 flex items-center gap-2 text-xs text-on-surface-variant hidden">
+        <span class="material-symbols-outlined text-[16px] text-error">calendar_clock</span>
+        <span>Cierre de ciclo en <strong id="natura-days-left" class="text-error"></strong> días</span>
+      </div>
     </div>
-    <div class="w-full h-4 bg-surface-container-highest rounded-full overflow-hidden">
-      <div id="level-bar" class="h-full rounded-full transition-all duration-700 ease-out" style="width:0%; background: linear-gradient(90deg, var(--color-primary)  0%, var(--color-secondary) 100%);"></div>
-    </div>
-    <div class="flex justify-between mt-2">
-      <span id="level-current" class="text-[10px] font-bold text-on-surface-variant">0 XP</span>
-      <span id="level-next" class="text-[10px] font-bold text-on-surface-variant">100 XP</span>
+
+    <!-- Official Benefits -->
+    <div class="lg:col-span-2 bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm border border-outline-variant/10">
+      <h3 class="text-lg font-display font-bold text-on-surface mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary">workspace_premium</span>
+        Tus Beneficios Comerciales
+      </h3>
+      <div id="benefits-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- Hydrated by JS -->
+      </div>
+      <div id="benefits-empty" class="hidden py-8 text-center text-on-surface-variant">
+         <span class="material-symbols-outlined text-3xl mb-2 opacity-50">link_off</span>
+         <p class="text-sm">Sincroniza tu cuenta Natura en el Inicio para ver tus beneficios oficiales.</p>
+      </div>
     </div>
   </section>
 
-  <!-- Badges Grid -->
+  <!-- Milestones Grid -->
   <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm mb-8">
     <div class="flex items-center justify-between mb-6">
-      <h3 class="text-xl font-display font-bold text-on-surface">Tus Badges</h3>
+      <h3 class="text-xl font-display font-bold text-on-surface flex items-center gap-2">
+         <span class="material-symbols-outlined text-secondary">emoji_events</span>
+         Hitos Históricos
+      </h3>
       <div class="flex gap-2">
         <button id="filter-all" class="text-xs font-bold px-3 py-1.5 rounded-full bg-primary text-white">Todos</button>
-        <button id="filter-unlocked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Ganados</button>
-        <button id="filter-locked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Bloqueados</button>
+        <button id="filter-unlocked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Logrados</button>
+        <button id="filter-locked" class="text-xs font-bold px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container transition-colors">Pendientes</button>
       </div>
     </div>
     <div id="badges-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
     </div>
   </section>
 
-  <!-- Weekly Challenge -->
-  <section class="bg-gradient-to-r from-primary/10 via-secondary-container/15 to-tertiary/10 rounded-[2rem] p-8 mb-8 relative overflow-hidden shadow-sm">
-    <div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-16 translate-x-16"></div>
-    <div class="absolute bottom-0 left-0 w-32 h-32 bg-secondary/5 rounded-full translate-y-10 -translate-x-10"></div>
-    <div class="relative z-10">
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 bg-white/50 rounded-2xl flex items-center justify-center shadow-sm backdrop-blur-sm">
-          <span class="material-symbols-outlined text-primary text-2xl">local_fire_department</span>
-        </div>
-        <div>
-          <h3 class="text-xl font-display font-bold text-on-surface">Reto de la Semana</h3>
-          <p class="text-xs text-on-surface-variant">Completa retos para ganar XP extra</p>
-        </div>
-      </div>
-      <p class="text-lg text-on-surface font-bold mb-1" id="challenge-title">Vende 5 productos de cualquier línea</p>
-      <p class="text-sm text-on-surface-variant mb-5" id="challenge-desc">Recompensa: +20 XP y badge "Vendedora de la Semana"</p>
-      <div class="w-full h-5 bg-white/40 rounded-full overflow-hidden mb-2 backdrop-blur-sm shadow-inner">
-        <div id="challenge-bar" class="h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden" style="width: 0%; background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);">
-          <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer"></div>
-        </div>
-      </div>
-      <p id="challenge-progress" class="text-sm font-bold text-primary">0/5 completados</p>
-    </div>
-  </section>
 
-  <!-- Leaderboard -->
-  <section class="bg-surface-container-lowest rounded-[2rem] p-8 shadow-sm">
-    <h3 class="text-xl font-display font-bold text-on-surface mb-6 flex items-center gap-2">
-      <span class="material-symbols-outlined text-secondary">leaderboard</span>
-      Ranking del Mes
-    </h3>
-    <div class="space-y-0">
-      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-amber-100/50 to-transparent rounded-2xl px-4 mb-2">
-        <span class="text-2xl">🥇</span>
-        <div class="flex-1"><p class="font-bold text-on-surface">Laura Méndez</p><p class="text-xs text-on-surface-variant">245 XP • 8 badges</p></div>
-        <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-full">Diamante</span>
-      </div>
-      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-gray-100/50 to-transparent rounded-2xl px-4 mb-2">
-        <span class="text-2xl">🥈</span>
-        <div class="flex-1"><p class="font-bold text-on-surface">Carmen Rojas</p><p class="text-xs text-on-surface-variant">180 XP • 6 badges</p></div>
-        <span class="text-xs font-bold bg-gray-100 text-gray-700 px-3 py-1 rounded-full">Oro</span>
-      </div>
-      <div class="flex items-center gap-4 py-4 bg-gradient-to-r from-orange-100/30 to-transparent rounded-2xl px-4 mb-2">
-        <span class="text-2xl">🥉</span>
-        <div class="flex-1"><p class="font-bold text-on-surface">Ana Torres</p><p class="text-xs text-on-surface-variant">120 XP • 5 badges</p></div>
-        <span class="text-xs font-bold bg-orange-100 text-orange-700 px-3 py-1 rounded-full">Plata</span>
-      </div>
-      <div class="flex items-center gap-4 py-4 bg-primary/5 rounded-2xl px-4 border-2 border-primary/15">
-        <span class="text-lg">📍</span>
-        <div class="flex-1"><p class="font-bold text-primary" id="my-rank-name">Tú</p><p class="text-xs text-on-surface-variant" id="my-rank-stats">— XP • — badges</p></div>
-        <span class="font-bold text-on-surface text-xs bg-primary/10 text-primary px-3 py-1 rounded-full" id="my-rank-level">Bronce</span>
-      </div>
-    </div>
-  </section>
 </DashboardLayout>
 
 <style>
@@ -214,34 +192,87 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   ];
 
   const unlocked = badges.filter(b => b.check).length;
-  const xp = unlocked * 15 + totalOrders * 5 + totalCustomers * 2;
 
-  // Levels
-  const levels = [
-    { name: 'Bronce', min: 0, max: 50 },
-    { name: 'Plata', min: 50, max: 150 },
-    { name: 'Oro', min: 150, max: 400 },
-    { name: 'Diamante', min: 400, max: 1000 },
-    { name: 'Leyenda', min: 1000, max: 9999 },
-  ];
-  const currentLevel = levels.reduce((lv, l) => xp >= l.min ? l : lv, levels[0]);
-  const nextLevel = levels[levels.indexOf(currentLevel) + 1] || currentLevel;
-  const pctLevel = Math.min(100, ((xp - currentLevel.min) / (nextLevel.max - currentLevel.min)) * 100);
+  // Levels mapping for UI
+  import { CAMINO_CRECIMIENTO } from '../lib/camino-crecimiento';
+  
+  if (growthData && growthData.level) {
+    const levelDesc = growthData.level.description || 'Consultor';
+    const currentPts = growthData.nextLevelProgress?.currentValue || 0;
+    const nextPts = growthData.nextLevelProgress?.nextValueMin || 0;
+    const gapPts = growthData.nextLevelProgress?.gap || 0;
+    const pctLevel = Math.min(100, growthData.nextLevelProgress?.progressPercentage || 0);
+    const nextLvlName = growthData.nextLevel || 'Siguiente';
+    
+    (document.getElementById('my-level') as HTMLElement).textContent = levelDesc;
+    (document.getElementById('level-desc') as HTMLElement).textContent = `${esc(levelDesc)} → ${esc(nextLvlName)}`;
+    (document.getElementById('level-current') as HTMLElement).textContent = currentPts.toLocaleString();
+    (document.getElementById('level-next') as HTMLElement).textContent = `Meta: ${nextPts.toLocaleString()}`;
+    (document.getElementById('level-gap') as HTMLElement).textContent = `Faltan ${gapPts.toLocaleString()} pts`;
+    
+    requestAnimationFrame(() => {
+      (document.getElementById('level-bar') as HTMLElement).style.width = pctLevel + '%';
+    });
+    
+    if (growthData.period?.daysFinalDate) {
+       document.getElementById('natura-cycle-info')!.classList.remove('hidden');
+       document.getElementById('natura-days-left')!.textContent = growthData.period.daysFinalDate;
+    }
+    
+    // Render Benefits
+    const benefitsGrid = document.getElementById('benefits-grid')!;
+    const profit = CAMINO_CRECIMIENTO[levelDesc as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage || 25;
+    
+    // Calcula ganancia digital (-5% de penalización usualmente respecto a la presencial, basado en portal)
+    const digitalProfit = profit > 30 ? profit - 5 : profit; 
+    
+    let benefitsHtml = `
+      <div class="bg-primary/5 rounded-xl p-4 text-center border border-primary/10">
+        <span class="material-symbols-outlined text-primary text-2xl mb-1">sell</span>
+        <p class="text-2xl font-bold text-primary leading-none">${profit}%</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Venta Directa</p>
+      </div>
+      <div class="bg-secondary/5 rounded-xl p-4 text-center border border-secondary/10">
+        <span class="material-symbols-outlined text-secondary text-2xl mb-1">language</span>
+        <p class="text-2xl font-bold text-secondary leading-none">${digitalProfit}%</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Natura Digital</p>
+      </div>
+      <div class="bg-tertiary/5 rounded-xl p-4 text-center border border-tertiary/10">
+        <span class="material-symbols-outlined text-tertiary text-2xl mb-1">home_repair_service</span>
+        <p class="text-2xl font-bold text-tertiary leading-none">15-18%</p>
+        <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mt-1">Casa & Estilo</p>
+      </div>
+    `;
+    
+    if (levelDesc === 'Zafiro' || levelDesc === 'Diamante') {
+      benefitsHtml += `
+        <div class="bg-amber-50 rounded-xl p-4 text-center border border-amber-200/50">
+          <span class="material-symbols-outlined text-amber-600 text-2xl mb-1">credit_card</span>
+          <p class="text-lg font-bold text-amber-700 leading-tight">2 Cuotas</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-amber-800/70 mt-1">30 días crédito</p>
+        </div>
+      `;
+    } else {
+      benefitsHtml += `
+        <div class="bg-surface-container rounded-xl p-4 text-center border border-outline-variant/10 opacity-50">
+          <span class="material-symbols-outlined text-on-surface-variant text-2xl mb-1">lock</span>
+          <p class="text-sm font-bold text-on-surface-variant leading-tight">Crédito<br/>Plazos</p>
+          <p class="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/70 mt-1">Zafiro+</p>
+        </div>
+      `;
+    }
+    benefitsGrid.innerHTML = benefitsHtml;
+
+  } else {
+    document.getElementById('benefits-empty')!.classList.remove('hidden');
+    document.getElementById('level-desc')!.textContent = 'Sincroniza en inicio';
+    (document.getElementById('my-level') as HTMLElement).textContent = 'Consultor';
+  }
 
   // Update stats
   (document.getElementById('badge-unlocked') as HTMLElement).textContent = String(unlocked);
-  (document.getElementById('badge-points') as HTMLElement).textContent = String(xp);
-  (document.getElementById('badge-streak') as HTMLElement).textContent = String(Math.min(monthOrders, 30));
-  (document.getElementById('my-rank-stats') as HTMLElement).textContent = `${xp} XP • ${unlocked} badges`;
-  (document.getElementById('my-level') as HTMLElement).textContent = currentLevel.name;
-  (document.getElementById('my-rank-level') as HTMLElement).textContent = currentLevel.name;
-  (document.getElementById('level-desc') as HTMLElement).textContent = `${esc(currentLevel.name)} → ${esc(nextLevel.name)}`;
-  (document.getElementById('level-target') as HTMLElement).textContent = `${nextLevel.max - xp} XP restantes`;
-  (document.getElementById('level-current') as HTMLElement).textContent = `${xp} XP`;
-  (document.getElementById('level-next') as HTMLElement).textContent = `${nextLevel.max} XP`;
-  requestAnimationFrame(() => {
-    (document.getElementById('level-bar') as HTMLElement).style.width = pctLevel + '%';
-  });
+  (document.getElementById('stat-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  (document.getElementById('stat-clients') as HTMLElement).textContent = String(totalCustomers);
 
   // Render badges
   let badgeFilter: 'all' | 'unlocked' | 'locked' = 'all';
@@ -252,7 +283,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     const filtered = badgeFilter === 'all' ? badges : badgeFilter === 'unlocked' ? badges.filter(b => b.check) : badges.filter(b => !b.check);
 
     if (!filtered.length) {
-      grid.innerHTML = `<div class="col-span-full text-center py-8"><p class="text-on-surface-variant text-sm">${badgeFilter === 'unlocked' ? 'Aún no has desbloqueado badges. ¡Empieza vendiendo!' : 'Ya desbloqueaste todos los badges disponibles. 🏆'}</p></div>`;
+      grid.innerHTML = `<div class="col-span-full text-center py-8"><p class="text-on-surface-variant text-sm">${badgeFilter === 'unlocked' ? 'Aún no has desbloqueado hitos. ¡Empieza vendiendo!' : 'Ya desbloqueaste todos los hitos. 🏆'}</p></div>`;
       return;
     }
 
@@ -305,15 +336,4 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   document.getElementById('filter-unlocked')!.addEventListener('click', () => setFilter('unlocked'));
   document.getElementById('filter-locked')!.addEventListener('click', () => setFilter('locked'));
 
-  // Weekly challenge
-  const challengeTarget = 5;
-  const challengeProgress = Math.min(weekOrders, challengeTarget);
-  requestAnimationFrame(() => {
-    (document.getElementById('challenge-bar') as HTMLElement).style.width = ((challengeProgress / challengeTarget) * 100) + '%';
-  });
-  (document.getElementById('challenge-progress') as HTMLElement).textContent = `${challengeProgress}/${challengeTarget} completados`;
-  if (challengeProgress >= challengeTarget) {
-    (document.getElementById('challenge-progress') as HTMLElement).textContent = '🎉 ¡Reto completado! +20 XP';
-    (document.getElementById('challenge-progress') as HTMLElement).classList.add('text-secondary');
-  }
 </script>
