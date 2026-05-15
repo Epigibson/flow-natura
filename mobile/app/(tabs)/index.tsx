@@ -3,11 +3,10 @@ import { supabase } from '../../lib/supabase';
 import api from '../../../src/lib/api';
 import { CAMINO_CRECIMIENTO } from '../../../src/lib/camino-crecimiento';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSidebar } from '../../components/SidebarContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useThemeColors } from '../../hooks/use-theme-colors';
-import React from 'react';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 

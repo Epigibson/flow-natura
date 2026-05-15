@@ -17,6 +17,7 @@ export default function OrderDetailScreen() {
 
   useEffect(() => {
     if (id) loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function loadData() {
@@ -27,10 +28,10 @@ export default function OrderDetailScreen() {
       if (data.payment_method?.toLowerCase() === 'abonos' && data.notes) {
         try {
           data._parsedNotes = JSON.parse(data.notes);
-        } catch(e) {}
+        } catch {}
       }
       setOrder(data);
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'No se pudo cargar la venta.');
       router.back();
     } finally {
@@ -89,7 +90,7 @@ export default function OrderDetailScreen() {
       setAbonoAmount('');
       loadData();
       Alert.alert('Éxito', 'Abono registrado correctamente.');
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Hubo un problema al registrar el abono.');
     }
   };

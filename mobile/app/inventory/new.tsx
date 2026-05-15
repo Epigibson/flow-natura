@@ -84,6 +84,7 @@ export default function NewProductScreen() {
     if (!costManuallyEdited && parsedPrice > 0) {
       setCost(calculateConsultantPrice(parsedPrice, level, brand, category).toFixed(2));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand, category]);
 
   const handleSave = async () => {

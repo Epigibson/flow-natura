@@ -112,7 +112,7 @@ export default function AchievementsScreen() {
 
               {daysFinalDate > 0 && (
                 <View className="pt-4 border-t flex-row items-center gap-2" style={{ borderColor: t.outlineVariant + '33' }}>
-                  <MaterialIcons name="calendar-clock" size={16} color={t.error} />
+                  <MaterialIcons name="schedule" size={16} color={t.error} />
                   <Text className="text-xs text-onSurfaceVariant">Cierre de ciclo en <Text className="font-bold text-error">{daysFinalDate} días</Text></Text>
                 </View>
               )}
@@ -136,9 +136,9 @@ export default function AchievementsScreen() {
                   <Text className="text-2xl font-bold mt-1 text-secondary">{digitalProfit}%</Text>
                   <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Natura Digital</Text>
                 </View>
-                <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.tertiaryContainer + '1A', borderColor: t.tertiaryContainer + '33' }}>
-                  <MaterialIcons name="home-repair-service" size={24} color={t.tertiary} />
-                  <Text className="text-xl font-bold mt-1 text-tertiary">15-18%</Text>
+                <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.surfaceContainerHighest, borderColor: t.outlineVariant + '33' }}>
+                  <MaterialIcons name="home-repair-service" size={24} color={t.onSurfaceVariant} />
+                  <Text className="text-xl font-bold mt-1" style={{ color: t.onSurface }}>15-18%</Text>
                   <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Casa & Estilo</Text>
                 </View>
                 
