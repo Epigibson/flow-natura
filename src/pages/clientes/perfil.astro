@@ -149,7 +149,7 @@ import PageLoader from '../../components/PageLoader.astro';
           <label class="block text-sm font-semibold text-on-surface-variant mb-1">Preferencias / Notas</label>
           <textarea id="edit-prefs" rows="3" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container resize-none"></textarea>
         </div>
-        <button type="submit" class="w-full py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
+        <button type="submit" id="btn-submit-edit" class="w-full py-3 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
           Guardar Cambios
         </button>
       </form>
@@ -186,6 +186,7 @@ import PageLoader from '../../components/PageLoader.astro';
   const editModal = document.getElementById('edit-modal') as HTMLDialogElement;
   const btnCloseEdit = document.getElementById('btn-close-edit') as HTMLButtonElement;
   const editForm = document.getElementById('edit-form') as HTMLFormElement;
+  const btnSubmitEdit = document.getElementById('btn-submit-edit') as HTMLButtonElement;
 
   let clientData: any = null;
 
@@ -320,6 +321,10 @@ import PageLoader from '../../components/PageLoader.astro';
   btnCloseEdit.addEventListener('click', () => editModal.close());
   editForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (btnSubmitEdit) {
+      btnSubmitEdit.disabled = true;
+      btnSubmitEdit.textContent = 'Guardando...';
+    }
     try {
       await api.customers.update(clientId!, {
         full_name: (document.getElementById('edit-name') as HTMLInputElement).value,
@@ -329,7 +334,13 @@ import PageLoader from '../../components/PageLoader.astro';
         preferences: (document.getElementById('edit-prefs') as HTMLTextAreaElement).value || null,
       });
       window.location.reload();
-    } catch(err: any) { alert('Error: ' + err.message); }
+    } catch(err: any) {
+      alert('Error: ' + err.message);
+      if (btnSubmitEdit) {
+        btnSubmitEdit.disabled = false;
+        btnSubmitEdit.textContent = 'Guardar Cambios';
+      }
+    }
   });
 
   loadProfile();

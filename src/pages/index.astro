@@ -742,8 +742,8 @@ import PageLoader from '../components/PageLoader.astro';
   });
 
   document.getElementById('export-inventario-csv')!.addEventListener('click', async () => {
-    const data = await api.products.list();
-    const rows = (data || []).map((p: any) => [p.id, p.name, p.category || '', p.price, p.stock || 0, new Date(p.created_at).toLocaleDateString('es-MX')]);
+    const data = await api.inventory.list();
+    const rows = (data || []).map((p: any) => [p.product_id, p.product_name, p.category || '', p.price, p.quantity || 0, '—']);
     downloadCSV('inventario_naturaflow.csv', ['ID', 'Nombre', 'Categoría', 'Precio', 'Stock', 'Registro'], rows);
   });
 

@@ -106,6 +106,7 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
   const btnNuevo = document.getElementById('btn-nuevo-cliente');
   const btnClose = document.getElementById('btn-close-modal');
   const formCliente = document.getElementById('form-cliente') as HTMLFormElement;
+  const btnSubmit = document.getElementById('btn-submit-cliente') as HTMLButtonElement;
   const errorDiv = document.getElementById('modal-error') as HTMLDivElement;
   const tbody = document.getElementById('customers-tbody') as HTMLElement;
   const emptyState = document.getElementById('empty-state') as HTMLElement;
@@ -143,6 +144,11 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     e.preventDefault();
     errorDiv.classList.add('hidden');
     
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Guardando...';
+    }
+    
     const formData = new FormData(formCliente);
     
     try {
@@ -160,6 +166,11 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     } catch(err: any) {
       errorDiv.textContent = err.message;
       errorDiv.classList.remove('hidden');
+    } finally {
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Guardar Cliente';
+      }
     }
   });
 

@@ -221,9 +221,10 @@ export const consultant = {
 // ─────────────────────────────────────────────
 export const products = {
   list: async (params?: { search?: string; category?: string; brand?: string; limit?: number }) => {
-    const userId = await getCurrentUserId();
-    let query = supabase.from('products').select('*').eq('consultant_id', userId).is('deleted_at', null).order('name');
-    if (params?.search) query = query.ilike('name', `%${params.search}%`);
+    let query = supabase.from('products').select('*').is('deleted_at', null).order('name');
+    if (params?.search) {
+      query = query.or(`name.ilike.%${params.search}%,code.ilike.%${params.search}%`);
+    }
     if (params?.category) query = query.eq('category', params.category);
     if (params?.brand) query = query.eq('brand', params.brand);
     if (params?.limit) query = query.limit(params.limit);
@@ -232,10 +233,7 @@ export const products = {
     return data;
   },
   listAll: async (includeDeleted: boolean = true) => {
-    const userId = await getCurrentUserId();
-    let query = supabase.from('products').select('*').eq('consultant_id', userId).order('name');
-    if (!includeDeleted) query = query.is('deleted_at', null);
-    const { data, error } = await query;
+    const { data, error } = await supabase.rpc('list_all_products', { p_include_deleted: includeDeleted });
     if (error) throw error;
     return data;
   },
@@ -246,9 +244,44 @@ export const products = {
   },
   create: async (data: any) => {
     const userId = await getCurrentUserId();
-    const { data: res, error } = await supabase.from('products').insert({ ...data, consultant_id: userId }).select().single();
-    if (error) throw error;
-    return res;
+    if (!userId) throw new Error('No user authenticated');
+
+    const { stock, consultant_id, ...productData } = data;
+
+    // Check if product with the same code exists in catalog (active or soft-deleted)
+    const { data: existing, error: searchError } = await supabase
+      .rpc('list_all_products', { p_include_deleted: true })
+      .eq('code', productData.code)
+      .maybeSingle();
+
+    if (searchError) throw searchError;
+
+    let product;
+    if (existing) {
+      product = existing;
+      if (existing.deleted_at) {
+        // Restore soft-deleted product
+        await products.restore(existing.id);
+      }
+      // Update catalog details to keep it fresh
+      product = await products.update(existing.id, productData);
+    } else {
+      // Create new catalog product
+      const { data: res, error } = await supabase.from('products').insert(productData).select().single();
+      if (error) throw error;
+      product = res;
+    }
+
+    // Bind to consultant's inventory
+    const qty = parseInt(stock) || 0;
+    if (qty > 0) {
+      await inventory.add([{
+        product_id: product.id,
+        quantity: qty
+      }]);
+    }
+
+    return product;
   },
   update: async (id: string, data: any) => {
     const { data: res, error } = await supabase.from('products').update(data).eq('id', id).select().single();
@@ -256,12 +289,12 @@ export const products = {
     return res;
   },
   delete: async (id: string) => {
-    const { error } = await supabase.from('products').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+    const { error } = await supabase.rpc('soft_delete_product', { p_product_id: id });
     if (error) throw error;
     return true;
   },
   restore: async (id: string) => {
-    const { error } = await supabase.from('products').update({ deleted_at: null }).eq('id', id);
+    const { error } = await supabase.rpc('restore_product', { p_product_id: id });
     if (error) throw error;
     return true;
   }
@@ -391,7 +424,7 @@ export const inventory = {
   add: async (items: any[]) => {
     const userId = await getCurrentUserId();
     for (const item of items) {
-      const { data: existing } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).single();
+      const { data: existing } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).maybeSingle();
       if (existing) {
         await supabase.from('inventory').update({ quantity: existing.quantity + item.quantity }).eq('id', existing.id);
       } else {
