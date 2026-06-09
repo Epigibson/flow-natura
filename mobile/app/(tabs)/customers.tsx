@@ -4,7 +4,7 @@ import React, { useState, useCallback } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../../hooks/use-theme-colors';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, router } from 'expo-router';
 
 export default function CustomersScreen() {
   const t = useThemeColors();
@@ -68,8 +68,11 @@ export default function CustomersScreen() {
     setCustomerStats(null);
     setShowModal('detail');
     try {
-      const stats = await api.customers.getStats(customer.id);
-      setCustomerStats(stats);
+      const [stats, orders] = await Promise.all([
+        api.customers.getStats(customer.id),
+        api.customers.getOrders(customer.id)
+      ]);
+      setCustomerStats({ ...stats, _orders: orders });
     } catch(e) {
       console.error('Error fetching stats', e);
     }
@@ -321,6 +324,9 @@ export default function CustomersScreen() {
                   <MaterialIcons name="arrow-back" size={24} color={t.onSurfaceVariant} />
                 </TouchableOpacity>
                 <View className="flex-row gap-2">
+                  <TouchableOpacity onPress={() => handleWhatsApp(selectedCustomer.phone)} disabled={!selectedCustomer.phone} className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: selectedCustomer.phone ? '#25D36620' : t.surfaceContainer }}>
+                    <MaterialIcons name="chat" size={20} color={selectedCustomer.phone ? '#25D366' : t.muted} />
+                  </TouchableOpacity>
                   <TouchableOpacity onPress={openEdit} className="w-10 h-10 bg-surface-container rounded-full items-center justify-center border border-outline-variant">
                     <MaterialIcons name="edit" size={20} color={t.onSurfaceVariant} />
                   </TouchableOpacity>
@@ -341,21 +347,35 @@ export default function CustomersScreen() {
                   <Text className="text-on-surface-variant font-mono text-xs">Añadido: {new Date(selectedCustomer.created_at).toLocaleDateString('es-MX')}</Text>
                 </View>
 
-                {/* Métricas Financieras */}
+                {/* 4 KPI Cards (matching web profile) */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Estadísticas de Compra</Text>
-                <View className="flex-row gap-3 mb-6">
-                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
-                    <MaterialIcons name="shopping-bag" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
-                    <Text className="text-on-surface-variant text-xs mb-1">Órdenes Totales</Text>
-                    <Text className="text-2xl font-bold text-on-surface">
+                <View className="flex-row flex-wrap gap-3 mb-6">
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
+                    <MaterialIcons name="payments" size={22} color={t.primary} style={{marginBottom: 4}} />
+                    <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Total Comprado</Text>
+                    <Text className="text-xl font-bold text-primary">
+                      {customerStats ? `$${customerStats.total_spent.toFixed(0)}` : <ActivityIndicator size="small" />}
+                    </Text>
+                  </View>
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
+                    <MaterialIcons name="shopping-bag" size={22} color={t.secondary} style={{marginBottom: 4}} />
+                    <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Compras</Text>
+                    <Text className="text-xl font-bold text-secondary">
                       {customerStats ? customerStats.total_orders : <ActivityIndicator size="small" />}
                     </Text>
                   </View>
-                  <View className="flex-1 bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
-                    <MaterialIcons name="payments" size={24} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
-                    <Text className="text-on-surface-variant text-xs mb-1">Gastado ($)</Text>
-                    <Text className="text-2xl font-bold text-primary">
-                      {customerStats ? `$${customerStats.total_spent.toFixed(2)}` : <ActivityIndicator size="small" />}
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
+                    <MaterialIcons name="account-balance-wallet" size={22} color={t.error} style={{marginBottom: 4}} />
+                    <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Deuda Pendiente</Text>
+                    <Text className="text-xl font-bold" style={{ color: t.error }}>
+                      {customerStats ? `$${(customerStats.total_debt || 0).toFixed(0)}` : <ActivityIndicator size="small" />}
+                    </Text>
+                  </View>
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
+                    <MaterialIcons name="event" size={22} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
+                    <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Última Compra</Text>
+                    <Text className="text-sm font-bold text-on-surface">
+                      {customerStats ? (customerStats.last_order ? new Date(customerStats.last_order).toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' }) : '—') : <ActivityIndicator size="small" />}
                     </Text>
                   </View>
                 </View>
@@ -382,10 +402,47 @@ export default function CustomersScreen() {
 
                 {/* Preferencias */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Preferencias</Text>
-                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-8">
+                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-6">
                   <Text className="text-on-surface-variant">
                     {selectedCustomer.preferences || 'Sin preferencias registradas.'}
                   </Text>
+                </View>
+
+                {/* Historial de Compras */}
+                <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Historial de Compras</Text>
+                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-8">
+                  {customerStats?._orders ? (
+                    customerStats._orders.length > 0 ? (
+                      customerStats._orders.map((o: any, idx: number) => {
+                        const oFolio = o.id.split('-')[0].toUpperCase();
+                        const isCancelled = o.status === 'cancelled';
+                        const isDelivered = o.status === 'delivered';
+                        return (
+                          <TouchableOpacity 
+                            key={o.id}
+                            className={`flex-row items-center justify-between py-3 ${idx > 0 ? 'border-t border-outline-variant/50' : ''}`}
+                            onPress={() => { setShowModal(null); router.push({ pathname: '/sales/[id]', params: { id: o.id } } as any); }}
+                          >
+                            <View className="flex-1">
+                              <Text className="font-bold text-on-surface text-sm">#NF-{oFolio}</Text>
+                              <Text className="text-xs text-on-surface-variant">{new Date(o.created_at).toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                            </View>
+                            <View className="items-end mr-2">
+                              <Text className="font-bold text-on-surface">${Number(o.total_amount).toFixed(0)}</Text>
+                              <Text className={`text-[10px] font-bold ${isCancelled ? 'text-error' : isDelivered ? 'text-secondary' : 'text-primary'}`}>
+                                {isCancelled ? 'CANCELADO' : isDelivered ? 'ENTREGADO' : 'PENDIENTE'}
+                              </Text>
+                            </View>
+                            <MaterialIcons name="chevron-right" size={18} color={t.onSurfaceVariant} />
+                          </TouchableOpacity>
+                        );
+                      })
+                    ) : (
+                      <Text className="text-on-surface-variant text-sm italic text-center py-4">Este cliente aún no tiene compras.</Text>
+                    )
+                  ) : (
+                    <ActivityIndicator size="small" color={t.primary} style={{ paddingVertical: 16 }} />
+                  )}
                 </View>
 
               </ScrollView>
