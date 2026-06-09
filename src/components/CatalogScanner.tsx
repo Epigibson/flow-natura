@@ -158,6 +158,7 @@ export default function CatalogScanner() {
       setTotalToProcess(total);
       setCurrentProgress(0);
 
+      const newProducts: Product[] = [];
       const pagePromises = [];
 
       for (let i = startIdx; i <= endIdx; i++) {

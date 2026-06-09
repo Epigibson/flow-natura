@@ -178,8 +178,13 @@ export const consultant = {
 
     let fileBody: any;
     if (base64Data) {
-      const { decode } = require('base64-arraybuffer');
-      fileBody = decode(base64Data);
+      // Browser-compatible base64 to ArrayBuffer (no require())
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      fileBody = bytes.buffer;
     } else {
       const response = await fetch(uri);
       fileBody = await response.blob();
@@ -223,7 +228,9 @@ export const products = {
   list: async (params?: { search?: string; category?: string; brand?: string; limit?: number }) => {
     let query = supabase.from('products').select('*').is('deleted_at', null).order('name');
     if (params?.search) {
-      query = query.or(`name.ilike.%${params.search}%,code.ilike.%${params.search}%`);
+      // Sanitize PostgREST special characters to prevent filter injection
+      const safe = params.search.replace(/[%_.,()]/g, '');
+      query = query.or(`name.ilike.%${safe}%,code.ilike.%${safe}%`);
     }
     if (params?.category) query = query.eq('category', params.category);
     if (params?.brand) query = query.eq('brand', params.brand);
@@ -258,13 +265,14 @@ export const products = {
 
     let product;
     if (existing) {
-      product = existing;
-      if (existing.deleted_at) {
+      const matched = existing as { id: string; deleted_at: string | null; [key: string]: any };
+      product = matched;
+      if (matched.deleted_at) {
         // Restore soft-deleted product
-        await products.restore(existing.id);
+        await products.restore(matched.id);
       }
       // Update catalog details to keep it fresh
-      product = await products.update(existing.id, productData);
+      product = await products.update(matched.id, productData);
     } else {
       // Create new catalog product
       const { data: res, error } = await supabase.from('products').insert(productData).select().single();
@@ -369,10 +377,25 @@ export const orders = {
     const { data: order } = await supabase.from('orders').select('status, order_items(product_id, quantity)').eq('id', id).single();
     if (order && order.status !== 'cancelled') {
       for (const item of (order.order_items || [])) {
-        // Fetch current inventory
-        const { data: inv } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).single();
-        if (inv) {
-          await supabase.from('inventory').update({ quantity: inv.quantity + item.quantity }).eq('id', inv.id);
+        // Atomic inventory restore: increment quantity directly in SQL
+        // This avoids the read-then-write race condition
+        const { error: restoreError } = await supabase.rpc('restore_inventory_on_cancel', {
+          p_consultant_id: userId,
+          p_product_id: item.product_id,
+          p_quantity: item.quantity
+        });
+        // Fallback: if RPC doesn't exist yet, use read-then-write
+        if (restoreError?.code === '42883') {
+          const { data: inv } = await supabase.from('inventory')
+            .select('id, quantity')
+            .eq('product_id', item.product_id)
+            .eq('consultant_id', userId)
+            .single();
+          if (inv) {
+            await supabase.from('inventory')
+              .update({ quantity: inv.quantity + item.quantity })
+              .eq('id', inv.id);
+          }
         }
       }
     }
@@ -416,9 +439,13 @@ export const inventory = {
       product_name: row.products?.name,
       product_code: row.products?.code,
       category: row.products?.category,
+      brand: row.products?.brand,
       price: row.products?.price,
+      cost: row.products?.cost,
       quantity: row.quantity,
-      image_url: row.products?.image_url
+      image_url: row.products?.image_url,
+      description: row.products?.description,
+      points: row.products?.points
     }));
   },
   add: async (items: any[]) => {

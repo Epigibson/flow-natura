@@ -50,10 +50,10 @@ import PageLoader from '../../components/PageLoader.astro';
         <div class="flex flex-col gap-2">
           <label class="text-xs font-headline font-bold text-on-surface-variant ml-1">Periodo</label>
           <div class="relative">
-            <select class="appearance-none bg-surface-container-highest border-none rounded-2xl py-3 pl-5 pr-12 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary-container min-w-[180px]">
-              <option>Últimos 30 días</option>
-              <option>Este mes</option>
-              <option>Todos los tiempos</option>
+            <select id="period-filter" class="appearance-none bg-surface-container-highest border-none rounded-2xl py-3 pl-5 pr-12 text-sm font-medium text-on-surface focus:ring-2 focus:ring-primary-container min-w-[180px]">
+              <option value="30">Últimos 30 días</option>
+              <option value="month">Este mes</option>
+              <option value="all">Todos los tiempos</option>
             </select>
             <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
           </div>
@@ -136,6 +136,7 @@ import PageLoader from '../../components/PageLoader.astro';
     let allOrders: any[] = [];
     let currentFilter = 'all';
     let showCancelled = false;
+    let periodFilter = '30';
 
     const btnToggleCancelled = document.getElementById('toggle-cancelled') as HTMLButtonElement;
     const toggleCancelledIcon = document.getElementById('toggle-cancelled-icon') as HTMLElement;
@@ -159,22 +160,42 @@ import PageLoader from '../../components/PageLoader.astro';
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
 
-    // ⚡ Bolt: Debounce search input para evitar costosos renderizados en cada pulsación de tecla
+    // ⚡ Debounce search input
     let searchTimer: ReturnType<typeof setTimeout>;
     searchInput.addEventListener('input', () => {
       clearTimeout(searchTimer);
       searchTimer = setTimeout(renderTable, 200);
     });
 
+    // Period filter
+    const periodSelect = document.getElementById('period-filter') as HTMLSelectElement;
+    periodSelect.addEventListener('change', () => {
+      periodFilter = periodSelect.value;
+      renderTable();
+    });
+
     function renderTable() {
       const term = searchInput.value.toLowerCase();
+      const now = new Date();
       
       const filtered = allOrders.filter(o => {
         const matchesSearch = !term || o._searchString.includes(term);
         const matchesFilter = currentFilter === 'all' || (currentFilter === 'pending' && o._debt > 0.01);
         const matchesStatus = showCancelled ? true : o.status !== 'cancelled';
+
+        // Period filter
+        let matchesPeriod = true;
+        if (periodFilter !== 'all') {
+          const orderDate = new Date(o.created_at);
+          if (periodFilter === '30') {
+            const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+            matchesPeriod = orderDate >= thirtyDaysAgo;
+          } else if (periodFilter === 'month') {
+            matchesPeriod = orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+          }
+        }
         
-        return matchesSearch && matchesFilter && matchesStatus;
+        return matchesSearch && matchesFilter && matchesStatus && matchesPeriod;
       });
 
       if (filtered.length === 0) {
@@ -297,7 +318,8 @@ import PageLoader from '../../components/PageLoader.astro';
             const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
             o._debt = Number(o.total_amount) - enganche - totalAbonado;
           } catch(e) { console.warn('[Ventas] Failed to parse order notes:', o.id, e); }
-        } else if (o.status === 'pending') {
+        } else if (o._isAbonos && o.status === 'pending') {
+          // Only abonos orders with pending status have unpaid debt
           o._debt = Number(o.total_amount);
         }
         return o;
