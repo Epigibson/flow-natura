@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput, Linking } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput, Linking, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
@@ -15,6 +15,16 @@ export default function OrderDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [abonoAmount, setAbonoAmount] = useState('');
+  
+  // Notes
+  const [notesModalVisible, setNotesModalVisible] = useState(false);
+  const [editingNotes, setEditingNotes] = useState('');
+  
+  // Change Client
+  const [clientModalVisible, setClientModalVisible] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [selectedNewClient, setSelectedNewClient] = useState<string | null>(null);
+  const [savingClient, setSavingClient] = useState(false);
 
   useEffect(() => {
     if (id) loadData();
@@ -122,6 +132,92 @@ export default function OrderDetailScreen() {
     );
   };
 
+  // ── Send WhatsApp Ticket ──
+  const sendTicketWhatsApp = () => {
+    const phone = order.customers?.phone?.replace(/\D/g, '');
+    if (!phone) {
+      Alert.alert('Sin teléfono', 'Este cliente no tiene número de teléfono registrado.');
+      return;
+    }
+
+    const items = order.order_items || [];
+    const itemsText = items.map((item: any) => 
+      `  • ${item.products?.name || 'Producto'} x${item.quantity} — $${(item.quantity * Number(item.unit_price)).toFixed(2)}`
+    ).join('\n');
+
+    const msg = `🧾 *TICKET DE VENTA — Flow Natura*\n\n` +
+      `📋 Folio: *#NF-${folio}*\n` +
+      `📅 Fecha: ${new Date(order.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}\n` +
+      `👤 Cliente: ${cName}\n\n` +
+      `─────────────────\n` +
+      `*PRODUCTOS:*\n${itemsText}\n` +
+      `─────────────────\n\n` +
+      `💰 *Total: $${Number(order.total_amount).toFixed(2)} MXN*\n` +
+      `📦 Método: ${isAbonos ? 'Abonos' : 'Contado'}\n` +
+      (debtRemaining > 0 ? `⚠️ *Saldo pendiente: $${debtRemaining.toFixed(2)} MXN*\n` : '') +
+      `\n¡Gracias por tu compra! 🌿💚`;
+
+    Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
+      Alert.alert('Error', 'No se pudo abrir WhatsApp.');
+    });
+  };
+
+  // ── Save Notes ──
+  const handleSaveNotes = async () => {
+    try {
+      // Parse existing notes or create new obj
+      let notesObj: any = {};
+      try { notesObj = order.notes ? JSON.parse(order.notes) : {}; } catch { notesObj = {}; }
+      notesObj.notas_internas = editingNotes;
+
+      await supabase.from('orders').update({ notes: JSON.stringify(notesObj) }).eq('id', id);
+      setNotesModalVisible(false);
+      haptic.success();
+      loadData();
+    } catch {
+      haptic.error();
+      Alert.alert('Error', 'No se pudieron guardar las notas.');
+    }
+  };
+
+  // ── Change Client ──
+  const openClientModal = async () => {
+    try {
+      const data = await api.customers.list();
+      setCustomers(data || []);
+      setSelectedNewClient(order.customer_id);
+      setClientModalVisible(true);
+    } catch {
+      Alert.alert('Error', 'No se pudieron cargar los clientes.');
+    }
+  };
+
+  const handleSaveClient = async () => {
+    if (!selectedNewClient || selectedNewClient === order.customer_id) {
+      setClientModalVisible(false);
+      return;
+    }
+    setSavingClient(true);
+    try {
+      await supabase.from('orders').update({ customer_id: selectedNewClient }).eq('id', id);
+      setClientModalVisible(false);
+      haptic.success();
+      loadData();
+    } catch {
+      haptic.error();
+      Alert.alert('Error', 'No se pudo cambiar el cliente.');
+    } finally {
+      setSavingClient(false);
+    }
+  };
+
+  // Parse internal notes for display
+  let internalNotes = '';
+  try {
+    const parsed = order.notes ? JSON.parse(order.notes) : {};
+    internalNotes = parsed.notas_internas || '';
+  } catch {}
+
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -150,13 +246,20 @@ export default function OrderDetailScreen() {
           </View>
         </View>
 
-        {/* Client Info */}
+        {/* Client Info — with Change Client button */}
         <View className="bg-surface-container-low p-6 rounded-3xl mb-6 flex-row items-center gap-4 border border-outline-variant">
           <View className="w-16 h-16 rounded-full flex items-center justify-center bg-primary-container">
             <Text className="text-2xl font-bold text-on-primary-container">{initials}</Text>
           </View>
           <View className="flex-1">
-            <Text className="text-primary font-bold text-xs uppercase tracking-widest mb-1">Cliente</Text>
+            <View className="flex-row items-center gap-2 mb-1">
+              <Text className="text-primary font-bold text-xs uppercase tracking-widest">Cliente</Text>
+              {!isCancelled && (
+                <TouchableOpacity onPress={openClientModal}>
+                  <MaterialIcons name="edit" size={14} color={t.primary + '80'} />
+                </TouchableOpacity>
+              )}
+            </View>
             <Text className="text-xl font-bold text-on-surface mb-0.5">{cName}</Text>
             {order.customers?.phone && (
               <Text className="text-sm text-on-surface-variant flex-row items-center">
@@ -269,7 +372,7 @@ export default function OrderDetailScreen() {
         )}
 
         {/* Products List */}
-        <View className="bg-surface-container-lowest p-6 rounded-3xl mb-8 shadow-sm border border-outline-variant">
+        <View className="bg-surface-container-lowest p-6 rounded-3xl mb-6 shadow-sm border border-outline-variant">
           <Text className="text-lg font-bold font-serif text-on-surface mb-6 flex-row items-center">
             <MaterialIcons name="shopping-bag" size={20} color={t.primary} /> Desglose de Productos
           </Text>
@@ -287,6 +390,45 @@ export default function OrderDetailScreen() {
             </View>
           ))}
         </View>
+
+        {/* Internal Notes Section */}
+        <View className="bg-surface-container-lowest p-6 rounded-3xl mb-6 shadow-sm border border-outline-variant">
+          <View className="flex-row justify-between items-center mb-4">
+            <View className="flex-row items-center gap-2">
+              <MaterialIcons name="description" size={20} color={t.primary} />
+              <Text className="text-lg font-bold font-serif text-on-surface">Notas de la Venta</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => { setEditingNotes(internalNotes); setNotesModalVisible(true); }}
+              className="flex-row items-center gap-1"
+            >
+              <MaterialIcons name="edit-note" size={16} color={t.primary} />
+              <Text className="text-primary font-bold text-sm">Editar</Text>
+            </TouchableOpacity>
+          </View>
+          <View className="bg-surface-container-low p-4 rounded-2xl border border-dashed border-outline-variant">
+            <Text className="text-on-surface-variant text-sm italic">
+              {internalNotes || 'No hay notas adicionales para esta venta.'}
+            </Text>
+          </View>
+        </View>
+
+        {/* WhatsApp Ticket Button */}
+        {order.customers?.phone && (
+          <TouchableOpacity 
+            className="w-full py-4 rounded-2xl items-center flex-row justify-center gap-3 mb-8"
+            style={{ backgroundColor: '#25D36615', borderWidth: 1, borderColor: '#25D36630' }}
+            onPress={sendTicketWhatsApp}
+          >
+            <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: '#25D366' }}>
+              <MaterialIcons name="send" size={18} color="#fff" />
+            </View>
+            <View>
+              <Text className="font-bold text-on-surface">Ticket Digital</Text>
+              <Text className="text-xs text-on-surface-variant">Envía el recibo al cliente por WhatsApp</Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
       </ScrollView>
 
@@ -320,6 +462,93 @@ export default function OrderDetailScreen() {
                 <Text className="text-white font-bold text-base">Confirmar Cobro</Text>
               </TouchableOpacity>
               <TouchableOpacity className="bg-surface-container py-4 rounded-xl items-center" onPress={() => setModalVisible(false)}>
+                <Text className="text-on-surface font-bold">Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Notes Edit Modal */}
+      <Modal visible={notesModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/60 justify-center items-center px-4">
+          <View className="bg-surface-container-lowest rounded-3xl w-full p-6 border border-outline-variant shadow-2xl">
+            <View className="w-16 h-16 bg-primary-container/20 rounded-full items-center justify-center self-center mb-4">
+              <MaterialIcons name="edit-note" size={32} color={t.primary} />
+            </View>
+            <Text className="text-xl font-bold text-center text-on-surface mb-2">Notas de la Venta</Text>
+            <Text className="text-sm text-center text-on-surface-variant mb-6">Añade observaciones o comentarios internos.</Text>
+
+            <TextInput
+              value={editingNotes}
+              onChangeText={setEditingNotes}
+              multiline
+              numberOfLines={4}
+              placeholder="Escribe notas aquí..."
+              placeholderTextColor={t.onSurfaceVariant + '60'}
+              className="bg-surface-container rounded-2xl p-4 text-on-surface text-base mb-6 min-h-[120px]"
+              textAlignVertical="top"
+              style={{ color: t.onSurface }}
+            />
+
+            <View className="space-y-3">
+              <TouchableOpacity className="bg-primary py-4 rounded-xl items-center shadow-sm mb-3" onPress={handleSaveNotes}>
+                <Text className="text-white font-bold text-base">Guardar Notas</Text>
+              </TouchableOpacity>
+              <TouchableOpacity className="bg-surface-container py-4 rounded-xl items-center" onPress={() => setNotesModalVisible(false)}>
+                <Text className="text-on-surface font-bold">Cancelar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Change Client Modal */}
+      <Modal visible={clientModalVisible} transparent animationType="fade">
+        <View className="flex-1 bg-black/60 justify-center items-center px-4">
+          <View className="bg-surface-container-lowest rounded-3xl w-full p-6 border border-outline-variant shadow-2xl max-h-[80%]">
+            <View className="w-16 h-16 bg-primary-container/20 rounded-full items-center justify-center self-center mb-4">
+              <MaterialIcons name="switch-account" size={32} color={t.primary} />
+            </View>
+            <Text className="text-xl font-bold text-center text-on-surface mb-2">Cambiar Cliente</Text>
+            <Text className="text-sm text-center text-on-surface-variant mb-6">Reasigna esta venta a otro cliente registrado.</Text>
+
+            <ScrollView className="max-h-[300px] mb-6">
+              {customers.map((c: any) => (
+                <TouchableOpacity
+                  key={c.id}
+                  className={`flex-row items-center gap-3 p-4 rounded-2xl mb-2 border ${selectedNewClient === c.id ? 'border-primary bg-primary/5' : 'border-outline-variant/30 bg-surface-container'}`}
+                  onPress={() => { setSelectedNewClient(c.id); haptic.selection(); }}
+                >
+                  <View className={`w-10 h-10 rounded-full items-center justify-center ${selectedNewClient === c.id ? 'bg-primary' : 'bg-surface-container-highest'}`}>
+                    <Text className={`font-bold text-sm ${selectedNewClient === c.id ? 'text-white' : 'text-on-surface-variant'}`}>
+                      {c.full_name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`font-bold ${selectedNewClient === c.id ? 'text-primary' : 'text-on-surface'}`}>{c.full_name}</Text>
+                    {c.phone && <Text className="text-xs text-on-surface-variant">{c.phone}</Text>}
+                  </View>
+                  {selectedNewClient === c.id && (
+                    <MaterialIcons name="check-circle" size={22} color={t.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View className="space-y-3">
+              <TouchableOpacity 
+                className="bg-primary py-4 rounded-xl items-center shadow-sm mb-3 flex-row justify-center gap-2" 
+                onPress={handleSaveClient}
+                disabled={savingClient}
+              >
+                {savingClient ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-white font-bold text-base">Guardar Cambios</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity className="bg-surface-container py-4 rounded-xl items-center" onPress={() => setClientModalVisible(false)}>
                 <Text className="text-on-surface font-bold">Cancelar</Text>
               </TouchableOpacity>
             </View>

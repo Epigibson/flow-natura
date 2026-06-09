@@ -766,9 +766,9 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
 
     updateStats(fullInventory); 
 
-    // Sync stock change with backend API
+    // Sync stock change with backend API (direct SET, not accumulate)
     try {
-      await api.inventory.add([{ product_id: productId, quantity: newQty }]);
+      await api.inventory.setQuantity(productId, newQty);
       if (!product.inv_id) product.inv_id = productId;
     } catch(e) { console.error('Error syncing stock', e); }
   }

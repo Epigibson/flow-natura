@@ -330,10 +330,38 @@ export const customers = {
     return data;
   },
   getStats: async (id: string) => {
-    const { data, error } = await supabase.from('orders').select('total_amount, status').eq('customer_id', id);
+    const { data, error } = await supabase.from('orders').select('total_amount, status, created_at, notes, payment_method').eq('customer_id', id).order('created_at', { ascending: false });
     if (error) throw error;
-    const total_spent = data.filter(o => o.status !== 'cancelled').reduce((acc, o) => acc + Number(o.total_amount), 0);
-    return { total_orders: data.length, total_spent };
+    const active = data.filter(o => o.status !== 'cancelled');
+    const total_spent = active.reduce((acc, o) => acc + Number(o.total_amount), 0);
+    const last_order = active.length > 0 ? active[0].created_at : null;
+    
+    // Calculate debt: sum of pending orders + abonos remaining balance
+    let total_debt = 0;
+    for (const o of active) {
+      if (o.payment_method?.toLowerCase() === 'abonos' && o.notes) {
+        try {
+          const parsed = JSON.parse(o.notes);
+          const enganche = Number(parsed.enganche || 0);
+          const historial = parsed.historial_abonos || [];
+          const totalAbonado = historial.reduce((acc: number, a: any) => acc + Number(a.monto || 0), 0);
+          const remaining = Number(o.total_amount) - enganche - totalAbonado;
+          if (remaining > 0.01) total_debt += remaining;
+        } catch {}
+      }
+    }
+    
+    return { total_orders: data.length, total_spent, total_debt, last_order };
+  },
+  getOrders: async (customerId: string) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('id, total_amount, status, created_at, payment_method')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    if (error) throw error;
+    return data;
   },
   create: async (data: any) => {
     const userId = await getCurrentUserId();
@@ -490,6 +518,26 @@ export const inventory = {
           .insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
         if (insertError) throw insertError;
       }
+    }
+    return true;
+  },
+  /** Directly SET the quantity for a product in inventory (does NOT accumulate) */
+  setQuantity: async (productId: string, newQty: number) => {
+    const userId = await getCurrentUserId();
+    if (!userId) throw new Error('No user');
+    const { data: existing } = await supabase
+      .from('inventory')
+      .select('id')
+      .eq('product_id', productId)
+      .eq('consultant_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (existing) {
+      const { error } = await supabase.from('inventory')
+        .update({ quantity: newQty })
+        .eq('id', existing.id);
+      if (error) throw error;
     }
     return true;
   },
