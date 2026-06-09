@@ -101,16 +101,32 @@ export const POST: APIRoute = async ({ request }) => {
 
       for (const model of IMAGE_MODELS) {
         try {
-          const prompt = `Transform this product photo into a professional Amazon-style product listing image.
+          const prompt = `You are a world-class beauty product photographer. Recreate this product as a premium e-commerce hero shot.
 
-The output MUST have:
-- A pure white seamless background, like a product shot on white paper in a photo studio
-- The EXACT same product from the input photo, preserving all packaging details, logos, text, and colors faithfully
-- Professional soft studio lighting with no harsh shadows
-- Product centered with white space around it
-- Sharp focus, vibrant accurate colors
+COMPOSITION:
+- Slight 3/4 angle (approximately 15-20° rotation) to add depth and dimension
+- Product fills ~80% of the frame, vertically centered with breathing room
+- Subtle soft reflection on the surface beneath the product (like a polished acrylic table)
 
-Ignore any black bars, dark borders, or cluttered backgrounds in the input — those are not part of the product. Extract only the product itself and place it on clean white.
+BACKGROUND:
+- Clean gradient from pure white (#FFFFFF) at the top to a very subtle warm gray (#F5F3F0) at the bottom
+- No props, no decorations — product only
+
+LIGHTING:
+- Beauty-industry three-point lighting: soft key light from upper-left, fill from right, rim light from behind
+- Soft diffused highlights on curved surfaces (bottles, tubes, jars)
+- No harsh shadows — only soft contact shadows directly beneath the product
+
+FIDELITY (CRITICAL):
+- Reproduce the EXACT product from the input photo — same shape, same size proportions, same packaging
+- Preserve ALL text on labels, logos, brand names, and product names with pixel-perfect accuracy
+- Match original colors precisely — do not over-saturate or shift hues
+- Keep cap/lid orientation and any distinctive design elements exactly as shown
+
+OUTPUT:
+- Square 1:1 aspect ratio
+- High resolution, tack-sharp focus on the product label
+- Magazine-quality finish suitable for a luxury beauty catalog
 ${productName ? `\nThe product is: "${productName}"` : ''}`;
 
           const response = await ai.models.generateContent({
