@@ -160,6 +160,7 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
+  import { esc } from '../../lib/security';
 
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get('id');
@@ -249,12 +250,9 @@ import PageLoader from '../../components/PageLoader.astro';
           try {
             const terms = JSON.parse(o.notes || '{}');
             const enganche = Number(terms.enganche || 0);
-            const cuotas = Number(terms.pagos || 1);
-            const pagados = Number(terms.pagos_completados || 0);
-            const remaining = amount - enganche;
-            const montoCuota = remaining / cuotas;
-            const paid = enganche + (montoCuota * pagados);
-            totalDebt += Math.max(0, amount - paid);
+            const historial = terms.historial_abonos || [];
+            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
+            totalDebt += Math.max(0, amount - enganche - totalAbonado);
           } catch(e) { console.warn('[Perfil] Operation failed:', e); }
         }
 
@@ -272,7 +270,7 @@ import PageLoader from '../../components/PageLoader.astro';
         row.className = 'flex items-center gap-4 py-5 ' + (idx > 0 ? 'border-t border-surface-container' : '');
         const statusLabel = o.status === 'cancelled' ? 'Cancelada' : (o.payment_method === 'abonos' ? 'Abonos' : 'Pagada');
         const statusColor = o.status === 'cancelled' ? 'text-error bg-error-container/10' : (o.payment_method === 'abonos' ? 'text-primary bg-primary-container/10' : 'text-secondary bg-secondary-container/10');
-        const items = (o.order_items || []).map((i: any) => (i.products?.name || 'Producto') + ' x' + i.quantity).join(', ');
+        const items = (o.order_items || []).map((i: any) => esc((i.products?.name || 'Producto') + ' x' + i.quantity)).join(', ');
 
         row.innerHTML = '<div class="flex-1">' +
           '<div class="flex items-center gap-2 mb-1">' +
@@ -308,7 +306,7 @@ import PageLoader from '../../components/PageLoader.astro';
           const card = document.createElement('div');
           card.className = 'bg-surface-container-low rounded-2xl p-5 text-center';
           card.innerHTML = '<span class="material-symbols-outlined text-primary text-3xl mb-2">favorite</span>' +
-            '<p class="font-bold text-on-surface">' + data.name + '</p>' +
+            '<p class="font-bold text-on-surface">' + esc(data.name) + '</p>' +
             '<p class="text-sm text-primary font-bold mt-1">' + data.qty + ' unidades</p>';
           favProducts.appendChild(card);
         });

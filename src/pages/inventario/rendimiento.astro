@@ -88,6 +88,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
 <script>
   import { supabase } from '../../lib/supabase';
+  import { esc } from '../../lib/security';
 
   const kpiTotalSold = document.getElementById('kpi-total-sold') as HTMLElement;
   const kpiTotalRevenue = document.getElementById('kpi-total-revenue') as HTMLElement;
@@ -182,13 +183,13 @@ import PageLoader from '../../components/PageLoader.astro';
           '</div>' +
           '<div class="flex-1">' +
             '<div class="flex justify-between mb-1">' +
-              '<h4 class="font-bold text-on-surface text-sm">' + p.name + '</h4>' +
+              '<h4 class="font-bold text-on-surface text-sm">' + esc(p.name) + '</h4>' +
               '<span class="text-sm font-bold text-secondary">$' + p.revenue.toLocaleString('es-MX', { minimumFractionDigits: 2 }) + '</span>' +
             '</div>' +
             '<div class="w-full bg-surface-container-highest rounded-full h-2">' +
               '<div class="h-2 rounded-full bg-gradient-to-r from-primary to-primary-container transition-all" style="width: ' + pct + '%"></div>' +
             '</div>' +
-            '<p class="text-xs text-on-surface-variant mt-1">' + p.qtySold + ' unidades • ' + p.category + '</p>' +
+            '<p class="text-xs text-on-surface-variant mt-1">' + p.qtySold + ' unidades • ' + esc(p.category) + '</p>' +
           '</div>';
         productsRanking.appendChild(row);
       });
@@ -205,7 +206,7 @@ import PageLoader from '../../components/PageLoader.astro';
       card.innerHTML = '<div class="w-4 h-4 rounded-full ' + (catColors[idx % catColors.length]) + ' shrink-0"></div>' +
         '<div class="flex-1">' +
           '<div class="flex justify-between">' +
-            '<span class="text-sm font-bold text-on-surface">' + c.name + '</span>' +
+            '<span class="text-sm font-bold text-on-surface">' + esc(c.name) + '</span>' +
             '<span class="text-sm font-bold text-on-surface-variant">' + pct + '%</span>' +
           '</div>' +
           '<div class="w-full bg-surface-container-highest rounded-full h-1.5 mt-1">' +
@@ -238,9 +239,9 @@ import PageLoader from '../../components/PageLoader.astro';
         card.className = 'bg-error-container/10 rounded-2xl p-5';
         card.innerHTML = '<div class="flex items-center gap-3 mb-3">' +
           '<span class="material-symbols-outlined text-error">inventory_2</span>' +
-          '<h4 class="font-bold text-on-surface">' + (inv.products?.name || 'Producto') + '</h4>' +
+          '<h4 class="font-bold text-on-surface">' + esc(inv.products?.name || 'Producto') + '</h4>' +
           '</div>' +
-          '<p class="text-sm text-on-surface-variant">' + (inv.products?.category || 'General') + ' • Stock: ' + inv.quantity + '</p>' +
+          '<p class="text-sm text-on-surface-variant">' + esc(inv.products?.category || 'General') + ' • Stock: ' + inv.quantity + '</p>' +
           '<a href="/inventario/ajustes" class="text-sm text-primary font-bold mt-2 inline-flex items-center gap-1 hover:underline">' +
             'Ajustar stock <span class="material-symbols-outlined text-sm">arrow_forward</span></a>';
         lowPerformers.appendChild(card);
