@@ -438,8 +438,23 @@ export const inventory = {
       items = items.filter(i => i.products?.category === params.category);
     }
     
-    return items.map(row => ({
+    // ── Deduplicate by product_id ──
+    // If multiple inventory rows exist for the same product, merge them (sum quantities, keep first ID)
+    const deduped = new Map<string, any>();
+    for (const row of items) {
+      const pid = row.product_id;
+      if (deduped.has(pid)) {
+        const existing = deduped.get(pid);
+        existing.quantity += row.quantity;
+        existing._duplicateIds.push(row.id);
+      } else {
+        deduped.set(pid, { ...row, _duplicateIds: [] });
+      }
+    }
+    
+    return Array.from(deduped.values()).map(row => ({
       product_id: row.product_id,
+      inventory_id: row.id,
       product_name: row.products?.name,
       product_code: row.products?.code,
       category: row.products?.category,
@@ -455,41 +470,33 @@ export const inventory = {
   add: async (items: any[]) => {
     const userId = await getCurrentUserId();
     for (const item of items) {
-      // Atomic upsert: try insert first, if conflict then increment atomically
-      const { error: insertError } = await supabase
-        .from('inventory')
-        .insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
+      // Always check for existing record first to prevent duplicates
+      const { data: existing } = await supabase.from('inventory')
+        .select('id, quantity')
+        .eq('product_id', item.product_id)
+        .eq('consultant_id', userId)
+        .limit(1)
+        .maybeSingle();
 
-      if (insertError?.code === '23505') {
-        // Unique constraint violation → row exists, increment atomically via RPC
-        const { error: rpcError } = await supabase.rpc('increment_inventory', {
-          p_consultant_id: userId,
-          p_product_id: item.product_id,
-          p_quantity: item.quantity
-        });
-        // Fallback if RPC doesn't exist: read-then-write (legacy)
-        if (rpcError?.code === '42883') {
-          const { data: existing } = await supabase.from('inventory')
-            .select('id, quantity')
-            .eq('product_id', item.product_id)
-            .eq('consultant_id', userId)
-            .maybeSingle();
-          if (existing) {
-            await supabase.from('inventory')
-              .update({ quantity: existing.quantity + item.quantity })
-              .eq('id', existing.id);
-          }
-        } else if (rpcError) {
-          throw rpcError;
-        }
-      } else if (insertError) {
-        throw insertError;
+      if (existing) {
+        // Update existing record
+        await supabase.from('inventory')
+          .update({ quantity: existing.quantity + item.quantity })
+          .eq('id', existing.id);
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('inventory')
+          .insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
+        if (insertError) throw insertError;
       }
     }
     return true;
   },
   applyAdjustment: async (data: { product_id: string; adjustment_type: string; quantity: number; previous_quantity: number; reason: string; notes?: string }) => {
     const userId = await getCurrentUserId();
+    
+    // Try the RPC first (atomic operation)
     const { data: result, error } = await supabase.rpc('apply_inventory_adjustment', {
       p_consultant_id: userId,
       p_product_id: data.product_id,
@@ -499,8 +506,93 @@ export const inventory = {
       p_reason: data.reason,
       p_notes: data.notes || null
     });
-    if (error) throw error;
-    return result;
+    
+    // If RPC works, great
+    if (!error) return result;
+    
+    // ── Fallback: direct update if RPC doesn't exist or fails ──
+    console.warn('apply_inventory_adjustment RPC failed, using fallback:', error.message);
+    
+    // 1. Find the inventory record (use the first one if duplicates exist)
+    const { data: invRecord } = await supabase.from('inventory')
+      .select('id, quantity')
+      .eq('product_id', data.product_id)
+      .eq('consultant_id', userId)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .single();
+    
+    if (!invRecord) throw new Error('Inventory record not found');
+    
+    // 2. Calculate new quantity
+    const newQuantity = data.adjustment_type === 'addition'
+      ? invRecord.quantity + data.quantity
+      : Math.max(0, invRecord.quantity - data.quantity);
+    
+    // 3. Update the record
+    const { error: updateError } = await supabase.from('inventory')
+      .update({ quantity: newQuantity })
+      .eq('id', invRecord.id);
+    
+    if (updateError) throw updateError;
+    
+    // 4. Log the adjustment (best effort, don't fail if table doesn't exist)
+    try {
+      await supabase.from('inventory_adjustments').insert({
+        consultant_id: userId,
+        product_id: data.product_id,
+        adjustment_type: data.adjustment_type,
+        quantity: data.quantity,
+        previous_quantity: data.previous_quantity,
+        new_quantity: newQuantity,
+        reason: data.reason,
+        notes: data.notes || null
+      });
+    } catch { /* audit log is best-effort */ }
+    
+    return true;
+  },
+  /** Merge duplicate inventory records for the current user */
+  cleanupDuplicates: async () => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase.from('inventory')
+      .select('id, product_id, quantity, created_at')
+      .eq('consultant_id', userId)
+      .order('created_at', { ascending: true });
+    
+    if (error || !data) return 0;
+    
+    // Group by product_id
+    const groups = new Map<string, any[]>();
+    for (const row of data) {
+      const pid = row.product_id;
+      if (!groups.has(pid)) groups.set(pid, []);
+      groups.get(pid)!.push(row);
+    }
+    
+    let cleaned = 0;
+    for (const [productId, rows] of groups) {
+      if (rows.length <= 1) continue;
+      
+      // Keep the first record, sum all quantities into it
+      const [keeper, ...duplicates] = rows;
+      const totalQuantity = rows.reduce((sum, r) => sum + r.quantity, 0);
+      
+      // Update keeper with total quantity
+      await supabase.from('inventory')
+        .update({ quantity: totalQuantity })
+        .eq('id', keeper.id);
+      
+      // Delete duplicates
+      const dupIds = duplicates.map(d => d.id);
+      await supabase.from('inventory')
+        .delete()
+        .in('id', dupIds);
+      
+      cleaned += duplicates.length;
+    }
+    
+    return cleaned;
   },
   getAdjustments: async (limit: number = 50) => {
     const userId = await getCurrentUserId();

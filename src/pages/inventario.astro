@@ -330,6 +330,9 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
   // Load Products using API
   async function loadProducts(consultantId: string) {
     try {
+      // Clean up any duplicate inventory records first
+      await api.inventory.cleanupDuplicates().catch(() => {});
+      
       // Fetch user's inventory — already includes product details
       const myInv = await api.inventory.list({ limit: 5000 });
 

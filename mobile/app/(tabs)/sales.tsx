@@ -1,9 +1,9 @@
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert, TextInput, ScrollView } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert, TextInput, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function SalesScreen() {
@@ -13,13 +13,10 @@ export default function SalesScreen() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending'>('all');
   const [showCancelled, setShowCancelled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  async function loadOrders() {
-    setLoading(true);
+  const loadOrders = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
     try {
       const data = await api.orders.list();
       
@@ -48,8 +45,20 @@ export default function SalesScreen() {
       console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadOrders();
+    }, [loadOrders])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadOrders(true);
+  };
 
   // Calculate KPIs
   const validOrders = orders.filter(o => o.status !== 'cancelled');
@@ -254,6 +263,7 @@ export default function SalesScreen() {
           ListHeaderComponent={renderHeader}
           contentContainerClassName="p-6 pb-24"
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
               <MaterialIcons name="receipt-long" size={64} color={t.surfaceContainerHighest} />

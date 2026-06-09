@@ -193,7 +193,7 @@ export default function LoginScreen() {
               </View>
             </View>
 
-            <TouchableOpacity className="self-end mt-2 mb-4">
+            <TouchableOpacity className="self-end mt-2 mb-4" onPress={() => router.push('/forgot-password')}>
               <Text className="text-primary font-bold text-sm">¿Olvidaste tu contraseña?</Text>
             </TouchableOpacity>
 
@@ -208,6 +208,16 @@ export default function LoginScreen() {
               ) : (
                 <Text className="text-white font-bold text-lg tracking-wide">Iniciar Sesión</Text>
               )}
+            </TouchableOpacity>
+
+            {/* Register Link */}
+            <TouchableOpacity
+              className="w-full py-3 items-center mt-2"
+              onPress={() => router.push('/register')}
+            >
+              <Text className="text-primary font-bold text-sm">
+                ¿No tienes cuenta? <Text className="underline">Regístrate</Text>
+              </Text>
             </TouchableOpacity>
 
           </View>

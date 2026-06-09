@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert, RefreshControl } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import api from '../../../src/lib/api';
 import { CAMINO_CRECIMIENTO } from '../../../src/lib/camino-crecimiento';
@@ -18,6 +18,7 @@ export default function DashboardScreen() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [greeting, setGreeting] = useState('¡Hola!');
   const { openSidebar } = useSidebar();
+  const [refreshing, setRefreshing] = useState(false);
   
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
@@ -39,7 +40,7 @@ export default function DashboardScreen() {
     else setGreeting('Buenas noches');
   }
 
-  async function loadData() {
+  async function loadData(isRefresh = false) {
     try {
       const [result, profileResult] = await Promise.all([
         api.dashboard.getData(),
@@ -51,8 +52,14 @@ export default function DashboardScreen() {
       console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData(true);
+  };
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -112,7 +119,7 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView className="flex-1 bg-surface">
       {/* Scrollable Container with exact white styling from screenshot */}
-      <ScrollView className="flex-1 bg-surface mx-auto w-full max-w-lg">
+      <ScrollView className="flex-1 bg-surface mx-auto w-full max-w-lg" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}>
         <View className="px-6 pt-6 pb-20">
           
           {/* Header */}

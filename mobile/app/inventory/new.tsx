@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import api from '../../../src/lib/api';
 import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { supabase } from '../../lib/supabase';
+
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://flow-natura.vercel.app';
 
 const CATEGORIES = [
   'Perfumería',
@@ -24,6 +28,14 @@ export default function NewProductScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [showScanner, setShowScanner] = useState(false);
 
+  // AI State
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiStatus, setAiStatus] = useState('');
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [aiGeneratedImage, setAiGeneratedImage] = useState<string | null>(null);
+  const [aiConfidence, setAiConfidence] = useState<string | null>(null);
+  const cameraRef = useRef<any>(null);
+
   // Form State
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -38,7 +50,133 @@ export default function NewProductScreen() {
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
   const [costManuallyEdited, setCostManuallyEdited] = useState(false);
   
-  // Handlers
+  // ═══════════ AI ANALYSIS ═══════════
+
+  async function getAuthToken(): Promise<string> {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || '';
+  }
+
+  async function takePhotoForAI() {
+    if (!permission?.granted) {
+      const { granted } = await requestPermission();
+      if (!granted) {
+        Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara.');
+        return;
+      }
+    }
+
+    // Option 1: Use ImagePicker for gallery or camera
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      base64: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]?.base64) {
+      const base64 = result.assets[0].base64;
+      setCapturedPhoto(`data:image/jpeg;base64,${base64}`);
+      analyzeWithAI(base64);
+    }
+  }
+
+  async function pickImageForAI() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      base64: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]?.base64) {
+      const base64 = result.assets[0].base64;
+      setCapturedPhoto(`data:image/jpeg;base64,${base64}`);
+      analyzeWithAI(base64);
+    }
+  }
+
+  async function analyzeWithAI(base64: string) {
+    setAiLoading(true);
+    setAiStatus('Analizando producto con IA...');
+    setAiConfidence(null);
+
+    try {
+      const token = await getAuthToken();
+
+      // 1. Analyze product with Gemini
+      const analyzeRes = await fetch(`${API_BASE_URL}/api/gemini-analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ imageBase64: base64 }),
+      });
+
+      if (!analyzeRes.ok) {
+        throw new Error('Error al analizar la imagen');
+      }
+
+      const data = await analyzeRes.json();
+
+      // Fill form with AI data
+      if (data.name) setName(data.name);
+      if (data.brand) setBrand(data.brand);
+      if (data.category) {
+        const matched = CATEGORIES.find(c => c.toLowerCase() === data.category?.toLowerCase());
+        setCategory(matched || data.category);
+      }
+      if (data.code) setCode(data.code);
+      if (data.price) {
+        const p = String(data.price);
+        setPrice(p);
+        handlePriceChange(p);
+      }
+      if (data.points) setPoints(String(data.points));
+
+      setAiConfidence(data.confidence || 'medium');
+      setAiStatus('¡Datos extraídos con IA! ✨');
+
+      // 2. Generate clean product image
+      setAiStatus('Generando imagen profesional...');
+      try {
+        const genRes = await fetch(`${API_BASE_URL}/api/gemini-generate-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            imageBase64: base64,
+            productName: data.name || name,
+          }),
+        });
+
+        if (genRes.ok) {
+          const genData = await genRes.json();
+          if (genData.imageUrl) {
+            setAiGeneratedImage(genData.imageUrl);
+            setImageUrl(genData.imageUrl);
+            setAiStatus('¡Imagen profesional generada! ✨');
+          } else {
+            setAiStatus('Datos extraídos ✅ (imagen no disponible)');
+          }
+        }
+      } catch {
+        // Image generation is optional, don't fail
+        setAiStatus('Datos extraídos ✅ (imagen no disponible)');
+      }
+
+    } catch (err: any) {
+      console.error('AI error:', err);
+      setAiStatus('');
+      Alert.alert('Error IA', err.message || 'No se pudo analizar la imagen.');
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  // ═══════════ BARCODE SCANNING ═══════════
+  
   const handleScanBarcode = async () => {
     if (!permission?.granted) {
       const { granted } = await requestPermission();
@@ -55,7 +193,8 @@ export default function NewProductScreen() {
     setShowScanner(false);
   };
 
-  // Pricing & Profit Math
+  // ═══════════ PRICING & PROFIT ═══════════
+
   const parsedPrice = parseFloat(price) || 0;
   const parsedCost = parseFloat(cost) || 0;
   const profit = parsedPrice - parsedCost;
@@ -87,6 +226,8 @@ export default function NewProductScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [brand, category]);
 
+  // ═══════════ SAVE ═══════════
+
   const handleSave = async () => {
     if (!code || !name || parsedPrice <= 0 || parsedCost <= 0 || parseInt(stock) < 1) {
       Alert.alert('Datos incompletos', 'Por favor llena Código, Nombre, Precio, Costo y Stock.');
@@ -95,14 +236,12 @@ export default function NewProductScreen() {
 
     setLoading(true);
     try {
-      // 1. Verificar si el producto ya existe en el catálogo global
       const existingProduct = await api.products.list({ search: code });
       let productId;
 
       if (existingProduct && existingProduct.length > 0) {
         productId = existingProduct[0].id;
       } else {
-        // 2. Si no existe, crearlo en el catálogo
         const productPayload: any = {
           code,
           name,
@@ -115,14 +254,10 @@ export default function NewProductScreen() {
         };
         if (imageUrl) productPayload.image_url = imageUrl;
         
-        // El catálogo global no lleva stock ni consultant_id directamente, pero la API lo ignora o falla si lo mandamos
-        // Dependiendo de la implementación de api.ts, puede que acepte data y solo pase lo necesario.
-        // Hacemos el insert manual si api.products.create es problemático, o lo usamos directo.
         const newProduct = await api.products.create(productPayload);
         productId = newProduct.id;
       }
 
-      // 3. Vincular el producto al inventario de la consultora con el stock inicial
       await api.inventory.add([{
         product_id: productId,
         quantity: parseInt(stock)
@@ -154,7 +289,91 @@ export default function NewProductScreen() {
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
-        {/* Detalles Base */}
+
+        {/* ═══════ AI SCAN SECTION ═══════ */}
+        <View className="mb-6 bg-surface-container-lowest rounded-3xl p-5 border border-outline-variant/10 shadow-sm">
+          <View className="flex-row items-center gap-2 mb-3">
+            <MaterialIcons name="auto-awesome" size={20} color={t.primary} />
+            <Text className="text-sm font-bold text-primary uppercase tracking-widest">Escanear con IA</Text>
+          </View>
+          <Text className="text-xs text-on-surface-variant mb-4">
+            Toma una foto del producto y Gemini extraerá nombre, categoría, marca y más.
+          </Text>
+
+          {/* Photo preview */}
+          {capturedPhoto && (
+            <View className="mb-4 items-center">
+              <Image 
+                source={{ uri: capturedPhoto }} 
+                className="w-32 h-32 rounded-2xl" 
+                resizeMode="cover" 
+              />
+              {aiGeneratedImage && (
+                <View className="mt-2 items-center">
+                  <Text className="text-[10px] text-on-surface-variant mb-1">Imagen Generada por IA:</Text>
+                  <Image 
+                    source={{ uri: aiGeneratedImage }} 
+                    className="w-24 h-24 rounded-xl border border-primary/20" 
+                    resizeMode="contain" 
+                  />
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* AI Status */}
+          {aiLoading && (
+            <View className="flex-row items-center gap-2 mb-3 bg-primary/5 p-3 rounded-xl">
+              <ActivityIndicator size="small" color={t.primary} />
+              <Text className="text-xs font-bold text-primary">{aiStatus}</Text>
+            </View>
+          )}
+
+          {!aiLoading && aiStatus !== '' && (
+            <View className="flex-row items-center gap-2 mb-3 bg-secondary/5 p-3 rounded-xl">
+              <MaterialIcons name="check-circle" size={16} color={t.secondary} />
+              <Text className="text-xs font-bold text-secondary">{aiStatus}</Text>
+              {aiConfidence && (
+                <View className={`px-2 py-0.5 rounded-full ml-auto ${aiConfidence === 'high' ? 'bg-green-100' : aiConfidence === 'medium' ? 'bg-yellow-100' : 'bg-red-100'}`}>
+                  <Text className={`text-[10px] font-bold ${aiConfidence === 'high' ? 'text-green-800' : aiConfidence === 'medium' ? 'text-yellow-800' : 'text-red-800'}`}>
+                    {aiConfidence === 'high' ? 'Alta confianza' : aiConfidence === 'medium' ? 'Media' : 'Baja'}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Action buttons */}
+          <View className="flex-row gap-3">
+            <TouchableOpacity 
+              className="flex-1 bg-primary py-3.5 rounded-2xl flex-row items-center justify-center gap-2"
+              onPress={takePhotoForAI}
+              disabled={aiLoading}
+            >
+              <MaterialIcons name="camera-alt" size={18} color="#fff" />
+              <Text className="text-white font-bold text-sm">
+                {capturedPhoto ? 'Otra Foto' : 'Tomar Foto'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              className="flex-1 py-3.5 rounded-2xl flex-row items-center justify-center gap-2 border-2 border-primary/20"
+              onPress={pickImageForAI}
+              disabled={aiLoading}
+            >
+              <MaterialIcons name="photo-library" size={18} color={t.primary} />
+              <Text className="text-primary font-bold text-sm">Galería</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Divider */}
+        <View className="flex-row items-center mb-6">
+          <View className="flex-1 h-[1px] bg-outline-variant/20" />
+          <Text className="mx-3 text-[10px] text-on-surface-variant font-bold uppercase tracking-widest">o llena manual</Text>
+          <View className="flex-1 h-[1px] bg-outline-variant/20" />
+        </View>
+
+        {/* ═══════ MANUAL FORM ═══════ */}
         <Text className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Información Principal</Text>
         
         <View className="mb-4">
@@ -225,22 +444,26 @@ export default function NewProductScreen() {
           </ScrollView>
         </View>
 
-        {/* Imagen URL */}
+        {/* Image Preview */}
         <View className="mb-6">
-          <Text className="text-sm font-bold text-on-surface-variant mb-1 ml-1">URL de Imagen</Text>
-          <TextInput 
-            className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
-            placeholder="https://... (Opcional)"
-            value={imageUrl} onChangeText={setImageUrl}
-          />
-          {imageUrl.length > 0 && (
-            <View className="mt-3 w-24 h-24 rounded-xl bg-surface-container-highest overflow-hidden border border-outline-variant/10 self-center">
-              <Image source={{ uri: imageUrl }} className="w-full h-full" resizeMode="contain" />
+          <Text className="text-sm font-bold text-on-surface-variant mb-1 ml-1">Imagen del Producto</Text>
+          {imageUrl ? (
+            <View className="mt-2 items-center">
+              <Image source={{ uri: imageUrl }} className="w-32 h-32 rounded-2xl bg-surface-container-highest" resizeMode="contain" />
+              <TouchableOpacity className="mt-2" onPress={() => { setImageUrl(''); setAiGeneratedImage(null); }}>
+                <Text className="text-xs text-error font-bold">Quitar imagen</Text>
+              </TouchableOpacity>
             </View>
+          ) : (
+            <TextInput 
+              className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
+              placeholder="https://... (Opcional o usa IA)"
+              value={imageUrl} onChangeText={setImageUrl}
+            />
           )}
         </View>
 
-        {/* Precios y Ganancias */}
+        {/* Pricing */}
         <Text className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Finanzas y Rentabilidad</Text>
 
         <View className="mb-4">

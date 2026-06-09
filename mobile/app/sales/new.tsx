@@ -7,6 +7,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { supabase } from '../../../src/lib/supabase';
 import api from '../../../src/lib/api';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { haptic } from '../../lib/haptics';
 
 export default function NewSaleScreen() {
   const t = useThemeColors();
@@ -82,6 +83,7 @@ export default function NewSaleScreen() {
       }
     });
     setShowProductModal(false);
+    haptic.light();
   };
 
   const updateCartQuantity = (productId: string, delta: number) => {
@@ -265,9 +267,11 @@ export default function NewSaleScreen() {
       Alert.alert('Éxito', 'Venta registrada correctamente.', [
         { text: 'OK', onPress: () => router.replace('/(tabs)/sales') }
       ]);
+      haptic.success();
     } catch (err: any) {
       console.error(err);
       Alert.alert('Error', err.message || 'No se pudo registrar la venta.');
+      haptic.error();
     } finally {
       setSubmitting(false);
     }

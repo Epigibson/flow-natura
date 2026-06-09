@@ -115,7 +115,18 @@ export default function MembershipScreen() {
 
             {/* Settings Links */}
             <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden">
-              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-outline-variant/10">
+              <TouchableOpacity className="flex-row items-center justify-between p-4 border-b border-outline-variant/10" onPress={async () => {
+                try {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return Alert.alert('Error', 'No hay sesión activa');
+                  const { Linking } = require('react-native');
+                  // Open membership page on web (Stripe checkout happens there)
+                  const url = `https://flow-natura.vercel.app/membresia`;
+                  Linking.openURL(url);
+                } catch (e: any) {
+                  Alert.alert('Error', e.message || 'No se pudo abrir');
+                }
+              }}>
                 <View className="flex-row items-center gap-3">
                   <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <MaterialIcons name="credit-card" size={18} color={t.onSurfaceVariant} />

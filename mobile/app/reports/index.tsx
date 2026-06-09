@@ -7,6 +7,7 @@ import api from '../../../src/lib/api';
 export default function ReportsScreen() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
+  const [weeklyData, setWeeklyData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
 
   useEffect(() => {
     loadDashboardData();
@@ -17,6 +18,29 @@ export default function ReportsScreen() {
     try {
       const dashboardData = await api.dashboard.getData();
       setData(dashboardData);
+
+      // Compute real weekly activity from orders
+      try {
+        const orders = await api.orders.list();
+        const now = new Date();
+        const dayBuckets = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
+        const weekAgo = new Date(now);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+
+        (orders || []).forEach((o: any) => {
+          const d = new Date(o.created_at);
+          if (d >= weekAgo) {
+            const day = d.getDay(); // 0=Sun
+            const idx = day === 0 ? 6 : day - 1; // Map to Mon=0...Sun=6
+            dayBuckets[idx] += (o.total_amount || 0);
+          }
+        });
+
+        const maxVal = Math.max(...dayBuckets, 1);
+        setWeeklyData(dayBuckets.map(v => Math.round((v / maxVal) * 100)));
+      } catch {
+        // Fallback: keep zeros
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -60,21 +84,20 @@ export default function ReportsScreen() {
           </View>
         </View>
 
-        {/* Gráfico Simulado */}
+        {/* Gráfico Real */}
         <View className="bg-surface-container-lowest p-6 rounded-3xl mb-8 shadow-sm border border-outline-variant/10">
           <View className="flex-row justify-between items-center mb-6">
             <Text className="font-bold text-on-surface">Actividad (Semana)</Text>
             <View className="bg-secondary-container px-3 py-1 rounded-full">
-              <Text className="text-on-secondary-container text-xs font-bold">+12%</Text>
+              <Text className="text-on-secondary-container text-xs font-bold">Últimos 7 días</Text>
             </View>
           </View>
           
           <View className="flex-row items-end justify-between h-32 pt-4">
-            {/* Barras dinámicas simuladas */}
-            {[40, 70, 45, 90, 60, 85, 100].map((h, i) => (
+            {weeklyData.map((h, i) => (
               <View key={i} className="items-center w-8">
                 <View className="w-6 bg-primary/20 rounded-t-sm" style={{ height: '100%', justifyContent: 'flex-end' }}>
-                  <View className="w-full bg-primary rounded-t-sm rounded-b-sm" style={{ height: `${h}%` }} />
+                  <View className="w-full bg-primary rounded-t-sm rounded-b-sm" style={{ height: `${Math.max(h, 2)}%` }} />
                 </View>
                 <Text className="text-[10px] text-on-surface-variant mt-2 font-bold">{['L', 'M', 'M', 'J', 'V', 'S', 'D'][i]}</Text>
               </View>

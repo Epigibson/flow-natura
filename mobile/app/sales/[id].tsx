@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Alert, Modal, TextInput, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect } from 'react';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
@@ -6,6 +6,7 @@ import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { supabase } from '../../../src/lib/supabase';
+import { haptic } from '../../lib/haptics';
 
 export default function OrderDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -89,8 +90,10 @@ export default function OrderDetailScreen() {
       setModalVisible(false);
       setAbonoAmount('');
       loadData();
+      haptic.success();
       Alert.alert('Éxito', 'Abono registrado correctamente.');
     } catch {
+      haptic.error();
       Alert.alert('Error', 'Hubo un problema al registrar el abono.');
     }
   };
@@ -108,6 +111,7 @@ export default function OrderDetailScreen() {
             try {
               if (action === 'deliver') await api.orders.deliver(id as string);
               if (action === 'cancel') await api.orders.cancel(id as string);
+              action === 'deliver' ? haptic.success() : haptic.warning();
               loadData();
             } catch {
               Alert.alert('Error', 'No se pudo actualizar el estado.');
@@ -225,6 +229,23 @@ export default function OrderDetailScreen() {
               >
                 <MaterialIcons name="payments" size={20} color="#fff" />
                 <Text className="text-white font-bold text-base">Registrar Abono</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* WhatsApp cobrar button */}
+            {debtRemaining > 0 && order.customers?.phone && (
+              <TouchableOpacity 
+                className="w-full bg-green-600 py-4 rounded-xl items-center shadow-sm flex-row justify-center gap-2 mb-3"
+                onPress={() => {
+                  const phone = order.customers.phone.replace(/\D/g, '');
+                  const msg = `¡Hola ${cName}! 🌿\n\nTe escribo sobre tu pedido #${folio}.\nEl saldo pendiente es de *$${debtRemaining.toFixed(2)} MXN*.\n\n¿Cuándo te es posible realizar el pago? ¡Gracias! 💚`;
+                  Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
+                    Alert.alert('Error', 'No se pudo abrir WhatsApp.');
+                  });
+                }}
+              >
+                <MaterialIcons name="chat" size={20} color="#fff" />
+                <Text className="text-white font-bold text-base">Cobrar por WhatsApp</Text>
               </TouchableOpacity>
             )}
 

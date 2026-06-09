@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { inventory } from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
+import { supabase } from '../../lib/supabase';
 
 export default function CatalogScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadUserId();
+  }, []);
+
+  async function loadUserId() {
+    const { data: { session } } = await supabase.auth.getSession();
+    setUserId(session?.user?.id || null);
+  }
 
   useEffect(() => {
     async function loadCatalog() {
       setLoading(true);
       try {
-        // Usar inventory.list() como fuente de datos del catálogo del consultor
         const data = await inventory.list({ search });
         setItems(data);
       } catch (err) {
@@ -24,6 +34,24 @@ export default function CatalogScreen() {
     }
     loadCatalog();
   }, [search]);
+
+  async function handleShare() {
+    try {
+      const catalogUrl = userId 
+        ? `https://flow-natura.vercel.app/catalogo?id=${userId}`
+        : 'https://flow-natura.vercel.app/catalogo';
+      
+      await Share.share({
+        title: 'Mi Catálogo Natura',
+        message: `🌿 ¡Mira mi catálogo de productos Natura!\n\n${catalogUrl}`,
+        url: catalogUrl,
+      });
+    } catch (err: any) {
+      if (err.name !== 'AbortError') {
+        Alert.alert('Error', 'No se pudo compartir el catálogo');
+      }
+    }
+  }
 
   const renderProduct = ({ item }: { item: any }) => {
     const brandLabel = "Natura"; // Simulando marca por defecto
@@ -84,7 +112,7 @@ export default function CatalogScreen() {
         <Text className="text-xs text-on-surface-variant font-bold uppercase tracking-wider">
           {items.length} productos
         </Text>
-        <TouchableOpacity className="flex-row items-center gap-1 bg-secondary px-3 py-1.5 rounded-lg shadow-sm">
+        <TouchableOpacity className="flex-row items-center gap-1 bg-secondary px-3 py-1.5 rounded-lg shadow-sm" onPress={handleShare}>
           <MaterialIcons name="share" size={16} color="#fff" />
           <Text className="text-white text-xs font-bold">Compartir</Text>
         </TouchableOpacity>

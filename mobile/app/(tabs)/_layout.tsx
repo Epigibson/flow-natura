@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -57,7 +57,7 @@ function TabsLayout() {
           tabBarButton: (props) => (
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
               <TouchableOpacity
-                onPress={props.onPress}
+                onPress={() => router.push('/sales/new')}
                 activeOpacity={0.9}
                 style={{
                   width: 56,

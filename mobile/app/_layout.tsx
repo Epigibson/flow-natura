@@ -9,6 +9,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { SidebarProvider } from '@/components/SidebarContext';
+import { NetworkBanner } from '@/components/NetworkBanner';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -21,7 +22,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      const inAuthGroup = segments[0] !== 'login';
+      const inAuthGroup = !['login', 'register', 'forgot-password'].includes(segments[0] as string);
       
       if (!session && inAuthGroup) {
         // Redirect to the login page.
@@ -34,7 +35,7 @@ export default function RootLayout() {
     });
 
     supabase.auth.onAuthStateChange((_event, session) => {
-      const inAuthGroup = segments[0] !== 'login';
+      const inAuthGroup = !['login', 'register', 'forgot-password'].includes(segments[0] as string);
       if (!session && inAuthGroup) {
         router.replace('/login');
       } else if (session && segments[0] === 'login') {
@@ -52,6 +53,8 @@ export default function RootLayout() {
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="login" options={{ headerShown: false }} />
+            <Stack.Screen name="register" options={{ headerShown: false }} />
+            <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
             {/* We will register secondary routes here to ensure they don't have default headers */}
             <Stack.Screen name="reports/index" options={{ headerShown: false }} />
@@ -63,10 +66,17 @@ export default function RootLayout() {
             <Stack.Screen name="support/index" options={{ headerShown: false }} />
             <Stack.Screen name="settings/index" options={{ headerShown: false }} />
             <Stack.Screen name="sales/new" options={{ headerShown: false }} />
+            <Stack.Screen name="sales/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="inventory/new" options={{ headerShown: false }} />
             <Stack.Screen name="inventory/adjustments" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/performance" options={{ headerShown: false }} />
+            <Stack.Screen name="customers/analysis" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/edit" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/quick-add" options={{ headerShown: false }} />
+            <Stack.Screen name="inventory/scan-search" options={{ headerShown: false }} />
           </Stack>
         </SidebarProvider>
+        <NetworkBanner />
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
       </View>
     </ThemeProvider>

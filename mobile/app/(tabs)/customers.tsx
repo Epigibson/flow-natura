@@ -1,9 +1,10 @@
-import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { useFocusEffect } from 'expo-router';
 
 export default function CustomersScreen() {
   const t = useThemeColors();
@@ -17,9 +18,10 @@ export default function CustomersScreen() {
   const [customerStats, setCustomerStats] = useState<any>(null);
   const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', preferences: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadCustomers = useCallback(async () => {
-    setLoading(true);
+  const loadCustomers = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
     try {
       const data = await api.customers.list(search);
       setCustomers(data || []);
@@ -27,12 +29,20 @@ export default function CustomersScreen() {
       console.error(err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [search]);
 
-  useEffect(() => {
-    loadCustomers();
-  }, [loadCustomers]);
+  useFocusEffect(
+    useCallback(() => {
+      loadCustomers();
+    }, [loadCustomers])
+  );
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadCustomers(true);
+  };
 
   const handleCall = (phone: string) => {
     if (!phone) return;
@@ -228,6 +238,7 @@ export default function CustomersScreen() {
           ListHeaderComponent={renderHeader}
           contentContainerClassName="p-6 pb-24"
           showsVerticalScrollIndicator={false}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
             <View className="items-center justify-center py-16">
               <MaterialIcons name="group" size={64} color={t.surfaceContainerHighest} />

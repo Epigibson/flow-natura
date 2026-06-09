@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
+import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function MentoringScreen() {
+  const t = useThemeColors();
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [completingLesson, setCompletingLesson] = useState(false);
 
   useEffect(() => {
     loadMentoring();
@@ -24,7 +28,20 @@ export default function MentoringScreen() {
     }
   }
 
-  // Helpers to pick a color safely from db "color" strings
+  async function handleCompleteLesson(lessonId: string) {
+    setCompletingLesson(true);
+    try {
+      await api.mentorship.completeLesson(lessonId);
+      Alert.alert('¡Felicidades! 🎉', 'Has completado esta lección.');
+      setSelectedLesson(null);
+      loadMentoring(); // Refresh to update progress
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo marcar como completada');
+    } finally {
+      setCompletingLesson(false);
+    }
+  }
+
   const getColors = (colorName: string) => {
     switch (colorName) {
       case 'primary': return { bg: 'bg-primary/10', text: 'text-primary' };
@@ -78,7 +95,11 @@ export default function MentoringScreen() {
 
                 <View className="space-y-3">
                   {mod.lessons && mod.lessons.map((lesson: any, lIdx: number) => (
-                    <TouchableOpacity key={lesson.id} className="bg-surface-container-lowest p-4 rounded-2xl flex-row items-center border border-outline-variant/10 shadow-sm mb-3">
+                    <TouchableOpacity 
+                      key={lesson.id} 
+                      className="bg-surface-container-lowest p-4 rounded-2xl flex-row items-center border border-outline-variant/10 shadow-sm mb-3"
+                      onPress={() => setSelectedLesson(lesson)}
+                    >
                       <View className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center mr-4">
                         <Text className="font-bold text-on-surface-variant text-xs">{lIdx + 1}</Text>
                       </View>
@@ -86,7 +107,11 @@ export default function MentoringScreen() {
                         <Text className="font-bold text-on-surface text-sm">{lesson.title}</Text>
                         <Text className="text-xs text-on-surface-variant mt-0.5">{lesson.duration_minutes} min</Text>
                       </View>
-                      <MaterialIcons name="play-circle-outline" size={24} color="#888" />
+                      {lesson.completed ? (
+                        <MaterialIcons name="check-circle" size={24} color={t.secondary} />
+                      ) : (
+                        <MaterialIcons name="play-circle-outline" size={24} color="#888" />
+                      )}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -96,6 +121,56 @@ export default function MentoringScreen() {
         )}
 
       </ScrollView>
+
+      {/* Lesson Detail Modal */}
+      <Modal visible={!!selectedLesson} animationType="slide" presentationStyle="pageSheet">
+        <View className="flex-1 bg-surface">
+          {selectedLesson && (
+            <>
+              <View className="px-6 py-4 flex-row justify-between items-center border-b border-outline-variant/10">
+                <TouchableOpacity onPress={() => setSelectedLesson(null)}>
+                  <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
+                </TouchableOpacity>
+                <View className="bg-surface-container px-3 py-1 rounded-full">
+                  <Text className="text-xs font-bold text-on-surface-variant">{selectedLesson.duration_minutes} min</Text>
+                </View>
+              </View>
+              <ScrollView className="flex-1 p-6">
+                <Text className="text-2xl font-serif font-bold text-on-surface mb-4">{selectedLesson.title}</Text>
+                <Text className="text-on-surface-variant text-base leading-7 mb-8">
+                  {selectedLesson.content || selectedLesson.description || 'Contenido de la lección próximamente. Mantente atenta a las actualizaciones.'}
+                </Text>
+
+                {!selectedLesson.completed && (
+                  <TouchableOpacity 
+                    className="bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 shadow-lg"
+                    style={{ shadowColor: t.primary }}
+                    onPress={() => handleCompleteLesson(selectedLesson.id)}
+                    disabled={completingLesson}
+                  >
+                    {completingLesson ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <>
+                        <MaterialIcons name="check" size={20} color="#fff" />
+                        <Text className="text-white font-bold text-base">Marcar como Completada</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                {selectedLesson.completed && (
+                  <View className="bg-secondary/10 p-4 rounded-2xl flex-row items-center gap-3">
+                    <MaterialIcons name="check-circle" size={24} color={t.secondary} />
+                    <Text className="text-secondary font-bold">¡Ya completaste esta lección!</Text>
+                  </View>
+                )}
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </Modal>
     </SecondaryLayout>
   );
 }
+
