@@ -249,7 +249,7 @@ export const products = {
     if (error) throw error;
     return data;
   },
-  create: async (data: any) => {
+  create: async (data: any, _level?: string) => {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('No user authenticated');
 
@@ -315,7 +315,11 @@ export const customers = {
   list: async (search?: string) => {
     const userId = await getCurrentUserId();
     let query = supabase.from('customers').select('*').eq('consultant_id', userId).order('full_name');
-    if (search) query = query.ilike('full_name', `%${search}%`);
+    if (search) {
+      // Sanitize PostgREST special characters to prevent filter injection
+      const safe = search.replace(/[%_.,()]/g, '');
+      query = query.ilike('full_name', `%${safe}%`);
+    }
     const { data, error } = await query;
     if (error) throw error;
     return data;
@@ -451,11 +455,35 @@ export const inventory = {
   add: async (items: any[]) => {
     const userId = await getCurrentUserId();
     for (const item of items) {
-      const { data: existing } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).maybeSingle();
-      if (existing) {
-        await supabase.from('inventory').update({ quantity: existing.quantity + item.quantity }).eq('id', existing.id);
-      } else {
-        await supabase.from('inventory').insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
+      // Atomic upsert: try insert first, if conflict then increment atomically
+      const { error: insertError } = await supabase
+        .from('inventory')
+        .insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
+
+      if (insertError?.code === '23505') {
+        // Unique constraint violation → row exists, increment atomically via RPC
+        const { error: rpcError } = await supabase.rpc('increment_inventory', {
+          p_consultant_id: userId,
+          p_product_id: item.product_id,
+          p_quantity: item.quantity
+        });
+        // Fallback if RPC doesn't exist: read-then-write (legacy)
+        if (rpcError?.code === '42883') {
+          const { data: existing } = await supabase.from('inventory')
+            .select('id, quantity')
+            .eq('product_id', item.product_id)
+            .eq('consultant_id', userId)
+            .maybeSingle();
+          if (existing) {
+            await supabase.from('inventory')
+              .update({ quantity: existing.quantity + item.quantity })
+              .eq('id', existing.id);
+          }
+        } else if (rpcError) {
+          throw rpcError;
+        }
+      } else if (insertError) {
+        throw insertError;
       }
     }
     return true;

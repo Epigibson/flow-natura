@@ -561,9 +561,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   (window as any).updateDiscount = updateDiscount;
   (window as any).toggleItemDiscountType = toggleItemDiscountType;
 
+  let isCheckoutInProgress = false;
+
   btnCheckout?.addEventListener('click', async () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || isCheckoutInProgress) return;
     
+    isCheckoutInProgress = true;
     btnCheckout.disabled = true;
     errorDiv.classList.add('hidden');
 
@@ -597,6 +600,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       errorDiv.textContent = 'Error: No se pudo asignar un cliente a la venta.';
       errorDiv.classList.remove('hidden');
       btnCheckout.disabled = false;
+      isCheckoutInProgress = false;
       return;
     }
 
@@ -684,6 +688,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       cart = [];
       renderCart();
 
+      // Re-enable button before redirect in case navigation fails
+      btnCheckout.disabled = false;
+      isCheckoutInProgress = false;
+
       setTimeout(() => {
         window.location.href = '/ventas';
       }, 1500);
@@ -691,6 +699,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       errorDiv.textContent = 'Error: ' + err.message;
       errorDiv.classList.remove('hidden');
       btnCheckout.disabled = false;
+      isCheckoutInProgress = false;
     }
   });
 </script>

@@ -40,7 +40,13 @@ export const POST: APIRoute = async ({ request }) => {
     // Use service role client (bypasses RLS and storage policies)
     const supabase = getServiceSupabase();
 
-    const filePath = `user-uploads/${fileName}`;
+    // Sanitize fileName to prevent path traversal (e.g. "../../admin/evil.js")
+    const safeFileName = fileName
+      .replace(/\.\./g, '')          // Remove directory traversal
+      .replace(/[/\\]/g, '')         // Remove path separators
+      .replace(/[^a-zA-Z0-9._-]/g, '_'); // Only safe characters
+
+    const filePath = `user-uploads/${safeFileName}`;
 
     const { data, error } = await supabase.storage
       .from('product-images')
