@@ -3,9 +3,11 @@
  *
  * Multi-strategy image enhancement pipeline:
  *
- * Strategy 1: Gemini 2.5 Flash Image (best quality, primary)
- *   → Uses native image generation to recreate the product on white background
- *   → Faithfully preserves product appearance with studio-quality results
+ * Strategy 1a: Gemini 3 Pro Image (best quality, primary)
+ *   → Premium model for high-fidelity product photos with accurate text/logos
+ *
+ * Strategy 1b: Gemini 3.1 Flash Image (fallback if Pro fails)
+ *   → Fast, cost-effective alternative with good quality
  *
  * Strategy 2: Imagen 4 Background Removal (fallback if Gemini fails)
  *   → Uses BKG_REMOVAL edit mode to cleanly remove background
@@ -92,13 +94,14 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ═══════════ STRATEGY 1: Gemini Native Image Generation (best quality) ═══════════
+    // ═══════════ STRATEGY 1: Gemini Native Image Generation (Pro → Flash fallback) ═══════════
     if (imageBase64) {
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      const IMAGE_MODELS = ['gemini-3-pro-image', 'gemini-3.1-flash-image'];
 
-      try {
-
-        const prompt = `Transform this product photo into a professional Amazon-style product listing image.
+      for (const model of IMAGE_MODELS) {
+        try {
+          const prompt = `Transform this product photo into a professional Amazon-style product listing image.
 
 The output MUST have:
 - A pure white seamless background, like a product shot on white paper in a photo studio
@@ -110,41 +113,42 @@ The output MUST have:
 Ignore any black bars, dark borders, or cluttered backgrounds in the input — those are not part of the product. Extract only the product itself and place it on clean white.
 ${productName ? `\nThe product is: "${productName}"` : ''}`;
 
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image',
-          contents: [{
-            role: 'user',
-            parts: [
-              { text: prompt },
-              { inlineData: { mimeType, data: cleanBase64 } },
-            ],
-          }],
-          config: { responseModalities: ['IMAGE', 'TEXT'] },
-        });
+          const response = await ai.models.generateContent({
+            model,
+            contents: [{
+              role: 'user',
+              parts: [
+                { text: prompt },
+                { inlineData: { mimeType, data: cleanBase64 } },
+              ],
+            }],
+            config: { responseModalities: ['IMAGE', 'TEXT'] },
+          });
 
-        const candidates = response.candidates;
-        if (candidates && candidates.length > 0) {
-          const parts = candidates[0].content?.parts || [];
-          for (const part of parts) {
-            if (part.inlineData && part.inlineData.data) {
-              const genMime = part.inlineData.mimeType || 'image/png';
-              const publicUrl = await uploadToStorage(part.inlineData.data, genMime, 'ai_studio');
+          const candidates = response.candidates;
+          if (candidates && candidates.length > 0) {
+            const parts = candidates[0].content?.parts || [];
+            for (const part of parts) {
+              if (part.inlineData && part.inlineData.data) {
+                const genMime = part.inlineData.mimeType || 'image/png';
+                const publicUrl = await uploadToStorage(part.inlineData.data, genMime, 'ai_studio');
 
-              return new Response(JSON.stringify({
-                identified_name: productName || 'Producto generado con IA',
-                identified_code: productCode || null,
-                suggested_image_url: publicUrl,
-                image_base64: `data:${genMime};base64,${part.inlineData.data}`,
-                confidence: 'high',
-                strategy: 'gemini_image_gen',
-                notes: 'Imagen profesional generada con Gemini IA.',
-              }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+                return new Response(JSON.stringify({
+                  identified_name: productName || 'Producto generado con IA',
+                  identified_code: productCode || null,
+                  suggested_image_url: publicUrl,
+                  image_base64: `data:${genMime};base64,${part.inlineData.data}`,
+                  confidence: 'high',
+                  strategy: `gemini_image_gen_${model.includes('pro') ? 'pro' : 'flash'}`,
+                  notes: `Imagen profesional generada con ${model.includes('pro') ? 'Gemini Pro' : 'Gemini Flash'}.`,
+                }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+              }
             }
           }
+          console.warn(`[enhance] ${model} returned no image`);
+        } catch (err: any) {
+          console.warn(`[enhance] ${model} failed:`, err.message || err);
         }
-        console.warn('[enhance] Gemini image gen returned no image');
-      } catch (err: any) {
-        console.warn('[enhance] Gemini image gen failed:', err.message || err);
       }
 
       // ═══════════ STRATEGY 2: Imagen 4 Background Removal (fallback) ═══════════
@@ -222,7 +226,7 @@ NO incluyas markdown, SOLO JSON crudo.`
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.5-flash',
       contents: [{ role: 'user', parts }],
       config: { temperature: 0.1 },
     });

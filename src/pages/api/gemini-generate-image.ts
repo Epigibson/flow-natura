@@ -65,15 +65,17 @@ export const POST: APIRoute = async ({ request }) => {
       ? `${IMAGE_PROMPT}\n\nThe product in the photo is: "${productName}". Make sure the generated image faithfully represents this product.`
       : IMAGE_PROMPT;
 
-    // Attempt generation with retry (max 2 attempts)
+    // Attempt generation: Pro first (best quality), Flash fallback (faster, cheaper)
+    const IMAGE_MODELS = ['gemini-3-pro-image', 'gemini-3.1-flash-image'];
     let generatedImageData: string | null = null;
     let generatedMimeType = 'image/png';
     let lastError = '';
 
-    for (let attempt = 0; attempt < 2; attempt++) {
+    for (let attempt = 0; attempt < IMAGE_MODELS.length; attempt++) {
+      const model = IMAGE_MODELS[attempt];
       try {
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-image',
+          model,
           contents: [
             {
               role: 'user',
@@ -107,14 +109,14 @@ export const POST: APIRoute = async ({ request }) => {
         }
 
         if (generatedImageData) break; // Success!
-        lastError = 'Gemini no retornó una imagen en la respuesta';
+        lastError = `${model}: no retornó una imagen en la respuesta`;
 
       } catch (err: unknown) {
-        lastError = err instanceof Error ? err.message : String(err);
-        console.warn(`[gemini-generate-image] Attempt ${attempt + 1} failed:`, lastError);
-        // Wait 2 seconds before retry
+        lastError = `${model}: ${err instanceof Error ? err.message : String(err)}`;
+        console.warn(`[gemini-generate-image] ${model} (attempt ${attempt + 1}) failed:`, lastError);
+        // Wait 1.5 seconds before trying fallback model
         if (attempt === 0) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
         }
       }
     }
