@@ -648,23 +648,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         throw new Error(itemsError.message || 'Error al guardar los productos');
       }
 
-      // 3. Deduct inventory
-      for (const item of cart) {
-        const { data: inv } = await supabase
-          .from('inventory')
-          .select('id, quantity')
-          .eq('consultant_id', currentUserId)
-          .eq('product_id', item.product_id)
-          .single();
-
-        if (inv) {
-          const newQty = Math.max(0, inv.quantity - item.quantity);
-          await supabase
-            .from('inventory')
-            .update({ quantity: newQty })
-            .eq('id', inv.id);
-        }
-      }
+      // 3. Inventory deduction is handled automatically by the DB trigger
+      //    `deduct_inventory_on_sale()` which fires on order_items INSERT.
+      //    No manual deduction needed here.
 
       document.getElementById('checkout-success')?.classList.remove('hidden');
       cart = [];
