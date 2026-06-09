@@ -1,7 +1,7 @@
 import { useColorScheme } from 'nativewind';
 
 /**
- * Hook centralizado para colores del tema.
+ * Hook centralizado para colores del tema — Luxury Botanical Palette.
  * Usar SIEMPRE este hook en lugar de hex hardcodeados en inline styles.
  */
 export function useThemeColors() {
@@ -9,20 +9,29 @@ export function useThemeColors() {
   const isDark = colorScheme === 'dark';
   return {
     isDark,
-    primary: isDark ? '#FF985E' : '#964900',
-    primaryContainer: isDark ? '#5C2D0C' : '#f48120',
-    onPrimaryContainer: isDark ? '#FFDDB8' : '#5a2900',
-    secondary: isDark ? '#96C97A' : '#3c6a00',
-    secondaryContainer: isDark ? '#2D4518' : '#b8f47a',
-    error: isDark ? '#F87171' : '#ba1a1a',
-    errorContainer: isDark ? '#450A0A' : '#ffdad6',
-    surface: isDark ? '#09090B' : '#fef7ff',
-    surfaceContainer: isDark ? '#27272A' : '#f9f1fd',
-    surfaceContainerHighest: isDark ? '#3F3F46' : '#e7e0eb',
-    surfaceContainerLowest: isDark ? '#18181B' : '#ffffff',
-    onSurface: isDark ? '#F4F4F5' : '#1d1a22',
-    onSurfaceVariant: isDark ? '#A1A1AA' : '#564336',
-    outlineVariant: isDark ? '#3F3F46' : '#ddc1b0',
-    muted: isDark ? '#52525B' : '#cccccc',
+    // ── Primary ──
+    primary: isDark ? '#E8B88A' : '#8B5E3C',
+    primaryContainer: isDark ? '#5C3A1E' : '#D4A574',
+    onPrimaryContainer: isDark ? '#FDDCB5' : '#5C3A1E',
+    // ── Secondary ──
+    secondary: isDark ? '#81C784' : '#4A7C59',
+    secondaryContainer: isDark ? '#2E4A32' : '#C8E6C9',
+    // ── Accent (gold) ──
+    accent: isDark ? '#D4B896' : '#C9A96E',
+    // ── Error ──
+    error: isDark ? '#EF5350' : '#C62828',
+    errorContainer: isDark ? '#3E1212' : '#FFDAD6',
+    // ── Surfaces ──
+    surface: isDark ? '#121210' : '#FAF8F5',
+    surfaceContainerLow: isDark ? '#1A1918' : '#F5F2ED',
+    surfaceContainer: isDark ? '#1E1D1B' : '#F3F0EB',
+    surfaceContainerHighest: isDark ? '#2E2C28' : '#E8E3DC',
+    surfaceContainerLowest: isDark ? '#171614' : '#FFFFFF',
+    // ── On Surface ──
+    onSurface: isDark ? '#F5F0E8' : '#2C2417',
+    onSurfaceVariant: isDark ? '#A89F94' : '#7A6E62',
+    // ── Borders ──
+    outlineVariant: isDark ? '#3A3632' : '#D6CFC6',
+    muted: isDark ? '#4A4640' : '#C4BDB5',
   };
 }

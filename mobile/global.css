@@ -2,38 +2,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════
+   LUXURY BOTANICAL — Light Mode ("Warm Sand")
+   ═══════════════════════════════════════════════ */
 :root {
-  --color-primary: #964900;
-  --color-primary-container: #f48120;
-  --color-on-primary-container: #5a2900;
-  --color-secondary: #3c6a00;
-  --color-secondary-container: #b8f47a;
-  --color-error: #ba1a1a;
-  --color-error-container: #ffdad6;
-  --color-background: #fef7ff;
-  --color-surface: #fef7ff;
-  --color-surface-container: #f9f1fd;
-  --color-surface-container-highest: #e7e0eb;
-  --color-surface-container-lowest: #ffffff;
-  --color-on-surface: #1d1a22;
-  --color-on-surface-variant: #564336;
-  --color-outline-variant: #ddc1b0;
+  --color-primary: #8B5E3C;
+  --color-primary-container: #D4A574;
+  --color-on-primary-container: #5C3A1E;
+  --color-secondary: #4A7C59;
+  --color-secondary-container: #C8E6C9;
+  --color-accent: #C9A96E;
+  --color-error: #C62828;
+  --color-error-container: #FFDAD6;
+  --color-background: #FAF8F5;
+  --color-surface: #FAF8F5;
+  --color-surface-container-low: #F5F2ED;
+  --color-surface-container: #F3F0EB;
+  --color-surface-container-highest: #E8E3DC;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-on-surface: #2C2417;
+  --color-on-surface-variant: #7A6E62;
+  --color-outline-variant: #D6CFC6;
 }
 
+/* ═══════════════════════════════════════════════
+   LUXURY BOTANICAL — Dark Mode ("Midnight Botanical")
+   ═══════════════════════════════════════════════ */
 .dark {
-  --color-primary: #FF985E; /* Naranja/Durazno vibrante y sofisticado */
-  --color-primary-container: #5C2D0C;
-  --color-on-primary-container: #FFDDB8;
-  --color-secondary: #96C97A; /* Verde salvia elegante */
-  --color-secondary-container: #2D4518;
-  --color-error: #F87171;
-  --color-error-container: #450A0A;
-  --color-background: #09090B; /* Zinc 950 - Premium dark background */
-  --color-surface: #09090B; /* App Background */
-  --color-surface-container: #27272A; /* Inputs background (Zinc 800) */
-  --color-surface-container-highest: #3F3F46; /* Inputs highlight (Zinc 700) */
-  --color-surface-container-lowest: #18181B; /* Cards background (Zinc 900) */
-  --color-on-surface: #F4F4F5; /* Zinc 100 - Off-white para legibilidad elegante */
-  --color-on-surface-variant: #A1A1AA; /* Zinc 400 - Gris para subtítulos */
-  --color-outline-variant: #3F3F46; /* Zinc 700 - Bordes sutiles */
+  --color-primary: #E8B88A;
+  --color-primary-container: #5C3A1E;
+  --color-on-primary-container: #FDDCB5;
+  --color-secondary: #81C784;
+  --color-secondary-container: #2E4A32;
+  --color-accent: #D4B896;
+  --color-error: #EF5350;
+  --color-error-container: #3E1212;
+  --color-background: #121210;
+  --color-surface: #121210;
+  --color-surface-container-low: #1A1918;
+  --color-surface-container: #1E1D1B;
+  --color-surface-container-highest: #2E2C28;
+  --color-surface-container-lowest: #171614;
+  --color-on-surface: #F5F0E8;
+  --color-on-surface-variant: #A89F94;
+  --color-outline-variant: #3A3632;
 }
