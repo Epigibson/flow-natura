@@ -94,39 +94,31 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // ═══════════ STRATEGY 1: Gemini Native Image Generation (Pro → Flash fallback) ═══════════
+    // ═══════════ STRATEGY 1: Gemini Native Image Generation (with fallback) ═══════════
     if (imageBase64) {
       const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+      // Pro (best quality) → Flash (fast fallback)
       const IMAGE_MODELS = ['gemini-3-pro-image', 'gemini-3.1-flash-image'];
 
       for (const model of IMAGE_MODELS) {
         try {
-          const prompt = `You are a world-class beauty product photographer. Recreate this product as a premium e-commerce hero shot.
+          const prompt = `Remove the background from this product photo and place the product on a pure white background. This is for an e-commerce product listing.
 
-COMPOSITION:
-- Slight 3/4 angle (approximately 15-20° rotation) to add depth and dimension
-- Product fills ~80% of the frame, vertically centered with breathing room
-- Subtle soft reflection on the surface beneath the product (like a polished acrylic table)
+STRICT RULES:
+- The background MUST be pure white (#FFFFFF). Nothing else. No colors, no gradients, no textures, no patterns, no decorations
+- Do NOT add any branding elements, logos, medallions, ribbons, or watermarks that are not already on the product itself
+- Do NOT add any surface, table, reflection, or shadow on the background
+- Only a very subtle contact shadow directly under the product base is acceptable
+- Product must be front-facing, centered, filling about 75% of the frame height
+- If the product has a box or packaging visible in the photo, include it
 
-BACKGROUND:
-- Clean gradient from pure white (#FFFFFF) at the top to a very subtle warm gray (#F5F3F0) at the bottom
-- No props, no decorations — product only
+FIDELITY:
+- Keep the EXACT same product — do not change, redesign, or reimagine it
+- Preserve all text, labels, logos on the product packaging exactly as they appear
+- Match the original colors precisely
+- Keep proportions, shape, and cap orientation identical
 
-LIGHTING:
-- Beauty-industry three-point lighting: soft key light from upper-left, fill from right, rim light from behind
-- Soft diffused highlights on curved surfaces (bottles, tubes, jars)
-- No harsh shadows — only soft contact shadows directly beneath the product
-
-FIDELITY (CRITICAL):
-- Reproduce the EXACT product from the input photo — same shape, same size proportions, same packaging
-- Preserve ALL text on labels, logos, brand names, and product names with pixel-perfect accuracy
-- Match original colors precisely — do not over-saturate or shift hues
-- Keep cap/lid orientation and any distinctive design elements exactly as shown
-
-OUTPUT:
-- Square 1:1 aspect ratio
-- High resolution, tack-sharp focus on the product label
-- Magazine-quality finish suitable for a luxury beauty catalog
+OUTPUT: Square 1:1, sharp focus, white background only
 ${productName ? `\nThe product is: "${productName}"` : ''}`;
 
           const response = await ai.models.generateContent({

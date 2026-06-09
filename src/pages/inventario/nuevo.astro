@@ -964,15 +964,12 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       // Auto-fill form with AI data
       fillFormWithAI(data);
 
-      // Search for official catalog image
-      let foundCatalogImage = false;
-      if (data.name) {
-        foundCatalogImage = await searchCatalogImage(data.name, data.brand || "");
-      }
+      // Always generate a clean white-background product image with AI
+      await generateCleanImage();
 
-      // If no catalog image, generate a clean product photo with AI
-      if (!foundCatalogImage) {
-        await generateCleanImage();
+      // If AI generation failed (no aiGeneratedImageUrl), try catalog search as fallback
+      if (!aiGeneratedImageUrl && data.name) {
+        await searchCatalogImage(data.name, data.brand || "");
       }
 
     } catch (err: unknown) {
