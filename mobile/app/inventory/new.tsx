@@ -239,8 +239,9 @@ export default function NewProductScreen() {
       const existingProduct = await api.products.list({ search: code });
       let productId;
 
-      if (existingProduct && existingProduct.length > 0) {
-        productId = existingProduct[0].id;
+      const exact = existingProduct?.find((p: any) => p.code?.toLowerCase() === code.trim().toLowerCase());
+      if (exact) {
+        productId = exact.id;
       } else {
         const productPayload: any = {
           code,

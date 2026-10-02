@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { supabase } from '../../../src/lib/supabase';
 import api from '../../../src/lib/api';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { haptic } from '../../lib/haptics';
@@ -19,6 +18,7 @@ export default function NewSaleScreen() {
   const [inventory, setInventory] = useState<any[]>([]);
   
   // Selection States
+  const { customerId: presetCustomerId } = useLocalSearchParams<{ customerId?: string }>();
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [cart, setCart] = useState<any[]>([]);
   
@@ -53,6 +53,11 @@ export default function NewSaleScreen() {
         api.inventory.list()
       ]);
       setCustomers(custData || []);
+      // Coming from a customer's profile
+      if (presetCustomerId) {
+        const preset = (custData || []).find((c: any) => c.id === presetCustomerId);
+        if (preset) setSelectedCustomer(preset);
+      }
       // Solo inventario con stock
       setInventory((invData || []).filter(item => item.quantity > 0));
     } catch (error) {
@@ -185,37 +190,20 @@ export default function NewSaleScreen() {
     
     setSubmitting(true);
     try {
-      let customerId = selectedCustomer?.id;
+      const customerId: string | null = selectedCustomer?.id || null; // null => server uses "Cliente Mostrador"
 
-      // Create "Cliente Mostrador" if none selected
-      if (!customerId) {
-        const userId = await api.getCurrentUserId();
-        const { data: existing } = await supabase.from('customers').select('id').eq('consultant_id', userId).eq('full_name', 'Cliente Mostrador').maybeSingle();
-        if (existing) {
-          customerId = existing.id;
-        } else {
-          const { data: newCust } = await supabase.from('customers').insert({ consultant_id: userId, full_name: 'Cliente Mostrador', phone: '', email: '' }).select('id').single();
-          customerId = newCust?.id;
-        }
-      }
-
-      if (!customerId) throw new Error('No se pudo determinar el cliente.');
-
-      const userId = await api.getCurrentUserId();
-      let orderNotesObj: any = {};
+      const engancheNum = Math.round((Number(enganche) || 0) * 100) / 100;
+      const installments = Math.floor(Number(pagos) || 1);
 
       if (paymentMethod === 'abonos') {
-        orderNotesObj = {
-          tipo: 'Abonos',
-          enganche: enganche || '0',
-          frecuencia: frecuencia,
-          pagos: pagos || '1'
-        };
+        if (engancheNum < 0) throw new Error('El enganche no puede ser negativo.');
+        if (engancheNum > finalTotal + 0.005) throw new Error('El enganche no puede ser mayor al total de la venta.');
+        if (installments < 1) throw new Error('El número de pagos debe ser al menos 1.');
       }
 
-      // Añadir descuentos al JSON (igual que en web)
+      const meta: Record<string, any> = {};
       if (totalDiscount > 0) {
-        orderNotesObj.descuentos = {
+        meta.descuentos = {
           global: {
             tipo: globalDiscountType,
             valor_original: Number(globalDiscount) || 0,
@@ -231,43 +219,25 @@ export default function NewSaleScreen() {
         };
       }
 
-      const orderNotes = Object.keys(orderNotesObj).length > 0 ? JSON.stringify(orderNotesObj) : null;
-
-      // 1. Create Order
-      const { data: order, error: orderError } = await supabase.from('orders').insert({
-        consultant_id: userId,
+      // Atomic on the server: order + items + stock deduction (DB trigger) + initial payment.
+      const newOrderId = await api.orders.create({
         customer_id: customerId,
-        total_amount: finalTotal,
         payment_method: paymentMethod,
-        notes: orderNotes,
-        status: 'pending'
-      }).select('id').single();
+        items: cartWithCalcs.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: Math.round(item._final_unit_price * 100) / 100
+        })),
+        enganche: paymentMethod === 'abonos' ? engancheNum : 0,
+        installments,
+        frequency: frecuencia,
+        meta,
+        global_discount: Math.round(calculatedGlobalDiscount * 100) / 100
+      });
 
-      if (orderError) throw orderError;
-
-      // 2. Insert Items (Unit price here is the discounted price)
-      const orderItems = cartWithCalcs.map(item => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: item._final_unit_price
-      }));
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) throw itemsError;
-
-      // 3. Update Inventory Stock
-      for (const item of cart) {
-        const { data: inv } = await supabase.from('inventory').select('id, quantity').eq('product_id', item.product_id).eq('consultant_id', userId).single();
-        if (inv) {
-          await supabase.from('inventory').update({ quantity: Math.max(0, inv.quantity - item.quantity) }).eq('id', inv.id);
-        }
-      }
-
-      Alert.alert('Éxito', 'Venta registrada correctamente.', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)/sales') }
-      ]);
       haptic.success();
+      // Land on the sale: ticket, WhatsApp and first payment are one tap away
+      router.replace({ pathname: '/sales/[id]', params: { id: newOrderId } } as any);
     } catch (err: any) {
       console.error(err);
       Alert.alert('Error', err.message || 'No se pudo registrar la venta.');

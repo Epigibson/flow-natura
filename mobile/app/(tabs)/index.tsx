@@ -7,12 +7,14 @@ import React, { useState } from 'react';
 import { useSidebar } from '../../components/SidebarContext';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { PaymentModal } from '../../components/PaymentModal';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 export default function DashboardScreen() {
   const t = useThemeColors();
   const router = useRouter();
+  const [collectItem, setCollectItem] = useState<any>(null);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -225,23 +227,23 @@ export default function DashboardScreen() {
                   <Text className="text-xs text-on-surface-variant mt-4 text-right">Definir meta →</Text>
                 </View>
 
-                <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+                <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/sales')} className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-primary">Ventas del Mes</Text>
                   <Text className="text-4xl font-serif mt-2 text-on-surface">{data?.kpis?.total_orders || 0}</Text>
                   <Text className="text-xs font-bold text-primary-container mt-4">Ver todas →</Text>
-                </View>
+                </TouchableOpacity>
 
-                <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+                <TouchableOpacity activeOpacity={0.85} onPress={() => router.push({ pathname: '/sales', params: { filter: 'pending' } } as any)} className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-error">Cobranza Pendiente</Text>
                   <Text className="text-4xl font-serif mt-2 text-error">${data?.kpis?.pending_debt?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</Text>
-                  <Text className="text-xs font-bold text-error mt-4">Gestionar →</Text>
-                </View>
+                  <Text className="text-xs font-bold text-error mt-4">Ver ventas con saldo →</Text>
+                </TouchableOpacity>
 
-                <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+                <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/inventory')} className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-on-surface-variant">Stock Agotado</Text>
                   <Text className="text-4xl font-serif mt-2 text-on-surface">{data?.kpis?.out_of_stock || 0}</Text>
                   <Text className="text-xs font-bold text-on-surface-variant mt-4">Ver Inventario →</Text>
-                </View>
+                </TouchableOpacity>
               </View>
 
               {/* Recent Orders */}
@@ -256,7 +258,7 @@ export default function DashboardScreen() {
                 {data?.recent_orders?.length > 0 ? (
                   <View className="gap-0">
                     {data.recent_orders.slice(0, 3).map((order: any, idx: number) => (
-                      <View key={order.id} className={`flex-row justify-between items-center py-4 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                      <TouchableOpacity key={order.id} activeOpacity={0.7} onPress={() => router.push({ pathname: '/sales/[id]', params: { id: order.id } } as any)} className={`flex-row justify-between items-center py-4 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
                         <View className="flex-row items-center flex-1 pr-2">
                           <View className="w-10 h-10 rounded-full flex items-center justify-center mr-3 border border-primary" style={{ backgroundColor: t.primaryContainer + '33' }}>
                             <Text className="font-bold text-primary">{order.customer_name?.charAt(0) || 'C'}</Text>
@@ -272,13 +274,36 @@ export default function DashboardScreen() {
                             {order.status === 'cancelled' ? 'Cancelada' : order.payment_method}
                           </Text>
                         </View>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </View>
                 ) : (
                   <View className="items-center py-6"><Text className="text-on-surface-variant">Sin ventas</Text></View>
                 )}
               </View>
+
+              {/* Cobros pendientes: cobrar sin abrir la venta */}
+              {data?.upcoming_payments?.length > 0 && (
+                <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
+                  <View className="flex-row justify-between items-center mb-4 border-b border-surface-container pb-4">
+                    <Text className="text-xl font-serif font-bold text-primary">💸 Cobros Pendientes</Text>
+                    <TouchableOpacity onPress={() => router.push({ pathname: '/sales', params: { filter: 'pending' } } as any)}>
+                      <Text className="text-xs font-bold text-primary-container">Ver todos →</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {data.upcoming_payments.slice(0, 3).map((p: any, idx: number) => (
+                    <View key={p.id} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                      <TouchableOpacity className="flex-1 pr-3" onPress={() => router.push({ pathname: '/sales/[id]', params: { id: p.id } } as any)}>
+                        <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{p.customer_name}</Text>
+                        <Text className="text-on-surface-variant text-xs mt-0.5">Saldo ${Number(p.balance).toFixed(2)}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity className="bg-primary px-4 py-2 rounded-full" onPress={() => setCollectItem(p)}>
+                        <Text className="text-white font-bold text-xs">Cobrar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              )}
 
               {/* Acciones Rápidas */}
               <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
@@ -430,6 +455,17 @@ export default function DashboardScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    {collectItem && (
+        <PaymentModal
+          visible
+          orderId={collectItem.id}
+          customerName={collectItem.customer_name}
+          balance={Number(collectItem.balance)}
+          suggested={Number(collectItem.suggested)}
+          onClose={() => setCollectItem(null)}
+          onSaved={() => loadData(true)}
+        />
+      )}
+      </SafeAreaView>
   );
 }

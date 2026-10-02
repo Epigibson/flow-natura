@@ -5,7 +5,10 @@ import { useLocalSearchParams, router, Stack } from 'expo-router';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../../hooks/use-theme-colors';
-import { supabase } from '../../../src/lib/supabase';
+import { whatsappPhone } from '../../../src/lib/phone';
+import { PaymentModal } from '../../components/PaymentModal';
+import { OrderStatusChips } from '../../components/OrderStatusChips';
+import { formatFolio, summarizeOrder, parseAmount, errorMessage } from '../../../src/lib/orders';
 import { haptic } from '../../lib/haptics';
 
 export default function OrderDetailScreen() {
@@ -14,7 +17,6 @@ export default function OrderDetailScreen() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [abonoAmount, setAbonoAmount] = useState('');
   
   // Notes
   const [notesModalVisible, setNotesModalVisible] = useState(false);
@@ -35,12 +37,6 @@ export default function OrderDetailScreen() {
     try {
       setLoading(true);
       const data = await api.orders.get(id as string);
-      
-      if (data.payment_method?.toLowerCase() === 'abonos' && data.notes) {
-        try {
-          data._parsedNotes = JSON.parse(data.notes);
-        } catch {}
-      }
       setOrder(data);
     } catch {
       Alert.alert('Error', 'No se pudo cargar la venta.');
@@ -58,60 +54,47 @@ export default function OrderDetailScreen() {
     );
   }
 
-  let debtRemaining = 0;
-  let totalPaid = 0;
-  const isAbonos = order.payment_method?.toLowerCase() === 'abonos';
-  const terms = order._parsedNotes;
-
-  if (isAbonos && terms) {
-    const enganche = Number(terms.enganche || 0);
-    const historial = terms.historial_abonos || [];
-    const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-    totalPaid = enganche + totalAbonado;
-    debtRemaining = Number(order.total_amount) - totalPaid;
-  } else if (order.status === 'pending') {
-    debtRemaining = Number(order.total_amount);
-  }
-  
-  const isFullyPaid = isAbonos ? debtRemaining <= 0.01 : true;
+  const sum = summarizeOrder(order);
+  const isAbonos = sum.isAbonos;
+  const debtRemaining = sum.balance;
+  const isFullyPaid = sum.isFullyPaid;
   const isCancelled = order.status === 'cancelled';
   const isDelivered = order.status === 'delivered';
 
   const cName = order.customers?.full_name || 'Cliente Mostrador';
   const initials = cName.split(' ').map((n:string)=>n[0]).join('').substring(0,2).toUpperCase();
-  const folio = order.id.split('-')[0].toUpperCase();
+  const folio = formatFolio(order.id);
 
-  const handleAbono = async () => {
-    const amount = Number(abonoAmount);
-    if (isNaN(amount) || amount <= 0) {
-      Alert.alert('Monto inválido', 'Por favor ingresa un monto mayor a 0.');
-      return;
-    }
+  const openAbonoModal = () => setModalVisible(true);
 
-    try {
-      const historial = terms.historial_abonos || [];
-      historial.push({ monto: amount, fecha: new Date().toISOString() });
-      const pagosCompletados = Number(terms.pagos_completados || 0) + 1;
-      
-      const newTerms = { ...terms, historial_abonos: historial, pagos_completados: pagosCompletados };
-      
-      await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', id);
-      
-      setModalVisible(false);
-      setAbonoAmount('');
-      loadData();
-      haptic.success();
-      Alert.alert('Éxito', 'Abono registrado correctamente.');
-    } catch {
-      haptic.error();
-      Alert.alert('Error', 'Hubo un problema al registrar el abono.');
-    }
+  const handleDeletePayment = (payment: any) => {
+    Alert.alert(
+      'Eliminar pago',
+      `¿Eliminar este pago de $${Number(payment.amount).toFixed(2)}? El monto volverá al saldo pendiente.`,
+      [
+        { text: 'No', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.orders.deletePayment(payment.id);
+              haptic.warning();
+              loadData();
+            } catch (e) {
+              haptic.error();
+              Alert.alert('No se pudo eliminar el pago', errorMessage(e));
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleStatusChange = (action: 'deliver' | 'cancel') => {
     Alert.alert(
       action === 'deliver' ? 'Entregar Pedido' : 'Cancelar Pedido',
-      `¿Estás seguro de que quieres ${action === 'deliver' ? 'marcar como entregado' : 'cancelar este pedido'}?`,
+      action === 'deliver' ? '¿Marcar este pedido como entregado?' : '¿Cancelar este pedido? Los productos volverán a tu inventario.',
       [
         { text: 'No', style: 'cancel' },
         { 
@@ -123,8 +106,8 @@ export default function OrderDetailScreen() {
               if (action === 'cancel') await api.orders.cancel(id as string);
               action === 'deliver' ? haptic.success() : haptic.warning();
               loadData();
-            } catch {
-              Alert.alert('Error', 'No se pudo actualizar el estado.');
+            } catch (e) {
+              Alert.alert('No se pudo actualizar el estado', errorMessage(e));
             }
           }
         }
@@ -134,7 +117,7 @@ export default function OrderDetailScreen() {
 
   // ── Send WhatsApp Ticket ──
   const sendTicketWhatsApp = () => {
-    const phone = order.customers?.phone?.replace(/\D/g, '');
+    const phone = whatsappPhone(order.customers?.phone);
     if (!phone) {
       Alert.alert('Sin teléfono', 'Este cliente no tiene número de teléfono registrado.');
       return;
@@ -146,7 +129,7 @@ export default function OrderDetailScreen() {
     ).join('\n');
 
     const msg = `🧾 *TICKET DE VENTA — Flow Natura*\n\n` +
-      `📋 Folio: *#NF-${folio}*\n` +
+      `📋 Folio: *#${folio}*\n` +
       `📅 Fecha: ${new Date(order.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}\n` +
       `👤 Cliente: ${cName}\n\n` +
       `─────────────────\n` +
@@ -165,18 +148,13 @@ export default function OrderDetailScreen() {
   // ── Save Notes ──
   const handleSaveNotes = async () => {
     try {
-      // Parse existing notes or create new obj
-      let notesObj: any = {};
-      try { notesObj = order.notes ? JSON.parse(order.notes) : {}; } catch { notesObj = {}; }
-      notesObj.notas_internas = editingNotes;
-
-      await supabase.from('orders').update({ notes: JSON.stringify(notesObj) }).eq('id', id);
+      await api.orders.updateNotes(id as string, editingNotes);
       setNotesModalVisible(false);
       haptic.success();
       loadData();
-    } catch {
+    } catch (e) {
       haptic.error();
-      Alert.alert('Error', 'No se pudieron guardar las notas.');
+      Alert.alert('No se pudieron guardar las notas', errorMessage(e));
     }
   };
 
@@ -199,24 +177,19 @@ export default function OrderDetailScreen() {
     }
     setSavingClient(true);
     try {
-      await supabase.from('orders').update({ customer_id: selectedNewClient }).eq('id', id);
+      await api.orders.changeCustomer(id as string, selectedNewClient);
       setClientModalVisible(false);
       haptic.success();
       loadData();
-    } catch {
+    } catch (e) {
       haptic.error();
-      Alert.alert('Error', 'No se pudo cambiar el cliente.');
+      Alert.alert('No se pudo cambiar el cliente', errorMessage(e));
     } finally {
       setSavingClient(false);
     }
   };
 
-  // Parse internal notes for display
-  let internalNotes = '';
-  try {
-    const parsed = order.notes ? JSON.parse(order.notes) : {};
-    internalNotes = parsed.notas_internas || '';
-  } catch {}
+  const internalNotes: string = order.notes || '';
 
   return (
     <SafeAreaView className="flex-1 bg-surface" edges={['top']}>
@@ -235,15 +208,13 @@ export default function OrderDetailScreen() {
         {/* Folio and Status */}
         <View className="flex-row items-start justify-between mb-8">
           <View>
-            <Text className="text-on-surface-variant font-mono text-xs uppercase mb-1">Folio #NF-{folio}</Text>
+            <Text className="text-on-surface-variant font-mono text-xs uppercase mb-1">Folio #{folio}</Text>
             <Text className="text-2xl font-bold font-serif text-on-surface">{new Date(order.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
           </View>
-          <View className="px-3 py-1.5 rounded-full flex-row items-center gap-1.5" style={{ backgroundColor: isCancelled ? t.error + '1A' : (isDelivered ? t.secondary + '1A' : t.primary + '1A') }}>
-            <View className={`w-2 h-2 rounded-full ${isCancelled ? 'bg-error' : (isDelivered ? 'bg-secondary' : 'bg-primary')}`} />
-            <Text className={`text-xs font-bold ${isCancelled ? 'text-error' : (isDelivered ? 'text-secondary' : 'text-primary')}`}>
-              {isCancelled ? 'Cancelado' : (isDelivered ? 'Entregado' : 'Pendiente')}
-            </Text>
-          </View>
+        </View>
+
+        <View className="mb-6">
+          <OrderStatusChips order={order} />
         </View>
 
         {/* Client Info — with Change Client button */}
@@ -276,7 +247,7 @@ export default function OrderDetailScreen() {
           </Text>
           
           <View className="flex-row justify-between mb-4 pb-4 border-b border-surface-container">
-            <Text className="text-on-surface-variant font-medium">Subtotal ({order.order_items?.length || 0} productos)</Text>
+            <Text className="text-on-surface-variant font-medium">Subtotal ({(order.order_items || []).reduce((n: number, i: any) => n + i.quantity, 0)} productos)</Text>
             <Text className="text-on-surface font-bold text-lg">${Number(order.total_amount).toFixed(2)}</Text>
           </View>
           
@@ -293,22 +264,24 @@ export default function OrderDetailScreen() {
             </View>
           </View>
 
-          {isAbonos && (
+          {(isAbonos || sum.payments.length > 0) && (
             <View className="bg-surface-container p-4 rounded-2xl">
-              <Text className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-4">Cronograma de Pagos</Text>
-              
-              <View className="flex-row justify-between mb-3 items-center">
-                <Text className="text-on-surface font-medium text-sm"><MaterialIcons name="check-circle" size={14} color={t.secondary} /> Enganche</Text>
-                <Text className="text-secondary font-bold">${Number(terms?.enganche || 0).toFixed(2)}</Text>
-              </View>
+              <Text className="text-sm font-bold uppercase tracking-widest text-on-surface-variant mb-4">Pagos</Text>
 
-              {terms?.historial_abonos?.map((abono: any, idx: number) => (
-                <View key={idx} className="flex-row justify-between mb-3 items-center">
-                  <View>
-                    <Text className="text-on-surface font-medium text-sm"><MaterialIcons name="check-circle" size={14} color={t.secondary} /> Abono</Text>
-                    <Text className="text-[10px] text-on-surface-variant">{new Date(abono.fecha).toLocaleDateString('es-MX')}</Text>
+              {sum.payments.map((pay) => (
+                <View key={pay.id} className="flex-row justify-between mb-3 items-center">
+                  <View className="flex-1">
+                    <Text className="text-on-surface font-medium text-sm">
+                      <MaterialIcons name="check-circle" size={14} color={t.secondary} /> {pay.kind === 'contado' ? 'Pago de contado' : pay.kind === 'enganche' ? 'Enganche' : 'Abono'}
+                    </Text>
+                    <Text className="text-[10px] text-on-surface-variant">{new Date(pay.paid_at).toLocaleDateString('es-MX')}</Text>
                   </View>
-                  <Text className="text-secondary font-bold">${Number(abono.monto).toFixed(2)}</Text>
+                  <Text className="text-secondary font-bold mr-2">${Number(pay.amount).toFixed(2)}</Text>
+                  {!isCancelled && (
+                    <TouchableOpacity onPress={() => handleDeletePayment(pay)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Eliminar pago">
+                      <MaterialIcons name="delete-outline" size={20} color={t.error} />
+                    </TouchableOpacity>
+                  )}
                 </View>
               ))}
 
@@ -325,10 +298,10 @@ export default function OrderDetailScreen() {
         {/* Action Buttons */}
         {!isCancelled && (
           <View className="mb-6 space-y-3">
-            {isAbonos && !isFullyPaid && (
+            {!isFullyPaid && (
               <TouchableOpacity 
                 className="w-full bg-primary py-4 rounded-xl items-center shadow-sm flex-row justify-center gap-2 mb-3"
-                onPress={() => setModalVisible(true)}
+                onPress={openAbonoModal}
               >
                 <MaterialIcons name="payments" size={20} color="#fff" />
                 <Text className="text-white font-bold text-base">Registrar Abono</Text>
@@ -336,11 +309,11 @@ export default function OrderDetailScreen() {
             )}
 
             {/* WhatsApp cobrar button */}
-            {debtRemaining > 0 && order.customers?.phone && (
+            {debtRemaining > 0 && whatsappPhone(order.customers?.phone) && (
               <TouchableOpacity 
                 className="w-full bg-green-600 py-4 rounded-xl items-center shadow-sm flex-row justify-center gap-2 mb-3"
                 onPress={() => {
-                  const phone = order.customers.phone.replace(/\D/g, '');
+                  const phone = whatsappPhone(order.customers.phone)!;
                   const msg = `¡Hola ${cName}! 🌿\n\nTe escribo sobre tu pedido #${folio}.\nEl saldo pendiente es de *$${debtRemaining.toFixed(2)} MXN*.\n\n¿Cuándo te es posible realizar el pago? ¡Gracias! 💚`;
                   Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
                     Alert.alert('Error', 'No se pudo abrir WhatsApp.');
@@ -414,7 +387,7 @@ export default function OrderDetailScreen() {
         </View>
 
         {/* WhatsApp Ticket Button */}
-        {order.customers?.phone && (
+        {whatsappPhone(order.customers?.phone) && (
           <TouchableOpacity 
             className="w-full py-4 rounded-2xl items-center flex-row justify-center gap-3 mb-8"
             style={{ backgroundColor: '#25D36615', borderWidth: 1, borderColor: '#25D36630' }}
@@ -432,42 +405,15 @@ export default function OrderDetailScreen() {
 
       </ScrollView>
 
-      {/* Abono Modal */}
-      <Modal visible={modalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/60 justify-center items-center px-4">
-          <View className="bg-surface-container-lowest rounded-3xl w-full p-6 border border-outline-variant shadow-2xl">
-            <View className="w-16 h-16 bg-primary-container rounded-full items-center justify-center self-center mb-4">
-              <MaterialIcons name="payments" size={32} color={t.onPrimaryContainer} />
-            </View>
-            <Text className="text-xl font-bold text-center text-on-surface mb-2">Registrar Abono</Text>
-            <Text className="text-sm text-center text-on-surface-variant mb-6">Ingresa el monto que el cliente está pagando en este momento.</Text>
-
-            <View className="bg-surface-container p-4 rounded-2xl mb-6">
-              <Text className="text-xs text-on-surface-variant font-bold uppercase tracking-widest mb-2">Monto a cobrar (MXN)</Text>
-              <View className="flex-row items-center border-b-2 border-primary pb-2">
-                <Text className="text-2xl font-black text-primary mr-1">$</Text>
-                <TextInput
-                  value={abonoAmount}
-                  onChangeText={setAbonoAmount}
-                  keyboardType="numeric"
-                  placeholder="0.00"
-                  placeholderTextColor={t.onSurfaceVariant + '80'}
-                  className="flex-1 text-2xl font-black text-primary p-0 m-0"
-                />
-              </View>
-            </View>
-
-            <View className="space-y-3">
-              <TouchableOpacity className="bg-primary py-4 rounded-xl items-center shadow-sm mb-3" onPress={handleAbono}>
-                <Text className="text-white font-bold text-base">Confirmar Cobro</Text>
-              </TouchableOpacity>
-              <TouchableOpacity className="bg-surface-container py-4 rounded-xl items-center" onPress={() => setModalVisible(false)}>
-                <Text className="text-on-surface font-bold">Cancelar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <PaymentModal
+        visible={modalVisible}
+        orderId={id as string}
+        customerName={cName}
+        balance={debtRemaining}
+        suggested={isAbonos ? sum.suggestedPayment : debtRemaining}
+        onClose={() => setModalVisible(false)}
+        onSaved={loadData}
+      />
 
       {/* Notes Edit Modal */}
       <Modal visible={notesModalVisible} transparent animationType="fade">

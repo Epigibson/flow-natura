@@ -58,7 +58,7 @@ export default function EditProductScreen() {
         const match = inv.find((i: any) => i.product_id === productId);
         if (match) {
           setStock(String(match.quantity || 0));
-          setInventoryId(match.id);
+          setInventoryId(match.inventory_id);
         }
       } catch {}
     } catch (err: any) {
@@ -103,7 +103,7 @@ export default function EditProductScreen() {
     try {
       // Update product in catalog
       await api.products.update(productId!, {
-        code: code || null,
+        ...(code.trim() ? { code: code.trim() } : {}), // code is NOT NULL in the catalog
         name,
         category: category || null,
         brand: brand || null,

@@ -33,12 +33,10 @@ export default function CustomerAnalysisScreen() {
 
   // Calculate analytics
   const customerDebt = customers.map(c => {
-    const customerOrders = orders.filter(o => o.customer_id === c.id);
-    const totalSpent = customerOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-    const pendingOrders = customerOrders.filter(o => o.status === 'pending');
-    const pendingDebt = pendingOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-    const deliveredOrders = customerOrders.filter(o => o.status === 'delivered');
-    const paidAmount = deliveredOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+    const customerOrders = orders.filter(o => o.customer_id === c.id && o.status !== 'cancelled');
+    const totalSpent = customerOrders.reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
+    const pendingDebt = customerOrders.reduce((sum, o) => sum + o.summary.balance, 0);
+    const paidAmount = customerOrders.reduce((sum, o) => sum + o.summary.paid, 0);
 
     return {
       ...c,

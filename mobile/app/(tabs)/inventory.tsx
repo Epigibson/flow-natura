@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { haptic } from '../../lib/haptics';
 
@@ -11,16 +12,19 @@ export default function InventoryScreen() {
   const t = useThemeColors();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
 
   const loadInventory = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
+      setLoadError(null);
       const data = await api.inventory.list({ search });
       setItems(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setLoadError(err?.message || 'Error de conexión');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -71,8 +75,8 @@ export default function InventoryScreen() {
       // Real API call
       await api.inventory.applyAdjustment({
         product_id: productId,
-        adjustment_type: delta > 0 ? 'addition' : 'subtraction',
-        quantity: Math.abs(delta),
+        adjustment_type: delta > 0 ? 'increase' : 'decrease',
+        quantity: delta, // signed
         previous_quantity: currentQuantity,
         reason: delta > 0 ? 'Ajuste manual (Mobile +)' : 'Ajuste manual (Mobile -)'
       });
@@ -81,7 +85,7 @@ export default function InventoryScreen() {
       // Revert on error
       setItems(prev => prev.map(item => item.product_id === productId ? { ...item, quantity: currentQuantity } : item));
       haptic.error();
-      Alert.alert('Error', 'No se pudo actualizar el inventario');
+      Alert.alert('No se pudo actualizar el inventario', e?.message || 'Error desconocido');
     } finally {
       setUpdatingId(null);
     }
@@ -277,6 +281,7 @@ export default function InventoryScreen() {
           columnWrapperStyle={{ justifyContent: 'space-between' }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
+            loadError ? <ErrorState message={loadError} onRetry={() => loadInventory()} /> :
             <View className="items-center justify-center py-16">
               <MaterialIcons name="inventory-2" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">Tu inventario está vacío</Text>

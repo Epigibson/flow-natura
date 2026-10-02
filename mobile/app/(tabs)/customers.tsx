@@ -1,8 +1,12 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useCallback } from 'react';
+import { whatsappPhone } from '../../../src/lib/phone';
+import { formatFolio } from '../../../src/lib/orders';
+import { OrderStatusChips } from '../../components/OrderStatusChips';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
+import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { useFocusEffect, router } from 'expo-router';
 
@@ -10,6 +14,7 @@ export default function CustomersScreen() {
   const t = useThemeColors();
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   // Modals & Forms
@@ -23,10 +28,12 @@ export default function CustomersScreen() {
   const loadCustomers = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
+      setLoadError(null);
       const data = await api.customers.list(search);
       setCustomers(data || []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setLoadError(err?.message || 'Error de conexión');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -51,9 +58,10 @@ export default function CustomersScreen() {
     });
   };
 
-  const handleWhatsApp = (phone: string) => {
+  const handleWhatsApp = (rawPhone: string) => {
+    const phone = whatsappPhone(rawPhone);
     if (!phone) return;
-    Linking.openURL(`whatsapp://send?phone=${phone.replace(/\D/g, '')}`).catch(() => {
+    Linking.openURL(`whatsapp://send?phone=${phone}`).catch(() => {
       Alert.alert('Error', 'No se pudo abrir WhatsApp');
     });
   };
@@ -112,7 +120,7 @@ export default function CustomersScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert('Confirmar Eliminación', `¿Estás seguro de eliminar a ${selectedCustomer?.full_name}? Esta acción no eliminará su historial de compras, pero lo ocultará del directorio.`, [
+    Alert.alert('Confirmar Eliminación', `¿Estás seguro de eliminar a ${selectedCustomer?.full_name}? Si tiene ventas registradas no se podrá eliminar: cancela o reasigna sus ventas primero.`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: async () => {
         try {
@@ -243,6 +251,7 @@ export default function CustomersScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
+            loadError ? <ErrorState message={loadError} onRetry={() => loadCustomers()} /> :
             <View className="items-center justify-center py-16">
               <MaterialIcons name="group" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">No hay clientes</Text>
@@ -408,15 +417,20 @@ export default function CustomersScreen() {
                   </Text>
                 </View>
 
+                <TouchableOpacity
+                  className="bg-primary py-4 rounded-2xl items-center flex-row justify-center gap-2 mb-6"
+                  onPress={() => { setShowModal(null); router.push({ pathname: '/sales/new', params: { customerId: selectedCustomer.id } } as any); }}
+                >
+                  <MaterialIcons name="add-shopping-cart" size={20} color="#fff" />
+                  <Text className="text-white font-bold text-base">Nueva venta para {selectedCustomer?.full_name?.split(' ')[0]}</Text>
+                </TouchableOpacity>
+
                 {/* Historial de Compras */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Historial de Compras</Text>
                 <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-8">
                   {customerStats?._orders ? (
                     customerStats._orders.length > 0 ? (
                       customerStats._orders.map((o: any, idx: number) => {
-                        const oFolio = o.id.split('-')[0].toUpperCase();
-                        const isCancelled = o.status === 'cancelled';
-                        const isDelivered = o.status === 'delivered';
                         return (
                           <TouchableOpacity 
                             key={o.id}
@@ -424,14 +438,12 @@ export default function CustomersScreen() {
                             onPress={() => { setShowModal(null); router.push({ pathname: '/sales/[id]', params: { id: o.id } } as any); }}
                           >
                             <View className="flex-1">
-                              <Text className="font-bold text-on-surface text-sm">#NF-{oFolio}</Text>
+                              <Text className="font-bold text-on-surface text-sm">#{formatFolio(o.id)}</Text>
                               <Text className="text-xs text-on-surface-variant">{new Date(o.created_at).toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
                             </View>
                             <View className="items-end mr-2">
                               <Text className="font-bold text-on-surface">${Number(o.total_amount).toFixed(0)}</Text>
-                              <Text className={`text-[10px] font-bold ${isCancelled ? 'text-error' : isDelivered ? 'text-secondary' : 'text-primary'}`}>
-                                {isCancelled ? 'CANCELADO' : isDelivered ? 'ENTREGADO' : 'PENDIENTE'}
-                              </Text>
+                              <View className="mt-1"><OrderStatusChips order={o} align="flex-end" /></View>
                             </View>
                             <MaterialIcons name="chevron-right" size={18} color={t.onSurfaceVariant} />
                           </TouchableOpacity>

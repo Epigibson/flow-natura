@@ -1,48 +1,47 @@
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Alert, TextInput, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { PaymentModal } from '../../components/PaymentModal';
+import { OrderStatusChips } from '../../components/OrderStatusChips';
+import { formatFolio } from '../../../src/lib/orders';
+import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function SalesScreen() {
   const t = useThemeColors();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'pending'>('all');
+  const params = useLocalSearchParams<{ filter?: string }>();
+  const [filter, setFilter] = useState<'all' | 'pending'>(params.filter === 'pending' ? 'pending' : 'all');
+  const [collectOrder, setCollectOrder] = useState<any>(null);
   const [showCancelled, setShowCancelled] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (params.filter === 'pending') setFilter('pending');
+  }, [params.filter]);
 
   const loadOrders = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
+      setLoadError(null);
       const data = await api.orders.list();
       
-      // Process orders for debt and payment details similar to web
-      const processed = data.map((o: any) => {
-        let debt = 0;
-        let isAbonos = o.payment_method?.toLowerCase() === 'abonos';
-        
-        if (isAbonos && o.notes) {
-          try {
-            const terms = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
-            const enganche = Number(terms.enganche || 0);
-            const historial = terms.historial_abonos || [];
-            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-            debt = Number(o.total_amount) - enganche - totalAbonado;
-          } catch {}
-        } else if (o.status === 'pending') {
-          debt = Number(o.total_amount);
-        }
-        
-        return { ...o, _debt: debt, _isAbonos: isAbonos };
-      });
-      
+      const processed = data.map((o: any) => ({
+        ...o,
+        _debt: o.summary.balance,
+        _isAbonos: o.summary.isAbonos
+      }));
+
       setOrders(processed);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setLoadError(err?.message || 'Error de conexión');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -77,7 +76,7 @@ export default function SalesScreen() {
   const handleStatusChange = (orderId: string, action: 'deliver' | 'cancel') => {
     Alert.alert(
       action === 'deliver' ? 'Entregar Pedido' : 'Cancelar Pedido',
-      `¿Estás seguro de que quieres ${action === 'deliver' ? 'marcar como entregado' : 'cancelar este pedido'}?`,
+      action === 'deliver' ? '¿Marcar este pedido como entregado?' : '¿Cancelar este pedido? Los productos volverán a tu inventario.',
       [
         { text: 'No', style: 'cancel' },
         { 
@@ -88,8 +87,8 @@ export default function SalesScreen() {
               if (action === 'deliver') await api.orders.deliver(orderId);
               if (action === 'cancel') await api.orders.cancel(orderId);
               loadOrders();
-            } catch {
-              Alert.alert('Error', 'No se pudo actualizar el estado.');
+            } catch (e: any) {
+              Alert.alert('No se pudo actualizar el estado', e?.message || 'Error desconocido');
             }
           }
         }
@@ -116,20 +115,14 @@ export default function SalesScreen() {
             </View>
             <View className="flex-1">
               <Text className="font-bold text-base text-on-surface" numberOfLines={1}>{cName}</Text>
-              <Text className="text-[10px] text-on-surface-variant font-mono">ID: {item.id.split('-')[0].toUpperCase()}</Text>
+              <Text className="text-[10px] text-on-surface-variant font-mono">{formatFolio(item.id)}</Text>
             </View>
           </View>
           
-          <View className="px-3 py-1 rounded-full flex-row items-center gap-1" style={{ backgroundColor: isCancelled ? t.error + '1A' : (isFullyPaid ? t.secondary + '1A' : t.primary + '1A') }}>
-            <View className={`w-2 h-2 rounded-full ${
-              isCancelled ? 'bg-error' : (isFullyPaid ? 'bg-secondary' : 'bg-primary')
-            }`} />
-            <Text className={`text-xs font-bold ${
-              isCancelled ? 'text-error' : (isFullyPaid ? 'text-secondary' : 'text-primary')
-            }`}>
-              {isCancelled ? 'Cancelado' : (isFullyPaid ? 'Pagado' : 'Con Deuda')}
-            </Text>
-          </View>
+        </View>
+
+        <View className="mb-4">
+          <OrderStatusChips order={item} />
         </View>
 
         <View className="flex-row justify-between items-end mb-4">
@@ -150,22 +143,36 @@ export default function SalesScreen() {
           </View>
         </View>
 
-        {item.status === 'pending' && (
+        {!isCancelled && (item.status === 'pending' || item._debt > 0.01) && (
           <View className="flex-row gap-2 mt-2 pt-4 border-t border-surface-container">
-            <TouchableOpacity 
-              className="flex-1 bg-surface-container py-2.5 rounded-xl items-center flex-row justify-center gap-1"
-              onPress={() => handleStatusChange(item.id, 'deliver')}
-            >
-              <MaterialIcons name="local-shipping" size={16} color={t.onSurfaceVariant} />
-              <Text className="text-on-surface font-bold text-sm">Entregar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              className="py-2.5 px-4 rounded-xl items-center flex-row justify-center"
-              style={{ backgroundColor: t.error + '1A' }}
-              onPress={() => handleStatusChange(item.id, 'cancel')}
-            >
-              <MaterialIcons name="cancel" size={16} color={t.error} />
-            </TouchableOpacity>
+            {item._debt > 0.01 && (
+              <TouchableOpacity
+                className="flex-1 bg-primary py-2.5 rounded-xl items-center flex-row justify-center gap-1"
+                onPress={() => setCollectOrder(item)}
+              >
+                <MaterialIcons name="payments" size={16} color="#fff" />
+                <Text className="text-white font-bold text-sm">Cobrar</Text>
+              </TouchableOpacity>
+            )}
+            {item.status === 'pending' && (
+              <>
+                <TouchableOpacity
+                  className="flex-1 bg-surface-container py-2.5 rounded-xl items-center flex-row justify-center gap-1"
+                  onPress={() => handleStatusChange(item.id, 'deliver')}
+                >
+                  <MaterialIcons name="local-shipping" size={16} color={t.onSurfaceVariant} />
+                  <Text className="text-on-surface font-bold text-sm">Entregar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  className="py-2.5 px-4 rounded-xl items-center flex-row justify-center"
+                  style={{ backgroundColor: t.error + '1A' }}
+                  onPress={() => handleStatusChange(item.id, 'cancel')}
+                  accessibilityLabel="Cancelar venta"
+                >
+                  <MaterialIcons name="cancel" size={16} color={t.error} />
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
       </TouchableOpacity>
@@ -190,14 +197,14 @@ export default function SalesScreen() {
           <MaterialIcons name="payments" size={80} color={t.primary + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
         </View>
         
-        <View className="bg-surface-container-highest p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden border border-outline-variant">
+        <TouchableOpacity activeOpacity={0.8} onPress={() => setFilter('pending')} className="bg-surface-container-highest p-5 rounded-3xl mr-4 w-64 shadow-sm relative overflow-hidden border border-outline-variant">
           <Text className="text-on-surface-variant font-medium text-xs mb-1">Por Cobrar</Text>
           <Text className="text-3xl font-serif font-bold text-primary">
             ${totalCobrar.toLocaleString('es-MX', {minimumFractionDigits: 2})}
           </Text>
           <Text className="text-on-surface-variant text-[10px] font-medium mt-1">{abonosActivos} abonos activos</Text>
           <MaterialIcons name="schedule" size={80} color={t.primary + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity 
           className="bg-secondary-container p-5 rounded-3xl mr-4 w-48 shadow-sm justify-center items-start relative overflow-hidden border border-outline-variant"
@@ -265,12 +272,24 @@ export default function SalesScreen() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
+            loadError ? <ErrorState message={loadError} onRetry={() => loadOrders()} /> :
             <View className="items-center justify-center py-16">
               <MaterialIcons name="receipt-long" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">No hay ventas registradas</Text>
               <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">No pudimos encontrar ventas que coincidan con tu búsqueda.</Text>
             </View>
           }
+        />
+      )}
+      {collectOrder && (
+        <PaymentModal
+          visible
+          orderId={collectOrder.id}
+          customerName={collectOrder.customer_name || 'Cliente Mostrador'}
+          balance={collectOrder._debt}
+          suggested={collectOrder.summary.suggestedPayment}
+          onClose={() => setCollectOrder(null)}
+          onSaved={() => loadOrders(true)}
         />
       )}
     </SafeAreaView>
