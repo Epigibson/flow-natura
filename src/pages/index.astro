@@ -6,7 +6,7 @@ import DashboardSkeleton from '../components/skeletons/DashboardSkeleton.astro';
 import PageLoader from '../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Inicio">
   <!-- Skeleton state (visible by default) -->
   <div id="skeleton-state">
     <DashboardSkeleton />
@@ -153,7 +153,7 @@ import PageLoader from '../components/PageLoader.astro';
     <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
       <span class="text-xs font-bold tracking-widest uppercase text-error">Cobranza Pendiente</span>
       <h3 id="kpi-debt" class="text-3xl font-display mt-2 text-error">—</h3>
-      <a href="/clientes/analisis" class="mt-4 text-sm font-semibold text-error hover:underline inline-block">Gestionar →</a>
+      <a href="/ventas?filter=pending" class="mt-4 text-sm font-semibold text-error hover:underline inline-block">Ver ventas con saldo →</a>
     </div>
     <div class="surface-layer p-6 rounded-[2rem] transition-transform hover:-translate-y-1">
       <span class="text-xs font-bold tracking-widest uppercase text-on-surface-variant">Stock Agotado</span>
@@ -296,6 +296,7 @@ import PageLoader from '../components/PageLoader.astro';
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction, promptPayment } from '../lib/ui';
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
   import { authFetch } from '../lib/auth-fetch';
@@ -426,9 +427,9 @@ import PageLoader from '../components/PageLoader.astro';
         if (d.success) {
            window.location.reload();
         } else {
-           alert('Error al vincular: ' + d.error);
+           toast.error('Error al vincular: ' + d.error);
         }
-      } catch(e) { alert('Error de red'); }
+      } catch(e) { toast.error('Error de red'); }
       finally { btn.disabled = false; btn.innerHTML = `Vincular <span class="material-symbols-outlined text-[1rem]">arrow_forward</span>`;}
     });
   }
@@ -690,12 +691,15 @@ import PageLoader from '../components/PageLoader.astro';
   } else {
     upcomingPayments.forEach((o: any, idx: number) => {
       const custName = o.customer_name || 'Cliente';
-      const el = document.createElement('a');
-      el.href = '/ventas/detalle?id=' + o.id;
+      const el = document.createElement('div');
       el.className = 'flex items-center gap-4 py-4 hover:bg-surface-container-low/50 rounded-xl px-2 transition-colors' + (idx > 0 ? ' border-t border-surface-container' : '');
       el.innerHTML = `<div class="w-10 h-10 rounded-full bg-primary-container/15 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary text-sm">payments</span></div>` +
-        `<div class="flex-1"><h4 class="font-bold text-on-surface text-sm">${esc(custName)}</h4><p class="text-xs text-on-surface-variant">${esc(o.items_summary)}</p></div>` +
-        `<span class="px-3 py-1 rounded-full text-xs font-bold text-primary bg-primary-container/10">Cobrar →</span>`;
+        `<a href="/ventas/detalle?id=${esc(o.id)}" class="flex-1 min-w-0"><h4 class="font-bold text-on-surface text-sm truncate">${esc(custName)}</h4><p class="text-xs text-on-surface-variant">Saldo $${Number(o.balance).toFixed(2)} · ${esc(o.items_summary)}</p></a>` +
+        `<button data-collect class="px-3 py-1.5 rounded-full text-xs font-bold text-white bg-primary hover:opacity-90">Cobrar</button>`;
+      el.querySelector('[data-collect]')?.addEventListener('click', async () => {
+        const saved = await promptPayment({ orderId: o.id, customerName: custName, balance: Number(o.balance), suggested: Number(o.suggested) });
+        if (saved) window.location.reload();
+      });
       paymentsEl.appendChild(el);
     });
   }

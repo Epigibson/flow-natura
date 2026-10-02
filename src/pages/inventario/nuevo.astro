@@ -2,7 +2,7 @@
 import DashboardLayout from "../../layouts/DashboardLayout.astro";
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Nuevo producto">
   <div class="flex justify-between items-center mb-8">
     <div>
       <h2
@@ -589,6 +589,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 </style>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from "../../lib/supabase";
   import { authFetch } from "../../lib/auth-fetch";
   import api from '../../lib/api';
@@ -1275,7 +1276,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   document.getElementById('new-img-file')?.addEventListener('change', async (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) return alert('La imagen es muy grande (máximo 5MB).');
+    if (file.size > 5 * 1024 * 1024) return toast.warning('La imagen es muy grande (máximo 5MB).');
 
     const reader = new FileReader();
     reader.onload = async (ev) => {
@@ -1298,9 +1299,9 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
       });
       const data = await res.json();
       if (data.url) setNewImage(data.url);
-      else alert(data.error || 'Error subiendo imagen');
+      else toast.error(data.error || 'Error subiendo imagen');
     } catch (err) {
-      alert('Error de conexión al subir imagen');
+      toast.error('Error de conexión al subir imagen');
     } finally {
       btnSave.disabled = false;
       btnSave.innerHTML = oldText;
@@ -1362,14 +1363,14 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         
         newAiResult.classList.remove('hidden');
       } else {
-        alert("La IA no pudo procesar la imagen ni encontrar el oficial. Intenta con otra foto o ingresa más datos del producto.");
+        toast.error("La IA no pudo procesar la imagen ni encontrar el oficial. Intenta con otra foto o ingresa más datos del producto.");
       }
     } catch (err: any) {
       newAiStatus.classList.add('hidden');
       if (err.name === 'AbortError') {
-        alert('La solicitud tardó demasiado (30s). Intenta de nuevo.');
+        toast.error('La solicitud tardó demasiado (30s). Intenta de nuevo.');
       } else {
-        alert('Error conectando con IA Studio: ' + (err.message || err));
+        toast.error('Error conectando con IA Studio: ' + (err.message || err));
       }
     }
   }
@@ -1382,7 +1383,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     const currentImg = (document.getElementById('new-img-preview-src') as HTMLImageElement).src;
 
     if (!name && !code && !desc && !currentImg) {
-      return alert('Necesitas ingresar un nombre, código, descripción o tener una foto actual para procesar la imagen de estudio.');
+      return toast.warning('Necesitas ingresar un nombre, código, descripción o tener una foto actual para procesar la imagen de estudio.');
     }
 
     await processStudioImage(name, code, desc, currentImg);

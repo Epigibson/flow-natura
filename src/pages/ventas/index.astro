@@ -3,12 +3,12 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import PageLoader from '../../components/PageLoader.astro';
 ---
 
-<DashboardLayout title="Ventas Realizadas">
+<DashboardLayout title="Ventas">
   <div class="max-w-screen-xl mx-auto">
     <!-- Page Heading (Editorial Style) -->
     <header class="mb-12">
       <span class="text-primary-container font-headline font-bold tracking-widest text-xs uppercase mb-2 block">Management Hub</span>
-      <h1 class="text-5xl md:text-6xl font-headline font-extrabold text-on-surface tracking-tighter mb-4">Ventas Realizadas</h1>
+      <h1 class="text-3xl md:text-5xl font-display font-bold text-on-surface mb-2">Ventas Realizadas</h1>
       <p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">Monitorea tu flujo de ingresos, gestiona los abonos pendientes de tus clientes y celebra tus logros de venta mensual.</p>
     </header>
 
@@ -97,7 +97,7 @@ import PageLoader from '../../components/PageLoader.astro';
         <table class="w-full text-left border-separate border-spacing-y-4">
           <thead class="hidden md:table-header-group">
             <tr class="text-on-surface-variant font-headline text-xs font-bold uppercase tracking-widest">
-              <th class="px-6 pb-2">Folio & Cliente</th>
+              <th class="px-6 pb-2">Cliente & Folio</th>
               <th class="px-6 pb-2">Fecha</th>
               <th class="px-6 pb-2">Monto Total</th>
               <th class="px-6 pb-2">Método</th>
@@ -119,6 +119,8 @@ import PageLoader from '../../components/PageLoader.astro';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { esc } from '../../lib/security';
+  import { formatFolio, orderStatusChips } from '../../lib/orders';
+  import { chipHtml, toast, promptPayment } from '../../lib/ui';
 
   async function loadData() {
     const loader = document.getElementById('loader') as HTMLElement;
@@ -156,6 +158,8 @@ import PageLoader from '../../components/PageLoader.astro';
       });
       activeBtn.className = 'px-5 py-2 rounded-xl text-sm font-bold bg-surface-container-lowest text-primary shadow-sm';
     }
+
+    if (new URLSearchParams(window.location.search).get('filter') === 'pending') { currentFilter = 'pending'; setFilterButton(btnPending); }
 
     btnAll.onclick = () => { currentFilter = 'all'; setFilterButton(btnAll); renderTable(); };
     btnPending.onclick = () => { currentFilter = 'pending'; setFilterButton(btnPending); renderTable(); };
@@ -238,21 +242,14 @@ import PageLoader from '../../components/PageLoader.astro';
         const dateStr = dateObj.toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' });
         const timeStr = dateObj.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
         
-        const isFullyPaid = o._debt <= 0.01;
         const amountStr = Number(o.total_amount).toLocaleString('es-MX', {minimumFractionDigits:2});
 
         const methodUI = o._isAbonos
           ? `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">history</span>ABONOS</div>`
           : `<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant font-bold text-[11px]"><span class="material-symbols-outlined text-xs">payments</span>CONTADO</div>`;
 
-        let statusUI = '';
-        if (o.status === 'cancelled') {
-          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="text-xs font-bold text-error">Cancelado</span></div>`;
-        } else if (isFullyPaid) {
-          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-secondary"></span><span class="text-xs font-bold text-on-surface">Pagado</span></div>`;
-        } else {
-          statusUI = `<div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span><span class="text-xs font-bold text-on-surface">Con Deuda</span></div>`;
-        }
+        const chips = orderStatusChips(o);
+        const statusUI = '<div class="flex flex-col gap-1 items-start">' + chipHtml(chips.delivery) + (chips.payment ? chipHtml(chips.payment) : '') + '</div>';
 
         tr.innerHTML = `
           <td class="bg-surface rounded-l-3xl px-6 py-6 md:py-4 border-b md:border-b-0 border-outline-variant/10">
@@ -262,7 +259,7 @@ import PageLoader from '../../components/PageLoader.astro';
               </div>
               <div>
                 <p class="font-headline font-bold text-on-surface text-base">${esc(cName)}</p>
-                <p class="text-xs text-on-surface-variant font-mono text-[10px] mt-0.5">ID: ${o.id.split('-')[0].toUpperCase()}</p>
+                <p class="text-xs text-on-surface-variant font-mono text-[10px] mt-0.5">${formatFolio(o.id)}</p>
               </div>
             </div>
           </td>
@@ -281,11 +278,23 @@ import PageLoader from '../../components/PageLoader.astro';
             ${statusUI}
           </td>
           <td class="bg-surface rounded-r-3xl px-6 py-4 text-right border-b md:border-b-0 border-outline-variant/10">
-            <a href="/ventas/detalle?id=${o.id}" class="inline-block text-primary hover:bg-primary/10 p-2 rounded-full transition-colors" title="Ver Detalles">
-              <span class="material-symbols-outlined">visibility</span>
-            </a>
+            <div class="flex items-center justify-end gap-1">
+              ${o.status !== 'cancelled' && o._debt > 0.01 ? `<button data-collect="${o.id}" class="inline-flex items-center gap-1 px-3 py-2 rounded-full bg-primary text-white text-xs font-bold hover:opacity-90 transition-opacity" title="Registrar abono"><span class="material-symbols-outlined text-sm">payments</span>Cobrar</button>` : ''}
+              <a href="/ventas/detalle?id=${o.id}" class="inline-block text-primary hover:bg-primary/10 p-2 rounded-full transition-colors" title="Ver Detalles" aria-label="Ver detalle">
+                <span class="material-symbols-outlined">visibility</span>
+              </a>
+            </div>
           </td>
         `;
+        tr.querySelector('[data-collect]')?.addEventListener('click', async () => {
+          const saved = await promptPayment({
+            orderId: o.id,
+            customerName: cName,
+            balance: o._debt,
+            suggested: o.summary.suggestedPayment
+          });
+          if (saved) loadData();
+        });
         salesTbody.appendChild(tr);
       });
     }
@@ -302,32 +311,19 @@ import PageLoader from '../../components/PageLoader.astro';
       // Pre-calculate expensive parsed data to avoid parsing in loops
       allOrders = (orders || []).map((o: any) => {
         const cName = o.customer_name || 'Cliente Mostrador';
-        const folio = o.id ? o.id.split('-')[0] : 'N/A';
+        const folio = o.id ? formatFolio(o.id).toLowerCase() : 'n/a';
         o._searchString = (cName + ' ' + folio).toLowerCase();
         o.customers = { full_name: cName };
 
         o._isAbonos = o.payment_method?.toLowerCase() === 'abonos';
-        o._debt = 0;
-
-        if (o._isAbonos && o.notes) {
-          try {
-            const terms = JSON.parse(o.notes);
-            o._parsedNotes = terms;
-            const enganche = Number(terms.enganche || 0);
-            const historial = terms.historial_abonos || [];
-            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-            o._debt = Number(o.total_amount) - enganche - totalAbonado;
-          } catch(e) { console.warn('[Ventas] Failed to parse order notes:', o.id, e); }
-        } else if (o._isAbonos && o.status === 'pending') {
-          // Only abonos orders with pending status have unpaid debt
-          o._debt = Number(o.total_amount);
-        }
+        o._debt = o.summary.balance;
         return o;
       });
       renderTable();
 
     } catch (err) {
       console.error('Error loading sales data:', err);
+      toast.error('No se pudieron cargar las ventas. Revisa tu conexión e intenta de nuevo.');
       loader.classList.add('hidden');
       emptyState.classList.remove('hidden');
     }

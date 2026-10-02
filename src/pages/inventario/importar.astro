@@ -2,7 +2,7 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Importar productos">
   <header class="mb-10">
     <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">HERRAMIENTA</p>
     <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Importar Productos Natura 🌿</h2>
@@ -91,6 +91,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { esc } from '../../lib/security';
@@ -162,7 +163,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     if (!fetchedProducts.length) return;
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { alert('Necesitas iniciar sesión en Natura Manager primero.'); return; }
+    if (!session) { toast.warning('Necesitas iniciar sesión en Natura Manager primero.'); return; }
 
     const progress = document.getElementById('import-progress') as HTMLElement;
     const bar = document.getElementById('import-bar') as HTMLElement;

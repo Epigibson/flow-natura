@@ -3,9 +3,14 @@ import Layout from './Layout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import Toast from '../components/Toast.astro';
 import ConfirmDialog from '../components/ConfirmDialog.astro';
+
+interface Props {
+  title?: string;
+}
+const { title } = Astro.props;
 ---
 
-<Layout>
+<Layout title={title ? `${title} · Natura Manager` : undefined}>
   <div class="min-h-screen bg-surface flex relative overflow-hidden">
     <Sidebar />
     <main class="flex-1 w-full px-4 pt-16 pb-10 md:px-16 md:pt-10 md:ml-72 overflow-y-auto">

@@ -2,7 +2,7 @@
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Ajustes">
   <header class="mb-10">
     <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">CONFIGURACIÓN</p>
     <h2 class="text-4xl md:text-5xl font-display font-bold text-on-surface">Ajustes de Cuenta ⚙️</h2>
@@ -137,7 +137,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../lib/ui';
   import { supabase } from '../lib/supabase';
+  import api from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
@@ -150,22 +152,46 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const profileCity = document.getElementById('profile-city') as HTMLInputElement;
   const saveToast = document.getElementById('save-toast') as HTMLElement;
 
-  // Load saved values
-  profileName.value = localStorage.getItem('natura_name') || session.user.email?.split('@')[0]?.replace('.', ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || '';
+  // Load saved values (DB first, localStorage only as legacy fallback)
+  const emailGuess = session.user.email?.split('@')[0]?.replace('.', ' ')?.replace(/\b\w/g, l => l.toUpperCase()) || '';
+  profileName.value = localStorage.getItem('natura_name') || emailGuess;
   profilePhone.value = localStorage.getItem('natura_phone') || '';
   profileBusiness.value = localStorage.getItem('natura_business') || '';
   profileCity.value = localStorage.getItem('natura_city') || '';
+  api.consultant.getProfile().then((p: any) => {
+    if (!p) return;
+    profileName.value = p.full_name || profileName.value;
+    profilePhone.value = p.phone || profilePhone.value;
+    profileBusiness.value = p.business_name || profileBusiness.value;
+    profileCity.value = p.city || profileCity.value;
+    localStorage.setItem('natura_name', profileName.value); // sidebar reads this
+  }).catch((e: any) => console.warn('[Ajustes] profile load failed', e));
 
-  document.getElementById('btn-save-profile')!.addEventListener('click', () => {
-    localStorage.setItem('natura_name', profileName.value);
-    localStorage.setItem('natura_phone', profilePhone.value);
-    localStorage.setItem('natura_business', profileBusiness.value);
-    localStorage.setItem('natura_city', profileCity.value);
+  document.getElementById('btn-save-profile')!.addEventListener('click', async () => {
+    const btn = document.getElementById('btn-save-profile') as HTMLButtonElement;
+    btn.disabled = true;
+    try {
+      if (!profileName.value.trim()) throw new Error('El nombre no puede estar vacío.');
+      await api.consultant.updateProfile({
+        full_name: profileName.value.trim(),
+        phone: profilePhone.value.trim() || null,
+        business_name: profileBusiness.value.trim() || null,
+        city: profileCity.value.trim() || null
+      });
+      localStorage.setItem('natura_name', profileName.value.trim());
+      localStorage.setItem('natura_phone', profilePhone.value);
+      localStorage.setItem('natura_business', profileBusiness.value);
+      localStorage.setItem('natura_city', profileCity.value);
 
-    // Show toast
-    saveToast.classList.remove('hidden');
-    saveToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    setTimeout(() => saveToast.classList.add('hidden'), 3000);
+      saveToast.textContent = '✓ Perfil guardado';
+      saveToast.classList.remove('hidden');
+      saveToast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      setTimeout(() => saveToast.classList.add('hidden'), 3000);
+    } catch (err: any) {
+      toast.error('No se pudo guardar el perfil: ' + (err?.message || 'error desconocido'));
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   // ===== EMAIL =====
@@ -242,7 +268,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
   // ===== LOGOUT =====
   document.getElementById('btn-logout-settings')!.addEventListener('click', async () => {
-    if (confirm('¿Segura que quieres cerrar sesión?')) {
+    if (await confirmAction('¿Cerrar sesión?', { confirmText: 'Cerrar sesión', variant: 'warning' })) {
       await supabase.auth.signOut();
       window.location.href = '/login';
     }

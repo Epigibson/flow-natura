@@ -3,7 +3,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import PageLoader from '../../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Análisis de clientes">
   <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">INTELLIGENCE HUB</p>
@@ -88,6 +88,7 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { esc } from '../../lib/security';
+  import { summarizeOrder } from '../../lib/orders';
 
   const kpiTotalClients = document.getElementById('kpi-total-clients') as HTMLElement;
   const kpiWithDebt = document.getElementById('kpi-with-debt') as HTMLElement;
@@ -118,7 +119,7 @@ import PageLoader from '../../components/PageLoader.astro';
     // Get all orders with items
     const { data: orders } = await supabase
       .from('orders')
-      .select('*, order_items (*, products (*))')
+      .select('*, order_items (*, products (*)), order_payments (id, amount, kind, paid_at)')
       .eq('consultant_id', userId)
       .neq('payment_method', 'adjustment');
 
@@ -138,25 +139,15 @@ import PageLoader from '../../components/PageLoader.astro';
         const amount = Number(o.total_amount);
         totalSpent += amount;
 
-        if (o.payment_method?.toLowerCase() === 'abonos') {
-          try {
-            const terms = JSON.parse(o.notes || '{}');
-            const enganche = Number(terms.enganche || 0);
-            const historial = terms.historial_abonos || [];
-            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-            const paid = enganche + totalAbonado;
-            totalPaid += paid;
-            totalDebt += (amount - paid);
-          } catch(e) { totalPaid += amount; }
-        } else {
-          totalPaid += amount;
-        }
+        const summary = summarizeOrder(o);
+        totalPaid += summary.paid;
+        totalDebt += summary.balance;
       });
 
       return {
         ...c,
         totalSpent,
-        totalDebt: Math.max(0, totalDebt),
+        totalDebt,
         totalPaid,
         orderCount: custOrders.filter((o: any) => o.status !== 'cancelled').length
       };

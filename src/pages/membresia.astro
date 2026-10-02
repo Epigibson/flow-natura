@@ -3,7 +3,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import PageLoader from '../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Membresía">
   <!-- Loading State -->
   <div id="loading-state" class="flex items-center justify-center py-32">
     <PageLoader text="Cargando tu membresía" />
@@ -296,6 +296,7 @@ import PageLoader from '../components/PageLoader.astro';
 </style>
 
 <script>
+  import { toast, confirmAction } from '../lib/ui';
   import { supabase } from '../lib/supabase';
   import { dashboard } from '../lib/api';
   import {
@@ -533,12 +534,12 @@ import PageLoader from '../components/PageLoader.astro';
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || 'Error al crear sesión de pago');
+        toast.error(data.error || 'Error al crear sesión de pago');
         btn.textContent = originalText;
         btn.disabled = false;
       }
     } catch (err: unknown) {
-      alert('Error de conexión: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      toast.error('Error de conexión: ' + (err instanceof Error ? err.message : 'Unknown error'));
       btn.textContent = originalText;
       btn.disabled = false;
     }
@@ -568,12 +569,12 @@ import PageLoader from '../components/PageLoader.astro';
       if (data.url) {
         window.location.href = data.url;
       } else {
-        alert(data.error || 'Error al abrir portal');
+        toast.error(data.error || 'Error al abrir portal');
         btn.innerHTML = originalHtml;
         btn.disabled = false;
       }
     } catch (err: unknown) {
-      alert('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      toast.error('Error: ' + (err instanceof Error ? err.message : 'Unknown error'));
       btn.innerHTML = '<span class=\"material-symbols-outlined text-sm\">settings</span> Gestionar Plan';
       btn.disabled = false;
     }

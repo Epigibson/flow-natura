@@ -74,7 +74,7 @@ import PageLoader from '../../components/PageLoader.astro';
             <a href="/ventas" class="p-2 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant flex items-center justify-center" title="Regresar">
               <span class="material-symbols-outlined">arrow_back</span>
             </a>
-            <span class="bg-primary-fixed text-on-primary-fixed-variant px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase" id="estado-badge">Cargando...</span>
+            <div class="flex flex-wrap gap-2" id="estado-badge"></div>
             <span class="flex items-center gap-1 text-primary-container font-medium">
               <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">calendar_today</span>
               <span id="order-date">--</span>
@@ -342,102 +342,20 @@ import PageLoader from '../../components/PageLoader.astro';
     </div>
   </div>
 
-  <!-- Premium UI Alert / Confirm Modals -->
-  <div id="ui-alert-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border/50 p-6 animate-in zoom-in-95 duration-200">
-      <div class="flex items-center gap-3 text-secondary mb-3">
-        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </div>
-        <h3 class="text-xl font-bold font-serif text-on-surface" id="ui-alert-title">Atención</h3>
-      </div>
-      <p class="text-secondary/90 text-sm mb-6 leading-relaxed" id="ui-alert-desc"></p>
-      <div class="flex justify-end">
-        <button id="btn-ui-alert-ok" class="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all font-bold text-sm shadow-md active:scale-95">
-          Entendido
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="ui-confirm-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-background/80 backdrop-blur-sm" id="ui-confirm-backdrop"></div>
-    <div class="relative w-full max-w-sm bg-surface rounded-3xl shadow-2xl border border-border/50 p-6 animate-in zoom-in-95 duration-200">
-      <div class="flex items-center gap-3 text-secondary mb-3">
-        <div class="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-        </div>
-        <h3 class="text-xl font-bold font-serif text-on-surface" id="ui-confirm-title">Confirmar</h3>
-      </div>
-      <p class="text-secondary/90 text-sm mb-6 leading-relaxed" id="ui-confirm-desc"></p>
-      <div class="flex justify-end gap-3">
-        <button id="btn-ui-confirm-cancel" class="px-5 py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface transition-all font-bold text-sm">
-          Cancelar
-        </button>
-        <button id="btn-ui-confirm-ok" class="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:brightness-110 shadow-md transition-all font-bold text-sm active:scale-95">
-          Aceptar
-        </button>
-      </div>
-    </div>
-  </div>
-
 </DashboardLayout>
 
 <script>
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { esc } from '../../lib/security';
+  import { summarizeOrder, parseAmount, errorMessage, formatFolio, orderStatusChips } from '../../lib/orders';
+  import { whatsappPhone } from '../../lib/phone';
+  import { toast, confirmAction, chipHtml } from '../../lib/ui';
 
-  // Premium UI Alert / Confirm Logic
-  function uiAlert(message: string, title = 'Atención') {
-    return new Promise<void>((resolve) => {
-      const modal = document.getElementById('ui-alert-modal') as HTMLElement;
-      const titleEl = document.getElementById('ui-alert-title') as HTMLElement;
-      const descEl = document.getElementById('ui-alert-desc') as HTMLElement;
-      const btnOk = document.getElementById('btn-ui-alert-ok') as HTMLButtonElement;
-      
-      titleEl.textContent = title;
-      descEl.textContent = message;
-      modal.classList.remove('hidden');
-      
-      const close = () => {
-        modal.classList.add('hidden');
-        btnOk.removeEventListener('click', close);
-        resolve();
-      };
-      btnOk.addEventListener('click', close);
-    });
-  }
-
-  function uiConfirm(message: string, title = 'Confirmar') {
-    return new Promise<boolean>((resolve) => {
-      const modal = document.getElementById('ui-confirm-modal') as HTMLElement;
-      const titleEl = document.getElementById('ui-confirm-title') as HTMLElement;
-      const descEl = document.getElementById('ui-confirm-desc') as HTMLElement;
-      const btnOk = document.getElementById('btn-ui-confirm-ok') as HTMLButtonElement;
-      const btnCancel = document.getElementById('btn-ui-confirm-cancel') as HTMLButtonElement;
-      const backdrop = document.getElementById('ui-confirm-backdrop') as HTMLElement;
-      
-      titleEl.textContent = title;
-      descEl.textContent = message;
-      modal.classList.remove('hidden');
-      
-      const cleanUp = () => {
-        modal.classList.add('hidden');
-        btnOk.removeEventListener('click', onOk);
-        btnCancel.removeEventListener('click', onCancel);
-        backdrop.removeEventListener('click', onCancel);
-      };
-      
-      const onOk = () => { cleanUp(); resolve(true); };
-      const onCancel = () => { cleanUp(); resolve(false); };
-      
-      btnOk.addEventListener('click', onOk);
-      btnCancel.addEventListener('click', onCancel);
-      backdrop.addEventListener('click', onCancel);
-    });
-  }
+  // Shared UI (global toast + confirm dialog)
+  const uiAlert = async (message: string, _title?: string) => { toast.error(message); };
+  const uiConfirm = (message: string, title = 'Confirmar') =>
+    confirmAction(title, { description: message, variant: 'warning', confirmText: 'Aceptar' });
 
   const urlParams = new URLSearchParams(window.location.search);
   const orderId = urlParams.get('id');
@@ -496,11 +414,13 @@ import PageLoader from '../../components/PageLoader.astro';
   const notesDisplay = document.getElementById('notes-display') as HTMLElement;
 
   let globalOrder: any = null;
-  let globalTerms: any = null;
   let currentUserId = '';
 
   async function updateStatus(newStatus: string) {
-    if(!(await uiConfirm(`¿Estás seguro de modificar esta venta al estado: ${newStatus}?`))) return;
+    const msg = newStatus === 'cancelled'
+      ? '¿Cancelar esta venta? Se devolverán los productos a tu inventario.'
+      : '¿Marcar esta venta como entregada?';
+    if(!(await uiConfirm(msg))) return;
     btnUpdateStatus.disabled = true;
     btnCancel.disabled = true;
     try {
@@ -508,12 +428,10 @@ import PageLoader from '../../components/PageLoader.astro';
         await api.orders.cancel(orderId as string);
       } else if (newStatus === 'delivered') {
         await api.orders.deliver(orderId as string);
-      } else {
-        await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
       }
       window.location.reload();
     } catch(e: any) {
-      await uiAlert('No se pudo actualizar el estado: ' + (e?.message || 'Error desconocido'), 'Error');
+      await uiAlert('No se pudo actualizar el estado: ' + errorMessage(e), 'Error');
       btnUpdateStatus.disabled = false;
       btnCancel.disabled = false;
     }
@@ -530,7 +448,8 @@ import PageLoader from '../../components/PageLoader.astro';
         .select(`
           *,
           customers:customer_id (id, full_name, phone, email),
-          order_items (*, products (id, name, category, price))
+          order_items (*, products (id, name, category, price)),
+          order_payments (id, amount, kind, paid_at)
         `)
         .eq('id', orderId)
         .single();
@@ -538,9 +457,6 @@ import PageLoader from '../../components/PageLoader.astro';
       if (error || !order) { showError(); return; }
 
       globalOrder = order;
-      if (order.notes && order.payment_method?.toLowerCase() === 'abonos') {
-        try { globalTerms = JSON.parse(order.notes); } catch(e) {}
-      }
 
       // Load customers for the modal
       if (currentUserId && editClientSelect) {
@@ -571,54 +487,35 @@ import PageLoader from '../../components/PageLoader.astro';
   function renderOrder() {
     const order = globalOrder;
     const items = globalOrder.order_items;
-    const terms = globalTerms;
+    const sum = summarizeOrder(order);
 
     loader.classList.add('hidden');
     content.classList.remove('hidden');
 
     const d = new Date(order.created_at);
     orderDate.textContent = d.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
-    folioTitle.textContent = 'Folio #NF-' + order.id.split('-')[0].toUpperCase();
+    folioTitle.textContent = 'Folio #' + formatFolio(order.id);
 
     const cName = order.customers?.full_name || 'Cliente Mostrador';
     clientName.textContent = cName;
     clientInitial.textContent = cName.substring(0,2).toUpperCase();
 
-    let displayComment = "No hay notas adicionales.";
-    if (order.payment_method?.toLowerCase() === 'abonos' && terms) {
-      displayComment = terms.comentario || "Venta en abonos activa. No hay comentarios adicionales.";
-    } else if (order.notes && !terms) {
-      displayComment = order.notes;
-    }
-    notesDisplay.textContent = displayComment;
+    notesDisplay.textContent = order.notes || 'No hay notas adicionales.';
 
-    const isAbonos = order.payment_method?.toLowerCase() === 'abonos';
-    
-    let totalPaid = 0;
-    let debtRemaining = 0;
-    if (isAbonos && terms) {
-      const engancheNum = Number(terms.enganche || 0);
-      const historial = terms.historial_abonos || [];
-      const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-      totalPaid = engancheNum + totalAbonado;
-      debtRemaining = Number(order.total_amount) - totalPaid;
-    }
-    const isFullyPaid = isAbonos ? (debtRemaining <= 0.01) : true;
+    const isAbonos = sum.isAbonos;
+    const totalPaid = sum.paid;
+    const debtRemaining = sum.balance;
+    const isFullyPaid = sum.isFullyPaid;
 
     btnCancel.onclick = () => updateStatus('cancelled');
 
+    const chips = orderStatusChips(order);
+    estadoBadge.innerHTML = chipHtml(chips.delivery) + (chips.payment ? chipHtml(chips.payment) : '');
     if (order.status === 'delivered') {
-      estadoBadge.textContent = isAbonos && !isFullyPaid ? 'Entregado (Con Deuda)' : 'Entregado / Pagado';
-      estadoBadge.className = 'bg-secondary-fixed text-on-secondary-fixed-variant px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
       btnUpdateStatus.classList.add('hidden');
-      if (isFullyPaid) btnCancel.classList.add('hidden');
     } else if (order.status === 'pending') {
-      estadoBadge.textContent = 'Pendiente de Entrega';
-      estadoBadge.className = 'bg-primary-fixed text-on-primary-fixed-variant px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
       btnUpdateStatus.onclick = () => updateStatus('delivered');
     } else {
-      estadoBadge.textContent = 'Cancelado';
-      estadoBadge.className = 'bg-error-container text-error px-4 py-1 rounded-full text-sm font-semibold tracking-wide uppercase';
       btnUpdateStatus.classList.add('hidden');
       btnCancel.classList.add('hidden');
     }
@@ -642,43 +539,40 @@ import PageLoader from '../../components/PageLoader.astro';
       btnSaveClient.disabled = true;
       btnSaveClient.textContent = 'Guardando...';
       try {
-        await supabase.from('orders').update({ customer_id: newCustId }).eq('id', orderId);
+        await api.orders.changeCustomer(orderId as string, newCustId);
         window.location.reload();
-      } catch(err: any) { await uiAlert(err.message); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar Cambios'; }
+      } catch(err: any) { await uiAlert(errorMessage(err)); btnSaveClient.disabled = false; btnSaveClient.textContent = 'Guardar Cambios'; }
     };
 
     btnEditNotes.onclick = () => {
-      let currentNote = "";
-      if (isAbonos && terms) currentNote = terms.comentario || "";
-      else if (order.notes && !terms) currentNote = order.notes;
-      editNotesText.value = currentNote;
+      editNotesText.value = order.notes || '';
       notesModal.classList.remove('hidden');
     };
 
     btnSaveNotes.onclick = async () => {
       btnSaveNotes.disabled = true;
       btnSaveNotes.textContent = 'Guardando...';
-      let finalNotes = editNotesText.value;
-      if (isAbonos && terms) {
-        finalNotes = JSON.stringify({ ...terms, comentario: editNotesText.value });
-      }
       try {
-        await supabase.from('orders').update({ notes: finalNotes }).eq('id', orderId);
+        await api.orders.updateNotes(orderId as string, editNotesText.value);
         window.location.reload();
-      } catch(err: any) { await uiAlert(err.message); btnSaveNotes.disabled = false; }
+      } catch(err: any) {
+        await uiAlert(errorMessage(err));
+        btnSaveNotes.disabled = false;
+        btnSaveNotes.textContent = 'Guardar Nota';
+      }
     };
 
-    const phone = order.customers?.phone;
+    const phone = whatsappPhone(order.customers?.phone);
     if (phone && whatsappContainer && btnWhatsapp) {
       whatsappContainer.classList.remove('hidden');
       whatsappContainer.classList.add('flex');
-      const folioLabel = '#NF-' + order.id.split('-')[0].toUpperCase();
+      const folioLabel = '#' + formatFolio(order.id);
       const totalAmountVal = Number(order.total_amount);
       let message = '¡Hola ' + cName + '! 👋 Espero que estés teniendo un excelente día.\n\n';
       message += 'Te comparto el detalle de tu compra 🛍️:\n\n';
       message += '🏷️ *Total de la compra:* $' + totalAmountVal.toFixed(2) + ' MXN\n';
       
-      if(isAbonos) {
+      if (isAbonos || totalPaid < totalAmountVal) {
         message += '💸 *Llevas pagado:* $' + totalPaid.toFixed(2) + ' MXN\n';
         if (!isFullyPaid) message += '📌 *Saldo pendiente:* $' + debtRemaining.toFixed(2) + ' MXN\n';
         else message += '✨ ¡Tu cuenta ya está totalmente pagada! 🎉\n';
@@ -727,152 +621,95 @@ import PageLoader from '../../components/PageLoader.astro';
     const btnRegistrarAbono = document.getElementById('btn-registrar-abono') as HTMLButtonElement | null;
     if(btnRegistrarAbono) btnRegistrarAbono.classList.add('hidden');
 
-    if (isAbonos && terms) {
+    const isCancelled = order.status === 'cancelled';
+    const dateFmt: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+
+    if (isAbonos) {
       methodLabel.textContent = 'En Abonos';
       methodDot.className = 'w-3 h-3 bg-primary rounded-full';
       methodContainer.className = 'flex items-center gap-2 bg-primary-container/20 px-4 py-2 rounded-xl';
-      cronogramaContainer.classList.remove('hidden');
-
-      pendingBalance.classList.remove('hidden');
-      pendingBalance.textContent = 'Saldo Pendiente: $' + (debtRemaining > 0 ? debtRemaining.toFixed(2) : '0.00') + ' MXN';
-
-      if (!isFullyPaid && btnRegistrarAbono && order.status !== 'cancelled') {
-        btnRegistrarAbono.classList.remove('hidden');
-        btnRegistrarAbono.onclick = () => {
-           const engancheNum = Number(terms.enganche || 0);
-           const totalAmountNum = Number(order.total_amount);
-           const suggestedCuota = Math.min(debtRemaining, (totalAmountNum - engancheNum) / Number(terms.pagos || 1));
-           modalDesc.textContent = 'Ingresa el monto que el cliente está abonando en este momento.';
-           modalAmountInput.value = suggestedCuota.toFixed(2);
-           abonoModal.classList.remove('hidden');
-           
-           btnConfirmAbono.onclick = async () => {
-              const inputVal = Number(modalAmountInput.value);
-              if (inputVal <= 0 || isNaN(inputVal)) {
-                await uiAlert("Por favor ingresa un monto válido mayor a 0.");
-                return;
-              }
-              btnConfirmAbono.disabled = true;
-              btnConfirmAbono.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Procesando...';
-              
-              const historial = terms.historial_abonos || [];
-              historial.push({ monto: inputVal, fecha: new Date().toISOString() });
-              
-              // Increment pagos_completados for backward compatibility
-              const pagosCompletados = Number(terms.pagos_completados || 0) + 1;
-              const newTerms = { ...terms, historial_abonos: historial, pagos_completados: pagosCompletados };
-              try {
-                await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
-                window.location.reload();
-              } catch(e) { console.error(e); window.location.reload(); }
-           };
-        };
-      }
-      
-      btnCancelAbono.onclick = () => abonoModal.classList.add('hidden');
-      abonoModalBackdrop.onclick = () => abonoModal.classList.add('hidden');
-
-      cronogramaList.innerHTML = '';
-      const historial = terms.historial_abonos || [];
-      const hasPending = !isFullyPaid;
-      const engancheNum = Number(terms.enganche || 0);
-      
-      const engancheEl = document.createElement('div');
-      engancheEl.className = 'flex items-start gap-3 relative pb-6 group';
-      engancheEl.innerHTML = '<div class="absolute left-[11px] top-6 bottom-0 w-[2px] bg-secondary-container"></div>' +
-        '<div class="z-10 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: \'FILL\' 1;">check</span></div>' +
-        '<div class="flex-1">' +
-          '<div class="flex justify-between items-center">' +
-            '<span class="font-bold text-on-surface">Enganche (Cobrado)</span>' +
-            '<div class="flex items-center gap-2">' +
-              '<span class="text-secondary font-bold">$' + engancheNum.toFixed(2) + '</span>' +
-              '<button class="delete-enganche-btn opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-500 hover:bg-red-50 rounded-full flex items-center justify-center cursor-pointer" title="Eliminar enganche">' +
-                '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
-              '</button>' +
-            '</div>' +
-          '</div>' +
-          '<p class="text-xs text-on-surface-variant">Pagado al registrar</p>' +
-        '</div>';
-        
-      const delEngancheBtn = engancheEl.querySelector('.delete-enganche-btn');
-      if (delEngancheBtn) {
-        delEngancheBtn.addEventListener('click', async () => {
-          if (await uiConfirm('¿Estás seguro de eliminar el enganche? Esto sumará el monto al saldo pendiente.', 'Eliminar Enganche')) {
-            const newTerms = { ...terms, enganche: 0 };
-            try {
-              await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
-              window.location.reload();
-            } catch(e) { console.error(e); }
-          }
-        });
-      }
-
-      cronogramaList.appendChild(engancheEl);
-
-      historial.forEach((abono: any, index: number) => {
-        const el = document.createElement('div');
-        const isLastItem = (index === historial.length - 1) && !hasPending;
-        el.className = 'flex items-start gap-3 relative group ' + (isLastItem ? '' : 'pb-6');
-        
-        let lineHtml = '';
-        if (!isLastItem) {
-           lineHtml = '<div class="absolute left-[11px] top-6 bottom-[-10px] w-[2px] bg-secondary-container"></div>';
-        }
-        
-        const fecha = new Date(abono.fecha).toLocaleDateString('es-MX', { year: 'numeric', month: 'short', day: 'numeric' });
-        
-        el.innerHTML = lineHtml + 
-          '<div class="z-10 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: \'FILL\' 1;">check</span></div>' +
-          '<div class="flex-1">' +
-            '<div class="flex justify-between items-center">' +
-              '<span class="font-bold text-on-surface">Abono Registrado</span>' +
-              '<div class="flex items-center gap-2">' +
-                '<span class="text-secondary font-bold">$' + Number(abono.monto).toFixed(2) + '</span>' +
-                '<button class="delete-abono-btn opacity-0 group-hover:opacity-100 transition-opacity p-1.5 text-red-500 hover:bg-red-50 rounded-full flex items-center justify-center cursor-pointer" title="Eliminar abono">' +
-                  '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>' +
-                '</button>' +
-              '</div>' +
-            '</div>' +
-            '<p class="text-xs text-secondary font-medium">Cobrado el ' + fecha + '</p>' +
-          '</div>';
-
-        const delAbonoBtn = el.querySelector('.delete-abono-btn');
-        if (delAbonoBtn) {
-          delAbonoBtn.addEventListener('click', async () => {
-            if (await uiConfirm('¿Estás seguro de eliminar este abono de $' + Number(abono.monto).toFixed(2) + '?', 'Eliminar Abono')) {
-              const newHistorial = [...historial];
-              newHistorial.splice(index, 1);
-              const newTerms = { ...terms, historial_abonos: newHistorial, pagos_completados: newHistorial.length };
-              try {
-                await supabase.from('orders').update({ notes: JSON.stringify(newTerms) }).eq('id', orderId);
-                window.location.reload();
-              } catch(e) { console.error(e); }
-            }
-          });
-        }
-        cronogramaList.appendChild(el);
-      });
-
-      if (hasPending) {
-        const pendingEl = document.createElement('div');
-        pendingEl.className = 'flex items-start gap-3 relative';
-        pendingEl.innerHTML = 
-          '<div class="z-10 w-6 h-6 rounded-full bg-primary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-surface text-[16px]" style="font-variation-settings: \'FILL\' 1;">schedule</span></div>' +
-          '<div class="flex-1">' +
-            '<div class="flex justify-between">' +
-              '<span class="font-bold text-on-surface">Saldo Restante</span>' +
-              '<span class="text-on-surface font-bold">$' + debtRemaining.toFixed(2) + '</span>' +
-            '</div>' +
-            '<p class="text-xs text-on-surface-variant">Sugerencia: Pagos ' + (terms.frecuencia || 'periódicos') + '</p>' +
-          '</div>';
-        cronogramaList.appendChild(pendingEl);
-      }
     } else {
       methodLabel.textContent = 'Al Contado';
       methodDot.className = 'w-3 h-3 bg-secondary rounded-full';
       methodContainer.className = 'flex items-center gap-2 bg-secondary-container/30 px-4 py-2 rounded-xl';
-      cronogramaContainer.classList.add('hidden');
-      pendingBalance.classList.add('hidden');
+    }
+
+    // Payments history is shown for every sale that has payments or a balance
+    const showSchedule = isAbonos || sum.payments.length > 0;
+    cronogramaContainer.classList.toggle('hidden', !showSchedule);
+    pendingBalance.classList.toggle('hidden', !showSchedule);
+    pendingBalance.textContent = 'Saldo Pendiente: $' + debtRemaining.toFixed(2) + ' MXN';
+
+    btnCancelAbono.onclick = () => abonoModal.classList.add('hidden');
+    abonoModalBackdrop.onclick = () => abonoModal.classList.add('hidden');
+
+    if (!isFullyPaid && btnRegistrarAbono && !isCancelled) {
+      btnRegistrarAbono.classList.remove('hidden');
+      btnRegistrarAbono.onclick = () => {
+        modalDesc.textContent = 'Ingresa el monto que el cliente está abonando. Saldo pendiente: $' + debtRemaining.toFixed(2);
+        modalAmountInput.value = (isAbonos ? sum.suggestedPayment : debtRemaining).toFixed(2);
+        modalAmountInput.max = debtRemaining.toFixed(2);
+        abonoModal.classList.remove('hidden');
+
+        btnConfirmAbono.onclick = async () => {
+          const inputVal = parseAmount(modalAmountInput.value);
+          if (isNaN(inputVal) || inputVal <= 0) {
+            await uiAlert('Por favor ingresa un monto válido mayor a 0.');
+            return;
+          }
+          if (inputVal > debtRemaining + 0.005) {
+            await uiAlert('El monto no puede ser mayor al saldo pendiente ($' + debtRemaining.toFixed(2) + ').');
+            return;
+          }
+          btnConfirmAbono.disabled = true;
+          btnConfirmAbono.textContent = 'Procesando...';
+          try {
+            await api.orders.addPayment(orderId as string, inputVal);
+            window.location.reload();
+          } catch(e: any) {
+            await uiAlert('No se pudo registrar el abono: ' + errorMessage(e), 'Error');
+            btnConfirmAbono.disabled = false;
+            btnConfirmAbono.textContent = 'Confirmar Cobro';
+          }
+        };
+      };
+    }
+
+    const kindLabel: Record<string, string> = { contado: 'Pago de contado', enganche: 'Enganche', abono: 'Abono registrado' };
+    cronogramaList.innerHTML = '';
+    sum.payments.forEach((pay) => {
+      const el = document.createElement('div');
+      el.className = 'flex items-start gap-3 relative group pb-6';
+      el.innerHTML =
+        '<div class="absolute left-[11px] top-6 bottom-0 w-[2px] bg-secondary-container"></div>' +
+        '<div class="z-10 w-6 h-6 rounded-full bg-secondary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white text-[16px]" style="font-variation-settings: \'FILL\' 1;">check</span></div>' +
+        '<div class="flex-1"><div class="flex justify-between items-center">' +
+          '<span class="font-bold text-on-surface">' + kindLabel[pay.kind] + '</span>' +
+          '<div class="flex items-center gap-2"><span class="text-secondary font-bold">$' + Number(pay.amount).toFixed(2) + '</span>' +
+          (isCancelled ? '' : '<button class="delete-payment-btn opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 text-red-500 hover:bg-red-50 rounded-full flex items-center justify-center cursor-pointer" title="Eliminar pago" aria-label="Eliminar pago"><span class="material-symbols-outlined text-base">delete</span></button>') +
+          '</div></div>' +
+          '<p class="text-xs text-secondary font-medium">Cobrado el ' + new Date(pay.paid_at).toLocaleDateString('es-MX', dateFmt) + '</p></div>';
+
+      el.querySelector('.delete-payment-btn')?.addEventListener('click', async () => {
+        if (!(await uiConfirm('¿Eliminar este pago de $' + Number(pay.amount).toFixed(2) + '? El monto volverá al saldo pendiente.', 'Eliminar pago'))) return;
+        try {
+          await api.orders.deletePayment(pay.id);
+          window.location.reload();
+        } catch(e: any) {
+          await uiAlert('No se pudo eliminar el pago: ' + errorMessage(e), 'Error');
+        }
+      });
+      cronogramaList.appendChild(el);
+    });
+
+    if (!isFullyPaid && !isCancelled) {
+      const pendingEl = document.createElement('div');
+      pendingEl.className = 'flex items-start gap-3 relative';
+      pendingEl.innerHTML =
+        '<div class="z-10 w-6 h-6 rounded-full bg-primary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-on-surface text-[16px]" style="font-variation-settings: \'FILL\' 1;">schedule</span></div>' +
+        '<div class="flex-1"><div class="flex justify-between"><span class="font-bold text-on-surface">Saldo Restante</span><span class="text-on-surface font-bold">$' + debtRemaining.toFixed(2) + '</span></div>' +
+        (isAbonos ? '<p class="text-xs text-on-surface-variant">Sugerencia: ' + sum.installments + ' pagos ' + esc((order.frequency || 'periódicos').toLowerCase()) + '</p>' : '') + '</div>';
+      cronogramaList.appendChild(pendingEl);
     }
   }
 

@@ -2,11 +2,11 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Nueva venta">
   <!-- Progress Header -->
   <div class="flex flex-col md:flex-row justify-between md:items-end mb-8 gap-4">
     <div>
-      <h2 class="text-3xl md:text-5xl font-display font-extrabold text-primary tracking-tight">Registro de Venta</h2>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Registro de Venta</h2>
       <p class="text-sm text-on-surface-variant mt-2 font-body">Completa los 3 pasos para procesar el pedido.</p>
     </div>
     <a href="/ventas" class="btn-secondary flex items-center gap-2 h-fit">
@@ -42,7 +42,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       <section class="bg-surface-container-lowest p-8 rounded-[2rem] shadow-[0_32px_32px_-4px_rgba(29,26,34,0.06)] border border-outline-variant/10">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-primary font-display italic">Seleccionar Cliente</h2>
-          <button class="text-secondary font-semibold flex items-center gap-2 text-sm hover:underline">
+          <button type="button" id="btn-quick-customer" class="text-secondary font-semibold flex items-center gap-2 text-sm hover:underline">
             <span class="material-symbols-outlined text-lg">person_add</span>
             Nuevo Cliente
           </button>
@@ -193,10 +193,25 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       </div>
     </div>
   </div>
+  <!-- Quick customer dialog -->
+  <dialog id="quick-customer-dialog" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-sm bg-transparent">
+    <form id="quick-customer-form" class="bg-surface-container-lowest p-8 rounded-2xl space-y-4 border border-outline-variant/20">
+      <h3 class="text-xl font-bold text-primary font-display">Nuevo Cliente</h3>
+      <div id="quick-customer-error" class="hidden bg-error-container text-error p-3 rounded-md text-sm"></div>
+      <input name="full_name" required placeholder="Nombre completo" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4" />
+      <input name="phone" type="tel" placeholder="Teléfono (opcional)" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4" />
+      <div class="flex gap-3">
+        <button type="button" id="quick-customer-cancel" class="flex-1 py-3 rounded-xl bg-surface-container font-bold">Cancelar</button>
+        <button type="submit" id="quick-customer-save" class="flex-1 py-3 rounded-xl bg-primary text-white font-bold">Guardar</button>
+      </div>
+    </form>
+  </dialog>
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
   import { esc } from '../../lib/security';
   import { calculateConsultantPrice } from '../../lib/camino-crecimiento';
   import type { ConsultantLevel } from '../../lib/camino-crecimiento';
@@ -284,6 +299,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           opt.textContent = c.full_name;
           selectCustomer.appendChild(opt);
         });
+        // Coming from a customer profile: /ventas/nueva?cliente=<id>
+        const preselected = new URLSearchParams(window.location.search).get('cliente');
+        if (preselected && customers.some((c: any) => c.id === preselected)) selectCustomer.value = preselected;
       }
     } catch(e) { console.warn('Error loading customers', e); }
 
@@ -378,7 +396,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       if (existing.quantity < product.max_quantity) {
         existing.quantity += 1;
       } else {
-        alert('No tienes suficiente stock para agregar otra unidad.');
+        toast.warning('No tienes suficiente stock para agregar otra unidad.');
         return;
       }
     } else {
@@ -408,7 +426,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       } else if (newQuantity <= item.max_quantity) {
         item.quantity = newQuantity;
       } else {
-        alert('Has alcanzado el límite de tu stock disponible.');
+        toast.warning('Has alcanzado el límite de tu stock disponible.');
       }
       renderCart();
     }
@@ -561,6 +579,35 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   (window as any).updateDiscount = updateDiscount;
   (window as any).toggleItemDiscountType = toggleItemDiscountType;
 
+  // Quick-add customer without leaving the sale
+  const quickDialog = document.getElementById('quick-customer-dialog') as HTMLDialogElement;
+  const quickForm = document.getElementById('quick-customer-form') as HTMLFormElement;
+  const quickError = document.getElementById('quick-customer-error') as HTMLElement;
+  document.getElementById('btn-quick-customer')?.addEventListener('click', () => { quickForm.reset(); quickError.classList.add('hidden'); quickDialog.showModal(); });
+  document.getElementById('quick-customer-cancel')?.addEventListener('click', () => quickDialog.close());
+  quickForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(quickForm);
+    const saveBtn = document.getElementById('quick-customer-save') as HTMLButtonElement;
+    saveBtn.disabled = true;
+    try {
+      const name = String(fd.get('full_name') || '').trim();
+      if (!name) throw new Error('El nombre es obligatorio.');
+      const c = await api.customers.create({ full_name: name, phone: String(fd.get('phone') || '').trim() });
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = c.full_name;
+      selectCustomer.appendChild(opt);
+      selectCustomer.value = c.id;
+      quickDialog.close();
+    } catch (err: any) {
+      quickError.textContent = err?.message || 'No se pudo guardar el cliente.';
+      quickError.classList.remove('hidden');
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
   let isCheckoutInProgress = false;
 
   btnCheckout?.addEventListener('click', async () => {
@@ -570,69 +617,37 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     btnCheckout.disabled = true;
     errorDiv.classList.add('hidden');
 
-    let customerId = selectCustomer.value || null;
-
-    // If no customer selected, use or create a "walk-in" customer
-    if (!customerId) {
-      try {
-        const { data: existing } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('consultant_id', currentUserId)
-          .eq('full_name', 'Cliente Mostrador')
-          .maybeSingle();
-        if (existing) {
-          customerId = existing.id;
-        } else {
-          const { data: newCust } = await supabase
-            .from('customers')
-            .insert({ consultant_id: currentUserId, full_name: 'Cliente Mostrador', phone: '', email: '' })
-            .select('id')
-            .single();
-          customerId = newCust?.id || null;
-        }
-      } catch(e) {
-        console.warn('Error with walk-in customer', e);
-      }
-    }
-
-    if (!customerId) {
-      errorDiv.textContent = 'Error: No se pudo asignar un cliente a la venta.';
-      errorDiv.classList.remove('hidden');
-      btnCheckout.disabled = false;
-      isCheckoutInProgress = false;
-      return;
-    }
+    const customerId = selectCustomer.value || null; // null => server uses "Cliente Mostrador"
 
     const subtotal = cart.reduce((acc, item) => acc + (item.unit_price * item.quantity), 0);
     const itemDiscounts = cart.reduce((acc, item) => acc + ((item._calculated_discount || 0) * item.quantity), 0);
-    const calculatedGlobalDiscount = (window as any)._calculatedGlobalDiscount || 0;
+    const calculatedGlobalDiscount = Math.round(((window as any)._calculatedGlobalDiscount || 0) * 100) / 100;
     const totalDiscountAmount = itemDiscounts + calculatedGlobalDiscount;
     const finalTotalAmount = Math.max(0, subtotal - totalDiscountAmount);
-    
-    // Process Payment Method
+
     const paymentRadio = document.querySelector('input[name="payment_type"]:checked') as HTMLInputElement;
-    const paymentMethod = paymentRadio ? paymentRadio.value : 'contado';
-    
-    let orderNotesObj: any = {};
-    
+    const paymentMethod = (paymentRadio ? paymentRadio.value : 'contado') as 'contado' | 'abonos';
+
+    const enganche = Math.round((Number(engancheInput.value) || 0) * 100) / 100;
+    const installments = Math.floor(Number(pagosInput.value) || 1);
+
+    const fail = (msg: string) => {
+      errorDiv.textContent = msg;
+      errorDiv.classList.remove('hidden');
+      btnCheckout.disabled = false;
+      isCheckoutInProgress = false;
+    };
+
     if (paymentMethod === 'abonos') {
-      orderNotesObj = {
-        tipo: 'Abonos',
-        enganche: engancheInput.value || '0',
-        frecuencia: frecuenciaInput.value,
-        pagos: pagosInput.value || '1'
-      };
+      if (enganche < 0) return fail('El enganche no puede ser negativo.');
+      if (enganche > finalTotalAmount + 0.005) return fail('El enganche no puede ser mayor al total de la venta.');
+      if (installments < 1) return fail('El número de pagos debe ser al menos 1.');
     }
 
-    // Agregar historial de descuentos a las notas si existen
+    const meta: Record<string, any> = {};
     if (totalDiscountAmount > 0) {
-      orderNotesObj.descuentos = {
-        global: {
-          tipo: globalDiscountType,
-          valor_original: globalDiscount,
-          monto_descontado: calculatedGlobalDiscount
-        },
+      meta.descuentos = {
+        global: { tipo: globalDiscountType, valor_original: globalDiscount, monto_descontado: calculatedGlobalDiscount },
         productos: cart.filter(i => (i._calculated_discount || 0) > 0).map(i => ({
           producto: i.name,
           precio_original: i.unit_price,
@@ -643,63 +658,30 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       };
     }
 
-    const orderNotes = Object.keys(orderNotesObj).length > 0 ? JSON.stringify(orderNotesObj) : null;
-
     try {
-      // 1. Create order in Supabase
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          consultant_id: currentUserId,
-          customer_id: customerId,
-          total_amount: finalTotalAmount,
-          payment_method: paymentMethod,
-          notes: orderNotes,
-          status: 'pending'
-        })
-        .select('id')
-        .single();
-
-      if (orderError || !order) {
-        throw new Error(orderError?.message || 'No se pudo crear la orden');
-      }
-
-      // 2. Insert order items
-      const orderItems = cart.map(item => ({
-        order_id: order.id,
-        product_id: item.product_id,
-        quantity: item.quantity,
-        unit_price: Math.max(0, item.unit_price - (item._calculated_discount || 0)) // Guardar precio ya descontado
-      }));
-
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        throw new Error(itemsError.message || 'Error al guardar los productos');
-      }
-
-      // 3. Inventory deduction is handled automatically by the DB trigger
-      //    `deduct_inventory_on_sale()` which fires on order_items INSERT.
-      //    No manual deduction needed here.
+      // Atomic on the server: order + items + stock deduction + initial payment, or nothing.
+      const newOrderId = await api.orders.create({
+        customer_id: customerId,
+        payment_method: paymentMethod,
+        items: cart.map(item => ({
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: Math.round(Math.max(0, item.unit_price - (item._calculated_discount || 0)) * 100) / 100
+        })),
+        enganche: paymentMethod === 'abonos' ? enganche : 0,
+        installments,
+        frequency: frecuenciaInput.value,
+        meta,
+        global_discount: calculatedGlobalDiscount
+      });
 
       document.getElementById('checkout-success')?.classList.remove('hidden');
       cart = [];
       renderCart();
-
-      // Re-enable button before redirect in case navigation fails
-      btnCheckout.disabled = false;
-      isCheckoutInProgress = false;
-
-      setTimeout(() => {
-        window.location.href = '/ventas';
-      }, 1500);
+      // Land on the sale: ticket, WhatsApp and first payment are one tap away
+      setTimeout(() => { window.location.href = '/ventas/detalle?id=' + encodeURIComponent(newOrderId); }, 900);
     } catch(err: any) {
-      errorDiv.textContent = 'Error: ' + err.message;
-      errorDiv.classList.remove('hidden');
-      btnCheckout.disabled = false;
-      isCheckoutInProgress = false;
+      fail(err?.message || 'No se pudo registrar la venta.');
     }
   });
 </script>

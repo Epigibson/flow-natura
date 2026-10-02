@@ -3,7 +3,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import PageLoader from '../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Comunidad">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Main Feed Column -->
     <div class="lg:col-span-2">
@@ -156,6 +156,7 @@ import PageLoader from '../components/PageLoader.astro';
 </style>
 
 <script>
+  import { toast, confirmAction } from '../lib/ui';
   import { supabase } from '../lib/supabase';
   import { esc } from '../lib/security';
   import api from '../lib/api';
@@ -435,7 +436,7 @@ import PageLoader from '../components/PageLoader.astro';
     feed.querySelectorAll('.btn-delete-post').forEach(btn => {
       btn.addEventListener('click', async () => {
         const postId = (btn as HTMLElement).dataset.post!;
-        if (!confirm('¿Eliminar este post?')) return;
+        if (!(await confirmAction('¿Eliminar este post?', { confirmText: 'Eliminar' }))) return;
         await api.community.deletePost(postId);
         const article = feed.querySelector(`[data-post-id="${postId}"]`);
         if (article) article.remove();
@@ -555,7 +556,7 @@ import PageLoader from '../components/PageLoader.astro';
       await api.community.createPost({ content: text, author_name: currentUserName, topic: selectedTag || 'general' });
     } catch(err: any) {
       console.error('Error creating post:', err);
-      alert('Error al publicar: ' + err.message);
+      toast.error('Error al publicar: ' + err.message);
       btnPost.disabled = false;
       btnPost.innerHTML = '<span class="material-symbols-outlined text-sm">send</span> Publicar';
       return;

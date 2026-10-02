@@ -4,6 +4,7 @@
  * @supabase/supabase-js SDK usage.
  */
 import { supabase } from './supabase';
+import { summarizeOrder, MONEY_EPSILON } from './orders';
 
 export async function getCurrentUserId(): Promise<string | null> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -21,7 +22,7 @@ export const dashboard = {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    // 1. Fetch Orders
+    // 1. Fetch Orders (this month, for revenue / activity)
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
       .select('*, customers(*), order_items(*, products(*))')
@@ -40,23 +41,22 @@ export const dashboard = {
     if (invError) throw invError;
     const inventory = inventoryData || [];
 
+    // 2b. Open balances: ALL non-cancelled orders (debt does not expire with the month)
+    const { data: openData, error: openError } = await supabase
+      .from('orders')
+      .select('id, total_amount, status, payment_method, installments, created_at, customers(full_name), order_payments(id, amount, kind, paid_at)')
+      .eq('consultant_id', userId)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: true });
+    if (openError) throw openError;
+    const withBalance = (openData || [])
+      .map((o: any) => ({ order: o, summary: summarizeOrder(o) }))
+      .filter(({ summary }) => summary.balance > MONEY_EPSILON);
+
     // 3. KPIs
     const totalRevenue = validOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
     const outOfStock = inventory.filter(inv => inv.quantity <= 0).length;
-
-    let totalDebt = 0;
-    validOrders.forEach(o => {
-      if (o.payment_method === 'abonos' && o.notes) {
-        try {
-          const t = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
-          const enganche = Number(t.enganche || 0);
-          const historial = t.historial_abonos || [];
-          const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-          const debt = Number(o.total_amount) - enganche - totalAbonado;
-          if (debt > 0) totalDebt += debt;
-        } catch(e) {}
-      }
-    });
+    const totalDebt = withBalance.reduce((sum, { summary }) => sum + summary.balance, 0);
 
     const kpis = {
       total_revenue: totalRevenue,
@@ -119,34 +119,18 @@ export const dashboard = {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
-    // 8. Upcoming Payments
-    const upcoming_payments: any[] = [];
-    validOrders.forEach(o => {
-      if (o.payment_method === 'abonos' && o.notes) {
-        try {
-          const t = typeof o.notes === 'string' ? JSON.parse(o.notes) : o.notes;
-          const enganche = Number(t.enganche || 0);
-          const historial = t.historial_abonos || [];
-          const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-          const debt = Number(o.total_amount) - enganche - totalAbonado;
-          
-          if (debt > 0) {
-            const cuotas = Number(t.pagos || 1);
-            const remaining = Number(o.total_amount) - enganche;
-            const per_cuota = remaining / cuotas;
-            upcoming_payments.push({
-              id: o.id,
-              customer_name: o.customers?.full_name || 'Cliente',
-              items_summary: `Abono Sugerido: $${Math.min(debt, per_cuota).toFixed(2)}`,
-              total_amount: o.total_amount,
-              payment_method: 'abonos',
-              status: o.status,
-              created_at: o.created_at
-            });
-          }
-        } catch(e) {}
-      }
-    });
+    // 8. Upcoming Payments (oldest debt first)
+    const upcoming_payments = withBalance.map(({ order: o, summary }) => ({
+      id: o.id,
+      customer_name: o.customers?.full_name || 'Cliente',
+      items_summary: `Abono Sugerido: $${summary.suggestedPayment.toFixed(2)}`,
+      total_amount: o.total_amount,
+      balance: summary.balance,
+      suggested: summary.suggestedPayment,
+      payment_method: o.payment_method,
+      status: o.status,
+      created_at: o.created_at
+    }));
 
     return { kpis, recent_orders, top_clients, stock_alerts, top_products, upcoming_payments };
   }
@@ -158,13 +142,24 @@ export const dashboard = {
 export const consultant = {
   getProfile: async () => {
     const userId = await getCurrentUserId();
-    const { data, error } = await supabase.from('consultant_profiles').select('*').eq('id', userId).maybeSingle();
+    // Explicit columns: never ship natura_password_encrypted to the client
+    const { data, error } = await supabase
+      .from('consultant_profiles')
+      .select('id, full_name, natura_code, level, natura_email, is_natura_connected, latest_growth_data, growth_sync_date, avatar_url, phone, business_name, city')
+      .eq('id', userId)
+      .maybeSingle();
     if (error) throw error;
     return data;
   },
   updateProfile: async (updates: any) => {
     const userId = await getCurrentUserId();
-    const { data, error } = await supabase.from('consultant_profiles').upsert({ id: userId, ...updates }).select().single();
+    // UPDATE (the profile row is created by the signup trigger); an upsert would fail on NOT NULL full_name
+    const { data, error } = await supabase
+      .from('consultant_profiles')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', userId)
+      .select('id, full_name, natura_code, natura_email, avatar_url, phone, business_name, city')
+      .single();
     if (error) throw error;
     return data;
   },
@@ -292,8 +287,10 @@ export const products = {
     return product;
   },
   update: async (id: string, data: any) => {
-    const { data: res, error } = await supabase.from('products').update(data).eq('id', id).select().single();
+    const { data: res, error } = await supabase.from('products').update(data).eq('id', id).select().maybeSingle();
     if (error) throw error;
+    // RLS hides rows other consultants also stock: 0 rows updated, no error
+    if (!res) throw new Error('No se pudo modificar el producto: no existe o lo usan otras consultoras.');
     return res;
   },
   delete: async (id: string) => {
@@ -330,33 +327,23 @@ export const customers = {
     return data;
   },
   getStats: async (id: string) => {
-    const { data, error } = await supabase.from('orders').select('total_amount, status, created_at, notes, payment_method').eq('customer_id', id).order('created_at', { ascending: false });
+    const { data, error } = await supabase
+      .from('orders')
+      .select('total_amount, status, created_at, payment_method, installments, order_payments(id, amount, kind, paid_at)')
+      .eq('customer_id', id)
+      .order('created_at', { ascending: false });
     if (error) throw error;
     const active = data.filter(o => o.status !== 'cancelled');
     const total_spent = active.reduce((acc, o) => acc + Number(o.total_amount), 0);
     const last_order = active.length > 0 ? active[0].created_at : null;
-    
-    // Calculate debt: sum of pending orders + abonos remaining balance
-    let total_debt = 0;
-    for (const o of active) {
-      if (o.payment_method?.toLowerCase() === 'abonos' && o.notes) {
-        try {
-          const parsed = JSON.parse(o.notes);
-          const enganche = Number(parsed.enganche || 0);
-          const historial = parsed.historial_abonos || [];
-          const totalAbonado = historial.reduce((acc: number, a: any) => acc + Number(a.monto || 0), 0);
-          const remaining = Number(o.total_amount) - enganche - totalAbonado;
-          if (remaining > 0.01) total_debt += remaining;
-        } catch {}
-      }
-    }
-    
+    const total_debt = active.reduce((acc, o) => acc + summarizeOrder(o as any).balance, 0);
+
     return { total_orders: data.length, total_spent, total_debt, last_order };
   },
   getOrders: async (customerId: string) => {
     const { data, error } = await supabase
       .from('orders')
-      .select('id, total_amount, status, created_at, payment_method')
+      .select('id, total_amount, status, created_at, payment_method, installments, order_payments(id, amount, kind, paid_at)')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .limit(20);
@@ -376,7 +363,11 @@ export const customers = {
   },
   delete: async (id: string) => {
     const { error } = await supabase.from('customers').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      // 23503 = foreign_key_violation: the customer still has sales (orders.customer_id is ON DELETE RESTRICT)
+      if (error.code === '23503') throw new Error('Este cliente tiene ventas registradas y no se puede eliminar. Cancela o reasigna sus ventas primero.');
+      throw error;
+    }
     return true;
   }
 };
@@ -384,66 +375,90 @@ export const customers = {
 // ─────────────────────────────────────────────
 // Orders / Ventas
 // ─────────────────────────────────────────────
+export interface CreateOrderInput {
+  customer_id: string | null;
+  payment_method: 'contado' | 'abonos';
+  items: { product_id: string; quantity: number; unit_price: number }[];
+  enganche?: number;
+  installments?: number;
+  frequency?: string;
+  notes?: string;
+  meta?: Record<string, any>;
+  /** Global discount in currency, applied on top of the per-unit prices. */
+  global_discount?: number;
+}
+
+const ORDER_SELECT = '*, customers(*), order_items(*, products(*)), order_payments(id, amount, kind, paid_at)';
+
 export const orders = {
   list: async (params?: { status?: string; customer_id?: string }) => {
     const userId = await getCurrentUserId();
-    let query = supabase.from('orders').select('*, customers(*)').eq('consultant_id', userId).order('created_at', { ascending: false });
+    let query = supabase
+      .from('orders')
+      .select('*, customers(*), order_payments(id, amount, kind, paid_at)')
+      .eq('consultant_id', userId)
+      .order('created_at', { ascending: false });
     if (params?.status) query = query.eq('status', params.status);
     if (params?.customer_id) query = query.eq('customer_id', params.customer_id);
     const { data, error } = await query;
     if (error) throw error;
     return data.map(o => ({
       ...o,
-      customer_name: o.customers?.full_name
+      customer_name: o.customers?.full_name,
+      summary: summarizeOrder(o as any)
     }));
   },
   get: async (id: string) => {
-    const { data, error } = await supabase.from('orders').select('*, customers(*), order_items(*, products(*))').eq('id', id).single();
+    const { data, error } = await supabase.from('orders').select(ORDER_SELECT).eq('id', id).single();
     if (error) throw error;
-    return data;
+    return { ...data, summary: summarizeOrder(data as any) };
+  },
+  /** Atomic: order + items + stock deduction + initial payment, or nothing. Returns the new order id. */
+  create: async (input: CreateOrderInput): Promise<string> => {
+    const { data, error } = await supabase.rpc('create_order', {
+      p_customer_id: input.customer_id,
+      p_payment_method: input.payment_method,
+      p_items: input.items,
+      p_enganche: input.enganche || 0,
+      p_installments: input.payment_method === 'abonos' ? (input.installments || 1) : null,
+      p_frequency: input.payment_method === 'abonos' ? (input.frequency || null) : null,
+      p_notes: input.notes || null,
+      p_meta: input.meta || {},
+      p_global_discount: input.global_discount || 0
+    });
+    if (error) throw error;
+    return data as string;
   },
   cancel: async (id: string) => {
-    const userId = await getCurrentUserId();
-    
-    // Fetch order items to restore inventory
-    const { data: order } = await supabase.from('orders').select('status, order_items(product_id, quantity)').eq('id', id).single();
-    if (order && order.status !== 'cancelled') {
-      for (const item of (order.order_items || [])) {
-        // Atomic inventory restore: increment quantity directly in SQL
-        // This avoids the read-then-write race condition
-        const { error: restoreError } = await supabase.rpc('restore_inventory_on_cancel', {
-          p_consultant_id: userId,
-          p_product_id: item.product_id,
-          p_quantity: item.quantity
-        });
-        // Fallback: if RPC doesn't exist yet, use read-then-write
-        if (restoreError?.code === '42883') {
-          const { data: inv } = await supabase.from('inventory')
-            .select('id, quantity')
-            .eq('product_id', item.product_id)
-            .eq('consultant_id', userId)
-            .single();
-          if (inv) {
-            await supabase.from('inventory')
-              .update({ quantity: inv.quantity + item.quantity })
-              .eq('id', inv.id);
-          }
-        }
-      }
-    }
-
-    const { error } = await supabase.from('orders').update({ status: 'cancelled' }).eq('id', id);
+    const { error } = await supabase.rpc('cancel_order', { p_order_id: id });
     if (error) throw error;
     return true;
   },
   deliver: async (id: string) => {
-    const { error } = await supabase.from('orders').update({ status: 'delivered' }).eq('id', id);
+    const { error } = await supabase.rpc('deliver_order', { p_order_id: id });
+    if (error) throw error;
+    return true;
+  },
+  addPayment: async (orderId: string, amount: number, kind: 'abono' | 'enganche' = 'abono') => {
+    const { data, error } = await supabase.rpc('add_payment', { p_order_id: orderId, p_amount: amount, p_kind: kind });
+    if (error) throw error;
+    return data as { paid_amount: number; balance: number };
+  },
+  deletePayment: async (paymentId: string) => {
+    const { error } = await supabase.rpc('delete_payment', { p_payment_id: paymentId });
     if (error) throw error;
     return true;
   },
   updateNotes: async (id: string, notes: string) => {
-    const { error } = await supabase.from('orders').update({ notes }).eq('id', id);
+    const { data, error } = await supabase.from('orders').update({ notes: notes.trim() || null }).eq('id', id).select('id');
     if (error) throw error;
+    if (!data?.length) throw new Error('No se pudo guardar la nota (venta no encontrada).');
+    return true;
+  },
+  changeCustomer: async (id: string, customerId: string) => {
+    const { data, error } = await supabase.from('orders').update({ customer_id: customerId }).eq('id', id).select('id');
+    if (error) throw error;
+    if (!data?.length) throw new Error('No se pudo cambiar el cliente (venta no encontrada).');
     return true;
   }
 };
@@ -495,30 +510,10 @@ export const inventory = {
       points: row.products?.points
     }));
   },
-  add: async (items: any[]) => {
-    const userId = await getCurrentUserId();
-    for (const item of items) {
-      // Always check for existing record first to prevent duplicates
-      const { data: existing } = await supabase.from('inventory')
-        .select('id, quantity')
-        .eq('product_id', item.product_id)
-        .eq('consultant_id', userId)
-        .limit(1)
-        .maybeSingle();
-
-      if (existing) {
-        // Update existing record
-        await supabase.from('inventory')
-          .update({ quantity: existing.quantity + item.quantity })
-          .eq('id', existing.id);
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('inventory')
-          .insert({ product_id: item.product_id, quantity: item.quantity, consultant_id: userId });
-        if (insertError) throw insertError;
-      }
-    }
+  /** Atomic increment of the caller's stock. Items: [{ product_id, quantity > 0 }] */
+  add: async (items: { product_id: string; quantity: number }[]) => {
+    const { error } = await supabase.rpc('add_stock', { p_items: items });
+    if (error) throw error;
     return true;
   },
   /** Directly SET the quantity for a product in inventory (does NOT accumulate) */
@@ -538,13 +533,14 @@ export const inventory = {
         .update({ quantity: newQty })
         .eq('id', existing.id);
       if (error) throw error;
+    } else {
+      throw new Error('El producto no está en tu inventario.');
     }
     return true;
   },
-  applyAdjustment: async (data: { product_id: string; adjustment_type: string; quantity: number; previous_quantity: number; reason: string; notes?: string }) => {
+  applyAdjustment: async (data: { product_id: string; adjustment_type: string; quantity: number; previous_quantity: number; reason: string; notes?: string | null }) => {
     const userId = await getCurrentUserId();
     
-    // Try the RPC first (atomic operation)
     const { data: result, error } = await supabase.rpc('apply_inventory_adjustment', {
       p_consultant_id: userId,
       p_product_id: data.product_id,
@@ -554,51 +550,8 @@ export const inventory = {
       p_reason: data.reason,
       p_notes: data.notes || null
     });
-    
-    // If RPC works, great
-    if (!error) return result;
-    
-    // ── Fallback: direct update if RPC doesn't exist or fails ──
-    console.warn('apply_inventory_adjustment RPC failed, using fallback:', error.message);
-    
-    // 1. Find the inventory record (use the first one if duplicates exist)
-    const { data: invRecord } = await supabase.from('inventory')
-      .select('id, quantity')
-      .eq('product_id', data.product_id)
-      .eq('consultant_id', userId)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .single();
-    
-    if (!invRecord) throw new Error('Inventory record not found');
-    
-    // 2. Calculate new quantity
-    const newQuantity = data.adjustment_type === 'addition'
-      ? invRecord.quantity + data.quantity
-      : Math.max(0, invRecord.quantity - data.quantity);
-    
-    // 3. Update the record
-    const { error: updateError } = await supabase.from('inventory')
-      .update({ quantity: newQuantity })
-      .eq('id', invRecord.id);
-    
-    if (updateError) throw updateError;
-    
-    // 4. Log the adjustment (best effort, don't fail if table doesn't exist)
-    try {
-      await supabase.from('inventory_adjustments').insert({
-        consultant_id: userId,
-        product_id: data.product_id,
-        adjustment_type: data.adjustment_type,
-        quantity: data.quantity,
-        previous_quantity: data.previous_quantity,
-        new_quantity: newQuantity,
-        reason: data.reason,
-        notes: data.notes || null
-      });
-    } catch { /* audit log is best-effort */ }
-    
-    return true;
+    if (error) throw error;
+    return result;
   },
   /** Merge duplicate inventory records for the current user */
   cleanupDuplicates: async () => {
@@ -648,6 +601,33 @@ export const inventory = {
     if (error) throw error;
     return data.map(a => ({ ...a, product_name: a.products?.name }));
   },
+  /** Links an EAN to a catalog product. Throws a 23505 error if the EAN is already linked. */
+  addBarcode: async (input: { product_id: string; barcode: string }) => {
+    const userId = await getCurrentUserId();
+    const { error } = await supabase.from('product_barcodes').insert({
+      product_id: input.product_id,
+      ean: input.barcode.trim(),
+      created_by: userId
+    });
+    if (error) throw error;
+    return true;
+  },
+  /** Bulk upsert of catalog products by code. Returns how many rows were saved / failed. */
+  importProducts: async (rows: { code: string; name: string; brand?: string; category?: string | null; price?: number; cost?: number; points?: number; image_url?: string | null }[]) => {
+    const valid = rows.filter(r => r.code && r.name);
+    let errors = rows.length - valid.length;
+    if (!valid.length) return { imported: 0, errors };
+    // Do not overwrite an existing image with null
+    const payload = valid.map(r => {
+      const { image_url, ...rest } = r;
+      return image_url ? { ...rest, image_url } : rest;
+    });
+    const { data, error } = await supabase.from('products').upsert(payload, { onConflict: 'code' }).select('id');
+    if (error) throw error;
+    const imported = data?.length || 0;
+    errors += valid.length - imported;
+    return { imported, errors };
+  },
   getCategories: async () => {
     return ['Perfumería', 'Maquillaje', 'Rostro', 'Cuerpo', 'Cabello', 'Hombre'];
   }
@@ -656,49 +636,59 @@ export const inventory = {
 // ─────────────────────────────────────────────
 // Community / Mentorship (Stubs for direct data mapping)
 // ─────────────────────────────────────────────
+type ReactionType = 'love' | 'fire' | 'clap' | 'save';
+
 export const community = {
-  getPosts: async () => {
-    // Left join with comments and reactions to get counts (for now we'll fetch them separately or do a simple select if views aren't set up)
-    // To keep it fast, we'll fetch posts and then count reactions/comments. In production, a Supabase View is better.
-    const { data: posts, error } = await supabase
-      .from('community_posts')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
+  getPosts: async (topic?: string) => {
+    const userId = await getCurrentUserId();
+    let query = supabase.from('community_posts').select('*').order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
+    if (topic && topic !== 'all') query = query.eq('topic', topic);
+    const { data: posts, error } = await query;
     if (error) throw error;
-    
-    // For MVP, we'll return posts with 0 likes/comments if we don't have the counts grouped.
-    // Let's fetch all reactions and comments to calculate.
-    const { data: reactions } = await supabase.from('community_reactions').select('post_id');
-    const { data: comments } = await supabase.from('community_comments').select('post_id');
-    
-    const reactionCounts = (reactions || []).reduce((acc: any, curr) => {
-      acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
-      return acc;
-    }, {});
-    
-    const commentCounts = (comments || []).reduce((acc: any, curr) => {
-      acc[curr.post_id] = (acc[curr.post_id] || 0) + 1;
-      return acc;
-    }, {});
+
+    const ids = (posts || []).map(p => p.id);
+    if (!ids.length) return [];
+
+    const [{ data: reactions, error: rErr }, { data: comments, error: cErr }] = await Promise.all([
+      supabase.from('community_reactions').select('post_id, user_id, reaction_type').in('post_id', ids),
+      supabase.from('community_comments').select('post_id').in('post_id', ids)
+    ]);
+    if (rErr) throw rErr;
+    if (cErr) throw cErr;
+
+    const reactionCounts: Record<string, Record<string, number>> = {};
+    const mine: Record<string, string[]> = {};
+    for (const r of reactions || []) {
+      (reactionCounts[r.post_id] ||= {})[r.reaction_type] = (reactionCounts[r.post_id]?.[r.reaction_type] || 0) + 1;
+      if (r.user_id === userId) (mine[r.post_id] ||= []).push(r.reaction_type);
+    }
+    const commentCounts: Record<string, number> = {};
+    for (const c of comments || []) commentCounts[c.post_id] = (commentCounts[c.post_id] || 0) + 1;
 
     return (posts || []).map(p => ({
       ...p,
-      likes: reactionCounts[p.id] || 0,
-      comments: commentCounts[p.id] || 0
+      reactions: reactionCounts[p.id] || {},
+      user_reactions: mine[p.id] || [],
+      likes: reactionCounts[p.id]?.love || 0,
+      comments: commentCounts[p.id] || 0,
+      comment_count: commentCounts[p.id] || 0
     }));
   },
-  createPost: async (content: string, topic: string = 'general') => {
+  createPost: async (input: string | { content: string; topic?: string; author_name?: string }, topic: string = 'general') => {
+    const content = (typeof input === 'string' ? input : input.content).trim();
+    const finalTopic = (typeof input === 'string' ? topic : input.topic) || 'general';
+    if (!content) throw new Error('El post no puede estar vacío');
     const userId = await getCurrentUserId();
-    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).single();
-    
+    if (!userId) throw new Error('No user');
+    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).maybeSingle();
+
     const { data, error } = await supabase.from('community_posts').insert({
       author_id: userId,
       author_name: profile?.full_name || 'Consultor Natura',
       content,
-      topic
+      topic: finalTopic
     }).select().single();
-    
+
     if (error) throw error;
     return data;
   },
@@ -707,47 +697,78 @@ export const community = {
     if (error) throw error;
     return true;
   },
-  toggleReaction: async (postId: string, reactionType: string = 'love') => {
+  /** Accepts (postId, type) or ({ post_id, reaction_type }). Returns true when added, false when removed. */
+  toggleReaction: async (arg: string | { post_id: string; reaction_type?: string }, reactionType: string = 'love') => {
+    const postId = typeof arg === 'string' ? arg : arg.post_id;
+    const type = ((typeof arg === 'string' ? reactionType : arg.reaction_type) || 'love') as ReactionType;
     const userId = await getCurrentUserId();
-    const { data: existing } = await supabase.from('community_reactions')
-      .select('id').eq('post_id', postId).eq('user_id', userId).eq('reaction_type', reactionType).maybeSingle();
-      
+    if (!userId) throw new Error('No user');
+
+    const { data: existing, error: findErr } = await supabase.from('community_reactions')
+      .select('id').eq('post_id', postId).eq('user_id', userId).eq('reaction_type', type).maybeSingle();
+    if (findErr) throw findErr;
+
     if (existing) {
-      await supabase.from('community_reactions').delete().eq('id', existing.id);
-      return false; // Removed
-    } else {
-      await supabase.from('community_reactions').insert({ post_id: postId, user_id: userId, reaction_type: reactionType });
-      return true; // Added
+      const { error } = await supabase.from('community_reactions').delete().eq('id', existing.id);
+      if (error) throw error;
+      return false;
     }
+    const { error } = await supabase.from('community_reactions').insert({ post_id: postId, user_id: userId, reaction_type: type });
+    if (error) throw error;
+    return true;
   },
   getComments: async (postId: string) => {
     const { data, error } = await supabase.from('community_comments').select('*').eq('post_id', postId).order('created_at', { ascending: true });
     if (error) throw error;
     return data;
   },
-  createComment: async (postId: string, content: string) => {
+  createComment: async (arg: string | { post_id: string; content: string; author_name?: string }, content?: string) => {
+    const postId = typeof arg === 'string' ? arg : arg.post_id;
+    const text = ((typeof arg === 'string' ? content : arg.content) || '').trim();
+    if (!text) throw new Error('El comentario no puede estar vacío');
     const userId = await getCurrentUserId();
-    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).single();
+    if (!userId) throw new Error('No user');
+    const { data: profile } = await supabase.from('consultant_profiles').select('full_name').eq('id', userId).maybeSingle();
     const { error } = await supabase.from('community_comments').insert({
       post_id: postId,
       author_id: userId,
       author_name: profile?.full_name || 'Consultor Natura',
-      content
+      content: text
     });
     if (error) throw error;
     return true;
   },
-  getStats: async () => ({})
+  getStats: async () => {
+    const [posts, reactions, comments] = await Promise.all([
+      supabase.from('community_posts').select('author_id, author_name'),
+      supabase.from('community_reactions').select('id', { count: 'exact', head: true }),
+      supabase.from('community_comments').select('id', { count: 'exact', head: true })
+    ]);
+    if (posts.error) throw posts.error;
+    const byAuthor = new Map<string, { author_name: string; count: number }>();
+    for (const p of posts.data || []) {
+      const cur = byAuthor.get(p.author_id) || { author_name: p.author_name || 'Consultora', count: 0 };
+      cur.count += 1;
+      byAuthor.set(p.author_id, cur);
+    }
+    return {
+      unique_authors: byAuthor.size,
+      post_count: posts.data?.length || 0,
+      reaction_count: reactions.count || 0,
+      comment_count: comments.count || 0,
+      top_contributors: [...byAuthor.values()].sort((a, b) => b.count - a.count).slice(0, 3)
+    };
+  }
 };
 
 export const mentorship = {
   getModules: async () => {
     const { data: modules, error: modError } = await supabase.from('mentorship_modules').select('*').order('sort_order', { ascending: true });
     if (modError) throw modError;
-    
+
     const { data: lessons, error: lesError } = await supabase.from('mentorship_lessons').select('*').order('sort_order', { ascending: true });
     if (lesError) throw lesError;
-    
+
     return (modules || []).map(m => ({
       ...m,
       lessons: (lessons || []).filter(l => l.module_id === m.id)
@@ -764,7 +785,22 @@ export const mentorship = {
     const { data, error } = await supabase.from('mentorship_progress').select('*').eq('user_id', userId);
     if (error) throw error;
     return data;
-  }
+  },
+  /** Marks (completed=true) or unmarks a lesson. Idempotent. */
+  saveProgress: async (input: { lesson_id: string; completed: boolean; module_id?: string }) => {
+    const userId = await getCurrentUserId();
+    if (!userId) throw new Error('No user');
+    if (input.completed) {
+      const { error } = await supabase.from('mentorship_progress')
+        .upsert({ user_id: userId, lesson_id: input.lesson_id }, { onConflict: 'user_id,lesson_id', ignoreDuplicates: true });
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('mentorship_progress').delete().eq('user_id', userId).eq('lesson_id', input.lesson_id);
+      if (error) throw error;
+    }
+    return true;
+  },
+  completeLesson: async (lessonId: string) => mentorship.saveProgress({ lesson_id: lessonId, completed: true })
 };
 
 const api = {

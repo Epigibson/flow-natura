@@ -45,10 +45,14 @@
     const s = styles[type];
     const el = document.createElement('div');
     el.className = `pointer-events-auto flex items-center gap-2.5 px-5 py-3 rounded-2xl ${s.bg} text-white text-sm font-bold shadow-2xl backdrop-blur-sm max-w-md animate-[toastIn_0.3s_ease-out]`;
-    el.innerHTML = `
-      <span class="material-symbols-outlined text-lg shrink-0">${icon || s.defaultIcon}</span>
-      <span class="flex-1">${message}</span>
-    `;
+    // textContent: messages often carry server/user text, never inject as HTML
+    const iconEl = document.createElement('span');
+    iconEl.className = 'material-symbols-outlined text-lg shrink-0';
+    iconEl.textContent = icon || s.defaultIcon;
+    const msgEl = document.createElement('span');
+    msgEl.className = 'flex-1';
+    msgEl.textContent = message;
+    el.append(iconEl, msgEl);
 
     container.appendChild(el);
 

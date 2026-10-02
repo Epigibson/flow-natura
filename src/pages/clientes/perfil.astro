@@ -3,7 +3,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import PageLoader from '../../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Perfil de cliente">
   <!-- Header (dynamic) -->
   <header id="profile-header" class="mb-10">
     <a href="/clientes" class="text-primary font-bold text-sm flex items-center gap-1 mb-4 hover:underline">
@@ -17,7 +17,10 @@ import PageLoader from '../../components/PageLoader.astro';
           <p id="client-since" class="text-on-surface-variant mt-1 text-sm"></p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
+        <a id="btn-new-sale" href="/ventas/nueva" class="flex items-center gap-2 py-2 px-4 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md text-sm">
+          <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Nueva venta
+        </a>
         <button id="btn-whatsapp" class="flex items-center gap-2 py-2 px-4 rounded-xl font-bold bg-secondary text-white hover:scale-[1.02] transition-all shadow-md text-sm">
           <span class="material-symbols-outlined text-sm">chat</span> WhatsApp
         </button>
@@ -158,9 +161,13 @@ import PageLoader from '../../components/PageLoader.astro';
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { esc } from '../../lib/security';
+  import { summarizeOrder, formatFolio, orderStatusChips } from '../../lib/orders';
+  import { chipHtml } from '../../lib/ui';
+  import { whatsappPhone } from '../../lib/phone';
 
   const params = new URLSearchParams(window.location.search);
   const clientId = params.get('id');
@@ -196,6 +203,7 @@ import PageLoader from '../../components/PageLoader.astro';
     try { client = await api.customers.get(clientId!); } catch(e) { window.location.href = '/clientes'; return; }
     if (!client) { window.location.href = '/clientes'; return; }
     clientData = client;
+    (document.getElementById('btn-new-sale') as HTMLAnchorElement).href = '/ventas/nueva?cliente=' + encodeURIComponent(client.id);
 
     nameEl.textContent = client.full_name;
     avatarEl.textContent = client.full_name.substring(0, 2).toUpperCase();
@@ -214,15 +222,15 @@ import PageLoader from '../../components/PageLoader.astro';
 
     // WhatsApp
     btnWhatsapp.addEventListener('click', () => {
-      const phone = (client.phone || '').replace(/\D/g, '');
-      if (phone) window.open('https://wa.me/52' + phone, '_blank');
-      else alert('Este cliente no tiene teléfono registrado.');
+      const phone = whatsappPhone(client.phone);
+      if (phone) window.open('https://wa.me/' + phone, '_blank');
+      else toast.warning('Este cliente no tiene teléfono registrado.');
     });
 
     // Load orders
     const { data: orders } = await supabase
       .from('orders')
-      .select('*, order_items (*, products (*))')
+      .select('*, order_items (*, products (*)), order_payments (id, amount, kind, paid_at)')
       .eq('customer_id', clientId)
       .neq('payment_method', 'adjustment')
       .order('created_at', { ascending: false });
@@ -245,16 +253,7 @@ import PageLoader from '../../components/PageLoader.astro';
         const amount = Number(o.total_amount);
         totalSpent += amount;
 
-        // Calculate debt for abonos
-        if (o.payment_method?.toLowerCase() === 'abonos') {
-          try {
-            const terms = JSON.parse(o.notes || '{}');
-            const enganche = Number(terms.enganche || 0);
-            const historial = terms.historial_abonos || [];
-            const totalAbonado = historial.reduce((acc: number, curr: any) => acc + Number(curr.monto || 0), 0);
-            totalDebt += Math.max(0, amount - enganche - totalAbonado);
-          } catch(e) { console.warn('[Perfil] Operation failed:', e); }
-        }
+        totalDebt += summarizeOrder(o).balance;
 
         // Track favorite products
         (o.order_items || []).forEach((item: any) => {
@@ -268,14 +267,13 @@ import PageLoader from '../../components/PageLoader.astro';
         const d = new Date(o.created_at);
         const row = document.createElement('div');
         row.className = 'flex items-center gap-4 py-5 ' + (idx > 0 ? 'border-t border-surface-container' : '');
-        const statusLabel = o.status === 'cancelled' ? 'Cancelada' : (o.payment_method === 'abonos' ? 'Abonos' : 'Pagada');
-        const statusColor = o.status === 'cancelled' ? 'text-error bg-error-container/10' : (o.payment_method === 'abonos' ? 'text-primary bg-primary-container/10' : 'text-secondary bg-secondary-container/10');
+        const chips = orderStatusChips(o);
         const items = (o.order_items || []).map((i: any) => esc((i.products?.name || 'Producto') + ' x' + i.quantity)).join(', ');
 
         row.innerHTML = '<div class="flex-1">' +
-          '<div class="flex items-center gap-2 mb-1">' +
-            '<h4 class="font-bold text-on-surface">Folio #' + String(o.id).slice(-6).toUpperCase() + '</h4>' +
-            '<span class="px-2 py-0.5 rounded-full text-xs font-bold ' + statusColor + '">' + statusLabel + '</span>' +
+          '<div class="flex flex-wrap items-center gap-2 mb-1">' +
+            '<h4 class="font-bold text-on-surface">Folio #' + formatFolio(o.id) + '</h4>' +
+            chipHtml(chips.delivery) + (chips.payment ? chipHtml(chips.payment) : '') +
           '</div>' +
           '<p class="text-sm text-on-surface-variant">' + items + '</p>' +
           '<p class="text-xs text-on-surface-variant mt-1">' + d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + '</p>' +
@@ -333,7 +331,7 @@ import PageLoader from '../../components/PageLoader.astro';
       });
       window.location.reload();
     } catch(err: any) {
-      alert('Error: ' + err.message);
+      toast.error('Error: ' + err.message);
       if (btnSubmitEdit) {
         btnSubmitEdit.disabled = false;
         btnSubmitEdit.textContent = 'Guardar Cambios';

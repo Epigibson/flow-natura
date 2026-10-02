@@ -3,10 +3,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Clientes">
   <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
-      <h2 class="text-3xl md:text-5xl font-display font-medium text-on-surface">Mis Clientes 👥</h2>
+      <h2 class="text-3xl md:text-5xl font-display font-bold text-on-surface">Mis Clientes 👥</h2>
       <p class="text-on-surface-variant mt-2 text-base md:text-lg">Administra a tus clientes y conoce sus preferencias.</p>
     </div>
     <button id="btn-nuevo-cliente" class="btn-primary flex items-center gap-2">
@@ -98,6 +98,7 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../lib/ui';
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
   import api from '../lib/api';
@@ -153,8 +154,8 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
     
     try {
       await api.customers.create({
-        full_name: formData.get('full_name'),
-        phone: formData.get('phone'),
+        full_name: String(formData.get('full_name') || '').trim(),
+        phone: String(formData.get('phone') || '').trim(),
         email: formData.get('email') || null,
         address: formData.get('address') || null,
         preferences: formData.get('preferences') || null
@@ -264,11 +265,11 @@ import TableSkeleton from '../components/skeletons/TableSkeleton.astro';
 
     // Delete buttons
     tbody.querySelectorAll('[data-delete-id]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         const el = (e.currentTarget as HTMLElement);
         const id = el.dataset.deleteId!;
         const name = el.dataset.deleteName || 'este cliente';
-        if (confirm(`¿Eliminar a "${name}"? Esta acción no se puede deshacer.`)) {
+        if (await confirmAction(`¿Eliminar a "${name}"?`, { description: 'Esta acción no se puede deshacer.', confirmText: 'Eliminar' })) {
           deleteCustomer(id);
         }
       });

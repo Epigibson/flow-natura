@@ -3,7 +3,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 import PageLoader from '../../components/PageLoader.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Ajustes de inventario">
   <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
     <div>
       <p class="text-primary font-bold tracking-widest uppercase text-sm mb-1">GESTIÓN DE STOCK</p>
@@ -288,6 +288,7 @@ import PageLoader from '../../components/PageLoader.astro';
 </style>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { esc, sanitizeUrl } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
@@ -509,13 +510,13 @@ import PageLoader from '../../components/PageLoader.astro';
 
   // Individual submit
   document.getElementById('btn-submit-adjust')!.addEventListener('click', async () => {
-    if (!selectedProduct) { alert('Selecciona un producto primero.'); return; }
+    if (!selectedProduct) { toast.warning('Selecciona un producto primero.'); return; }
     const qty = parseInt((document.getElementById('adjust-qty') as HTMLInputElement).value);
     const cur = selectedProduct.quantity;
     let nq: number, rq: number;
-    if (adjustmentType === 'increase') { if (qty < 1) { alert('Mínimo 1.'); return; } nq = cur + qty; rq = qty; }
-    else if (adjustmentType === 'decrease') { if (qty < 1) { alert('Mínimo 1.'); return; } if (qty > cur) { alert(`Solo hay ${cur} uds.`); return; } nq = cur - qty; rq = -qty; }
-    else { if (qty < 0) { alert('No puede ser negativo.'); return; } nq = qty; rq = qty - cur; }
+    if (adjustmentType === 'increase') { if (qty < 1) { toast.warning('Mínimo 1.'); return; } nq = cur + qty; rq = qty; }
+    else if (adjustmentType === 'decrease') { if (qty < 1) { toast.warning('Mínimo 1.'); return; } if (qty > cur) { toast.warning(`Solo hay ${cur} uds.`); return; } nq = cur - qty; rq = -qty; }
+    else { if (qty < 0) { toast.warning('No puede ser negativo.'); return; } nq = qty; rq = qty - cur; }
 
     const btn = document.getElementById('btn-submit-adjust') as HTMLButtonElement;
     btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin">refresh</span> Registrando...';

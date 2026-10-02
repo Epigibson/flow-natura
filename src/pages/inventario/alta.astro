@@ -2,7 +2,7 @@
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
 
-<DashboardLayout>
+<DashboardLayout title="Entrada de stock">
   <div class="max-w-7xl mx-auto space-y-10">
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
@@ -156,6 +156,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
+  import api from '../../lib/api';
   import { CAMINO_CRECIMIENTO, calculateConsultantPrice } from '../../lib/camino-crecimiento';
   import type { ConsultantLevel } from '../../lib/camino-crecimiento';
 
@@ -447,29 +448,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
      btnConfirmAll.disabled = true;
      btnConfirmAll.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> Procesando...';
 
-     // For each item, update or insert into inventory
-     for(let item of tempStockList) {
-        const { data: existingInv } = await supabase
-          .from('inventory')
-          .select('id, quantity')
-          .eq('consultant_id', currentUserId)
-          .eq('product_id', item.product_id)
-          .maybeSingle();
-
-        if(existingInv) {
-           await supabase
-            .from('inventory')
-            .update({ quantity: existingInv.quantity + item.qty, updated_at: new Date().toISOString() })
-            .eq('id', existingInv.id);
-        } else {
-           await supabase
-            .from('inventory')
-            .insert([{
-               consultant_id: currentUserId,
-               product_id: item.product_id,
-               quantity: item.qty
-            }]);
-        }
+     try {
+       await api.inventory.add(tempStockList.map(i => ({ product_id: i.product_id, quantity: i.qty })));
+     } catch (err: any) {
+       globalError.textContent = 'No se pudo registrar la entrada: ' + (err?.message || 'error desconocido');
+       globalError.classList.remove('hidden');
+       btnConfirmAll.disabled = false;
+       btnConfirmAll.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Confirmar Entrada Masiva';
+       return;
      }
 
      globalSuccess.classList.remove('hidden');
