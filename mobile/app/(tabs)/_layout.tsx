@@ -52,16 +52,16 @@ function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="inventory"
+        name="sales"
         options={{
-          title: 'Inventario',
+          title: 'Ventas',
           tabBarIcon: ({ color, focused }) => (
-            <MaterialIcons size={focused ? 26 : 24} name="inventory-2" color={color} />
+            <MaterialIcons size={focused ? 26 : 24} name="point-of-sale" color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="sales"
+        name="new-sale"
         options={{
           title: '',
           tabBarButton: (props) => (
@@ -131,6 +131,8 @@ function TabsLayout() {
           ),
         }}
       />
+      {/* Inventario stays a route (menu, dashboard cards) but leaves the bar to make room for Ventas */}
+      <Tabs.Screen name="inventory" options={{ href: null, title: 'Inventario' }} />
     </Tabs>
   );
 }
