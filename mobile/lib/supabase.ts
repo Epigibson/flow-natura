@@ -13,3 +13,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: false,
   },
 });
+
+// Make the shared code in ../src/lib use this client (it holds the AsyncStorage session)
+(globalThis as any).__FLOW_SUPABASE__ = supabase;
