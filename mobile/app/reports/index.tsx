@@ -1,159 +1,221 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { router } from 'expo-router';
 import SecondaryLayout from '../../components/SecondaryLayout';
+import { ErrorState } from '../../components/ErrorState';
 import { MaterialIcons } from '@expo/vector-icons';
-import api from '../../../src/lib/api';
+import { useThemeColors } from '../../hooks/use-theme-colors';
+import { loadReport, REPORT_PERIODS, type ReportData, type ReportPeriod } from '../../../src/lib/reports';
+import { formatMoney } from '../../../src/lib/orders';
 
+/** Same report, same numbers and sections as /reportes on the web. */
 export default function ReportsScreen() {
+  const t = useThemeColors();
+  const [period, setPeriod] = useState<ReportPeriod>('month');
+  const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [weeklyData, setWeeklyData] = useState<number[]>([0, 0, 0, 0, 0, 0, 0]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  async function loadDashboardData() {
-    setLoading(true);
+  const load = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    setError(null);
     try {
-      const dashboardData = await api.dashboard.getData();
-      setData(dashboardData);
-
-      // Compute real weekly activity from orders
-      try {
-        const orders = await api.orders.list();
-        const now = new Date();
-        const dayBuckets = [0, 0, 0, 0, 0, 0, 0]; // Mon-Sun
-        const weekAgo = new Date(now);
-        weekAgo.setDate(weekAgo.getDate() - 7);
-
-        (orders || []).forEach((o: any) => {
-          const d = new Date(o.created_at);
-          if (d >= weekAgo) {
-            const day = d.getDay(); // 0=Sun
-            const idx = day === 0 ? 6 : day - 1; // Map to Mon=0...Sun=6
-            dayBuckets[idx] += (o.total_amount || 0);
-          }
-        });
-
-        const maxVal = Math.max(...dayBuckets, 1);
-        setWeeklyData(dayBuckets.map(v => Math.round((v / maxVal) * 100)));
-      } catch {
-        // Fallback: keep zeros
-      }
-    } catch (err) {
-      console.error(err);
+      setData(await loadReport(period));
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message || 'Error de conexión');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  }
+  }, [period]);
 
-  if (loading || !data) {
-    return (
-      <SecondaryLayout title="Reportes 📊">
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#476810" />
-        </View>
-      </SecondaryLayout>
-    );
-  }
+  useEffect(() => { load(); }, [load]);
 
-  const { kpis, top_products, top_clients } = data;
+  const Card = ({ children }: { children: React.ReactNode }) => (
+    <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 mb-6 p-5">{children}</View>
+  );
+  const Title = ({ children }: { children: string }) => (
+    <Text className="font-serif font-bold text-xl text-on-surface mb-3">{children}</Text>
+  );
+  const Bar = ({ pct, color }: { pct: number; color: string }) => (
+    <View className="w-full h-2 rounded-full overflow-hidden" style={{ backgroundColor: t.surfaceContainerHighest }}>
+      <View style={{ width: `${Math.max(0, Math.min(100, pct))}%`, height: '100%', backgroundColor: color, borderRadius: 999 }} />
+    </View>
+  );
 
   return (
-    <SecondaryLayout title="Reportes 📊">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
-        
-        {/* Resumen Financiero */}
-        <Text className="font-serif font-bold text-xl text-on-surface mb-4">Resumen Mensual</Text>
-        
-        <View className="bg-primary p-6 rounded-3xl mb-6 shadow-lg shadow-primary/30 relative overflow-hidden">
-          <MaterialIcons name="trending-up" size={100} color="rgba(255,255,255,0.1)" style={{position: 'absolute', right: -10, top: -10}} />
-          <Text className="text-white/80 text-sm font-bold uppercase tracking-widest mb-1">Ingresos Totales</Text>
-          <Text className="text-white font-display font-extrabold text-4xl mb-4">${kpis.total_revenue.toFixed(2)}</Text>
-          
-          <View className="flex-row items-center justify-between border-t border-white/20 pt-4">
-            <View>
-              <Text className="text-white/70 text-xs">Ventas (Órdenes)</Text>
-              <Text className="text-white font-bold text-lg">{kpis.total_orders}</Text>
-            </View>
-            <View className="items-end">
-              <Text className="text-white/70 text-xs">Por Cobrar (Deuda)</Text>
-              <Text className="text-white font-bold text-lg">${kpis.pending_debt.toFixed(2)}</Text>
-            </View>
-          </View>
-        </View>
+    <SecondaryLayout title="Reportes 📊" scrollable={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(true); }} colors={[t.primary]} tintColor={t.primary} />}
+      >
+        {/* Period selector */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-5">
+          {REPORT_PERIODS.map(p => (
+            <TouchableOpacity
+              key={p.value}
+              onPress={() => setPeriod(p.value)}
+              className="px-4 py-2 rounded-full mr-2 border"
+              style={{
+                backgroundColor: period === p.value ? t.primary : t.surfaceContainerLowest,
+                borderColor: period === p.value ? t.primary : t.outlineVariant,
+              }}
+            >
+              <Text style={{ color: period === p.value ? '#fff' : t.onSurfaceVariant, fontWeight: '700', fontSize: 12 }}>{p.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
-        {/* Gráfico Real */}
-        <View className="bg-surface-container-lowest p-6 rounded-3xl mb-8 shadow-sm border border-outline-variant/10">
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="font-bold text-on-surface">Actividad (Semana)</Text>
-            <View className="bg-secondary-container px-3 py-1 rounded-full">
-              <Text className="text-on-secondary-container text-xs font-bold">Últimos 7 días</Text>
-            </View>
-          </View>
-          
-          <View className="flex-row items-end justify-between h-32 pt-4">
-            {weeklyData.map((h, i) => (
-              <View key={i} className="items-center w-8">
-                <View className="w-6 bg-primary/20 rounded-t-sm" style={{ height: '100%', justifyContent: 'flex-end' }}>
-                  <View className="w-full bg-primary rounded-t-sm rounded-b-sm" style={{ height: `${Math.max(h, 2)}%` }} />
+        {loading ? (
+          <View className="py-20 items-center"><ActivityIndicator size="large" color={t.primary} /></View>
+        ) : error || !data ? (
+          <ErrorState message={error || undefined} onRetry={() => load()} />
+        ) : (
+          <>
+            {/* KPIs */}
+            <View className="bg-primary p-6 rounded-3xl mb-6 shadow-lg relative overflow-hidden">
+              <MaterialIcons name="trending-up" size={100} color="rgba(255,255,255,0.1)" style={{ position: 'absolute', right: -10, top: -10 }} />
+              <Text className="text-white/80 text-sm font-bold uppercase tracking-widest mb-1">Ventas del periodo</Text>
+              <Text className="text-white font-extrabold text-4xl mb-4">{formatMoney(data.kpis.revenue)}</Text>
+              <View className="flex-row justify-between border-t border-white/20 pt-4">
+                <View>
+                  <Text className="text-white/70 text-xs">Ventas</Text>
+                  <Text className="text-white font-bold text-lg">{data.kpis.orders}</Text>
                 </View>
-                <Text className="text-[10px] text-on-surface-variant mt-2 font-bold">{['L', 'M', 'M', 'J', 'V', 'S', 'D'][i]}</Text>
+                <View>
+                  <Text className="text-white/70 text-xs">Ticket promedio</Text>
+                  <Text className="text-white font-bold text-lg">{formatMoney(data.kpis.avgTicket)}</Text>
+                </View>
+                <View className="items-end">
+                  <Text className="text-white/70 text-xs">Clientes nuevos</Text>
+                  <Text className="text-white font-bold text-lg">{data.kpis.newClients}</Text>
+                </View>
               </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Mejores Productos */}
-        <Text className="font-serif font-bold text-xl text-on-surface mb-4">Productos Estrella</Text>
-        <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 mb-8 overflow-hidden">
-          {top_products.length === 0 ? (
-            <View className="p-6 items-center justify-center">
-              <Text className="text-on-surface-variant text-sm text-center">No hay datos suficientes de ventas para mostrar productos estrella.</Text>
             </View>
-          ) : (
-            top_products.map((prod: any, idx: number) => (
-              <View key={idx} className={`p-4 flex-row items-center justify-between ${idx !== top_products.length - 1 ? 'border-b border-outline-variant/10' : ''}`}>
-                <View className="flex-row items-center gap-4 flex-1">
-                  <View className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Text className="font-bold text-primary">{idx + 1}</Text>
+
+            <View className="flex-row gap-3 mb-6">
+              <View className="flex-1 bg-surface-container-lowest rounded-3xl p-4 border border-outline-variant/10">
+                <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Cobrado</Text>
+                <Text className="text-xl font-bold mt-1" style={{ color: t.secondary }}>{formatMoney(data.kpis.collected)}</Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => router.push({ pathname: '/sales', params: { filter: 'pending' } } as any)}
+                className="flex-1 bg-surface-container-lowest rounded-3xl p-4 border border-outline-variant/10"
+              >
+                <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Por cobrar →</Text>
+                <Text className="text-xl font-bold mt-1" style={{ color: t.error }}>{formatMoney(data.kpis.pending)}</Text>
+              </TouchableOpacity>
+              <View className="flex-1 bg-surface-container-lowest rounded-3xl p-4 border border-outline-variant/10">
+                <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Tasa cobro</Text>
+                <Text className="text-xl font-bold mt-1 text-on-surface">{data.kpis.collectionRate.toFixed(0)}%</Text>
+              </View>
+            </View>
+
+            {/* Daily */}
+            <Card>
+              <View className="flex-row justify-between items-center mb-4">
+                <Text className="font-bold text-on-surface">Ventas por día</Text>
+                {data.daily.length > 0 && (() => {
+                  const best = data.daily.reduce((a, b) => (a.amount > b.amount ? a : b));
+                  return <Text className="text-xs text-on-surface-variant font-bold">Mejor: {best.label} ({formatMoney(best.amount)})</Text>;
+                })()}
+              </View>
+              {data.daily.length === 0 ? (
+                <Text className="text-on-surface-variant text-sm text-center py-6">Sin ventas en este periodo.</Text>
+              ) : (
+                <View className="flex-row items-end h-32">
+                  {(() => {
+                    const max = Math.max(...data.daily.map(d => d.amount), 1);
+                    return data.daily.map((d, i) => (
+                      <View key={i} className="flex-1 items-center" style={{ height: '100%', justifyContent: 'flex-end', paddingHorizontal: 1 }}>
+                        <View style={{ width: '80%', height: `${Math.max((d.amount / max) * 100, 4)}%`, backgroundColor: t.secondary, borderTopLeftRadius: 4, borderTopRightRadius: 4 }} />
+                        <Text className="text-[9px] text-on-surface-variant mt-1 font-bold" numberOfLines={1}>{d.label.split(' ')[0]}</Text>
+                      </View>
+                    ));
+                  })()}
+                </View>
+              )}
+            </Card>
+
+            {/* Categories */}
+            <Title>Ventas por categoría</Title>
+            <Card>
+              {data.categories.length === 0 ? (
+                <Text className="text-on-surface-variant text-sm text-center py-4">Sin datos de categorías.</Text>
+              ) : data.categories.map((c, i) => (
+                <View key={c.name} className={i > 0 ? 'mt-4' : ''}>
+                  <View className="flex-row justify-between mb-1.5">
+                    <Text className="font-bold text-on-surface text-sm flex-1 pr-2" numberOfLines={1}>{c.name}</Text>
+                    <Text className="text-on-surface-variant font-bold text-sm">{formatMoney(c.amount)} ({c.pct.toFixed(0)}%)</Text>
                   </View>
-                  <View className="flex-1 pr-4">
-                    <Text className="font-bold text-on-surface" numberOfLines={1}>{prod.product_name}</Text>
-                    <Text className="text-on-surface-variant text-xs">{prod.units_sold} uds vendidas</Text>
+                  <Bar pct={(c.amount / data.categories[0].amount) * 100} color={t.primary} />
+                </View>
+              ))}
+            </Card>
+
+            {/* Payment methods */}
+            <Title>Contado vs. abonos</Title>
+            <Card>
+              {data.methods.map((m, i) => (
+                <View key={m.name} className={i > 0 ? 'mt-4' : ''}>
+                  <View className="flex-row justify-between mb-1.5">
+                    <Text className="font-bold text-on-surface text-sm">{m.name} <Text className="text-on-surface-variant font-normal">· {m.count} ventas</Text></Text>
+                    <Text className="text-on-surface-variant font-bold text-sm">{formatMoney(m.amount)} ({m.pct.toFixed(0)}%)</Text>
+                  </View>
+                  <Bar pct={m.pct} color={m.name === 'Contado' ? t.secondary : t.primary} />
+                </View>
+              ))}
+            </Card>
+
+            {/* Reorder */}
+            <Title>Reabastecer</Title>
+            <Card>
+              {data.reorder.length === 0 ? (
+                <View className="items-center py-2">
+                  <MaterialIcons name="check-circle" size={32} color={t.secondary} />
+                  <Text className="font-bold mt-2" style={{ color: t.secondary }}>Stock saludable</Text>
+                  <Text className="text-on-surface-variant text-xs mt-1 text-center">Todos tus productos tienen inventario suficiente.</Text>
+                </View>
+              ) : data.reorder.map((p, i) => (
+                <View key={p.productId} className={`flex-row items-center ${i > 0 ? 'mt-3 pt-3 border-t border-outline-variant/20' : ''}`}>
+                  <View className="flex-1 pr-3">
+                    <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{p.name}</Text>
+                    <Text className="text-xs text-on-surface-variant">Vendidos: {p.sold} · Stock: {p.stock}</Text>
+                  </View>
+                  <View className="px-3 py-1 rounded-full" style={{ backgroundColor: (p.stock <= 0 ? t.error : t.primary) + '1A' }}>
+                    <Text style={{ color: p.stock <= 0 ? t.error : t.primary, fontSize: 11, fontWeight: '700' }}>{p.stock <= 0 ? 'Agotado' : 'Reabastecer'}</Text>
                   </View>
                 </View>
-                <Text className="font-bold text-primary">${prod.revenue.toFixed(2)}</Text>
-              </View>
-            ))
-          )}
-        </View>
+              ))}
+            </Card>
 
-        {/* Mejores Clientes */}
-        <Text className="font-serif font-bold text-xl text-on-surface mb-4">Mejores Clientes</Text>
-        <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 mb-4 overflow-hidden">
-          {top_clients.length === 0 ? (
-            <View className="p-6 items-center justify-center">
-              <Text className="text-on-surface-variant text-sm text-center">No hay clientes con compras registradas aún.</Text>
-            </View>
-          ) : (
-            top_clients.map((client: any, idx: number) => (
-              <View key={idx} className={`p-4 flex-row items-center justify-between ${idx !== top_clients.length - 1 ? 'border-b border-outline-variant/10' : ''}`}>
-                <View className="flex-row items-center gap-4 flex-1">
-                  <View className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                    <MaterialIcons name="person" size={20} color="#564336" />
+            {/* Client predictions */}
+            <Title>Clientes por volver a comprar</Title>
+            <Card>
+              {data.clientPredictions.length === 0 ? (
+                <Text className="text-on-surface-variant text-sm text-center py-2">Se necesitan más datos históricos de ventas.</Text>
+              ) : data.clientPredictions.map((c, i) => (
+                <TouchableOpacity
+                  key={c.customerId}
+                  className={`flex-row items-center ${i > 0 ? 'mt-3 pt-3 border-t border-outline-variant/20' : ''}`}
+                  onPress={() => router.push('/customers' as any)}
+                >
+                  <View className="flex-1 pr-3">
+                    <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{c.name}</Text>
+                    <Text className="text-xs text-on-surface-variant">Hace {Math.round(c.daysSince)} días (promedio {Math.round(c.avgDays)})</Text>
                   </View>
-                  <View className="flex-1 pr-4">
-                    <Text className="font-bold text-on-surface" numberOfLines={1}>{client.name}</Text>
+                  <View className="px-3 py-1 rounded-full" style={{ backgroundColor: (c.overdue ? t.error : t.primary) + '1A' }}>
+                    <Text style={{ color: c.overdue ? t.error : t.primary, fontSize: 11, fontWeight: '700' }}>{c.overdue ? 'Vencido' : 'Pronto'}</Text>
                   </View>
-                </View>
-                <Text className="font-bold text-secondary">${client.total.toFixed(2)}</Text>
-              </View>
-            ))
-          )}
-        </View>
-
+                </TouchableOpacity>
+              ))}
+            </Card>
+          </>
+        )}
+        <View className="h-10" />
       </ScrollView>
     </SecondaryLayout>
   );

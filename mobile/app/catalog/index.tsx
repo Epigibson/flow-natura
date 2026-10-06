@@ -4,6 +4,8 @@ import SecondaryLayout from '../../components/SecondaryLayout';
 import { inventory } from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
+import { SITE_URL } from '../../lib/config';
+import { catalogUrl as buildCatalogUrl } from '../../../src/lib/links';
 
 export default function CatalogScreen() {
   const [items, setItems] = useState<any[]>([]);
@@ -37,9 +39,7 @@ export default function CatalogScreen() {
 
   async function handleShare() {
     try {
-      const catalogUrl = userId 
-        ? `https://flow-natura.vercel.app/catalogo?id=${userId}`
-        : 'https://flow-natura.vercel.app/catalogo';
+      const catalogUrl = buildCatalogUrl(SITE_URL, userId);
       
       await Share.share({
         title: 'Mi Catálogo Natura',

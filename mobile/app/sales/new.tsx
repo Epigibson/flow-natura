@@ -122,18 +122,24 @@ export default function NewSaleScreen() {
     setShowScanner(true);
   };
 
-  const handleBarcodeScanned = ({ type, data }: any) => {
+  const handleBarcodeScanned = async ({ data }: any) => {
     setShowScanner(false);
-    // Allow a small timeout to prevent double scanning bugs
-    setTimeout(() => {
-      const found = inventory.find(i => i.product_code === data || i.product_id === data);
-      if (found) {
-        addToCart({ ...found, max_quantity: found.quantity });
-        Alert.alert('Agregado al Carrito', `Se agregó ${found.product_name}.`);
-      } else {
-        Alert.alert('No encontrado', `El código ${data} no coincide con tu inventario actual.`);
+    try {
+      // Same lookup as the web: linked EAN first, then Natura product code
+      const product = await api.products.findByBarcode(String(data));
+      if (!product) {
+        return Alert.alert('No encontrado', `El código ${data} no está en el catálogo.`);
       }
-    }, 500);
+      const found = inventory.find(i => i.product_id === product.id);
+      if (!found) {
+        return Alert.alert('Sin stock', `${product.name} no tiene stock en tu inventario.`);
+      }
+      addToCart({ ...found, max_quantity: found.quantity });
+      haptic.success();
+      Alert.alert('Agregado al carrito', `Se agregó ${found.product_name}.`);
+    } catch (e) {
+      Alert.alert('Error', 'No se pudo buscar el código. Revisa tu conexión.');
+    }
   };
 
   // ──────────────────────────────────────────────

@@ -143,59 +143,33 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
-  import api, { dashboard, consultant } from '../lib/api';
+  import api from '../lib/api';
+  import { loadAchievementStats, buildBadges } from '../lib/achievements';
+  import { CAMINO_CRECIMIENTO } from '../lib/camino-crecimiento';
+  import { toast } from '../lib/ui';
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '/login'; throw new Error(''); }
-  const userId = session.user.id;
 
-  // Fetch data from API
-  let dashData: any = { kpis: {} };
-  let growthData: any = {};
-  let inventoryData: any[] = [];
+  let stats = { orders: 0, revenue: 0, customers: 0, products: 0, weekOrders: 0, monthOrders: 0, posts: 0 };
+  let growthData: any = null;
   try {
-    [dashData, growthData, inventoryData] = await Promise.all([
-      dashboard.getData(),
-      consultant.getGrowth(),
-      api.inventory.list()
-    ]);
-  } catch(e) { console.warn('Error loading achievement data', e); }
+    const [s, profile] = await Promise.all([loadAchievementStats(), api.consultant.getProfile()]);
+    stats = s;
+    growthData = (profile as any)?.latest_growth_data || null;
+  } catch(e) {
+    console.warn('Error loading achievement data', e);
+    toast.error('No se pudieron cargar tus logros. Intenta de nuevo.');
+  }
 
-  const totalOrders = dashData.kpis.total_orders || 0;
-  const totalCustomers = dashData.top_clients?.length || 0;
-  const totalProducts = inventoryData?.length || 0;
-  const totalRevenue = Number(dashData.kpis.total_revenue || 0);
-  const monthOrders = totalOrders; // API already filters by month
-  const weekOrders = Math.min(totalOrders, 7); // Approximate
-
-  // Badge definitions with tiers
-  interface Badge { id: string; icon: string; name: string; desc: string; check: boolean; current: number; target: number; tier: string; }
-  const badges: Badge[] = [
-    { id: 'first_sale', icon: '🛒', name: 'Primera Venta', desc: 'Registra tu primera venta', check: totalOrders >= 1, current: Math.min(totalOrders, 1), target: 1, tier: 'ventas' },
-    { id: 'five_sales', icon: '🎯', name: '5 Ventas', desc: 'Alcanza 5 ventas', check: totalOrders >= 5, current: Math.min(totalOrders, 5), target: 5, tier: 'ventas' },
-    { id: 'ten_sales', icon: '🔥', name: '10 Ventas', desc: 'Alcanza 10 ventas', check: totalOrders >= 10, current: Math.min(totalOrders, 10), target: 10, tier: 'ventas' },
-    { id: 'fifty_sales', icon: '💎', name: '50 Ventas', desc: 'Alcanza 50 ventas', check: totalOrders >= 50, current: Math.min(totalOrders, 50), target: 50, tier: 'ventas' },
-    { id: 'hundred_sales', icon: '👑', name: '100 Club', desc: '100 ventas registradas', check: totalOrders >= 100, current: Math.min(totalOrders, 100), target: 100, tier: 'ventas' },
-    { id: 'first_client', icon: '🤗', name: 'Primer Cliente', desc: 'Registra tu primer cliente', check: totalCustomers >= 1, current: Math.min(totalCustomers, 1), target: 1, tier: 'clientes' },
-    { id: 'ten_clients', icon: '👥', name: '10 Clientes', desc: 'Alcanza 10 clientes', check: totalCustomers >= 10, current: Math.min(totalCustomers, 10), target: 10, tier: 'clientes' },
-    { id: 'fifty_clients', icon: '🌐', name: 'Red Sólida', desc: '50 clientes registrados', check: totalCustomers >= 50, current: Math.min(totalCustomers, 50), target: 50, tier: 'clientes' },
-    { id: 'first_product', icon: '📦', name: 'Inventario Iniciado', desc: 'Agrega tu primer producto', check: totalProducts >= 1, current: Math.min(totalProducts, 1), target: 1, tier: 'inventario' },
-    { id: 'rev_1k', icon: '💰', name: '$1,000+', desc: 'Genera $1,000 en ventas', check: totalRevenue >= 1000, current: Math.min(totalRevenue, 1000), target: 1000, tier: 'ingresos' },
-    { id: 'rev_5k', icon: '💵', name: '$5,000+', desc: 'Genera $5,000 en ventas', check: totalRevenue >= 5000, current: Math.min(totalRevenue, 5000), target: 5000, tier: 'ingresos' },
-    { id: 'rev_10k', icon: '🪙', name: '$10,000+', desc: 'Genera $10,000 en ventas', check: totalRevenue >= 10000, current: Math.min(totalRevenue, 10000), target: 10000, tier: 'ingresos' },
-    { id: 'rev_50k', icon: '💸', name: '$50,000+', desc: 'Genera $50,000 en ventas', check: totalRevenue >= 50000, current: Math.min(totalRevenue, 50000), target: 50000, tier: 'ingresos' },
-    { id: 'rev_100k', icon: '🏆', name: 'Club 100K', desc: 'Genera $100,000 en ventas', check: totalRevenue >= 100000, current: Math.min(totalRevenue, 100000), target: 100000, tier: 'ingresos' },
-    { id: 'week_5', icon: '⚡', name: 'Semana 5+', desc: '5 ventas en una semana', check: weekOrders >= 5, current: Math.min(weekOrders, 5), target: 5, tier: 'reto' },
-    { id: 'month_20', icon: '🚀', name: 'Mes Estelar', desc: '20 ventas en un mes', check: monthOrders >= 20, current: Math.min(monthOrders, 20), target: 20, tier: 'reto' },
-    { id: 'catalog', icon: '📸', name: 'Digital', desc: 'Comparte tu catálogo digital', check: totalProducts >= 1, current: Math.min(totalProducts, 1), target: 1, tier: 'social' },
-    { id: 'community', icon: '💬', name: 'Social', desc: 'Publica en la comunidad', check: false, current: 0, target: 1, tier: 'social' },
-  ];
+  const totalCustomers = stats.customers;
+  const totalRevenue = stats.revenue;
+  // Same fields the render code below expects
+  const badges = buildBadges(stats).map(b => ({ ...b, check: b.unlocked, tier: b.group }));
 
   const unlocked = badges.filter(b => b.check).length;
 
   // Levels mapping for UI
-  import { CAMINO_CRECIMIENTO } from '../lib/camino-crecimiento';
-  
   if (growthData && growthData.level) {
     const levelDesc = growthData.level.description || 'Consultor';
     const currentPts = growthData.nextLevelProgress?.currentValue || 0;

@@ -3,16 +3,17 @@ import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
+import { loadAchievementStats, buildBadges, type AchievementStats } from '../../../src/lib/achievements';
+import { ErrorState } from '../../components/ErrorState';
 import { CAMINO_CRECIMIENTO } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function AchievementsScreen() {
   const t = useThemeColors();
   const [profile, setProfile] = useState<any>(null);
-  const [salesTotal, setSalesTotal] = useState(0);
-  const [ordersCount, setOrdersCount] = useState(0);
-  const [customersCount, setCustomersCount] = useState(0);
+  const [stats, setStats] = useState<AchievementStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -20,25 +21,22 @@ export default function AchievementsScreen() {
 
   async function loadData() {
     setLoading(true);
+    setError(null);
     try {
-      const [profData, ordersData, customersData] = await Promise.all([
-        api.consultant.getProfile(),
-        api.orders.list(),
-        api.customers.list()
-      ]);
+      const [profData, statsData] = await Promise.all([api.consultant.getProfile(), loadAchievementStats()]);
       setProfile(profData);
-      
-      const total = (ordersData || []).reduce((acc: number, curr: any) => acc + Number(curr.total_amount || 0), 0);
-      setSalesTotal(total);
-      setOrdersCount((ordersData || []).length);
-      setCustomersCount((customersData || []).length);
-      
-    } catch (err) {
+      setStats(statsData);
+    } catch (err: any) {
       console.error(err);
+      setError(err?.message || 'Error de conexión');
     } finally {
       setLoading(false);
     }
   }
+
+  const salesTotal = stats?.revenue || 0;
+  const customersCount = stats?.customers || 0;
+  const badges = stats ? buildBadges(stats) : [];
 
   const levelDesc = profile?.latest_growth_data?.level?.description || 'Consultor';
   const currentPts = profile?.latest_growth_data?.nextLevelProgress?.currentValue || 0;
@@ -51,17 +49,6 @@ export default function AchievementsScreen() {
   const profit = CAMINO_CRECIMIENTO[levelDesc as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage || 25;
   const digitalProfit = profit > 30 ? profit - 5 : profit;
 
-  const milestones = [
-    { title: 'Primera Venta', desc: 'Registra tu primera venta', icon: 'shopping-cart', done: ordersCount >= 1, current: Math.min(ordersCount, 1), target: 1 },
-    { title: '10 Ventas', desc: 'Alcanza 10 ventas', icon: 'local-fire-department', done: ordersCount >= 10, current: Math.min(ordersCount, 10), target: 10 },
-    { title: '100 Club', desc: '100 ventas registradas', icon: 'workspace-premium', done: ordersCount >= 100, current: Math.min(ordersCount, 100), target: 100 },
-    { title: 'Primer Cliente', desc: 'Registra tu primer cliente', icon: 'person-add', done: customersCount >= 1, current: Math.min(customersCount, 1), target: 1 },
-    { title: 'Red Sólida', desc: '50 clientes registrados', icon: 'groups', done: customersCount >= 50, current: Math.min(customersCount, 50), target: 50 },
-    { title: '$1,000+', desc: 'Genera $1,000 en ventas', icon: 'payments', done: salesTotal >= 1000, current: Math.min(salesTotal, 1000), target: 1000 },
-    { title: '$10,000+', desc: 'Genera $10,000 en ventas', icon: 'monetization-on', done: salesTotal >= 10000, current: Math.min(salesTotal, 10000), target: 10000 },
-    { title: 'Club 100K', desc: 'Genera $100,000 en ventas', icon: 'diamond', done: salesTotal >= 100000, current: Math.min(salesTotal, 100000), target: 100000 },
-  ];
-
   return (
     <SecondaryLayout title="Hitos y Desempeño 📊">
       <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
@@ -70,6 +57,8 @@ export default function AchievementsScreen() {
           <View className="py-10 items-center justify-center">
             <ActivityIndicator size="large" color={t.primary} />
           </View>
+        ) : error || !stats ? (
+          <ErrorState message={error || undefined} onRetry={loadData} />
         ) : (
           <>
             {/* Stats Bar */}
@@ -164,25 +153,29 @@ export default function AchievementsScreen() {
               <Text className="font-serif font-bold text-xl text-onSurface">Hitos Históricos</Text>
             </View>
 
-            {milestones.map((item, idx) => (
-              <View key={idx} className="flex-row items-center p-4 rounded-2xl mb-3 shadow-sm border" style={{ backgroundColor: item.done ? t.surfaceContainerLowest : t.surfaceContainer, borderColor: item.done ? t.secondary + '33' : t.outlineVariant + '1A', opacity: item.done ? 1 : 0.8 }}>
-                <View className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: item.done ? t.secondaryContainer : t.surfaceContainerHighest }}>
-                  <MaterialIcons name={item.icon as any} size={24} color={item.done ? t.secondary : t.onSurfaceVariant} />
+            <Text className="text-xs font-bold mb-3" style={{ color: t.onSurfaceVariant }}>
+              {badges.filter(b => b.unlocked).length} de {badges.length} logrados
+            </Text>
+
+            {badges.map((item) => (
+              <View key={item.id} className="flex-row items-center p-4 rounded-2xl mb-3 shadow-sm border" style={{ backgroundColor: item.unlocked ? t.surfaceContainerLowest : t.surfaceContainer, borderColor: item.unlocked ? t.secondary + '33' : t.outlineVariant + '1A', opacity: item.unlocked ? 1 : 0.8 }}>
+                <View className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: item.unlocked ? t.secondaryContainer : t.surfaceContainerHighest }}>
+                  <Text style={{ fontSize: 22 }}>{item.icon}</Text>
                 </View>
                 <View className="flex-1 pr-4">
-                  <Text className="font-bold text-base" style={{ color: item.done ? t.onSurface : t.onSurfaceVariant }}>{item.title}</Text>
+                  <Text className="font-bold text-base" style={{ color: item.unlocked ? t.onSurface : t.onSurfaceVariant }}>{item.name}</Text>
                   <Text className="text-xs mt-0.5" style={{ color: t.onSurfaceVariant }}>{item.desc}</Text>
-                  
-                  {!item.done && (
+
+                  {!item.unlocked && (
                     <View className="mt-2">
                       <View className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: t.surfaceContainerHighest }}>
                         <View className="h-full rounded-full" style={{ width: `${Math.min(100, (item.current / item.target) * 100)}%` as any, backgroundColor: t.primary + '80' }} />
                       </View>
-                      <Text className="text-[9px] font-bold mt-1 text-onSurfaceVariant text-right">{item.current.toLocaleString()} / {item.target.toLocaleString()}</Text>
+                      <Text className="text-[9px] font-bold mt-1 text-right" style={{ color: t.onSurfaceVariant }}>{item.current.toLocaleString()} / {item.target.toLocaleString()}</Text>
                     </View>
                   )}
                 </View>
-                {item.done && (
+                {item.unlocked && (
                   <View className="bg-secondary px-2 py-1 rounded-full flex-row items-center gap-1">
                     <MaterialIcons name="check-circle" size={12} color="white" />
                     <Text className="text-[9px] font-bold text-white uppercase tracking-wider">Logrado</Text>

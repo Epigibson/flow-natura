@@ -244,6 +244,30 @@ export const products = {
     if (error) throw error;
     return data;
   },
+  /**
+   * Resolves a scanned code to a catalog product: first an EAN linked in product_barcodes,
+   * then the Natura product code. Same lookup on web and mobile.
+   */
+  findByBarcode: async (code: string) => {
+    const value = code.trim();
+    if (!value) return null;
+    const { data: linked, error: linkErr } = await supabase
+      .from('product_barcodes')
+      .select('product_id, products ( id, name, code, brand, category, price, cost, points, image_url, description )')
+      .eq('ean', value)
+      .maybeSingle();
+    if (linkErr) throw linkErr;
+    if (linked?.products) return linked.products as any;
+
+    const { data: byCode, error } = await supabase
+      .from('products')
+      .select('id, name, code, brand, category, price, cost, points, image_url, description')
+      .eq('code', value)
+      .is('deleted_at', null)
+      .maybeSingle();
+    if (error) throw error;
+    return byCode;
+  },
   create: async (data: any, _level?: string) => {
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('No user authenticated');

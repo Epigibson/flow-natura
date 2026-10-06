@@ -9,8 +9,9 @@ import api from '../../../src/lib/api';
 import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { supabase } from '../../lib/supabase';
+import { SITE_URL } from '../../lib/config';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://flow-natura.vercel.app';
+const API_BASE_URL = SITE_URL;
 
 const CATEGORIES = [
   'Perfumería',

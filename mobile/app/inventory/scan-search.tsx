@@ -26,11 +26,8 @@ export default function ScanSearchScreen() {
     setIsInInventory(false);
 
     try {
-      // Search in catalog
-      const products = await api.products.list({ search: data });
-      const match = products?.find((p: any) =>
-        p.code?.toLowerCase() === data.toLowerCase()
-      );
+      // Same lookup as the web: linked EAN first, then Natura product code
+      const match = await api.products.findByBarcode(data);
 
       if (match) {
         setFoundProduct(match);

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { SITE_URL } from '../../lib/config';
+import { catalogUrl as buildCatalogUrl } from '../../../src/lib/links';
 import { View, Text, ScrollView, Switch, TouchableOpacity, TextInput, ActivityIndicator, Alert, Share, Linking, Modal, Image } from 'react-native';
 import { useColorScheme } from 'nativewind';
 import SecondaryLayout from '../../components/SecondaryLayout';
@@ -120,7 +122,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const catalogUrl = `https://flownatura.com/catalogo?c=${currentUserId}`;
+  const catalogUrl = buildCatalogUrl(SITE_URL, currentUserId);
 
   const shareCatalog = async () => {
     try {

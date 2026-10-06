@@ -42,6 +42,30 @@ import PageLoader from '../../components/PageLoader.astro';
     </div>
   </section>
 
+  <!-- Stock valuation (same figures as the mobile app) -->
+  <section class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-10">
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-2">Valor del inventario</p>
+      <p id="kpi-stock-value" class="text-2xl font-display font-bold text-on-surface">$0</p>
+      <p id="kpi-stock-units" class="text-xs text-on-surface-variant mt-1">0 unidades</p>
+    </div>
+    <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
+      <p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-2">Ganancia potencial</p>
+      <p id="kpi-stock-profit" class="text-2xl font-display font-bold text-secondary">$0</p>
+      <p id="kpi-stock-cost" class="text-xs text-on-surface-variant mt-1">Costo $0</p>
+    </div>
+    <a href="/inventario/ajustes" class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow">
+      <p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-2">Sin stock</p>
+      <p id="kpi-stock-out" class="text-2xl font-display font-bold text-error">0</p>
+      <p class="text-xs text-on-surface-variant mt-1">Ajustar →</p>
+    </a>
+    <a href="/inventario/ajustes" class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-shadow">
+      <p class="text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-2">Stock bajo (≤2)</p>
+      <p id="kpi-stock-low" class="text-2xl font-display font-bold text-primary">0</p>
+      <p class="text-xs text-on-surface-variant mt-1">Ajustar →</p>
+    </a>
+  </section>
+
   <!-- Product Rankings -->
   <section class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
     <!-- Best Sellers -->
@@ -89,6 +113,8 @@ import PageLoader from '../../components/PageLoader.astro';
 <script>
   import { supabase } from '../../lib/supabase';
   import { esc } from '../../lib/security';
+  import { loadInventoryPerformance } from '../../lib/inventory-performance';
+  import { toast } from '../../lib/ui';
 
   const kpiTotalSold = document.getElementById('kpi-total-sold') as HTMLElement;
   const kpiTotalRevenue = document.getElementById('kpi-total-revenue') as HTMLElement;
@@ -104,55 +130,30 @@ import PageLoader from '../../components/PageLoader.astro';
   const lowLoading = document.getElementById('low-loading') as HTMLElement;
 
   async function loadData() {
-    const { data: session } = await supabase.auth.getSession();
-    if (!session?.session) return;
-    const userId = session.session.user.id;
+    let perf;
+    try {
+      perf = await loadInventoryPerformance();
+    } catch (e: any) {
+      console.error(e);
+      toast.error('No se pudo cargar el rendimiento: ' + (e?.message || 'error de conexión'));
+      return;
+    }
+    const productList = perf.sales.products;
+    const categoryList = perf.sales.categories;
+    const inventory = perf.sales.unsold.map(u => ({ product_id: u.productId, quantity: u.stock, products: { name: u.name, category: u.category } }));
 
-    // All non-cancelled, non-adjustment orders
-    const { data: orders } = await supabase
-      .from('orders')
-      .select('*, order_items (*, products (*))')
-      .eq('consultant_id', userId)
-      .neq('status', 'cancelled')
-      .neq('payment_method', 'adjustment');
-
-    // All inventory
-    const { data: inventory } = await supabase
-      .from('inventory')
-      .select('*, products (*)')
-      .eq('consultant_id', userId);
-
-    // Aggregate product data
-    const productMap: Record<string, { name: string; category: string; qtySold: number; revenue: number }> = {};
-    const categoryMap: Record<string, { qtySold: number; revenue: number }> = {};
-
-    (orders || []).forEach((o: any) => {
-      (o.order_items || []).forEach((item: any) => {
-        const pid = item.product_id;
-        const name = item.products?.name || 'Producto';
-        const cat = item.products?.category || 'General';
-        const qty = item.quantity;
-        const rev = qty * Number(item.unit_price);
-
-        if (!productMap[pid]) productMap[pid] = { name, category: cat, qtySold: 0, revenue: 0 };
-        productMap[pid].qtySold += qty;
-        productMap[pid].revenue += rev;
-
-        if (!categoryMap[cat]) categoryMap[cat] = { qtySold: 0, revenue: 0 };
-        categoryMap[cat].qtySold += qty;
-        categoryMap[cat].revenue += rev;
-      });
-    });
-
-    const productList = Object.entries(productMap).map(([id, data]) => ({ id, ...data }));
-    productList.sort((a, b) => b.revenue - a.revenue);
-
-    const categoryList = Object.entries(categoryMap).map(([name, data]) => ({ name, ...data }));
-    categoryList.sort((a, b) => b.revenue - a.revenue);
+    const st = perf.stock;
+    const money = (n: number) => '$' + n.toLocaleString('es-MX', { maximumFractionDigits: 0 });
+    (document.getElementById('kpi-stock-value') as HTMLElement).textContent = money(st.retailValue);
+    (document.getElementById('kpi-stock-units') as HTMLElement).textContent = `${st.units} unidades · ${st.products} productos`;
+    (document.getElementById('kpi-stock-profit') as HTMLElement).textContent = money(st.potentialProfit);
+    (document.getElementById('kpi-stock-cost') as HTMLElement).textContent = 'Costo ' + money(st.costValue);
+    (document.getElementById('kpi-stock-out') as HTMLElement).textContent = String(st.outOfStock.length);
+    (document.getElementById('kpi-stock-low') as HTMLElement).textContent = String(st.lowStock.length);
 
     // KPIs
-    const totalSold = productList.reduce((s, p) => s + p.qtySold, 0);
-    const totalRevenue = productList.reduce((s, p) => s + p.revenue, 0);
+    const totalSold = perf.sales.totalSold;
+    const totalRevenue = perf.sales.totalRevenue;
     kpiTotalSold.textContent = totalSold.toLocaleString('es-MX');
     kpiTotalRevenue.textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
 
@@ -225,8 +226,7 @@ import PageLoader from '../../components/PageLoader.astro';
 
     // Low Performers
     lowLoading.classList.add('hidden');
-    const soldIds = new Set(productList.map(p => p.id));
-    const unsold = (inventory || []).filter((inv: any) => !soldIds.has(inv.product_id) && inv.quantity > 0);
+    const unsold = inventory;
 
     if (!unsold.length) {
       const empty = document.createElement('p');

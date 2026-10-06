@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SITE_URL } from '../../lib/config';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -121,7 +122,7 @@ export default function MembershipScreen() {
                   if (!session) return Alert.alert('Error', 'No hay sesión activa');
                   const { Linking } = require('react-native');
                   // Open membership page on web (Stripe checkout happens there)
-                  const url = `https://flow-natura.vercel.app/membresia`;
+                  const url = `${SITE_URL}/membresia`;
                   Linking.openURL(url);
                 } catch (e: any) {
                   Alert.alert('Error', e.message || 'No se pudo abrir');
