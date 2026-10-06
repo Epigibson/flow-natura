@@ -23,6 +23,10 @@
   --color-on-surface: #2C2417;
   --color-on-surface-variant: #7A6E62;
   --color-outline-variant: #D6CFC6;
+  --color-surface-container-high: #EDE9E3;
+  --color-on-background: #2C2417;
+  --color-on-primary: #FFFFFF;
+  --color-tertiary: #C9A96E;
 }
 
 /* ═══════════════════════════════════════════════
@@ -46,4 +50,8 @@
   --color-on-surface: #F5F0E8;
   --color-on-surface-variant: #A89F94;
   --color-outline-variant: #3A3632;
+  --color-surface-container-high: #26241F;
+  --color-on-background: #F5F0E8;
+  --color-on-primary: #2C1A0C;
+  --color-tertiary: #D4B896;
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, FlatList, TextInput, TouchableOpacity, ActivityIndicator, Alert, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -95,7 +96,7 @@ export default function QuickAddScreen() {
               {item.brand || 'Natura'} · {item.category || 'Sin categoría'}
               {item.code ? ` · ${item.code}` : ''}
             </Text>
-            <Text className="text-primary font-bold text-base mt-1">${Number(item.price || 0).toFixed(2)}</Text>
+            <Text className="text-primary font-bold text-base mt-1">{formatMoney(Number(Number(item.price || 0)))}</Text>
           </View>
         </View>
 

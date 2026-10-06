@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { PaymentModal } from '../../components/PaymentModal';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
-import { formatFolio } from '../../../src/lib/orders';
+import { formatMoney, formatFolio } from '../../../src/lib/orders';
 import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
@@ -136,9 +136,9 @@ export default function SalesScreen() {
           </View>
           
           <View className="items-end">
-            <Text className="text-on-surface font-serif font-bold text-xl">${Number(item.total_amount).toFixed(2)}</Text>
+            <Text className="text-on-surface font-serif font-bold text-xl">{formatMoney(Number(Number(item.total_amount)))}</Text>
             {item._debt > 0.01 && !isCancelled && (
-              <Text className="text-[10px] text-primary font-bold uppercase mt-0.5">Pendiente: ${item._debt.toFixed(2)}</Text>
+              <Text className="text-[10px] text-primary font-bold uppercase mt-0.5">Pendiente: {formatMoney(Number(item._debt))}</Text>
             )}
           </View>
         </View>
@@ -182,7 +182,7 @@ export default function SalesScreen() {
   const renderHeader = () => (
     <View className="mb-6">
       <View className="mb-6">
-        <Text className="text-primary-container font-bold tracking-widest text-xs uppercase mb-1">Management Hub</Text>
+        <Text className="text-primary-container font-bold tracking-widest text-xs uppercase mb-1">Ventas y cobranza</Text>
         <Text className="text-4xl font-serif font-bold text-on-surface">Ventas</Text>
         <Text className="text-on-surface-variant mt-2 text-sm">Monitorea tu flujo de ingresos y gestiona abonos.</Text>
       </View>
@@ -242,7 +242,7 @@ export default function SalesScreen() {
           className={`px-4 py-1.5 rounded-xl ${filter === 'pending' ? 'bg-primary shadow-sm' : 'bg-surface-container'}`}
           onPress={() => setFilter('pending')}
         >
-          <Text className={`text-xs font-bold ${filter === 'pending' ? 'text-white' : 'text-on-surface-variant'}`}>Con Deuda</Text>
+          <Text className={`text-xs font-bold ${filter === 'pending' ? 'text-white' : 'text-on-surface-variant'}`}>Con saldo</Text>
         </TouchableOpacity>
       </View>
       <TouchableOpacity 

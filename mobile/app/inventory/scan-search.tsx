@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, ScrollView, Modal, TextInput, FlatList } from 'react-native';
 import { SafeAreaView as ModalSafeArea } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -214,7 +215,7 @@ export default function ScanSearchScreen() {
                           {foundProduct.brand || 'Natura'} · {foundProduct.category || 'Sin categoría'}
                         </Text>
                         <Text className="text-2xl font-bold text-primary mt-2">
-                          ${Number(foundProduct.price || 0).toFixed(2)}
+                          {formatMoney(Number(Number(foundProduct.price || 0)))}
                         </Text>
                       </View>
                     </View>

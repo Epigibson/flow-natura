@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -342,12 +343,12 @@ export default function NewSaleScreen() {
                       <View className="flex-1">
                         <Text className="font-bold text-on-surface" numberOfLines={1}>{item.product_name}</Text>
                         <View className="flex-row items-center gap-2 mt-1">
-                          <Text className="text-primary font-bold text-sm">${lineTotal.toFixed(2)}</Text>
+                          <Text className="text-primary font-bold text-sm">{formatMoney(Number(lineTotal))}</Text>
                           {item._calculated_discount > 0 && (
-                            <Text className="text-on-surface-variant text-[10px] line-through">${(item.unit_price * item.quantity).toFixed(2)}</Text>
+                            <Text className="text-on-surface-variant text-[10px] line-through">{formatMoney(Number((item.unit_price * item.quantity)))}</Text>
                           )}
                         </View>
-                        <Text className="text-on-surface-variant text-[10px] mt-0.5">(${(item._final_unit_price).toFixed(2)} c/u)</Text>
+                        <Text className="text-on-surface-variant text-[10px] mt-0.5">({formatMoney(Number((item._final_unit_price)))} c/u)</Text>
                       </View>
                     </View>
                     <View className="flex-row items-center bg-surface-container-high rounded-full overflow-hidden self-center border border-outline-variant">
@@ -482,7 +483,7 @@ export default function NewSaleScreen() {
           <View className="mb-4 space-y-1">
             <View className="flex-row justify-between mb-1">
               <Text className="text-on-surface-variant text-xs">Subtotal</Text>
-              <Text className="text-on-surface-variant text-xs font-bold">${subtotal.toFixed(2)}</Text>
+              <Text className="text-on-surface-variant text-xs font-bold">{formatMoney(Number(subtotal))}</Text>
             </View>
 
             <View className="flex-row justify-between items-center mb-1">
@@ -508,14 +509,14 @@ export default function NewSaleScreen() {
 
             <View className="flex-row justify-between mb-2 pb-2 border-b border-outline-variant">
               <Text className="text-secondary text-xs">Descuentos Aplicados</Text>
-              <Text className="text-secondary text-xs font-bold">-${totalDiscount.toFixed(2)}</Text>
+              <Text className="text-secondary text-xs font-bold">-{formatMoney(Number(totalDiscount))}</Text>
             </View>
           </View>
         )}
 
         <View className="flex-row justify-between items-end mb-4">
           <Text className="text-on-surface-variant font-bold uppercase tracking-widest text-xs">Total a Pagar</Text>
-          <Text className="text-3xl font-display font-extrabold text-primary">${finalTotal.toFixed(2)}</Text>
+          <Text className="text-3xl font-display font-extrabold text-primary">{formatMoney(Number(finalTotal))}</Text>
         </View>
 
         <TouchableOpacity 
@@ -599,7 +600,7 @@ export default function NewSaleScreen() {
                   <Text className="text-secondary text-xs">{item.quantity} disponibles</Text>
                 </View>
                 <View className="px-3 py-1.5 rounded-full" style={{ backgroundColor: t.primary + '1A' }}>
-                  <Text className="text-primary font-bold">${Number(item.price).toFixed(2)}</Text>
+                  <Text className="text-primary font-bold">{formatMoney(Number(Number(item.price)))}</Text>
                 </View>
               </TouchableOpacity>
             )}

@@ -78,7 +78,7 @@ export default function CustomerAnalysisScreen() {
             </View>
           </View>
           <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl shadow-sm border border-outline-variant/10">
-            <Text className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Con Deuda</Text>
+            <Text className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Con saldo</Text>
             <Text className="text-3xl font-bold text-primary">{clientsWithDebt}</Text>
             <View className="flex-row items-center gap-1 mt-1">
               <MaterialIcons name="warning" size={12} color={t.primary} />

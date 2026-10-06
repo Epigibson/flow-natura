@@ -8,7 +8,7 @@ import { useThemeColors } from '../../hooks/use-theme-colors';
 import { whatsappPhone } from '../../../src/lib/phone';
 import { PaymentModal } from '../../components/PaymentModal';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
-import { formatFolio, summarizeOrder, parseAmount, errorMessage } from '../../../src/lib/orders';
+import { formatMoney, formatFolio, summarizeOrder, parseAmount, errorMessage } from '../../../src/lib/orders';
 import { haptic } from '../../lib/haptics';
 
 export default function OrderDetailScreen() {
@@ -70,7 +70,7 @@ export default function OrderDetailScreen() {
   const handleDeletePayment = (payment: any) => {
     Alert.alert(
       'Eliminar pago',
-      `¿Eliminar este pago de $${Number(payment.amount).toFixed(2)}? El monto volverá al saldo pendiente.`,
+      `¿Eliminar este pago de ${formatMoney(Number(Number(payment.amount)))}? El monto volverá al saldo pendiente.`,
       [
         { text: 'No', style: 'cancel' },
         {
@@ -125,7 +125,7 @@ export default function OrderDetailScreen() {
 
     const items = order.order_items || [];
     const itemsText = items.map((item: any) => 
-      `  • ${item.products?.name || 'Producto'} x${item.quantity} — $${(item.quantity * Number(item.unit_price)).toFixed(2)}`
+      `  • ${item.products?.name || 'Producto'} x${item.quantity} — ${formatMoney(Number((item.quantity * Number(item.unit_price))))}`
     ).join('\n');
 
     const msg = `🧾 *TICKET DE VENTA — Flow Natura*\n\n` +
@@ -135,9 +135,9 @@ export default function OrderDetailScreen() {
       `─────────────────\n` +
       `*PRODUCTOS:*\n${itemsText}\n` +
       `─────────────────\n\n` +
-      `💰 *Total: $${Number(order.total_amount).toFixed(2)} MXN*\n` +
+      `💰 *Total: ${formatMoney(Number(Number(order.total_amount)))} MXN*\n` +
       `📦 Método: ${isAbonos ? 'Abonos' : 'Contado'}\n` +
-      (debtRemaining > 0 ? `⚠️ *Saldo pendiente: $${debtRemaining.toFixed(2)} MXN*\n` : '') +
+      (debtRemaining > 0 ? `⚠️ *Saldo pendiente: ${formatMoney(Number(debtRemaining))} MXN*\n` : '') +
       `\n¡Gracias por tu compra! 🌿💚`;
 
     Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
@@ -248,7 +248,7 @@ export default function OrderDetailScreen() {
           
           <View className="flex-row justify-between mb-4 pb-4 border-b border-surface-container">
             <Text className="text-on-surface-variant font-medium">Subtotal ({(order.order_items || []).reduce((n: number, i: any) => n + i.quantity, 0)} productos)</Text>
-            <Text className="text-on-surface font-bold text-lg">${Number(order.total_amount).toFixed(2)}</Text>
+            <Text className="text-on-surface font-bold text-lg">{formatMoney(Number(Number(order.total_amount)))}</Text>
           </View>
           
           <View className="flex-row justify-between items-center mb-6">
@@ -260,7 +260,7 @@ export default function OrderDetailScreen() {
             </View>
             <View className="items-end">
               <Text className="text-sm text-on-surface-variant uppercase tracking-tighter">Total a Pagar</Text>
-              <Text className="text-3xl font-black text-primary">${Number(order.total_amount).toFixed(2)}</Text>
+              <Text className="text-3xl font-black text-primary">{formatMoney(Number(Number(order.total_amount)))}</Text>
             </View>
           </View>
 
@@ -276,7 +276,7 @@ export default function OrderDetailScreen() {
                     </Text>
                     <Text className="text-[10px] text-on-surface-variant">{new Date(pay.paid_at).toLocaleDateString('es-MX')}</Text>
                   </View>
-                  <Text className="text-secondary font-bold mr-2">${Number(pay.amount).toFixed(2)}</Text>
+                  <Text className="text-secondary font-bold mr-2">{formatMoney(Number(Number(pay.amount)))}</Text>
                   {!isCancelled && (
                     <TouchableOpacity onPress={() => handleDeletePayment(pay)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} accessibilityLabel="Eliminar pago">
                       <MaterialIcons name="delete-outline" size={20} color={t.error} />
@@ -288,7 +288,7 @@ export default function OrderDetailScreen() {
               {!isFullyPaid && !isCancelled && (
                 <View className="flex-row justify-between mt-3 pt-3 border-t border-outline-variant/20 items-center">
                   <Text className="text-on-surface font-bold text-sm"><MaterialIcons name="schedule" size={14} color={t.primary} /> Saldo Pendiente</Text>
-                  <Text className="text-primary font-black text-lg">${debtRemaining.toFixed(2)}</Text>
+                  <Text className="text-primary font-black text-lg">{formatMoney(Number(debtRemaining))}</Text>
                 </View>
               )}
             </View>
@@ -314,7 +314,7 @@ export default function OrderDetailScreen() {
                 className="w-full bg-green-600 py-4 rounded-xl items-center shadow-sm flex-row justify-center gap-2 mb-3"
                 onPress={() => {
                   const phone = whatsappPhone(order.customers.phone)!;
-                  const msg = `¡Hola ${cName}! 🌿\n\nTe escribo sobre tu pedido #${folio}.\nEl saldo pendiente es de *$${debtRemaining.toFixed(2)} MXN*.\n\n¿Cuándo te es posible realizar el pago? ¡Gracias! 💚`;
+                  const msg = `¡Hola ${cName}! 🌿\n\nTe escribo sobre tu pedido #${folio}.\nEl saldo pendiente es de *${formatMoney(Number(debtRemaining))} MXN*.\n\n¿Cuándo te es posible realizar el pago? ¡Gracias! 💚`;
                   Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
                     Alert.alert('Error', 'No se pudo abrir WhatsApp.');
                   });
@@ -357,9 +357,9 @@ export default function OrderDetailScreen() {
               </View>
               <View className="flex-1">
                 <Text className="font-bold text-on-surface text-base">{item.products?.name}</Text>
-                <Text className="text-xs text-on-surface-variant">{item.quantity} x ${Number(item.unit_price).toFixed(2)}</Text>
+                <Text className="text-xs text-on-surface-variant">{item.quantity} x {formatMoney(Number(Number(item.unit_price)))}</Text>
               </View>
-              <Text className="font-bold text-on-background">${(item.quantity * Number(item.unit_price)).toFixed(2)}</Text>
+              <Text className="font-bold text-on-background">{formatMoney(Number((item.quantity * Number(item.unit_price))))}</Text>
             </View>
           ))}
         </View>

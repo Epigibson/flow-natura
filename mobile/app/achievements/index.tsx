@@ -66,28 +66,28 @@ export default function AchievementsScreen() {
               <View className="flex-1 rounded-2xl p-5 items-center border" style={{ backgroundColor: t.primaryContainer + '33', borderColor: t.primaryContainer }}>
                 <MaterialIcons name="payments" size={28} color={t.primary} />
                 <Text className="text-2xl font-serif font-bold mt-2 text-primary">${salesTotal.toLocaleString('es-MX', { maximumFractionDigits: 0 })}</Text>
-                <Text className="text-[10px] font-bold uppercase tracking-widest mt-1 text-onSurfaceVariant">Ventas Históricas</Text>
+                <Text className="text-[10px] font-bold uppercase tracking-widest mt-1 text-on-surface-variant">Ventas Históricas</Text>
               </View>
               <View className="flex-1 rounded-2xl p-5 items-center border" style={{ backgroundColor: t.secondaryContainer + '33', borderColor: t.secondaryContainer }}>
                 <MaterialIcons name="groups" size={28} color={t.secondary} />
                 <Text className="text-2xl font-serif font-bold mt-2 text-secondary">{customersCount}</Text>
-                <Text className="text-[10px] font-bold uppercase tracking-widest mt-1 text-onSurfaceVariant">Clientes Activos</Text>
+                <Text className="text-[10px] font-bold uppercase tracking-widest mt-1 text-on-surface-variant">Clientes Activos</Text>
               </View>
             </View>
 
             {/* Camino de Crecimiento Card */}
-            <View className="bg-surfaceContainerLowest rounded-3xl p-6 mb-6 shadow-sm border" style={{ borderColor: t.primary + '1A' }}>
+            <View className="bg-surface-container-lowest rounded-3xl p-6 mb-6 shadow-sm border" style={{ borderColor: t.primary + '1A' }}>
               <View className="flex-row items-center gap-3 mb-4">
                 <MaterialIcons name="stars" size={24} color={t.primary} />
                 <View>
-                  <Text className="text-[10px] font-bold tracking-widest uppercase text-onSurface">Camino de Crecimiento</Text>
-                  <Text className="text-xs text-onSurfaceVariant font-bold">{levelDesc} → {nextLvlName}</Text>
+                  <Text className="text-[10px] font-bold tracking-widest uppercase text-on-surface">Camino de Crecimiento</Text>
+                  <Text className="text-xs text-on-surface-variant font-bold">{levelDesc} → {nextLvlName}</Text>
                 </View>
               </View>
 
               <View className="flex-row justify-between items-end mb-2">
                 <Text className="text-4xl font-serif font-bold text-primary">{currentPts.toLocaleString()}</Text>
-                <Text className="text-[10px] font-bold uppercase text-onSurfaceVariant mb-1">Puntos</Text>
+                <Text className="text-[10px] font-bold uppercase text-on-surface-variant mb-1">Puntos</Text>
               </View>
 
               <View className="w-full h-3 rounded-full overflow-hidden mb-2" style={{ backgroundColor: t.surfaceContainerHighest }}>
@@ -95,40 +95,40 @@ export default function AchievementsScreen() {
               </View>
 
               <View className="flex-row justify-between mb-4">
-                <Text className="text-[10px] font-bold text-onSurfaceVariant">Faltan {gapPts.toLocaleString()} pts</Text>
-                <Text className="text-[10px] font-bold text-onSurfaceVariant">Meta: {nextPts.toLocaleString()}</Text>
+                <Text className="text-[10px] font-bold text-on-surface-variant">Faltan {gapPts.toLocaleString()} pts</Text>
+                <Text className="text-[10px] font-bold text-on-surface-variant">Meta: {nextPts.toLocaleString()}</Text>
               </View>
 
               {daysFinalDate > 0 && (
                 <View className="pt-4 border-t flex-row items-center gap-2" style={{ borderColor: t.outlineVariant + '33' }}>
                   <MaterialIcons name="schedule" size={16} color={t.error} />
-                  <Text className="text-xs text-onSurfaceVariant">Cierre de ciclo en <Text className="font-bold text-error">{daysFinalDate} días</Text></Text>
+                  <Text className="text-xs text-on-surface-variant">Cierre de ciclo en <Text className="font-bold text-error">{daysFinalDate} días</Text></Text>
                 </View>
               )}
             </View>
 
             {/* Beneficios Comerciales */}
-            <View className="bg-surfaceContainerLowest rounded-3xl p-6 shadow-sm mb-8 border" style={{ borderColor: t.outlineVariant + '1A' }}>
+            <View className="bg-surface-container-lowest rounded-3xl p-6 shadow-sm mb-8 border" style={{ borderColor: t.outlineVariant + '1A' }}>
               <View className="flex-row items-center gap-2 mb-4">
                 <MaterialIcons name="workspace-premium" size={20} color={t.secondary} />
-                <Text className="font-serif font-bold text-lg text-onSurface">Tus Beneficios Comerciales</Text>
+                <Text className="font-serif font-bold text-lg text-on-surface">Tus Beneficios Comerciales</Text>
               </View>
               
               <View className="flex-row flex-wrap justify-between gap-y-4">
                 <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.primaryContainer + '1A', borderColor: t.primaryContainer + '33' }}>
                   <MaterialIcons name="sell" size={24} color={t.primary} />
                   <Text className="text-2xl font-bold mt-1 text-primary">{profit}%</Text>
-                  <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Venta Directa</Text>
+                  <Text className="text-[9px] font-bold uppercase mt-1 text-on-surface-variant">Venta Directa</Text>
                 </View>
                 <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.secondaryContainer + '1A', borderColor: t.secondaryContainer + '33' }}>
                   <MaterialIcons name="language" size={24} color={t.secondary} />
                   <Text className="text-2xl font-bold mt-1 text-secondary">{digitalProfit}%</Text>
-                  <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Natura Digital</Text>
+                  <Text className="text-[9px] font-bold uppercase mt-1 text-on-surface-variant">Natura Digital</Text>
                 </View>
                 <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.surfaceContainerHighest, borderColor: t.outlineVariant + '33' }}>
                   <MaterialIcons name="home-repair-service" size={24} color={t.onSurfaceVariant} />
                   <Text className="text-xl font-bold mt-1" style={{ color: t.onSurface }}>15-18%</Text>
-                  <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Casa & Estilo</Text>
+                  <Text className="text-[9px] font-bold uppercase mt-1 text-on-surface-variant">Casa & Estilo</Text>
                 </View>
                 
                 {(levelDesc === 'Zafiro' || levelDesc === 'Diamante') ? (
@@ -140,8 +140,8 @@ export default function AchievementsScreen() {
                 ) : (
                   <View className="w-[48%] rounded-xl p-4 items-center border opacity-50" style={{ backgroundColor: t.surfaceContainer, borderColor: t.outlineVariant + '33' }}>
                     <MaterialIcons name="lock" size={24} color={t.onSurfaceVariant} />
-                    <Text className="text-sm font-bold mt-1 text-center text-onSurfaceVariant">Crédito{'\n'}Plazos</Text>
-                    <Text className="text-[9px] font-bold uppercase mt-1 text-onSurfaceVariant">Zafiro+</Text>
+                    <Text className="text-sm font-bold mt-1 text-center text-on-surface-variant">Crédito{'\n'}Plazos</Text>
+                    <Text className="text-[9px] font-bold uppercase mt-1 text-on-surface-variant">Zafiro+</Text>
                   </View>
                 )}
               </View>
@@ -150,7 +150,7 @@ export default function AchievementsScreen() {
             {/* Hitos Históricos */}
             <View className="flex-row items-center gap-2 mb-4">
               <MaterialIcons name="emoji-events" size={20} color={t.secondary} />
-              <Text className="font-serif font-bold text-xl text-onSurface">Hitos Históricos</Text>
+              <Text className="font-serif font-bold text-xl text-on-surface">Hitos Históricos</Text>
             </View>
 
             <Text className="text-xs font-bold mb-3" style={{ color: t.onSurfaceVariant }}>

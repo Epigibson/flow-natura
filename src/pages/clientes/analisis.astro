@@ -26,7 +26,7 @@ import PageLoader from '../../components/PageLoader.astro';
       </p>
     </div>
     <div class="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
-      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Con Deuda Activa</p>
+      <p class="text-xs font-bold tracking-widest text-on-surface-variant uppercase mb-1">Clientes con saldo</p>
       <p id="kpi-with-debt" class="text-4xl font-display font-bold text-primary">0</p>
       <p class="text-sm text-primary font-medium mt-2 flex items-center gap-1">
         <span class="material-symbols-outlined text-sm">warning</span> Requieren seguimiento
@@ -55,7 +55,7 @@ import PageLoader from '../../components/PageLoader.astro';
       </h3>
       <div class="flex items-center gap-3">
         <button id="filter-all" class="py-2 px-4 rounded-full text-sm font-bold bg-primary text-white transition-colors">Todos</button>
-        <button id="filter-debt" class="py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-primary/10 transition-colors">Con Deuda</button>
+        <button id="filter-debt" class="py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-primary/10 transition-colors">Con saldo</button>
         <button id="filter-clear" class="py-2 px-4 rounded-full text-sm font-bold bg-surface-container text-on-surface-variant hover:bg-secondary/10 transition-colors">Al Día</button>
       </div>
     </div>

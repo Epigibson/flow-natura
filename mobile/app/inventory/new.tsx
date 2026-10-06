@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -518,7 +519,7 @@ export default function NewProductScreen() {
               <MaterialIcons name={profit > 0 ? "trending-up" : "trending-down"} size={24} color={profit > 0 ? "#15803d" : "#b91c1c"} />
               <View>
                 <Text className={`text-xs font-bold ${profit > 0 ? 'text-green-800' : 'text-red-800'}`}>Ganancia Estimada</Text>
-                <Text className={`text-xl font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>${Math.abs(profit).toFixed(2)}</Text>
+                <Text className={`text-xl font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>{formatMoney(Number(Math.abs(profit)))}</Text>
               </View>
             </View>
             <View className="items-end">

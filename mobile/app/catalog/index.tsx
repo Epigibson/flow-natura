@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { inventory } from '../../../src/lib/api';
@@ -81,7 +82,7 @@ export default function CatalogScreen() {
           <Text className="text-[10px] text-on-surface-variant/50 font-mono mt-1">#{item.product_code || '00000'}</Text>
           
           <View className="flex-row items-center justify-between mt-3">
-            <Text className="text-lg font-serif font-bold text-primary">${Number(item.price || 0).toFixed(2)}</Text>
+            <Text className="text-lg font-serif font-bold text-primary">{formatMoney(Number(Number(item.price || 0)))}</Text>
             <TouchableOpacity 
               disabled={isOutOfStock}
               className={`w-8 h-8 rounded-xl flex items-center justify-center ${isOutOfStock ? 'bg-surface-container' : 'bg-primary'}`}

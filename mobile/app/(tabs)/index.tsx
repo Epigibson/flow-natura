@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert, RefreshControl } from 'react-native';
+import { formatMoney } from '../../../src/lib/orders';
 import { supabase } from '../../lib/supabase';
 import api from '../../../src/lib/api';
 import { CAMINO_CRECIMIENTO } from '../../../src/lib/camino-crecimiento';
@@ -269,7 +270,7 @@ export default function DashboardScreen() {
                           </View>
                         </View>
                         <View className="items-end shrink-0">
-                          <Text className="font-bold text-on-surface text-sm">${Number(order.total_amount).toFixed(2)}</Text>
+                          <Text className="font-bold text-on-surface text-sm">{formatMoney(Number(Number(order.total_amount)))}</Text>
                           <Text className={`text-[10px] font-bold mt-0.5 capitalize ${order.status === 'cancelled' ? 'text-error' : 'text-primary'}`}>
                             {order.status === 'cancelled' ? 'Cancelada' : order.payment_method}
                           </Text>
@@ -295,7 +296,7 @@ export default function DashboardScreen() {
                     <View key={p.id} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
                       <TouchableOpacity className="flex-1 pr-3" onPress={() => router.push({ pathname: '/sales/[id]', params: { id: p.id } } as any)}>
                         <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{p.customer_name}</Text>
-                        <Text className="text-on-surface-variant text-xs mt-0.5">Saldo ${Number(p.balance).toFixed(2)}</Text>
+                        <Text className="text-on-surface-variant text-xs mt-0.5">Saldo {formatMoney(Number(Number(p.balance)))}</Text>
                       </TouchableOpacity>
                       <TouchableOpacity className="bg-primary px-4 py-2 rounded-full" onPress={() => setCollectItem(p)}>
                         <Text className="text-white font-bold text-xs">Cobrar</Text>
@@ -340,7 +341,7 @@ export default function DashboardScreen() {
                       <Text className="text-lg">{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</Text>
                       <Text className="font-bold text-sm text-on-surface">{c.name}</Text>
                     </View>
-                    <Text className="font-bold text-primary text-sm">${Number(c.total).toFixed(2)}</Text>
+                    <Text className="font-bold text-primary text-sm">{formatMoney(Number(Number(c.total)))}</Text>
                   </View>
                 ))}
               </View>
@@ -386,7 +387,7 @@ export default function DashboardScreen() {
                         <Text className="text-on-surface-variant text-[10px] mt-1">{item.items_summary}</Text>
                       </View>
                       <View className="items-end shrink-0">
-                        <Text className="font-bold text-secondary text-sm">${Number(item.total_amount).toFixed(2)}</Text>
+                        <Text className="font-bold text-secondary text-sm">{formatMoney(Number(Number(item.total_amount)))}</Text>
                       </View>
                     </View>
                   ))
