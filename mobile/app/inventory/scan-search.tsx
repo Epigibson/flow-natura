@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, ScrollView, Modal, TextInput, FlatList } from 'react-native';
+import { SafeAreaView as ModalSafeArea } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
@@ -16,6 +17,48 @@ export default function ScanSearchScreen() {
   const [foundProduct, setFoundProduct] = useState<any>(null);
   const [isInInventory, setIsInInventory] = useState(false);
   const [adding, setAdding] = useState(false);
+
+  // Link the scanned EAN to an existing catalog product (same as /inventario/escanear on the web)
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkQuery, setLinkQuery] = useState('');
+  const [linkResults, setLinkResults] = useState<any[]>([]);
+  const [linkSearching, setLinkSearching] = useState(false);
+  const [linking, setLinking] = useState(false);
+
+  async function searchProductsToLink(q: string) {
+    setLinkQuery(q);
+    if (q.trim().length < 2) { setLinkResults([]); return; }
+    setLinkSearching(true);
+    try {
+      setLinkResults((await api.products.list({ search: q.trim(), limit: 30 })) || []);
+    } catch {
+      setLinkResults([]);
+    } finally {
+      setLinkSearching(false);
+    }
+  }
+
+  async function linkToProduct(product: any) {
+    if (linking) return;
+    setLinking(true);
+    try {
+      await api.inventory.addBarcode({ product_id: product.id, barcode: scannedCode });
+      setLinkOpen(false);
+      // Show it as a found product, exactly as if it had been linked before
+      const inv = await api.inventory.list();
+      const invMatch = inv?.find((i: any) => i.product_id === product.id);
+      setIsInInventory(!!invMatch);
+      setFoundProduct(invMatch ? { ...product, _stock: invMatch.quantity } : product);
+      Alert.alert('✅ Código vinculado', `${scannedCode} ahora abre "${product.name}".`);
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      Alert.alert('No se pudo vincular', msg.includes('duplicate') || e?.code === '23505'
+        ? 'Este código ya está vinculado a otro producto.'
+        : msg || 'Error desconocido');
+    } finally {
+      setLinking(false);
+    }
+  }
 
   const handleBarcodeScanned = async ({ data }: { data: string }) => {
     if (!scanning || loading) return;
@@ -247,8 +290,15 @@ export default function ScanSearchScreen() {
                   </View>
                   <Text className="text-xl font-bold text-on-surface text-center">Producto No Encontrado</Text>
                   <Text className="text-on-surface-variant text-center mt-2 mb-6 px-4">
-                    El código "{scannedCode}" no existe en el catálogo. ¿Deseas crear un producto nuevo con este código?
+                    El código "{scannedCode}" no está en el catálogo. Si es de un producto que ya existe, vincúlalo; si no, créalo.
                   </Text>
+                  <TouchableOpacity
+                    className="border-2 border-primary py-4 px-8 rounded-full flex-row items-center gap-2 mb-3"
+                    onPress={() => { setLinkQuery(''); setLinkResults([]); setLinkOpen(true); }}
+                  >
+                    <MaterialIcons name="link" size={20} color={t.primary} />
+                    <Text className="text-primary font-bold">Vincular a un producto existente</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity
                     className="bg-primary py-4 px-8 rounded-full flex-row items-center gap-2"
                     onPress={() => router.replace({ pathname: '/inventory/new', params: { code: scannedCode } } as any)}
@@ -270,6 +320,57 @@ export default function ScanSearchScreen() {
           </SafeAreaView>
         </View>
       )}
+      <Modal visible={linkOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setLinkOpen(false)}>
+        <ModalSafeArea className="flex-1 bg-surface">
+          <View className="px-6 py-4 flex-row justify-between items-center border-b border-outline-variant/20">
+            <View className="flex-1 pr-3">
+              <Text className="text-xl font-bold text-on-surface">Vincular código</Text>
+              <Text className="text-xs text-on-surface-variant font-mono">{scannedCode}</Text>
+            </View>
+            <TouchableOpacity onPress={() => setLinkOpen(false)} accessibilityLabel="Cerrar">
+              <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
+            </TouchableOpacity>
+          </View>
+          <View className="px-6 py-4">
+            <TextInput
+              className="bg-surface-container rounded-2xl px-4 py-3"
+              style={{ color: t.onSurface }}
+              placeholder="Busca el producto por nombre o código..."
+              placeholderTextColor={t.onSurfaceVariant + '99'}
+              value={linkQuery}
+              onChangeText={searchProductsToLink}
+              autoFocus
+            />
+          </View>
+          {linkSearching ? (
+            <ActivityIndicator color={t.primary} className="py-6" />
+          ) : (
+            <FlatList
+              data={linkResults}
+              keyExtractor={(p) => p.id}
+              contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+              ListEmptyComponent={
+                <Text className="text-on-surface-variant text-center py-8">
+                  {linkQuery.trim().length < 2 ? 'Escribe al menos 2 letras.' : 'Sin resultados.'}
+                </Text>
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  disabled={linking}
+                  onPress={() => linkToProduct(item)}
+                  className="flex-row items-center p-4 mb-2 rounded-2xl bg-surface-container-lowest border border-outline-variant/20"
+                >
+                  <View className="flex-1 pr-3">
+                    <Text className="font-bold text-on-surface" numberOfLines={1}>{item.name}</Text>
+                    <Text className="text-xs text-on-surface-variant">{item.code} · {item.brand || 'Natura'}</Text>
+                  </View>
+                  {linking ? <ActivityIndicator size="small" color={t.primary} /> : <MaterialIcons name="link" size={20} color={t.primary} />}
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </ModalSafeArea>
+      </Modal>
     </SafeAreaView>
   );
 }
