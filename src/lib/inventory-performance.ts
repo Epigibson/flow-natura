@@ -39,7 +39,7 @@ export async function loadInventoryPerformance(): Promise<InventoryPerformance> 
       .select('order_items(product_id, quantity, unit_price, products(name, category))')
       .eq('consultant_id', userId)
       .neq('status', 'cancelled'),
-    supabase.from('inventory').select('product_id, quantity, products(name, category, price, cost)').eq('consultant_id', userId),
+    supabase.from('inventory').select('product_id, quantity, price, cost, products(name, category, price, cost)').eq('consultant_id', userId),
   ]);
   if (ordersRes.error) throw ordersRes.error;
   if (invRes.error) throw invRes.error;
@@ -71,7 +71,7 @@ export async function loadInventoryPerformance(): Promise<InventoryPerformance> 
   (invRes.data || []).forEach((i: any) => {
     const cur = stockMap.get(i.product_id) || {
       name: i.products?.name || 'Producto', category: i.products?.category || 'General',
-      price: Number(i.products?.price || 0), cost: Number(i.products?.cost || 0), quantity: 0,
+      price: Number(i.price ?? i.products?.price ?? 0), cost: Number(i.cost ?? i.products?.cost ?? 0), quantity: 0,
     };
     cur.quantity += i.quantity;
     stockMap.set(i.product_id, cur);

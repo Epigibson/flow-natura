@@ -31,7 +31,6 @@ export default function EditProductScreen() {
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
   const [costManuallyEdited, setCostManuallyEdited] = useState(false);
   const [stock, setStock] = useState('0');
-  const [inventoryId, setInventoryId] = useState<string | null>(null);
 
   useEffect(() => {
     if (productId) loadProduct();
@@ -40,8 +39,8 @@ export default function EditProductScreen() {
   async function loadProduct() {
     setLoading(true);
     try {
-      // Load product data
-      const product = await api.products.get(productId!);
+      // Catalog product with MY price/cost and stock
+      const product = await api.products.getForMe(productId!);
       setCode(product.code || '');
       setName(product.name || '');
       setCategory(product.category || '');
@@ -51,16 +50,7 @@ export default function EditProductScreen() {
       setPrice(String(product.price || ''));
       setCost(String(product.cost || ''));
       setPoints(String(product.points || '0'));
-
-      // Load inventory data for this product
-      try {
-        const inv = await api.inventory.list();
-        const match = inv.find((i: any) => i.product_id === productId);
-        if (match) {
-          setStock(String(match.quantity || 0));
-          setInventoryId(match.inventory_id);
-        }
-      } catch {}
+      setStock(String(product.stock || 0));
     } catch (err: any) {
       Alert.alert('Error', 'No se pudo cargar el producto.');
       router.back();
@@ -101,22 +91,27 @@ export default function EditProductScreen() {
 
     setSaving(true);
     try {
-      // Update product in catalog
-      await api.products.update(productId!, {
-        ...(code.trim() ? { code: code.trim() } : {}), // code is NOT NULL in the catalog
-        name,
-        category: category || null,
-        brand: brand || null,
-        description: description || null,
+      const result = await api.products.updateForMe(productId!, {
         price: parsedPrice,
         cost: parsedCost,
-        points: parseInt(points) || 0,
-        image_url: imageUrl || null,
+        catalog: {
+          ...(code.trim() ? { code: code.trim() } : {}),
+          name,
+          category,
+          brand,
+          description,
+          points: parseInt(points) || 0,
+          image_url: imageUrl,
+        },
       });
 
-      Alert.alert('✅ Producto Actualizado', 'Los cambios se guardaron correctamente.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      Alert.alert(
+        '✅ Producto actualizado',
+        result.catalog_blocked
+          ? 'Tu precio y costo se guardaron. Los datos del catálogo no cambiaron porque otras consultoras usan este producto.'
+          : 'Los cambios se guardaron correctamente.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
     } catch (err: any) {
       Alert.alert('Error', err.message || 'No se pudo guardar.');
     } finally {
@@ -126,17 +121,17 @@ export default function EditProductScreen() {
 
   async function handleDelete() {
     Alert.alert(
-      '⚠️ Eliminar Producto',
-      `¿Estás seguro de eliminar "${name}"? El producto será removido del catálogo.`,
+      'Quitar de mi inventario',
+      `¿Quitar "${name}" de tu inventario? Se borra tu stock (${stock} uds) y tu precio. El catálogo y tus ventas anteriores no cambian.`,
       [
         { text: 'Cancelar', style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: 'Quitar',
           style: 'destructive',
           onPress: async () => {
             try {
-              await api.products.delete(productId!);
-              Alert.alert('Eliminado', 'El producto fue eliminado.', [
+              await api.inventory.removeProduct(productId!);
+              Alert.alert('Listo', 'El producto se quitó de tu inventario.', [
                 { text: 'OK', onPress: () => router.back() }
               ]);
             } catch (err: any) {
@@ -175,8 +170,8 @@ export default function EditProductScreen() {
           <Text className="text-xl font-bold text-on-surface ml-2">Editar Producto</Text>
           <Text className="text-[10px] text-on-surface-variant ml-2 font-mono">{code || 'Sin código'}</Text>
         </View>
-        <TouchableOpacity onPress={handleDelete} className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: t.error + '1A' }}>
-          <MaterialIcons name="delete" size={20} color={t.error} />
+        <TouchableOpacity onPress={handleDelete} accessibilityLabel="Quitar de mi inventario" className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: t.error + '1A' }}>
+          <MaterialIcons name="remove-shopping-cart" size={20} color={t.error} />
         </TouchableOpacity>
       </View>
 

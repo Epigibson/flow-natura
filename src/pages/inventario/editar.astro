@@ -181,11 +181,16 @@ import PageLoader from '../../components/PageLoader.astro';
           <span class="material-symbols-outlined text-sm">save</span> Guardar cambios
         </button>
       </div>
+      <p class="text-xs text-on-surface-variant mt-4 text-center">El precio y el costo son solo tuyos. Nombre, código y demás datos son del catálogo compartido.</p>
+      <button id="btn-remove" type="button" class="mt-4 w-full py-3 rounded-xl font-bold text-error hover:bg-error-container/20 transition-colors text-sm flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">remove_shopping_cart</span> Quitar de mi inventario
+      </button>
     </div>
   </div>
 </DashboardLayout>
 
 <script>
+  import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from '../../lib/supabase';
   import { authFetch } from '../../lib/auth-fetch';
   import { processWhiteBackground, uploadBase64Image } from '../../lib/image-helpers';
@@ -216,7 +221,7 @@ import PageLoader from '../../components/PageLoader.astro';
     if (!productId) return;
 
     try {
-      const product = await api.products.get(productId);
+      const product = await api.products.getForMe(productId);
       if (!product) throw new Error('Producto no encontrado');
 
       // Populate form
@@ -495,15 +500,38 @@ import PageLoader from '../../components/PageLoader.astro';
     btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Guardando...';
 
     try {
-      await api.products.update(productId, { name, code, brand, category, cost, price, points, image_url, description });
-      
-      // Success toast then redirect
-      (window as any).toast?.success('Producto actualizado correctamente');
-      setTimeout(() => { window.location.href = '/inventario'; }, 800);
+      const result = await api.products.updateForMe(productId, {
+        price, cost,
+        catalog: { name, code, brand, category, points, image_url, description }
+      });
+
+      if (result.catalog_blocked) {
+        toast.warning('Tu precio y costo se guardaron. Los datos del catálogo no cambiaron porque otras consultoras usan este producto.');
+      } else {
+        toast.success('Producto actualizado correctamente');
+      }
+      setTimeout(() => { window.location.href = '/inventario'; }, 1600);
     } catch (e: any) {
       btn.disabled = false;
       btn.innerHTML = '<span class="material-symbols-outlined text-sm">save</span> Guardar cambios';
       showError('Error: ' + (e.message || 'No se pudo guardar'));
+    }
+  });
+
+  // ── Quitar de mi inventario ──
+  document.getElementById('btn-remove')?.addEventListener('click', async () => {
+    if (!productId) return;
+    const ok = await confirmAction('¿Quitar este producto de tu inventario?', {
+      description: 'Se borra tu stock y tu precio de este producto. El catálogo y tus ventas anteriores no cambian.',
+      confirmText: 'Quitar'
+    });
+    if (!ok) return;
+    try {
+      const units = await api.inventory.removeProduct(productId);
+      toast.success(units > 0 ? `Producto quitado (${units} unidades de stock)` : 'Producto quitado de tu inventario');
+      setTimeout(() => { window.location.href = '/inventario'; }, 900);
+    } catch (e: any) {
+      showError('Error: ' + (e?.message || 'No se pudo quitar'));
     }
   });
 

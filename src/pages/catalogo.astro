@@ -242,7 +242,7 @@ import PageLoader from '../components/PageLoader.astro';
       while (true) {
         const { data, error } = await supabase
           .from('inventory')
-          .select('quantity, product_id, variant_id, products(id, name, price, category, code, brand, image_url, has_variants)')
+          .select('quantity, product_id, variant_id, price, products(id, name, price, category, code, brand, image_url, has_variants)')
           .eq('consultant_id', cid)
           .gt('quantity', 0)
           .range(from, from + BATCH - 1);
@@ -280,7 +280,7 @@ import PageLoader from '../components/PageLoader.astro';
           productMap[pid] = {
             id: pid,
             name: inv.products?.name || 'Producto',
-            price: inv.products?.price || 0,
+            price: Number(inv.price ?? inv.products?.price ?? 0),
             category: inv.products?.category || '',
             code: inv.products?.code || '',
             brand: inv.products?.brand || '',

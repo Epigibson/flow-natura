@@ -320,13 +320,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     try {
       const { data: inventoryData } = await supabase
         .from('inventory')
-        .select('product_id, quantity, products(id, name, code, category, brand, price, cost, image_url)')
+        .select('product_id, quantity, price, cost, products(id, name, code, category, brand, price, cost, image_url)')
         .eq('consultant_id', currentUserId)
         .gt('quantity', 0);
       if (inventoryData) {
         availableProducts = inventoryData.map((inv: any) => {
-          let price = Number(inv.products?.price || 0);
-          let cost = Number(inv.products?.cost || 0);
+          let price = Number(inv.price ?? inv.products?.price ?? 0);
+          let cost = Number(inv.cost ?? inv.products?.cost ?? 0);
           let brand = inv.products?.brand || '';
           let category = inv.products?.category || '';
           if (cost === 0 && price > 0) {

@@ -244,6 +244,41 @@ export const products = {
     if (error) throw error;
     return data;
   },
+  /** Catalog product with MY price/cost and stock applied. */
+  getForMe: async (id: string) => {
+    const userId = await getCurrentUserId();
+    const [{ data: product, error }, { data: inv, error: invErr }] = await Promise.all([
+      supabase.from('products').select('*').eq('id', id).single(),
+      supabase.from('inventory').select('quantity, price, cost').eq('product_id', id).eq('consultant_id', userId),
+    ]);
+    if (error) throw error;
+    if (invErr) throw invErr;
+    const rows = inv || [];
+    const own = rows.find(r => r.price != null || r.cost != null);
+    return {
+      ...product,
+      price: own?.price ?? product.price,
+      cost: own?.cost ?? product.cost,
+      catalog_price: product.price,
+      catalog_cost: product.cost,
+      stock: rows.reduce((s, r) => s + r.quantity, 0),
+      in_inventory: rows.length > 0,
+    };
+  },
+  /**
+   * Saves MY price/cost always; shared catalog fields (name, code, ...) only when no other
+   * consultant uses the product. `catalog_blocked` tells the UI to warn about it.
+   */
+  updateForMe: async (id: string, input: { price: number; cost: number; catalog?: Record<string, any> }) => {
+    const { data, error } = await supabase.rpc('update_my_product', {
+      p_product_id: id,
+      p_price: input.price,
+      p_cost: input.cost,
+      p_catalog: input.catalog || {},
+    });
+    if (error) throw error;
+    return data as { catalog_updated: boolean; catalog_blocked: boolean };
+  },
   /**
    * Resolves a scanned code to a catalog product: first an EAN linked in product_barcodes,
    * then the Natura product code. Same lookup on web and mobile.
@@ -526,13 +561,22 @@ export const inventory = {
       product_code: row.products?.code,
       category: row.products?.category,
       brand: row.products?.brand,
-      price: row.products?.price,
-      cost: row.products?.cost,
+      // My own price/cost (inventory override) wins over the shared catalog value
+      price: row.price ?? row.products?.price,
+      cost: row.cost ?? row.products?.cost,
+      catalog_price: row.products?.price,
+      catalog_cost: row.products?.cost,
       quantity: row.quantity,
       image_url: row.products?.image_url,
       description: row.products?.description,
       points: row.products?.points
     }));
+  },
+  /** "Eliminar" for a consultant: stop carrying the product. Returns the units that were in stock. */
+  removeProduct: async (productId: string) => {
+    const { data, error } = await supabase.rpc('remove_from_my_inventory', { p_product_id: productId });
+    if (error) throw error;
+    return data as number;
   },
   /** Atomic increment of the caller's stock. Items: [{ product_id, quantity > 0 }] */
   add: async (items: { product_id: string; quantity: number }[]) => {
