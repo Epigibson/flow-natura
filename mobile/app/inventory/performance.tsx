@@ -32,7 +32,7 @@ export default function InventoryPerformanceScreen() {
 
   if (loading) {
     return (
-      <SecondaryLayout title="Rendimiento de Inventario 📦">
+      <SecondaryLayout title="Rendimiento de Inventario 📦" scrollable={false}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={t.primary} />
         </View>
@@ -42,7 +42,7 @@ export default function InventoryPerformanceScreen() {
 
   if (error || !perf) {
     return (
-      <SecondaryLayout title="Rendimiento 📦">
+      <SecondaryLayout title="Rendimiento 📦" scrollable={false}>
         <ErrorState message={error || undefined} onRetry={loadData} />
       </SecondaryLayout>
     );
@@ -58,8 +58,8 @@ export default function InventoryPerformanceScreen() {
   const lowStock = stock.lowStock.map(i => ({ product_id: i.productId, product_name: i.name, quantity: i.quantity }));
 
   return (
-    <SecondaryLayout title="Rendimiento 📦">
-      <ScrollView className="flex-1 p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Rendimiento 📦" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
 
         {/* Hero KPI */}
         <View className="bg-primary p-6 rounded-3xl mb-6 shadow-lg relative overflow-hidden" style={{ shadowColor: t.primary }}>

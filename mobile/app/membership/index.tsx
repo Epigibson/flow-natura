@@ -71,8 +71,8 @@ export default function MembershipScreen() {
   };
 
   return (
-    <SecondaryLayout title="Mi Perfil 💎">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Mi Perfil 💎" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         
         {loading ? (
           <View className="py-10 items-center justify-center">

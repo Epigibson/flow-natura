@@ -50,8 +50,8 @@ export default function AchievementsScreen() {
   const digitalProfit = profit > 30 ? profit - 5 : profit;
 
   return (
-    <SecondaryLayout title="Hitos y Desempeño 📊">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Hitos y Desempeño 📊" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         
         {loading ? (
           <View className="py-10 items-center justify-center">

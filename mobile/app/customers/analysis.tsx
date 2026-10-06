@@ -55,7 +55,7 @@ export default function CustomerAnalysisScreen() {
 
   if (loading) {
     return (
-      <SecondaryLayout title="Análisis de Clientes 📊">
+      <SecondaryLayout title="Análisis de Clientes 📊" scrollable={false}>
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={t.primary} />
         </View>
@@ -64,8 +64,8 @@ export default function CustomerAnalysisScreen() {
   }
 
   return (
-    <SecondaryLayout title="Análisis de Clientes 📊">
-      <ScrollView className="flex-1 p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Análisis de Clientes 📊" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
 
         {/* KPI Cards */}
         <View className="flex-row flex-wrap gap-3 mb-8">

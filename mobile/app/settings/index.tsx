@@ -223,8 +223,8 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SecondaryLayout title="Ajustes ⚙️">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Ajustes ⚙️" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         
         {/* Perfil */}
         <View className="mb-6">

@@ -11,8 +11,8 @@ export default function SupportScreen() {
   ];
 
   return (
-    <SecondaryLayout title="Soporte 🎧">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Soporte 🎧" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         {/* Contacto Directo */}
         <View className="bg-primary p-6 rounded-3xl mb-8 items-center shadow-lg shadow-primary/20 relative overflow-hidden">
           <MaterialIcons name="support-agent" size={100} color="rgba(255,255,255,0.1)" style={{position: 'absolute', right: -10, top: 10}} />

@@ -53,8 +53,8 @@ export default function MentoringScreen() {
   };
 
   return (
-    <SecondaryLayout title="Mentoría 🎓">
-      <ScrollView className="p-6 pb-24" showsVerticalScrollIndicator={false}>
+    <SecondaryLayout title="Mentoría 🎓" scrollable={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
         
         {/* Progress Banner */}
         <View className="bg-primary p-6 rounded-3xl mb-8 shadow-lg shadow-primary/30 relative overflow-hidden">
