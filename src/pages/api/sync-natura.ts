@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getServiceSupabase } from '../../lib/supabase-server';
 import { requireAuth } from '../../lib/api-auth';
-import { decrypt } from '../../utils/crypto';
+import { decrypt, encrypt, isLegacyFormat } from '../../utils/crypto';
 
 export const prerender = false;
 
@@ -30,8 +30,18 @@ export const POST: APIRoute = async ({ request }) => {
        return new Response(JSON.stringify({ success: false, error: 'Credenciales de Natura no configuradas.' }), { status: 401 });
     }
 
-    // 2. Decrypt password
+    // 2. Decrypt password; re-encrypt legacy CBC payloads with GCM (lazy migration)
     const plainPassword = decrypt(profile.natura_password_encrypted);
+    if (isLegacyFormat(profile.natura_password_encrypted)) {
+      try {
+        await supabaseAdmin
+          .from('consultant_profiles')
+          .update({ natura_password_encrypted: encrypt(plainPassword) })
+          .eq('id', userId);
+      } catch (e) {
+        console.warn('No se pudo migrar el cifrado de credenciales:', e);
+      }
+    }
 
     // 3. Call the external Render scraper service
     const scraperResponse = await fetch(`${SCRAPER_URL}/scrape`, {
