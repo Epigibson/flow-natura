@@ -334,7 +334,7 @@ import CardGridSkeleton from '../components/skeletons/CardGridSkeleton.astro';
       await api.inventory.cleanupDuplicates().catch(() => {});
       
       // Fetch user's inventory — already includes product details
-      const myInv = await api.inventory.list({ limit: 5000 });
+      const myInv = await api.inventory.list();
 
       if (!myInv || myInv.length === 0) {
         emptyState.classList.remove('hidden');

@@ -11,6 +11,23 @@ export async function getCurrentUserId(): Promise<string | null> {
   return session?.user?.id || null;
 }
 
+const PAGE_SIZE = 1000;
+
+/** PostgREST caps every response at max_rows (1000); page through range() to get everything. */
+async function fetchAllRows<T = any>(
+  build: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: any }>
+): Promise<T[]> {
+  const all: T[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await build(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
 // ─────────────────────────────────────────────
 // Dashboard
 // ─────────────────────────────────────────────
@@ -23,32 +40,36 @@ export const dashboard = {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
     // 1. Fetch Orders (this month, for revenue / activity)
-    const { data: ordersData, error: ordersError } = await supabase
-      .from('orders')
-      .select('*, customers(*), order_items(*, products(*))')
-      .eq('consultant_id', userId)
-      .gte('created_at', startOfMonth)
-      .order('created_at', { ascending: false });
-    if (ordersError) throw ordersError;
-    const allOrders = ordersData || [];
+    const allOrders = await fetchAllRows<any>((from, to) =>
+      supabase
+        .from('orders')
+        .select('*, customers(*), order_items(*, products(*))')
+        .eq('consultant_id', userId)
+        .gte('created_at', startOfMonth)
+        .order('created_at', { ascending: false })
+        .range(from, to)
+    );
     const validOrders = allOrders.filter(o => o.status !== 'cancelled');
 
     // 2. Fetch Inventory
-    const { data: inventoryData, error: invError } = await supabase
-      .from('inventory')
-      .select('*, products(*)')
-      .eq('consultant_id', userId);
-    if (invError) throw invError;
-    const inventory = inventoryData || [];
+    const inventory = await fetchAllRows<any>((from, to) =>
+      supabase
+        .from('inventory')
+        .select('*, products(*)')
+        .eq('consultant_id', userId)
+        .range(from, to)
+    );
 
     // 2b. Open balances: ALL non-cancelled orders (debt does not expire with the month)
-    const { data: openData, error: openError } = await supabase
-      .from('orders')
-      .select('id, total_amount, status, payment_method, installments, created_at, customers(full_name), order_payments(id, amount, kind, paid_at)')
-      .eq('consultant_id', userId)
-      .neq('status', 'cancelled')
-      .order('created_at', { ascending: true });
-    if (openError) throw openError;
+    const openData = await fetchAllRows<any>((from, to) =>
+      supabase
+        .from('orders')
+        .select('id, total_amount, status, payment_method, installments, created_at, customers(full_name), order_payments(id, amount, kind, paid_at)')
+        .eq('consultant_id', userId)
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: true })
+        .range(from, to)
+    );
     const withBalance = (openData || [])
       .map((o: any) => ({ order: o, summary: summarizeOrder(o) }))
       .filter(({ summary }) => summary.balance > MONEY_EPSILON);
@@ -58,11 +79,19 @@ export const dashboard = {
     const outOfStock = inventory.filter(inv => inv.quantity <= 0).length;
     const totalDebt = withBalance.reduce((sum, { summary }) => sum + summary.balance, 0);
 
+    const { count: totalCustomers, error: custError } = await supabase
+      .from('customers')
+      .select('id', { count: 'exact', head: true })
+      .eq('consultant_id', userId);
+    if (custError) throw custError;
+
     const kpis = {
       total_revenue: totalRevenue,
       total_orders: validOrders.length,
       pending_debt: totalDebt,
-      out_of_stock: outOfStock
+      out_of_stock: outOfStock,
+      inventory_count: new Set(inventory.map((i: any) => i.product_id)).size,
+      total_customers: totalCustomers || 0
     };
 
     // 4. Recent Orders
@@ -288,8 +317,9 @@ export const products = {
     if (!value) return null;
     const { data: linked, error: linkErr } = await supabase
       .from('product_barcodes')
-      .select('product_id, products ( id, name, code, brand, category, price, cost, points, image_url, description )')
+      .select('product_id, products!inner ( id, name, code, brand, category, price, cost, points, image_url, description )')
       .eq('ean', value)
+      .is('products.deleted_at', null)
       .maybeSingle();
     if (linkErr) throw linkErr;
     if (linked?.products) return linked.products as any;
@@ -452,16 +482,17 @@ const ORDER_SELECT = '*, customers(*), order_items(*, products(*)), order_paymen
 export const orders = {
   list: async (params?: { status?: string; customer_id?: string }) => {
     const userId = await getCurrentUserId();
-    let query = supabase
-      .from('orders')
-      .select('*, customers(*), order_payments(id, amount, kind, paid_at)')
-      .eq('consultant_id', userId)
-      .order('created_at', { ascending: false });
-    if (params?.status) query = query.eq('status', params.status);
-    if (params?.customer_id) query = query.eq('customer_id', params.customer_id);
-    const { data, error } = await query;
-    if (error) throw error;
-    return data.map(o => ({
+    const rows = await fetchAllRows<any>((from, to) => {
+      let query = supabase
+        .from('orders')
+        .select('*, customers(*), order_payments(id, amount, kind, paid_at)')
+        .eq('consultant_id', userId)
+        .order('created_at', { ascending: false });
+      if (params?.status) query = query.eq('status', params.status);
+      if (params?.customer_id) query = query.eq('customer_id', params.customer_id);
+      return query.range(from, to);
+    });
+    return rows.map(o => ({
       ...o,
       customer_name: o.customers?.full_name,
       summary: summarizeOrder(o as any)
@@ -526,12 +557,11 @@ export const orders = {
 // Inventory
 // ─────────────────────────────────────────────
 export const inventory = {
-  list: async (params?: { search?: string; category?: string; limit?: number }) => {
+  list: async (params?: { search?: string; category?: string }) => {
     const userId = await getCurrentUserId();
-    const { data, error } = await supabase.from('inventory').select('*, products(*)').eq('consultant_id', userId);
-    if (error) throw error;
-    
-    let items = data || [];
+    let items = await fetchAllRows<any>((from, to) =>
+      supabase.from('inventory').select('*, products(*)').eq('consultant_id', userId).range(from, to)
+    );
     if (params?.search) {
       const s = params.search.toLowerCase();
       items = items.filter(i => i.products?.name?.toLowerCase().includes(s));
