@@ -126,8 +126,14 @@ export default function SettingsScreen() {
 
   const shareCatalog = async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const id = currentUserId || session?.user?.id;
+      if (!id) {
+        Alert.alert('Inicia sesión', 'Necesitas sesión activa para compartir tu catálogo.');
+        return;
+      }
       await Share.share({
-        message: `¡Hola! 🌿 Te comparto mi catálogo Natura:\n${catalogUrl}`,
+        message: `¡Hola! 🌿 Te comparto mi catálogo Natura:\n${buildCatalogUrl(SITE_URL, id)}`,
       });
     } catch (error) {
       console.error(error);

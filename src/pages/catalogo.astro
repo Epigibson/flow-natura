@@ -164,7 +164,8 @@ import PageLoader from '../components/PageLoader.astro';
   import { esc, sanitizeUrl } from '../lib/security';
 
   const params = new URLSearchParams(window.location.search);
-  let activeConsultantId = params.get('c') || '';
+  // `id` is the param older app builds shared; keep accepting it so old links work.
+  let activeConsultantId = params.get('c') || params.get('id') || '';
 
   const grid = document.getElementById('products-grid') as HTMLElement;
   const loading = document.getElementById('loading') as HTMLElement;

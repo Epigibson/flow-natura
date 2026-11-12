@@ -40,7 +40,13 @@ export default function CatalogScreen() {
 
   async function handleShare() {
     try {
-      const catalogUrl = buildCatalogUrl(SITE_URL, userId);
+      const { data: { session } } = await supabase.auth.getSession();
+      const id = userId || session?.user?.id;
+      if (!id) {
+        Alert.alert('Inicia sesión', 'Necesitas sesión activa para compartir tu catálogo.');
+        return;
+      }
+      const catalogUrl = buildCatalogUrl(SITE_URL, id);
       
       await Share.share({
         title: 'Mi Catálogo Natura',
