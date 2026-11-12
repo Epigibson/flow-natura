@@ -381,7 +381,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
 </style>
 
 <script>
-  import { esc } from '../../lib/security';
+  import { esc, sanitizeUrl } from '../../lib/security';
   import { supabase } from "../../lib/supabase";
   import api from '../../lib/api';
   import { NativeBarcodeScanner } from "../../lib/barcode-scanner";
@@ -593,12 +593,12 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         <button data-product-id="${p.id}" class="link-product-btn w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary/5 transition-colors text-left group">
           ${
             p.image_url
-              ? `<img src="${p.image_url}" alt="" class="w-12 h-12 object-contain rounded-lg bg-white border border-outline-variant/10 flex-shrink-0" />`
+              ? `<img src="${esc(sanitizeUrl(p.image_url))}" alt="" class="w-12 h-12 object-contain rounded-lg bg-white border border-outline-variant/10 flex-shrink-0" />`
               : `<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-surface-variant/30">spa</span></div>`
           }
           <div class="flex-1 min-w-0">
             <p class="text-xs font-bold text-on-surface leading-tight line-clamp-1">${esc(p.name)}</p>
-            <p class="text-[10px] text-on-surface-variant">${p.brand || "Natura"} · ${p.code} · $${Number(p.price || 0).toFixed(0)}</p>
+            <p class="text-[10px] text-on-surface-variant">${esc(p.brand || "Natura")} · ${esc(p.code)} · $${Number(p.price || 0).toFixed(0)}</p>
           </div>
           <span class="material-symbols-outlined text-primary opacity-0 group-hover:opacity-100 transition-opacity">link</span>
         </button>

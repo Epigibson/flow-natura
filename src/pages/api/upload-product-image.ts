@@ -9,6 +9,8 @@ import type { APIRoute } from 'astro';
 import { requireAuth } from '../../lib/api-auth';
 import { getServiceSupabase } from '../../lib/supabase-server';
 
+const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
 
 
 export const POST: APIRoute = async ({ request }) => {
@@ -23,6 +25,13 @@ export const POST: APIRoute = async ({ request }) => {
     if (!imageBase64 || !fileName) {
       return new Response(
         JSON.stringify({ error: 'Faltan imageBase64 o fileName' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!ALLOWED_MIME_TYPES.has(mimeType)) {
+      return new Response(
+        JSON.stringify({ error: 'Tipo de archivo no permitido. Usa JPEG, PNG o WebP.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -46,7 +55,8 @@ export const POST: APIRoute = async ({ request }) => {
       .replace(/[/\\]/g, '')         // Remove path separators
       .replace(/[^a-zA-Z0-9._-]/g, '_'); // Only safe characters
 
-    const filePath = `user-uploads/${safeFileName}`;
+    // Per-user folder: one consultant can never overwrite another's files
+    const filePath = `${auth.user.id}/${safeFileName}`;
 
     const { data, error } = await supabase.storage
       .from('product-images')

@@ -223,7 +223,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   import { toast, confirmAction } from '../../lib/ui';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
-  import { esc } from '../../lib/security';
+  import { esc, sanitizeUrl } from '../../lib/security';
   import { calculateConsultantPrice } from '../../lib/camino-crecimiento';
   import type { ConsultantLevel } from '../../lib/camino-crecimiento';
 
@@ -368,11 +368,11 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       };
       const badgeClass = categoryColorMap[p.category] || 'bg-surface-container-high text-on-surface-variant';
       
-      const imgUrl = p.image_url ? esc(p.image_url) : '';
+      const imgUrl = p.image_url ? esc(sanitizeUrl(p.image_url)) : '';
       card.innerHTML = `
         <div class="w-16 h-16 rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center shrink-0">
           ${imgUrl
-            ? `<img src="${imgUrl}" alt="${esc(p.name)}" class="w-full h-full object-contain p-1" loading="lazy" onerror="this.parentElement.innerHTML='<span class=\'text-xs font-bold text-on-surface-variant uppercase ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words\'>${esc(p.category) || 'Varios'}</span>'" />`
+            ? `<img src="${imgUrl}" alt="${esc(p.name)}" class="w-full h-full object-contain p-1" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><span class="text-xs font-bold text-on-surface-variant uppercase ${badgeClass} w-full h-full items-center justify-center text-center leading-tight p-1 break-words" style="display:none">${esc(p.category) || 'Varios'}</span>`
             : `<span class="text-xs font-bold text-on-surface-variant uppercase shadow-sm ${badgeClass} w-full h-full flex items-center justify-center text-center leading-tight p-1 break-words">${esc(p.category) || 'Varios'}</span>`
           }
         </div>

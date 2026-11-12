@@ -35,27 +35,56 @@ export const POST: APIRoute = async ({ request }) => {
           const priceId = stripeSubscription.items.data[0]?.price.id || '';
           const { plan, billing } = getPlanFromPriceId(priceId);
 
+          const periodStart = new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString();
+          const periodEnd = new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString();
+
           // Find user by stripe_customer_id
-          const { data: sub } = await supabase
+          const { data: sub, error: subError } = await supabase
             .from('subscriptions')
             .select('consultant_id')
             .eq('stripe_customer_id', customerId)
             .single();
 
+          if (subError && subError.code !== 'PGRST116') {
+            throw new Error('Error leyendo suscripción: ' + subError.message);
+          }
+
           if (sub) {
-            await supabase
+            const { error } = await supabase
               .from('subscriptions')
               .update({
                 stripe_subscription_id: subscriptionId,
                 plan,
                 billing_period: billing,
                 status: 'active',
-                current_period_start: new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000).toISOString(),
-                current_period_end: new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
+                current_period_start: periodStart,
+                current_period_end: periodEnd,
                 trial_ends_at: null,
                 updated_at: new Date().toISOString(),
               })
               .eq('consultant_id', sub.consultant_id);
+            if (error) throw new Error('Error actualizando suscripción: ' + error.message);
+          } else {
+            // Row missing (checkout raced the insert): create it from session metadata.
+            const consultantId = (session.metadata?.supabase_user_id || session.client_reference_id) as string | undefined;
+            if (!consultantId) {
+              throw new Error(`checkout.session.completed sin fila de suscripción ni metadata para customer ${customerId}`);
+            }
+            const { error } = await supabase
+              .from('subscriptions')
+              .upsert({
+                consultant_id: consultantId,
+                stripe_customer_id: customerId,
+                stripe_subscription_id: subscriptionId,
+                plan,
+                billing_period: billing,
+                status: 'active',
+                current_period_start: periodStart,
+                current_period_end: periodEnd,
+                trial_ends_at: null,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'consultant_id' });
+            if (error) throw new Error('Error creando suscripción: ' + error.message);
           }
         }
         break;
@@ -78,7 +107,7 @@ export const POST: APIRoute = async ({ request }) => {
           paused: 'canceled',
         };
 
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({
             plan,
@@ -90,6 +119,7 @@ export const POST: APIRoute = async ({ request }) => {
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_customer_id', customerId);
+        if (error) throw new Error('Error actualizando suscripción: ' + error.message);
 
         break;
       }
@@ -98,7 +128,7 @@ export const POST: APIRoute = async ({ request }) => {
         const subscription = event.data.object;
         const customerId = subscription.customer as string;
 
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({
             status: 'canceled',
@@ -107,6 +137,7 @@ export const POST: APIRoute = async ({ request }) => {
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_customer_id', customerId);
+        if (error) throw new Error('Error cancelando suscripción: ' + error.message);
 
         break;
       }
@@ -115,13 +146,14 @@ export const POST: APIRoute = async ({ request }) => {
         const invoice = event.data.object;
         const customerId = invoice.customer as string;
 
-        await supabase
+        const { error } = await supabase
           .from('subscriptions')
           .update({
             status: 'past_due',
             updated_at: new Date().toISOString(),
           })
           .eq('stripe_customer_id', customerId);
+        if (error) throw new Error('Error marcando past_due: ' + error.message);
 
         break;
       }
@@ -132,9 +164,9 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (err: unknown) {
     console.error('Webhook processing error:', err);
     const message = err instanceof Error ? err.message : 'Unknown error';
-    // Still return 200 to prevent Stripe retries on processing errors
-    return new Response(JSON.stringify({ received: true, error: message }), {
-      status: 200,
+    // 500 so Stripe retries: a payment must never lose its activation silently.
+    return new Response(JSON.stringify({ received: false, error: message }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }

@@ -448,7 +448,7 @@ import PageLoader from '../../components/PageLoader.astro';
 </style>
 
 <script>
-  import { esc } from '../../lib/security';
+  import { esc, sanitizeUrl } from '../../lib/security';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { calculateConsultantPrice } from '../../lib/camino-crecimiento';
@@ -652,16 +652,16 @@ import PageLoader from '../../components/PageLoader.astro';
       tr.innerHTML = `
         <td class="px-3 py-2.5">
           ${p.image_url
-          ? `<img src="${p.image_url}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm" loading="lazy" />`
+          ? `<img src="${esc(sanitizeUrl(p.image_url))}" alt="" class="w-10 h-10 object-contain rounded-lg bg-white shadow-sm" loading="lazy" />`
           : `<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center"><span class="material-symbols-outlined text-sm text-on-surface-variant/30">spa</span></div>`}
         </td>
         <td class="px-4 py-2.5 cursor-pointer action-view group" data-view="${p.id}">
           <p class="font-bold text-on-surface text-xs leading-tight line-clamp-1 group-hover:text-primary transition-colors" title="${esc(p.name)}">${esc(p.name)}</p>
-          ${p.description ? `<p class="text-[10px] text-on-surface-variant/60 truncate max-w-[200px]" title="${p.description}">${p.description}</p>` : ''}
+          ${p.description ? `<p class="text-[10px] text-on-surface-variant/60 truncate max-w-[200px]" title="${esc(p.description)}">${esc(p.description)}</p>` : ''}
         </td>
-        <td class="px-4 py-2.5"><span class="text-xs font-mono text-on-surface-variant bg-surface-container-highest px-1.5 py-0.5 rounded">${p.code}</span></td>
-        <td class="px-4 py-2.5"><span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full">${p.brand || '—'}</span></td>
-        <td class="px-4 py-2.5 text-xs text-on-surface-variant">${p.category || '—'}</td>
+        <td class="px-4 py-2.5"><span class="text-xs font-mono text-on-surface-variant bg-surface-container-highest px-1.5 py-0.5 rounded">${esc(p.code)}</span></td>
+        <td class="px-4 py-2.5"><span class="text-[10px] font-bold px-2 py-0.5 ${brandColor} rounded-full">${esc(p.brand || '—')}</span></td>
+        <td class="px-4 py-2.5 text-xs text-on-surface-variant">${esc(p.category || '—')}</td>
         <td class="px-4 py-2.5 text-center">${variantCell}</td>
         <td class="px-4 py-2.5 text-right font-mono text-xs">$${Number(p.cost || 0).toFixed(0)}</td>
         <td class="px-4 py-2.5 text-right font-mono text-xs font-bold text-primary">$${Number(p.price || 0).toFixed(0)}</td>
@@ -687,12 +687,12 @@ import PageLoader from '../../components/PageLoader.astro';
       
       const badgeHTML = isDeleted 
         ? `<span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full bg-red-500 text-white shadow-sm z-10">Eliminado</span>`
-        : `<span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${brandColor} shadow-sm z-10">${p.brand || 'General'}</span>`;
+        : `<span class="absolute top-3 left-3 text-[10px] font-bold px-2.5 py-1 rounded-full ${brandColor} shadow-sm z-10">${esc(p.brand || 'General')}</span>`;
 
       card.innerHTML = `
         <div class="h-44 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden relative" data-view="${p.id}">
           ${p.image_url
-            ? `<img src="${p.image_url}" class="admin-card-img w-full h-full object-contain p-2 relative z-0" loading="lazy"/>`
+            ? `<img src="${esc(sanitizeUrl(p.image_url))}" class="admin-card-img w-full h-full object-contain p-2 relative z-0" loading="lazy"/>`
             : `<span class="material-symbols-outlined text-primary/20 text-6xl relative z-0">spa</span>`}
           ${badgeHTML}
           <div class="absolute top-3 right-3 flex flex-col gap-1 items-end z-10">
