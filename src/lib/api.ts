@@ -420,6 +420,7 @@ export const customers = {
       .from('orders')
       .select('total_amount, status, created_at, payment_method, installments, order_payments(id, amount, kind, paid_at)')
       .eq('customer_id', id)
+      .neq('payment_method', 'adjustment')
       .order('created_at', { ascending: false });
     if (error) throw error;
     const active = data.filter(o => o.status !== 'cancelled');
@@ -427,13 +428,14 @@ export const customers = {
     const last_order = active.length > 0 ? active[0].created_at : null;
     const total_debt = active.reduce((acc, o) => acc + summarizeOrder(o as any).balance, 0);
 
-    return { total_orders: data.length, total_spent, total_debt, last_order };
+    return { total_orders: active.length, total_spent, total_debt, last_order };
   },
   getOrders: async (customerId: string) => {
     const { data, error } = await supabase
       .from('orders')
-      .select('id, total_amount, status, created_at, payment_method, installments, order_payments(id, amount, kind, paid_at)')
+      .select('id, total_amount, status, created_at, payment_method, installments, order_payments(id, amount, kind, paid_at), order_items(product_id, quantity, products(name))')
       .eq('customer_id', customerId)
+      .neq('payment_method', 'adjustment')
       .order('created_at', { ascending: false })
       .limit(20);
     if (error) throw error;
@@ -564,7 +566,11 @@ export const inventory = {
     );
     if (params?.search) {
       const s = params.search.toLowerCase();
-      items = items.filter(i => i.products?.name?.toLowerCase().includes(s));
+      items = items.filter(i =>
+        i.products?.name?.toLowerCase().includes(s) ||
+        i.products?.code?.toLowerCase().includes(s) ||
+        i.products?.brand?.toLowerCase().includes(s)
+      );
     }
     if (params?.category) {
       items = items.filter(i => i.products?.category === params.category);

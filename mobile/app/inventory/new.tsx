@@ -7,7 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../../src/lib/api';
-import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
+import { calculateConsultantPrice, getProfitPercentage, getPriceFactor, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { supabase } from '../../lib/supabase';
 import { SITE_URL } from '../../lib/config';
@@ -49,12 +49,42 @@ export default function NewProductScreen() {
   const [brand, setBrand] = useState('Natura');
   const [stock, setStock] = useState('1');
   const [imageUrl, setImageUrl] = useState('');
-  const [description] = useState('');
+  const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [cost, setCost] = useState('');
   const [points, setPoints] = useState('0');
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
   const [costManuallyEdited, setCostManuallyEdited] = useState(false);
+
+  // Detect consultant level from profile (same as web nuevo.astro), fallback 'Bronce'
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session || cancelled) return;
+        const { data: profile } = await supabase
+          .from('consultant_profiles')
+          .select('latest_growth_data')
+          .eq('id', session.user.id)
+          .single();
+        const desc: string | undefined = profile?.latest_growth_data?.level?.description;
+        if (desc) {
+          const levelMap: Record<string, ConsultantLevel> = {
+            'Bronce': 'Bronce', 'Plata': 'Plata', 'Oro': 'Oro',
+            'Zafiro': 'Zafiro', 'Diamante': 'Diamante',
+            'BRONCE': 'Bronce', 'PLATA': 'Plata', 'ORO': 'Oro',
+            'ZAFIRO': 'Zafiro', 'DIAMANTE': 'Diamante',
+          };
+          const detected = Object.entries(levelMap).find(([key]) => desc.includes(key));
+          if (detected && !cancelled) setLevel(detected[1]);
+        }
+      } catch {
+        // fallback: keep 'Bronce'
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Manual product image (upload / catalog)
   const [imageUploading, setImageUploading] = useState(false);
@@ -208,12 +238,15 @@ export default function NewProductScreen() {
         setCategory(matched || data.category);
       }
       if (data.code) setCode(data.code);
-      if (data.price) {
-        const p = String(data.price);
-        setPrice(p);
-        handlePriceChange(p);
+      if (data.description) setDescription(data.description);
+      // Contract: gemini-analyze returns estimated_price / estimated_cost (not price/points)
+      if (data.estimated_price && data.estimated_price > 0) {
+        handlePriceChange(String(Math.round(data.estimated_price)));
       }
-      if (data.points) setPoints(String(data.points));
+      if (data.estimated_cost && data.estimated_cost > 0) {
+        setCost(String(Math.round(data.estimated_cost)));
+        setCostManuallyEdited(true);
+      }
 
       setAiConfidence(data.confidence || 'medium');
       setAiStatus('¡Datos extraídos con IA! ✨');
@@ -280,16 +313,19 @@ export default function NewProductScreen() {
   const parsedPrice = parseFloat(price) || 0;
   const parsedCost = parseFloat(cost) || 0;
   const profit = parsedPrice - parsedCost;
+  // Level profit semantics (same as web nuevo.astro updateProfitPanel)
+  const levelProfitPct = getProfitPercentage(level, brand, category);
+  const netPercentage = (100 - getPriceFactor(level, brand, category) * 100).toFixed(2);
 
   const handlePriceChange = (text: string) => {
     setPrice(text);
-    if (!costManuallyEdited) {
-      const numPrice = parseFloat(text) || 0;
-      if (numPrice > 0) {
-        setCost(calculateConsultantPrice(numPrice, level, brand, category).toFixed(2));
-      } else {
-        setCost('');
-      }
+    // Reset so auto-calc kicks in (same as web nuevo.astro)
+    setCostManuallyEdited(false);
+    const numPrice = parseFloat(text) || 0;
+    if (numPrice > 0) {
+      setCost(calculateConsultantPrice(numPrice, level, brand, category).toFixed(2));
+    } else {
+      setCost('');
     }
   };
 
@@ -311,42 +347,31 @@ export default function NewProductScreen() {
   // ═══════════ SAVE ═══════════
 
   const handleSave = async () => {
-    if (!code || !name || parsedPrice <= 0 || parsedCost <= 0 || parseInt(stock) < 1) {
-      Alert.alert('Datos incompletos', 'Por favor llena Código, Nombre, Precio, Costo y Stock.');
+    const qty = parseInt(stock) || 0;
+    if (!code || !name || qty < 1 || parsedCost <= 0 || parsedPrice <= 0) {
+      Alert.alert('Datos incompletos', 'Por favor completa todos los campos requeridos con valores válidos.');
       return;
     }
 
     setLoading(true);
     try {
-      const existingProduct = await api.products.list({ search: code });
-      let productId;
+      // create() handles dedupe/restore + inventory stock internally (same as web nuevo.astro)
+      const productPayload: any = {
+        code,
+        name,
+        category: category || null,
+        brand: brand || null,
+        description: description || null,
+        price: parsedPrice,
+        cost: parsedCost,
+        points: parseInt(points) || 0,
+        stock: qty,
+      };
+      if (imageUrl) productPayload.image_url = imageUrl;
 
-      const exact = existingProduct?.find((p: any) => p.code?.toLowerCase() === code.trim().toLowerCase());
-      if (exact) {
-        productId = exact.id;
-      } else {
-        const productPayload: any = {
-          code,
-          name,
-          category: category || null,
-          brand: brand || null,
-          description: description || null,
-          price: parsedPrice,
-          cost: parsedCost,
-          points: parseInt(points) || 0,
-        };
-        if (imageUrl) productPayload.image_url = imageUrl;
-        
-        const newProduct = await api.products.create(productPayload);
-        productId = newProduct.id;
-      }
+      await api.products.create(productPayload, level);
 
-      await api.inventory.add([{
-        product_id: productId,
-        quantity: parseInt(stock)
-      }]);
-      
-      Alert.alert('¡Éxito!', 'El producto ha sido creado.', [
+      Alert.alert('¡Éxito!', '¡Producto creado correctamente!', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (e: any) {
@@ -629,20 +654,19 @@ export default function NewProductScreen() {
           </View>
         </View>
 
-        {parsedPrice > 0 && parsedCost > 0 && (
-          <View className={`p-4 rounded-2xl mb-6 flex-row justify-between items-center border ${profit > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-            <View className="flex-row items-center gap-3">
-              <MaterialIcons name={profit > 0 ? "trending-up" : "trending-down"} size={24} color={profit > 0 ? "#15803d" : "#b91c1c"} />
-              <View>
-                <Text className={`text-xs font-bold ${profit > 0 ? 'text-green-800' : 'text-red-800'}`}>Ganancia Estimada</Text>
-                <Text className={`text-xl font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>{formatMoney(Number(Math.abs(profit)))}</Text>
-              </View>
-            </View>
-            <View className="items-end">
-              <Text className={`text-sm font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                {((profit / parsedPrice) * 100).toFixed(0)}%
+        {parsedPrice > 0 && (
+          <View className={`p-4 rounded-2xl mb-6 flex-row items-center gap-3 border ${profit > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            <MaterialIcons name={profit > 0 ? "trending-up" : "trending-down"} size={24} color={profit > 0 ? "#15803d" : "#b91c1c"} />
+            <View className="flex-1">
+              <Text className={`text-xs font-bold ${profit > 0 ? 'text-green-800' : 'text-red-800'}`}>
+                {profit > 0 ? `${levelProfitPct}% ganancia del nivel` : 'Sin ganancia'}
               </Text>
-              <Text className={`text-[10px] ${profit > 0 ? 'text-green-600' : 'text-red-600'}`}>Margen Bruto</Text>
+              <Text className={`text-xl font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                {profit > 0 ? formatMoney(profit) : `-${formatMoney(Math.abs(profit))}`}
+              </Text>
+              <Text className={`text-[10px] ${profit > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {profit > 0 ? `A ${netPercentage}% neto sin IVA` : 'El costo supera el precio de venta'}
+              </Text>
             </View>
           </View>
         )}

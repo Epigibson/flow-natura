@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import { SITE_URL } from '../lib/config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
@@ -15,6 +16,7 @@ export default function RegisterScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleRegister() {
@@ -34,6 +36,10 @@ export default function RegisterScreen() {
       Alert.alert('Atención', 'Las contraseñas no coinciden.');
       return;
     }
+    if (!termsAccepted) {
+      Alert.alert('Atención', 'Debes aceptar los Términos de Servicio y la Política de Privacidad.');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -41,31 +47,29 @@ export default function RegisterScreen() {
         email: email.trim(),
         password,
         options: {
-          data: { full_name: fullName.trim() }
+          data: { full_name: fullName.trim() },
+          emailRedirectTo: `${SITE_URL}/login?verified=true`,
         }
       });
 
       if (error) {
-        Alert.alert('Error', error.message);
+        const messages: Record<string, string> = {
+          'User already registered': 'Este correo ya tiene una cuenta. Intenta iniciar sesión.',
+          'Password should be at least 6 characters': 'La contraseña debe tener al menos 6 caracteres.',
+        };
+        Alert.alert('Error', messages[error.message] || error.message);
         return;
       }
 
       if (data.user && !data.session) {
         // Email confirmation required
         Alert.alert(
-          '¡Cuenta Creada! ✉️',
-          'Te hemos enviado un correo de confirmación. Revisa tu bandeja de entrada para activar tu cuenta.',
+          'Éxito',
+          '¡Cuenta creada! Revisa tu correo electrónico para confirmar tu cuenta. 📬',
           [{ text: 'Ir a Login', onPress: () => router.replace('/login') }]
         );
       } else {
-        // Auto-logged in
-        // Create consultant profile
-        if (data.user) {
-          await supabase.from('consultant_profiles').upsert({
-            id: data.user.id,
-            full_name: fullName.trim(),
-          });
-        }
+        // Auto-logged in (consultant_profiles row comes from the handle_new_user trigger)
         router.replace('/(tabs)');
       }
     } catch (err: any) {
@@ -107,7 +111,7 @@ export default function RegisterScreen() {
                 <MaterialIcons name="person" size={20} color={t.onSurfaceVariant} style={{ opacity: 0.6 }} />
                 <TextInput
                   className="flex-1 text-on-surface text-base font-medium ml-3 h-full"
-                  placeholder="María García"
+                  placeholder="María López"
                   placeholderTextColor={t.muted}
                   autoCapitalize="words"
                   value={fullName}
@@ -124,7 +128,7 @@ export default function RegisterScreen() {
                 <MaterialIcons name="email" size={20} color={t.onSurfaceVariant} style={{ opacity: 0.6 }} />
                 <TextInput
                   className="flex-1 text-on-surface text-base font-medium ml-3 h-full"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="tu@correo.com"
                   placeholderTextColor={t.muted}
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -169,6 +173,23 @@ export default function RegisterScreen() {
               </View>
             </View>
 
+            {/* Terms */}
+            <TouchableOpacity
+              className="flex-row items-start gap-2 pt-1"
+              onPress={() => setTermsAccepted(!termsAccepted)}
+              disabled={loading}
+            >
+              <MaterialIcons
+                name={termsAccepted ? 'check-box' : 'check-box-outline-blank'}
+                size={20}
+                color={termsAccepted ? t.primary : t.onSurfaceVariant}
+                style={{ marginTop: 1 }}
+              />
+              <Text className="flex-1 text-xs text-on-surface-variant">
+                Acepto los <Text className="text-primary font-bold">Términos de Servicio</Text> y la <Text className="text-primary font-bold">Política de Privacidad</Text>
+              </Text>
+            </TouchableOpacity>
+
             {/* Register Button */}
             <TouchableOpacity
               className={`w-full bg-primary py-4 rounded-full items-center mt-4 ${loading ? 'opacity-80' : ''}`}
@@ -179,7 +200,7 @@ export default function RegisterScreen() {
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-white font-bold text-lg tracking-wide">Crear Cuenta</Text>
+                <Text className="text-white font-bold text-lg tracking-wide">Crear Cuenta Gratis</Text>
               )}
             </TouchableOpacity>
 

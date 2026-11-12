@@ -116,7 +116,20 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         return;
       }
 
-      fetchedProducts = data;
+      fetchedProducts = data.map((p: any) => {
+        const code = p?.code != null ? String(p.code) : '';
+        const name = p?.name || '';
+        const invalid = !code || !name;
+        return {
+          ...p,
+          code,
+          name,
+          // The scraper emits "image"; the documented format uses "image_url" — accept both
+          image_url: p?.image_url || p?.image || null,
+          invalid,
+          error: invalid ? 'Falta código o nombre' : null,
+        };
+      });
       showStatus(result, `✅ ${data.length} productos cargados de ${file.name}`, false);
       renderPreview();
       enableStep('step-import');
@@ -145,10 +158,10 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     tbody.innerHTML = '';
     fetchedProducts.forEach(p => {
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-surface-container-low/50';
+      tr.className = 'hover:bg-surface-container-low/50' + (p.invalid ? ' bg-error/5' : '');
       tr.innerHTML = `
         <td class="px-4 py-2 font-mono text-xs text-primary font-bold">${esc(p.code || '—')}</td>
-        <td class="px-4 py-2">${esc(p.name || 'Sin nombre')}</td>
+        <td class="px-4 py-2">${esc(p.name || 'Sin nombre')}${p.invalid ? ` <span class="text-error text-xs font-bold">(${esc(p.error)})</span>` : ''}</td>
         <td class="px-4 py-2 text-xs">${esc(p.category || '—')}</td>
         <td class="px-4 py-2 text-right font-mono">$${Number(p.cost || 0).toFixed(2)}</td>
         <td class="px-4 py-2 text-right font-mono font-bold">$${Number(p.price || 0).toFixed(2)}</td>
@@ -189,14 +202,14 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
       text.textContent = `Lote ${batch + 1}/${totalBatches} (${start + 1}-${start + chunk.length} de ${fetchedProducts.length})`;
 
       const productRows = chunk.map((p: any) => ({
-        code: String(p.code),
+        code: String(p.code ?? ''),
         name: p.name || '',
         brand: p.brand || 'Natura',
         category: p.category || null,
         price: p.price || 0,
         cost: p.cost || 0,
         points: p.points || 0,
-        image_url: p.image || null,
+        image_url: p.image_url || p.image || null,
       }));
 
       try {

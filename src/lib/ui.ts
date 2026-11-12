@@ -32,6 +32,7 @@ export async function confirmAction(title: string, options: ConfirmOptions = {})
 }
 
 import type { StatusChip, StatusTone } from './orders';
+import { parseAmount, MONEY_EPSILON } from './orders';
 
 const CHIP_TONES: Record<StatusTone, string> = {
   success: 'bg-secondary-container/60 text-secondary',
@@ -95,10 +96,10 @@ export function promptPayment(input: PaymentPromptInput): Promise<boolean> {
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const value = Number(amount.value);
+      const value = parseAmount(amount.value);
       error.classList.add('hidden');
       if (!Number.isFinite(value) || value <= 0) { error.textContent = 'Ingresa un monto mayor a 0.'; error.classList.remove('hidden'); return; }
-      if (value > input.balance + 0.005) { error.textContent = `El monto no puede ser mayor al saldo (${fmt(input.balance)}).`; error.classList.remove('hidden'); return; }
+      if (value > input.balance + MONEY_EPSILON) { error.textContent = `El monto no puede ser mayor al saldo (${fmt(input.balance)}).`; error.classList.remove('hidden'); return; }
       save.disabled = true;
       save.textContent = 'Guardando...';
       try {

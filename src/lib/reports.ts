@@ -164,3 +164,18 @@ export async function loadReport(period: ReportPeriod): Promise<ReportData> {
     daily, categories, methods, reorder, clientPredictions,
   };
 }
+
+/**
+ * Collection rate % (0-100) of a raw orders array: paid / spent, excluding
+ * cancelled orders and stock adjustments. 0 when nothing was spent.
+ */
+export function collectionRate(orders: any[]): number {
+  let spent = 0;
+  let paid = 0;
+  for (const o of orders || []) {
+    if (!o || o.status === 'cancelled' || o.payment_method === 'adjustment') continue;
+    spent += Number(o.total_amount) || 0;
+    paid += summarizeOrder(o).paid;
+  }
+  return spent > 0 ? Math.round((paid / spent) * 100) : 0;
+}

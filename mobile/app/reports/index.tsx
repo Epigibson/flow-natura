@@ -157,7 +157,7 @@ export default function ReportsScreen() {
             </Card>
 
             {/* Payment methods */}
-            <Title>Contado vs. abonos</Title>
+            <Title>Métodos de Pago</Title>
             <Card>
               {data.methods.map((m, i) => (
                 <View key={m.name} className={i > 0 ? 'mt-4' : ''}>
@@ -171,7 +171,7 @@ export default function ReportsScreen() {
             </Card>
 
             {/* Reorder */}
-            <Title>Reabastecer</Title>
+            <Title>Sugerencias de Reabasto</Title>
             <Card>
               {data.reorder.length === 0 ? (
                 <View className="items-center py-2">
@@ -193,7 +193,7 @@ export default function ReportsScreen() {
             </Card>
 
             {/* Client predictions */}
-            <Title>Clientes por volver a comprar</Title>
+            <Title>Predicción de Recompra</Title>
             <Card>
               {data.clientPredictions.length === 0 ? (
                 <Text className="text-on-surface-variant text-sm text-center py-2">Se necesitan más datos históricos de ventas.</Text>
@@ -201,7 +201,7 @@ export default function ReportsScreen() {
                 <TouchableOpacity
                   key={c.customerId}
                   className={`flex-row items-center ${i > 0 ? 'mt-3 pt-3 border-t border-outline-variant/20' : ''}`}
-                  onPress={() => router.push('/customers' as any)}
+                  onPress={() => router.push({ pathname: '/customers', params: { customerId: c.customerId } } as any)}
                 >
                   <View className="flex-1 pr-3">
                     <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{c.name}</Text>

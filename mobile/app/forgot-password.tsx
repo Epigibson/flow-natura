@@ -56,7 +56,7 @@ export default function ForgotPasswordScreen() {
             <Text className="text-on-surface-variant text-center text-sm mb-8 px-4 leading-6">
               Te enviamos un enlace de recuperación a{'\n'}
               <Text className="font-bold text-on-surface">{email}</Text>
-              {'\n\n'}Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña.
+              {'\n\n'}Revisa tu bandeja de entrada (y la carpeta de spam) para encontrar el enlace de recuperación.
             </Text>
 
             <TouchableOpacity
@@ -118,7 +118,7 @@ export default function ForgotPasswordScreen() {
                 <MaterialIcons name="email" size={20} color={t.onSurfaceVariant} style={{ opacity: 0.6 }} />
                 <TextInput
                   className="flex-1 text-on-surface text-base font-medium ml-3 h-full"
-                  placeholder="ejemplo@correo.com"
+                  placeholder="tu@correo.com"
                   placeholderTextColor={t.muted}
                   autoCapitalize="none"
                   keyboardType="email-address"
@@ -138,7 +138,7 @@ export default function ForgotPasswordScreen() {
               {loading ? (
                 <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text className="text-white font-bold text-lg tracking-wide">Enviar Enlace</Text>
+                <Text className="text-white font-bold text-lg tracking-wide">Enviar Enlace de Recuperación</Text>
               )}
             </TouchableOpacity>
 

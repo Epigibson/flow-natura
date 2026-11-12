@@ -208,23 +208,30 @@ export default function SettingsScreen() {
       Alert.alert('Inicia sesión', 'Necesitas sesión activa para compartir tu catálogo.');
       return;
     }
-    const name = "[Nombre]";
+    const name = "{nombre}";
     const catalog = buildCatalogUrl(SITE_URL, id);
     let text = "";
 
     switch (templateId) {
-      case 'cobro': text = `Hola ${name} 👋 Te recuerdo que tu pago vence pronto. ¿Puedo ayudarte con algo? 💚`; break;
+      case 'cobro': text = 'Hola {nombre} 👋 Te recuerdo que tu pago de ${monto} vence el {fecha}. ¿Puedo ayudarte con algo? 💚'; break;
       case 'gracias': text = `¡Hola ${name}! 🌿 Gracias por tu compra. Espero que disfrutes tus productos Natura. ¡Cualquier duda estoy para ti! 💚`; break;
       case 'promo': text = `¡Hola ${name}! 🎉 Tengo una promo especial para ti este ciclo. ¿Te mando mi catálogo actualizado? 👉 ${catalog}`; break;
       case 'recompra': text = `¡Hola ${name}! 💚 Ya pasó un tiempo desde tu última compra. ¿Te gustaría reabastecer algún producto? Te dejo mi catálogo: ${catalog}`; break;
       case 'entrega': text = `¡Hola ${name}! 📦 Tu pedido está listo para entregarse. ¿Cuándo te queda bien pasar por él o que te lo lleve? 🚗`; break;
-      case 'cumple': text = `¡Feliz cumpleaños ${name}! 🎂🎉 Como regalo especial, tienes un descuento en tu próxima compra. ¡Disfruta tu día! 💚`; break;
+      case 'cumple': text = `¡Feliz cumpleaños ${name}! 🎂🎉 Como regalo especial, tienes un 10% de descuento en tu próxima compra. ¡Disfruta tu día! 💚`; break;
     }
 
     const url = `whatsapp://send?text=${encodeURIComponent(text)}`;
     Linking.openURL(url).catch(() => {
       Alert.alert('Error', 'No se pudo abrir WhatsApp. ¿Lo tienes instalado?');
     });
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Cerrar sesión', '¿Estás seguro de que quieres cerrar sesión?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Cerrar sesión', style: 'destructive', onPress: () => { supabase.auth.signOut(); } },
+    ]);
   };
 
   const [checkingUpdate, setCheckingUpdate] = useState(false);
@@ -581,6 +588,21 @@ export default function SettingsScreen() {
               ) : (
                 <Text className="text-on-surface text-xs font-bold">Buscar Actualizaciones</Text>
               )}
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Zona de Peligro */}
+        <View className="mb-6">
+          <Text className="text-[10px] uppercase font-bold tracking-widest text-error mb-2 px-2">Zona de Peligro</Text>
+          <View className="rounded-3xl overflow-hidden p-5 border" style={{ backgroundColor: t.error + '1A', borderColor: t.error + '33' }}>
+            <TouchableOpacity
+              onPress={handleLogout}
+              className="py-3 rounded-full flex-row items-center justify-center gap-2"
+              style={{ backgroundColor: t.error }}
+            >
+              <MaterialIcons name="logout" size={18} color="#fff" />
+              <Text className="font-bold text-white">Cerrar Sesión</Text>
             </TouchableOpacity>
           </View>
         </View>

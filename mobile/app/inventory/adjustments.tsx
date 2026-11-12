@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
+import { ADJUSTMENT_REASONS } from '../../../src/lib/orders';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
 export default function AdjustmentsScreen() {
@@ -18,9 +19,24 @@ export default function AdjustmentsScreen() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [adjType, setAdjType] = useState<'increase'|'decrease'|'correction'>('increase');
   const [adjQty, setAdjQty] = useState('1');
-  const [adjReason, setAdjReason] = useState('other');
+  const [adjReason, setAdjReason] = useState('restock');
   const [adjNotes, setAdjNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Open modal prefilling qty like web ajustes.astro: correction → current stock, else '1'
+  const openAdjustment = (item: any) => {
+    setSelectedProduct(item);
+    setAdjQty(adjType === 'correction' ? String(item.quantity) : '1');
+    setAdjReason('restock');
+    setAdjNotes('');
+  };
+
+  const handleTypeChange = (type: 'increase'|'decrease'|'correction') => {
+    setAdjType(type);
+    if (selectedProduct) {
+      setAdjQty(type === 'correction' ? String(selectedProduct.quantity) : '1');
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -79,6 +95,7 @@ export default function AdjustmentsScreen() {
       Alert.alert('Éxito', 'Ajuste registrado correctamente');
       setSelectedProduct(null);
       setAdjQty('1');
+      setAdjReason('restock');
       setAdjNotes('');
       loadData();
     } catch (error: any) {
@@ -89,12 +106,8 @@ export default function AdjustmentsScreen() {
   };
 
   const getReasonLabel = (r: string) => {
-    const labels: Record<string, string> = {
-      restock: 'Reposición', return: 'Devolución', damaged: 'Dañado',
-      demo: 'Demostración', personal: 'Uso personal', count: 'Conteo cíclico',
-      expired: 'Vencido', other: 'Otro'
-    };
-    return labels[r] || r;
+    const hit = ADJUSTMENT_REASONS.find(x => x.value === r);
+    return hit?.label || r;
   };
 
   return (
@@ -136,7 +149,7 @@ export default function AdjustmentsScreen() {
               {filteredInventory.slice(0, 10).map((item, idx) => (
                 <TouchableOpacity 
                   key={idx} 
-                  onPress={() => setSelectedProduct(item)}
+                  onPress={() => openAdjustment(item)}
                   className={`flex-row items-center p-4 ${idx > 0 ? 'border-t border-outline-variant' : ''}`}
                 >
                   {item.image_url ? (
@@ -222,21 +235,21 @@ export default function AdjustmentsScreen() {
                 <Text className="font-bold text-sm text-on-surface-variant mb-2">Tipo de Ajuste</Text>
                 <View className="flex-row gap-2 mb-6">
                   <TouchableOpacity 
-                    onPress={() => setAdjType('increase')}
+                    onPress={() => handleTypeChange('increase')}
                     className="flex-1 py-3 rounded-xl border"
                     style={{ backgroundColor: adjType === 'increase' ? t.secondary + '1A' : t.surfaceContainer, borderColor: adjType === 'increase' ? t.secondary : 'transparent' }}
                   >
                     <Text className="text-center font-bold text-on-surface-variant" style={{ color: adjType === 'increase' ? t.secondary : t.onSurfaceVariant }}>Entrada</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    onPress={() => setAdjType('decrease')}
+                    onPress={() => handleTypeChange('decrease')}
                     className="flex-1 py-3 rounded-xl border"
                     style={{ backgroundColor: adjType === 'decrease' ? t.error + '1A' : t.surfaceContainer, borderColor: adjType === 'decrease' ? t.error : 'transparent' }}
                   >
                     <Text className="text-center font-bold text-on-surface-variant" style={{ color: adjType === 'decrease' ? t.error : t.onSurfaceVariant }}>Salida</Text>
                   </TouchableOpacity>
                   <TouchableOpacity 
-                    onPress={() => setAdjType('correction')}
+                    onPress={() => handleTypeChange('correction')}
                     className="flex-1 py-3 rounded-xl border"
                     style={{ backgroundColor: adjType === 'correction' ? t.primary + '1A' : t.surfaceContainer, borderColor: adjType === 'correction' ? t.primary : 'transparent' }}
                   >
@@ -256,17 +269,17 @@ export default function AdjustmentsScreen() {
                   onChangeText={setAdjQty}
                 />
 
-                {/* Reason Selection (simplified for mobile) */}
+                {/* Reason Selection (9 motivos compartidos, labels web) */}
                 <Text className="font-bold text-sm text-on-surface-variant mb-2">Motivo</Text>
                 <View className="flex-row flex-wrap gap-2 mb-6">
-                  {['restock', 'return', 'damaged', 'personal', 'count', 'other'].map((r) => (
+                  {ADJUSTMENT_REASONS.map((r) => (
                     <TouchableOpacity 
-                      key={r}
-                      onPress={() => setAdjReason(r)}
+                      key={r.value}
+                      onPress={() => setAdjReason(r.value)}
                       className="px-4 py-2 rounded-full border"
-                      style={{ backgroundColor: adjReason === r ? t.primary + '1A' : t.surfaceContainer, borderColor: adjReason === r ? t.primary : 'transparent' }}
+                      style={{ backgroundColor: adjReason === r.value ? t.primary + '1A' : t.surfaceContainer, borderColor: adjReason === r.value ? t.primary : 'transparent' }}
                     >
-                      <Text className="text-xs font-bold" style={{ color: adjReason === r ? t.primary : t.onSurfaceVariant }}>{getReasonLabel(r)}</Text>
+                      <Text className="text-xs font-bold" style={{ color: adjReason === r.value ? t.primary : t.onSurfaceVariant }}>{r.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>

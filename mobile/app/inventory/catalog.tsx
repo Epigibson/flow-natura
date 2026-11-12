@@ -136,10 +136,16 @@ export default function CatalogScreen() {
     });
   }, [products, search, brandFilter, categoryFilter, showDeleted]);
 
-  // ── KPIs ──
+  // ── KPIs (same set/formula as web productos.astro) ──
   const activeProducts = useMemo(() => products.filter(p => !p.deleted_at), [products]);
   const deletedCount = products.length - activeProducts.length;
   const inStockCount = activeProducts.filter(p => (myStock[p.id] || 0) > 0).length;
+  const avgMargin = useMemo(() => {
+    const withMargin = activeProducts.filter(p => Number(p.price) > 0 && Number(p.cost) > 0);
+    if (withMargin.length === 0) return null;
+    const avg = withMargin.reduce((sum, p) => sum + ((Number(p.price) - Number(p.cost)) / Number(p.price) * 100), 0) / withMargin.length;
+    return avg.toFixed(0) + '%';
+  }, [activeProducts]);
 
   // ── Detail modal ──
   const openDetail = async (product: any) => {
@@ -355,9 +361,9 @@ export default function CatalogScreen() {
 
   const renderHeader = () => (
     <View className="mb-2">
-      {/* KPIs */}
-      <View className="flex-row gap-3 mb-6">
-        <View className="flex-1 bg-surface-container-lowest p-4 rounded-2xl flex-row items-center gap-3 shadow-sm border border-outline-variant">
+      {/* KPIs (same set as web productos.astro: Productos, Marcas, Categorías, Margen Prom., Eliminados) */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 overflow-visible">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-40 flex-row items-center gap-3 shadow-sm border border-outline-variant">
           <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.primary + '1A' }}>
             <MaterialIcons name="inventory-2" size={20} color={t.primary} />
           </View>
@@ -366,7 +372,34 @@ export default function CatalogScreen() {
             <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Productos</Text>
           </View>
         </View>
-        <View className="flex-1 bg-surface-container-lowest p-4 rounded-2xl flex-row items-center gap-3 shadow-sm border border-outline-variant">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.secondary + '1A' }}>
+            <MaterialIcons name="local-offer" size={20} color={t.secondary} />
+          </View>
+          <View>
+            <Text className="text-xl font-serif font-bold text-on-surface">{brands.length}</Text>
+            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Marcas</Text>
+          </View>
+        </View>
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.primaryContainer + '1A' }}>
+            <MaterialIcons name="category" size={20} color={t.onSurfaceVariant} />
+          </View>
+          <View>
+            <Text className="text-xl font-serif font-bold text-on-surface">{categories.length}</Text>
+            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Categorías</Text>
+          </View>
+        </View>
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#22c55e1A' }}>
+            <MaterialIcons name="attach-money" size={20} color="#16a34a" />
+          </View>
+          <View>
+            <Text className="text-xl font-serif font-bold text-on-surface">{avgMargin ?? '—'}</Text>
+            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Margen Prom.</Text>
+          </View>
+        </View>
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
           <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.secondary + '1A' }}>
             <MaterialIcons name="check-circle" size={20} color={t.secondary} />
           </View>
@@ -375,7 +408,7 @@ export default function CatalogScreen() {
             <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Con stock</Text>
           </View>
         </View>
-        <View className="flex-1 bg-surface-container-lowest p-4 rounded-2xl flex-row items-center gap-3 shadow-sm border border-outline-variant">
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
           <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.error + '1A' }}>
             <MaterialIcons name="delete-sweep" size={20} color={t.error} />
           </View>
@@ -384,7 +417,7 @@ export default function CatalogScreen() {
             <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Eliminados</Text>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Search */}
       <View className="bg-surface-container-highest rounded-xl flex-row items-center px-4 py-3 mb-3">

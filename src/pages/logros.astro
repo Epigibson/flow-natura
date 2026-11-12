@@ -30,7 +30,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <div class="w-10 h-10 mx-auto mb-2 bg-surface-container rounded-xl flex items-center justify-center">
         <span class="material-symbols-outlined text-on-surface-variant text-lg">grid_view</span>
       </div>
-      <p id="badge-total" class="text-3xl font-display font-bold text-on-surface">18</p>
+      <p id="badge-total" class="text-3xl font-display font-bold text-on-surface">—</p>
       <p class="text-xs text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Total Badges</p>
     </div>
     <div class="bg-gradient-to-br from-primary/5 to-primary-container/15 rounded-2xl p-5 text-center shadow-sm border border-primary/5">
@@ -245,6 +245,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
   // Update stats
   (document.getElementById('badge-unlocked') as HTMLElement).textContent = String(unlocked);
+  (document.getElementById('badge-total') as HTMLElement).textContent = String(badges.length);
   (document.getElementById('stat-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   (document.getElementById('stat-clients') as HTMLElement).textContent = String(totalCustomers);
 

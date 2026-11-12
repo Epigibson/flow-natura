@@ -89,6 +89,7 @@ import PageLoader from '../../components/PageLoader.astro';
   import { supabase } from '../../lib/supabase';
   import { esc } from '../../lib/security';
   import { summarizeOrder } from '../../lib/orders';
+  import { collectionRate } from '../../lib/reports';
   import { toast } from '../../lib/ui';
 
   const kpiTotalClients = document.getElementById('kpi-total-clients') as HTMLElement;
@@ -161,13 +162,11 @@ import PageLoader from '../../components/PageLoader.astro';
     // KPIs
     const withDebt = allClientData.filter(c => c.totalDebt > 0);
     const totalDebtSum = allClientData.reduce((s, c) => s + c.totalDebt, 0);
-    const totalPaidSum = allClientData.reduce((s, c) => s + c.totalPaid, 0);
-    const totalSpentSum = allClientData.reduce((s, c) => s + c.totalSpent, 0);
-    const collectionRate = totalSpentSum > 0 ? Math.round((totalPaidSum / totalSpentSum) * 100) : 100;
+    const rate = collectionRate(orders || []);
 
     kpiWithDebt.textContent = String(withDebt.length);
     kpiTotalDebt.textContent = '$' + totalDebtSum.toLocaleString('es-MX', { minimumFractionDigits: 2 });
-    kpiCollectionRate.textContent = collectionRate + '%';
+    kpiCollectionRate.textContent = rate + '%';
 
     // Render table
     clientsLoading.classList.add('hidden');

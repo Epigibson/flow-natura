@@ -18,6 +18,7 @@ export default function ScanSearchScreen() {
   const [foundProduct, setFoundProduct] = useState<any>(null);
   const [isInInventory, setIsInInventory] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [qty, setQty] = useState(1);
 
   // Link the scanned EAN to an existing catalog product (same as /inventario/escanear on the web)
   const [linkOpen, setLinkOpen] = useState(false);
@@ -102,9 +103,10 @@ export default function ScanSearchScreen() {
     if (!foundProduct) return;
     setAdding(true);
     try {
-      await api.inventory.add([{ product_id: foundProduct.id, quantity: 1 }]);
+      // Accumulates units even if the product is already in my inventory (same as web escanear.astro)
+      await api.inventory.add([{ product_id: foundProduct.id, quantity: qty }]);
       setIsInInventory(true);
-      Alert.alert('✅ Agregado', `${foundProduct.name} fue agregado a tu inventario.`);
+      Alert.alert('✅ Agregado', `+${qty} ${foundProduct.name} al inventario.`);
     } catch (err: any) {
       Alert.alert('Error', err.message || 'No se pudo agregar.');
     } finally {
@@ -117,6 +119,7 @@ export default function ScanSearchScreen() {
     setScannedCode('');
     setFoundProduct(null);
     setIsInInventory(false);
+    setQty(1);
   }
 
   // Permission request
@@ -236,6 +239,9 @@ export default function ScanSearchScreen() {
                           <Text className="text-[10px] font-bold text-on-surface-variant">SKU: {foundProduct.code}</Text>
                         </View>
                       )}
+                      <View className="px-3 py-1 rounded-full bg-surface-container-highest">
+                        <Text className="text-[10px] font-bold text-on-surface-variant">Costo: {formatMoney(Number(foundProduct.cost || 0))}</Text>
+                      </View>
                       {foundProduct.points > 0 && (
                         <View className="px-3 py-1 rounded-full bg-primary/10">
                           <Text className="text-[10px] font-bold text-primary">{foundProduct.points} pts</Text>
@@ -249,18 +255,38 @@ export default function ScanSearchScreen() {
                     </View>
                   </View>
 
-                  {/* Actions */}
-                  {isInInventory ? (
+                  {/* Actions — always allow adding more units (accumulates like web) */}
+                  {isInInventory && (
                     <View className="bg-secondary/10 p-4 rounded-2xl flex-row items-center gap-3 mb-4">
                       <MaterialIcons name="check-circle" size={24} color={t.secondary} />
                       <View className="flex-1">
                         <Text className="text-secondary font-bold">Ya está en tu inventario</Text>
-                        <Text className="text-xs text-on-surface-variant">Puedes editarlo o ajustar el stock.</Text>
+                        <Text className="text-xs text-on-surface-variant">Puedes sumar más unidades o editarlo.</Text>
                       </View>
                     </View>
-                  ) : (
+                  )}
+
+                  <View className="flex-row items-center gap-3 mb-4">
+                    <View className="flex-row items-center bg-surface-container-highest rounded-xl overflow-hidden">
+                      <TouchableOpacity
+                        className="px-3 py-2.5"
+                        onPress={() => setQty(q => Math.max(1, q - 1))}
+                        disabled={qty <= 1}
+                      >
+                        <MaterialIcons name="remove" size={18} color={qty <= 1 ? t.muted : t.onSurfaceVariant} />
+                      </TouchableOpacity>
+                      <Text className="px-3 font-bold text-on-surface text-base min-w-[36px] text-center">{qty}</Text>
+                      <TouchableOpacity
+                        className="px-3 py-2.5"
+                        onPress={() => setQty(q => Math.min(999, q + 1))}
+                        disabled={qty >= 999}
+                      >
+                        <MaterialIcons name="add" size={18} color={qty >= 999 ? t.muted : t.onSurfaceVariant} />
+                      </TouchableOpacity>
+                    </View>
+
                     <TouchableOpacity
-                      className="bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 mb-4 shadow-lg"
+                      className="flex-1 bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 shadow-lg"
                       style={{ shadowColor: t.primary }}
                       onPress={handleAddToInventory}
                       disabled={adding}
@@ -274,7 +300,7 @@ export default function ScanSearchScreen() {
                         </>
                       )}
                     </TouchableOpacity>
-                  )}
+                  </View>
 
                   {isInInventory && (
                     <TouchableOpacity

@@ -15,6 +15,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     <div id="save-toast" class="hidden mb-4 py-3 px-4 rounded-xl bg-secondary/10 text-secondary font-bold text-sm flex items-center gap-2">
       <span class="material-symbols-outlined text-sm">check_circle</span> ¡Perfil guardado exitosamente!
     </div>
+    <div class="flex items-center gap-4 mb-6">
+      <div class="w-20 h-20 rounded-full overflow-hidden bg-surface-container flex items-center justify-center border border-outline-variant/20">
+        <img id="avatar-img" alt="Foto de perfil" class="w-full h-full object-cover hidden" />
+        <span id="avatar-placeholder" class="material-symbols-outlined text-on-surface-variant text-4xl">person</span>
+      </div>
+      <div>
+        <button id="btn-avatar" type="button" class="py-2.5 px-5 rounded-xl font-bold border-2 border-primary/20 text-primary hover:bg-primary/5 transition-colors text-sm">
+          Cambiar foto
+        </button>
+        <input id="avatar-input" type="file" accept="image/*" class="hidden" />
+        <p class="text-xs text-on-surface-variant mt-1">JPG o PNG</p>
+      </div>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <label class="text-sm font-semibold text-on-surface-variant block mb-2">Nombre de Consultora</label>
@@ -31,6 +44,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <div>
         <label class="text-sm font-semibold text-on-surface-variant block mb-2">Ciudad / Zona</label>
         <input id="profile-city" type="text" placeholder="Ej: CDMX Sur" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Código Natura</label>
+        <input id="profile-natura-code" type="text" placeholder="Tu código de consultora" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
+      </div>
+      <div>
+        <label class="text-sm font-semibold text-on-surface-variant block mb-2">Correo (Contacto)</label>
+        <input id="profile-natura-email" type="email" placeholder="contacto@correo.com" class="w-full bg-surface-container-highest border-none rounded-xl py-3 px-4 focus:ring-2 focus:ring-primary-container" />
       </div>
     </div>
     <button id="btn-save-profile" class="mt-6 flex items-center gap-2 py-3 px-8 rounded-xl font-bold bg-primary text-white hover:scale-[1.02] transition-all shadow-md">
@@ -150,6 +171,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const profilePhone = document.getElementById('profile-phone') as HTMLInputElement;
   const profileBusiness = document.getElementById('profile-business') as HTMLInputElement;
   const profileCity = document.getElementById('profile-city') as HTMLInputElement;
+  const profileNaturaCode = document.getElementById('profile-natura-code') as HTMLInputElement;
+  const profileNaturaEmail = document.getElementById('profile-natura-email') as HTMLInputElement;
   const saveToast = document.getElementById('save-toast') as HTMLElement;
 
   // Load saved values (DB first, localStorage only as legacy fallback)
@@ -164,8 +187,49 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     profilePhone.value = p.phone || profilePhone.value;
     profileBusiness.value = p.business_name || profileBusiness.value;
     profileCity.value = p.city || profileCity.value;
+    profileNaturaCode.value = p.natura_code || '';
+    profileNaturaEmail.value = p.natura_email || '';
+    if (p.avatar_url) setAvatarPreview(p.avatar_url);
     localStorage.setItem('natura_name', profileName.value); // sidebar reads this
   }).catch((e: any) => console.warn('[Ajustes] profile load failed', e));
+
+  // ===== AVATAR =====
+  const avatarImg = document.getElementById('avatar-img') as HTMLImageElement;
+  const avatarPlaceholder = document.getElementById('avatar-placeholder') as HTMLElement;
+  const avatarInput = document.getElementById('avatar-input') as HTMLInputElement;
+  const btnAvatar = document.getElementById('btn-avatar') as HTMLButtonElement;
+
+  function setAvatarPreview(url: string) {
+    avatarImg.src = url;
+    avatarImg.classList.remove('hidden');
+    avatarPlaceholder.classList.add('hidden');
+  }
+
+  btnAvatar.addEventListener('click', () => avatarInput.click());
+  avatarInput.addEventListener('change', async () => {
+    const file = avatarInput.files?.[0];
+    if (!file) return;
+    btnAvatar.disabled = true;
+    btnAvatar.textContent = 'Subiendo...';
+    try {
+      const dataUrl: string = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(new Error('No se pudo leer la imagen'));
+        reader.readAsDataURL(file);
+      });
+      const base64 = dataUrl.split(',')[1] || '';
+      const url = await api.consultant.uploadAvatar(file.name, base64);
+      setAvatarPreview(url);
+      toast.success('Foto de perfil actualizada');
+    } catch (err: any) {
+      toast.error('No se pudo subir la foto: ' + (err?.message || 'error desconocido'));
+    } finally {
+      btnAvatar.disabled = false;
+      btnAvatar.textContent = 'Cambiar foto';
+      avatarInput.value = '';
+    }
+  });
 
   document.getElementById('btn-save-profile')!.addEventListener('click', async () => {
     const btn = document.getElementById('btn-save-profile') as HTMLButtonElement;
@@ -176,7 +240,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         full_name: profileName.value.trim(),
         phone: profilePhone.value.trim() || null,
         business_name: profileBusiness.value.trim() || null,
-        city: profileCity.value.trim() || null
+        city: profileCity.value.trim() || null,
+        natura_code: profileNaturaCode.value.trim() || null,
+        natura_email: profileNaturaEmail.value.trim() || null
       });
       localStorage.setItem('natura_name', profileName.value.trim());
       localStorage.setItem('natura_phone', profilePhone.value);

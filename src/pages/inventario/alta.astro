@@ -227,7 +227,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     // Recalculate cost if product selected
     if (selectedProduct?.price) {
-      const cost = calculateConsultantPrice(selectedProduct.price, level);
+      const cost = calculateConsultantPrice(selectedProduct.price, level, selectedProduct.brand, selectedProduct.category);
       inputCost.value = cost.toFixed(2);
       updateAltaProfit();
     }
@@ -330,7 +330,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     // Auto-calculate cost by level
     if (data.price && data.price > 0) {
-      const cost = calculateConsultantPrice(data.price, altaSelectedLevel);
+      const cost = calculateConsultantPrice(data.price, altaSelectedLevel, selectedProduct.brand, selectedProduct.category);
       inputCost.value = cost.toFixed(2);
       updateAltaProfit();
     } else {

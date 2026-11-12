@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../../src/lib/api';
-import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
+import type { ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import { supabase } from '../../lib/supabase';
 import { SITE_URL } from '../../lib/config';
@@ -53,8 +53,37 @@ export default function EditProductScreen() {
   const [cost, setCost] = useState('');
   const [points, setPoints] = useState('0');
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
-  const [costManuallyEdited, setCostManuallyEdited] = useState(false);
   const [stock, setStock] = useState('0');
+
+  // Detect consultant level from profile (same as web), fallback 'Bronce'
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session || cancelled) return;
+        const { data: profile } = await supabase
+          .from('consultant_profiles')
+          .select('latest_growth_data')
+          .eq('id', session.user.id)
+          .single();
+        const desc: string | undefined = profile?.latest_growth_data?.level?.description;
+        if (desc) {
+          const levelMap: Record<string, ConsultantLevel> = {
+            'Bronce': 'Bronce', 'Plata': 'Plata', 'Oro': 'Oro',
+            'Zafiro': 'Zafiro', 'Diamante': 'Diamante',
+            'BRONCE': 'Bronce', 'PLATA': 'Plata', 'ORO': 'Oro',
+            'ZAFIRO': 'Zafiro', 'DIAMANTE': 'Diamante',
+          };
+          const detected = Object.entries(levelMap).find(([key]) => desc.includes(key));
+          if (detected && !cancelled) setLevel(detected[1]);
+        }
+      } catch {
+        // fallback: keep 'Bronce'
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Image management
   const [imageBusy, setImageBusy] = useState(false);
@@ -92,24 +121,13 @@ export default function EditProductScreen() {
   const parsedCost = parseFloat(cost) || 0;
   const profit = parsedPrice - parsedCost;
 
+  // Web editar.astro: cost is edited manually only — no auto-calc from price/level
   const handlePriceChange = (text: string) => {
     setPrice(text);
-    if (!costManuallyEdited) {
-      const numPrice = parseFloat(text) || 0;
-      if (numPrice > 0) {
-        setCost(calculateConsultantPrice(numPrice, level, brand, category).toFixed(2));
-      } else {
-        setCost('');
-      }
-    }
   };
 
   const handleLevelSelect = (newLevel: ConsultantLevel) => {
     setLevel(newLevel);
-    setCostManuallyEdited(false);
-    if (parsedPrice > 0) {
-      setCost(calculateConsultantPrice(parsedPrice, newLevel, brand, category).toFixed(2));
-    }
   };
 
   // ──────────────────────────────────────────────
@@ -224,8 +242,8 @@ export default function EditProductScreen() {
   };
 
   async function handleSave() {
-    if (!name || parsedPrice <= 0) {
-      Alert.alert('Datos incompletos', 'El nombre y precio son obligatorios.');
+    if (!name.trim() || !code.trim()) {
+      Alert.alert('Datos incompletos', 'Nombre y código son requeridos.');
       return;
     }
 
@@ -235,7 +253,7 @@ export default function EditProductScreen() {
         price: parsedPrice,
         cost: parsedCost,
         catalog: {
-          ...(code.trim() ? { code: code.trim() } : {}),
+          code: code.trim(),
           name,
           category,
           brand,
@@ -500,30 +518,36 @@ export default function EditProductScreen() {
                 className="bg-surface-container-highest rounded-xl pl-8 pr-4 py-4 text-on-surface text-lg font-bold"
                 placeholder="0.00" keyboardType="numeric"
                 value={cost}
-                onChangeText={(text) => { setCost(text); setCostManuallyEdited(true); }}
+                onChangeText={setCost}
               />
             </View>
           </View>
         </View>
 
-        {/* Profit indicator */}
-        {parsedPrice > 0 && parsedCost > 0 && (
-          <View className={`p-4 rounded-2xl mb-6 flex-row justify-between items-center border ${profit > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-            <View className="flex-row items-center gap-3">
-              <MaterialIcons name={profit > 0 ? "trending-up" : "trending-down"} size={24} color={profit > 0 ? "#15803d" : "#b91c1c"} />
-              <View>
-                <Text className={`text-xs font-bold ${profit > 0 ? 'text-green-800' : 'text-red-800'}`}>Ganancia</Text>
-                <Text className={`text-xl font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>{formatMoney(Number(Math.abs(profit)))}</Text>
+        {/* Margin indicator — thresholds 30/15 like web editar.astro */}
+        {parsedPrice > 0 && parsedCost > 0 && (() => {
+          const marginPct = Math.round((profit / parsedPrice) * 100);
+          const tone = marginPct >= 30
+            ? { bg: 'bg-green-50 border-green-200', strong: 'text-green-800', mid: 'text-green-700', soft: 'text-green-600', icon: 'trending-up', color: '#15803d' }
+            : marginPct >= 15
+            ? { bg: 'bg-amber-50 border-amber-200', strong: 'text-amber-800', mid: 'text-amber-700', soft: 'text-amber-600', icon: 'trending-up', color: '#b45309' }
+            : { bg: 'bg-red-50 border-red-200', strong: 'text-red-800', mid: 'text-red-700', soft: 'text-red-600', icon: 'trending-down', color: '#b91c1c' };
+          return (
+            <View className={`p-4 rounded-2xl mb-6 flex-row justify-between items-center border ${tone.bg}`}>
+              <View className="flex-row items-center gap-3">
+                <MaterialIcons name={tone.icon as any} size={24} color={tone.color} />
+                <View>
+                  <Text className={`text-xs font-bold ${tone.strong}`}>Ganancia</Text>
+                  <Text className={`text-xl font-bold ${tone.mid}`}>{formatMoney(Number(Math.abs(profit)))}</Text>
+                </View>
+              </View>
+              <View className="items-end">
+                <Text className={`text-sm font-bold ${tone.mid}`}>{marginPct}%</Text>
+                <Text className={`text-[10px] ${tone.soft}`}>Margen</Text>
               </View>
             </View>
-            <View className="items-end">
-              <Text className={`text-sm font-bold ${profit > 0 ? 'text-green-700' : 'text-red-700'}`}>
-                {((profit / parsedPrice) * 100).toFixed(0)}%
-              </Text>
-              <Text className={`text-[10px] ${profit > 0 ? 'text-green-600' : 'text-red-600'}`}>Margen</Text>
-            </View>
-          </View>
-        )}
+          );
+        })()}
 
         {/* Stock info (read-only, adjust in inventory adjustments) */}
         <View className="bg-surface-container-highest p-4 rounded-2xl flex-row items-center justify-between mb-4">

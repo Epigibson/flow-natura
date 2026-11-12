@@ -16,7 +16,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </header>
 
   <!-- Quick Actions -->
-  <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
     <a href="https://wa.me/5215512345678?text=Hola%20Natura%20Flow%2C%20necesito%20ayuda" target="_blank"
       class="bg-gradient-to-br from-green-50 to-green-100/50 rounded-[2rem] p-6 hover:shadow-lg transition-all group cursor-pointer border border-green-200/30 relative overflow-hidden">
       <div class="absolute top-0 right-0 w-24 h-24 bg-green-200/20 rounded-full -translate-y-8 translate-x-8"></div>
@@ -43,20 +43,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <button id="btn-faq" class="text-primary font-bold text-sm mt-3 flex items-center gap-1 hover:gap-2 transition-all">
           Ver FAQ <span class="material-symbols-outlined text-sm">arrow_forward</span>
         </button>
-      </div>
-    </div>
-
-    <div class="bg-gradient-to-br from-secondary/5 to-secondary-container/10 rounded-[2rem] p-6 border border-secondary/5 relative overflow-hidden cursor-pointer hover:shadow-lg transition-all">
-      <div class="absolute top-0 right-0 w-24 h-24 bg-secondary/5 rounded-full -translate-y-8 translate-x-8"></div>
-      <div class="relative z-10">
-        <div class="w-12 h-12 bg-secondary/10 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
-          <span class="material-symbols-outlined text-secondary text-xl">school</span>
-        </div>
-        <h3 class="font-bold text-on-surface text-lg">Video Tutoriales</h3>
-        <p class="text-on-surface-variant text-sm mt-1">Aprende a sacar el máximo de la app.</p>
-        <span class="text-secondary font-bold text-sm mt-3 flex items-center gap-1 hover:gap-2 transition-all">
-          Explorar <span class="material-symbols-outlined text-sm">arrow_forward</span>
-        </span>
       </div>
     </div>
   </section>
@@ -397,7 +383,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     const priority = (document.querySelector('.priority-option input:checked') as HTMLInputElement)?.value || 'low';
     const tickets = JSON.parse(localStorage.getItem('natura_tickets') || '[]');
     tickets.unshift({
-      subject: ticketSubject.value,
+      subject: ticketSubject.value.trim(),
       category: (document.getElementById('ticket-category') as HTMLSelectElement).selectedOptions[0].text,
       desc: ticketDesc.value,
       priority,

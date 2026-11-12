@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { formatMoney } from '../../../src/lib/orders';
+import { formatMoney, DEFAULT_FREQUENCY } from '../../../src/lib/orders';
+import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -31,7 +32,10 @@ export default function NewSaleScreen() {
   const [paymentMethod, setPaymentMethod] = useState<'contado' | 'abonos'>('contado');
   const [enganche, setEnganche] = useState('');
   const [pagos, setPagos] = useState('1');
-  const [frecuencia, setFrecuencia] = useState('Quincenal');
+  const [frecuencia, setFrecuencia] = useState(DEFAULT_FREQUENCY);
+
+  // Consultant level for estimated cost / profit (web ventas/nueva.astro)
+  const [userLevel, setUserLevel] = useState<ConsultantLevel>('Bronce');
 
   // Modals
   const [showCustomerModal, setShowCustomerModal] = useState(false);
@@ -61,6 +65,19 @@ export default function NewSaleScreen() {
         api.customers.list(),
         api.inventory.list()
       ]);
+      // Level for cost estimation (web: consultant_profiles.latest_growth_data)
+      try {
+        const profile = await api.consultant.getProfile();
+        const desc: string = profile?.latest_growth_data?.level?.description || '';
+        const levelMap: Record<string, ConsultantLevel> = {
+          'Bronce': 'Bronce', 'Plata': 'Plata', 'Oro': 'Oro',
+          'Zafiro': 'Zafiro', 'Diamante': 'Diamante',
+          'BRONCE': 'Bronce', 'PLATA': 'Plata', 'ORO': 'Oro',
+          'ZAFIRO': 'Zafiro', 'DIAMANTE': 'Diamante',
+        };
+        const detected = Object.entries(levelMap).find(([key]) => desc.includes(key));
+        if (detected) setUserLevel(detected[1]);
+      } catch { /* keep 'Bronce' fallback */ }
       setCustomers(custData || []);
       // Coming from a customer's profile
       if (presetCustomerId) {
@@ -192,9 +209,10 @@ export default function NewSaleScreen() {
   // ──────────────────────────────────────────────
   // CALCULATIONS
   // ──────────────────────────────────────────────
-  const { subtotal, totalItemDiscounts, cartWithCalcs } = useMemo(() => {
+  const { subtotal, totalItemDiscounts, cartWithCalcs, totalCost } = useMemo(() => {
     let sub = 0;
     let itemDiscs = 0;
+    let cost = 0;
     const computedCart = cart.map(item => {
       let discountAmount = 0;
       if (item.discount_type === 'percentage') {
@@ -207,12 +225,19 @@ export default function NewSaleScreen() {
       
       sub += (item.unit_price * item.quantity);
       itemDiscs += (discountAmount * item.quantity);
+      // Unit cost: inventory cost, or consultant price when the catalog has no cost (web ventas/nueva.astro)
+      const rawPrice = Number(item.price ?? item.unit_price) || 0;
+      let unitCost = Number(item.cost) || 0;
+      if (unitCost === 0 && rawPrice > 0) {
+        unitCost = calculateConsultantPrice(rawPrice, userLevel, item.brand || '', item.category || '');
+      }
+      cost += unitCost * item.quantity;
       
       return { ...item, _calculated_discount: discountAmount, _final_unit_price: Math.max(0, item.unit_price - discountAmount) };
     });
     
-    return { subtotal: sub, totalItemDiscounts: itemDiscs, cartWithCalcs: computedCart };
-  }, [cart]);
+    return { subtotal: sub, totalItemDiscounts: itemDiscs, cartWithCalcs: computedCart, totalCost: cost };
+  }, [cart, userLevel]);
 
   const { calculatedGlobalDiscount, totalDiscount, finalTotal } = useMemo(() => {
     let globalDiscNum = Math.max(0, Number(globalDiscount) || 0);
@@ -300,7 +325,10 @@ export default function NewSaleScreen() {
     }
   };
 
-  const filteredInventory = inventory.filter(p => p.product_name?.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredInventory = inventory.filter(p => {
+    const q = searchQuery.toLowerCase();
+    return p.product_name?.toLowerCase().includes(q) || (p.product_code && p.product_code.toLowerCase().includes(q));
+  });
 
   if (loading) {
     return (
@@ -413,7 +441,7 @@ export default function NewSaleScreen() {
                     <Text className="text-[10px] text-secondary mr-2">Desc.</Text>
                     <TouchableOpacity 
                       className="w-6 h-6 rounded bg-surface-container-high items-center justify-center mr-1 border border-outline-variant"
-                      onPress={() => updateCartDiscount(item.product_id, isPerc ? 'amount' : 'percentage', String(item.discount))}
+                      onPress={() => updateCartDiscount(item.product_id, isPerc ? 'amount' : 'percentage', '0')}
                     >
                       <Text className="text-primary font-bold text-[10px]">{isPerc ? '%' : '$'}</Text>
                     </TouchableOpacity>
@@ -559,6 +587,18 @@ export default function NewSaleScreen() {
             </View>
           </View>
         )}
+
+        {/* Ganancia Estimada (web ventas/nueva.astro) */}
+        {cartWithCalcs.length > 0 && (() => {
+          const profit = finalTotal - totalCost;
+          const marginPct = finalTotal > 0 ? ((profit / finalTotal) * 100).toFixed(0) : '0';
+          return (
+            <View className="flex-row justify-between items-center pt-2 mt-2 border-t border-outline-variant mb-2">
+              <Text className="text-xs font-bold text-green-600">Ganancia Estimada:</Text>
+              <Text className="text-xs font-bold text-green-600">{formatMoney(Number(profit))} ({marginPct}%)</Text>
+            </View>
+          );
+        })()}
 
         <View className="flex-row justify-between items-end mb-4">
           <Text className="text-on-surface-variant font-bold uppercase tracking-widest text-xs">Total a Pagar</Text>

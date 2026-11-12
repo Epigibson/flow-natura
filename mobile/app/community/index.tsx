@@ -30,6 +30,7 @@ const REACTIONS: { type: string; on: string; off: string }[] = [
 export default function CommunityScreen() {
   const t = useThemeColors();
   const [posts, setPosts] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +56,12 @@ export default function CommunityScreen() {
     if (!isRefresh) setLoading(true);
     setError(null);
     try {
-      setPosts(await api.community.getPosts(topic));
+      const [postData, statsData] = await Promise.all([
+        api.community.getPosts(topic),
+        api.community.getStats(),
+      ]);
+      setPosts(postData);
+      setStats(statsData);
     } catch (err: any) {
       console.error(err);
       setError(errorMessage(err, 'Error de conexión'));
@@ -188,6 +194,28 @@ export default function CommunityScreen() {
             </TouchableOpacity>
           ))}
         </ScrollView>
+
+        {/* Community stats (web comunidad.astro) */}
+        {stats ? (
+          <View className="flex-row gap-3 mb-4">
+            <View className="flex-1 bg-surface-container-lowest rounded-2xl p-3 items-center border border-outline-variant/10">
+              <Text className="text-lg font-bold" style={{ color: t.primary }}>{stats.unique_authors || 0}</Text>
+              <Text className="text-[10px] text-on-surface-variant font-bold uppercase mt-0.5">Consultoras</Text>
+            </View>
+            <View className="flex-1 bg-surface-container-lowest rounded-2xl p-3 items-center border border-outline-variant/10">
+              <Text className="text-lg font-bold" style={{ color: t.secondary }}>{stats.post_count || 0}</Text>
+              <Text className="text-[10px] text-on-surface-variant font-bold uppercase mt-0.5">Posts</Text>
+            </View>
+            <View className="flex-1 bg-surface-container-lowest rounded-2xl p-3 items-center border border-outline-variant/10">
+              <Text className="text-lg font-bold text-on-surface">{stats.reaction_count || 0}</Text>
+              <Text className="text-[10px] text-on-surface-variant font-bold uppercase mt-0.5">Reacciones</Text>
+            </View>
+            <View className="flex-1 bg-surface-container-lowest rounded-2xl p-3 items-center border border-outline-variant/10">
+              <Text className="text-lg font-bold text-on-surface">{stats.comment_count || 0}</Text>
+              <Text className="text-[10px] text-on-surface-variant font-bold uppercase mt-0.5">Comentarios</Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Feed */}
         {loading ? (

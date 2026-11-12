@@ -89,7 +89,11 @@ export default function LoginScreen() {
       });
 
       if (error) {
-        Alert.alert('Error', error.message);
+        const messages: Record<string, string> = {
+          'Invalid login credentials': 'Correo o contraseña incorrectos',
+          'Email not confirmed': 'Confirma tu correo electrónico primero',
+        };
+        Alert.alert('Error', messages[error.message] || error.message);
         return;
       }
 
@@ -171,7 +175,7 @@ export default function LoginScreen() {
                   <MaterialIcons name="email" size={20} color={t.onSurfaceVariant} style={{ opacity: 0.6 }} />
                   <TextInput
                     className="flex-1 text-on-surface text-base font-medium ml-3 h-full"
-                    placeholder="ejemplo@correo.com"
+                    placeholder="tu@correo.com"
                     placeholderTextColor={t.muted}
                     autoCapitalize="none"
                     keyboardType="email-address"
@@ -222,7 +226,7 @@ export default function LoginScreen() {
               onPress={() => router.push('/register')}
             >
               <Text className="text-primary font-bold text-sm">
-                ¿No tienes cuenta? <Text className="underline">Regístrate</Text>
+                ¿Aún no tienes cuenta? <Text className="underline">Regístrate gratis</Text>
               </Text>
             </TouchableOpacity>
 

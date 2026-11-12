@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { whatsappPhone } from '../../../src/lib/phone';
 import { formatFolio } from '../../../src/lib/orders';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
@@ -8,7 +8,7 @@ import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
-import { useFocusEffect, router } from 'expo-router';
+import { useFocusEffect, router, useLocalSearchParams } from 'expo-router';
 
 export default function CustomersScreen() {
   const t = useThemeColors();
@@ -22,7 +22,7 @@ export default function CustomersScreen() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerStats, setCustomerStats] = useState<any>(null);
   const [statsError, setStatsError] = useState(false);
-  const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', preferences: '' });
+  const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', address: '', preferences: '' });
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -74,7 +74,7 @@ export default function CustomersScreen() {
   };
 
   const openCreate = () => {
-    setFormData({ full_name: '', phone: '', email: '', preferences: '' });
+    setFormData({ full_name: '', phone: '', email: '', address: '', preferences: '' });
     setShowModal('create');
   };
 
@@ -95,11 +95,30 @@ export default function CustomersScreen() {
     }
   };
 
+  // Auto-open detail when arriving with ?customerId= (e.g. from reportes → Predicción de Recompra)
+  const query = useLocalSearchParams<{ customerId?: string }>();
+  const openedFromQuery = useRef<string | null>(null);
+  useEffect(() => {
+    const id = query.customerId;
+    if (!id || openedFromQuery.current === id) return;
+    openedFromQuery.current = id;
+    (async () => {
+      try {
+        const customer = await api.customers.get(id);
+        if (customer) await openDetail(customer);
+      } catch (e) {
+        console.error('Error opening customer from query', e);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query.customerId]);
+
   const openEdit = () => {
     setFormData({
       full_name: selectedCustomer.full_name || '',
       phone: selectedCustomer.phone || '',
       email: selectedCustomer.email || '',
+      address: selectedCustomer.address || '',
       preferences: selectedCustomer.preferences || ''
     });
     setShowModal('edit');
@@ -108,6 +127,10 @@ export default function CustomersScreen() {
   const handleSave = async () => {
     if (!formData.full_name) {
       Alert.alert('Error', 'El nombre del cliente es obligatorio');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      Alert.alert('Error', 'El teléfono del cliente es obligatorio');
       return;
     }
     setSubmitting(true);
@@ -142,6 +165,22 @@ export default function CustomersScreen() {
       }}
     ]);
   };
+
+  // Top-4 favorite products by units (web clientes/perfil.astro)
+  const favoriteProducts = (() => {
+    const counts: Record<string, { name: string; qty: number }> = {};
+    const list: any[] = customerStats?._orders || [];
+    list.forEach((o: any) => {
+      if (o.status === 'cancelled') return;
+      (o.order_items || []).forEach((item: any) => {
+        const pid = item.product_id || item.products?.id || item.products?.name || 'Producto';
+        const name = item.products?.name || 'Producto';
+        if (!counts[pid]) counts[pid] = { name, qty: 0 };
+        counts[pid].qty += Number(item.quantity) || 0;
+      });
+    });
+    return Object.values(counts).sort((a, b) => b.qty - a.qty).slice(0, 4);
+  })();
 
   const renderItem = ({ item }: { item: any }) => {
     const initial = item.full_name?.charAt(0).toUpperCase() || 'C';
@@ -291,7 +330,7 @@ export default function CustomersScreen() {
               </View>
 
               <View className="mb-4">
-                <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Teléfono / WhatsApp</Text>
+                <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Teléfono / WhatsApp *</Text>
                 <TextInput 
                   className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
                   placeholder="Ej. 5512345678" placeholderTextColor={t.muted} keyboardType="phone-pad" value={formData.phone} onChangeText={t => setFormData({...formData, phone: t})}
@@ -303,6 +342,14 @@ export default function CustomersScreen() {
                 <TextInput 
                   className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
                   placeholder="ejemplo@correo.com" placeholderTextColor={t.muted} keyboardType="email-address" value={formData.email} onChangeText={t => setFormData({...formData, email: t})}
+                />
+              </View>
+
+              <View className="mb-4">
+                <Text className="text-xs font-bold text-on-surface-variant mb-1 ml-1 uppercase tracking-widest">Dirección</Text>
+                <TextInput 
+                  className="bg-surface-container-highest border border-outline-variant rounded-xl px-4 py-3 text-on-surface"
+                  placeholder="Calle, Colonia, Ciudad" placeholderTextColor={t.muted} value={formData.address} onChangeText={t => setFormData({...formData, address: t})}
                 />
               </View>
 
@@ -422,6 +469,12 @@ export default function CustomersScreen() {
                       <Text className="text-on-surface">{selectedCustomer.email || 'No registrado'}</Text>
                     </View>
                   </View>
+                  <View className="flex-row items-center py-2 pt-4 border-t border-outline-variant">
+                    <View className="flex-row items-center gap-3 flex-1">
+                      <MaterialIcons name="location-on" size={20} color={t.muted} />
+                      <Text className="text-on-surface flex-1">{selectedCustomer.address || 'No registrado'}</Text>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Preferencias */}
@@ -469,6 +522,26 @@ export default function CustomersScreen() {
                     )
                   ) : (
                     <ActivityIndicator size="small" color={t.primary} style={{ paddingVertical: 16 }} />
+                  )}
+                </View>
+
+                {/* Productos Favoritos (web clientes/perfil.astro) */}
+                <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Productos Favoritos</Text>
+                <View className="bg-surface-container-lowest rounded-3xl border border-outline-variant shadow-sm p-4 mb-8">
+                  {!customerStats?._orders ? (
+                    <ActivityIndicator size="small" color={t.primary} style={{ paddingVertical: 16 }} />
+                  ) : favoriteProducts.length === 0 ? (
+                    <Text className="text-on-surface-variant text-sm text-center py-4">Sin datos suficientes.</Text>
+                  ) : (
+                    <View className="flex-row flex-wrap gap-3">
+                      {favoriteProducts.map((p, i) => (
+                        <View key={i} className="bg-surface-container-low rounded-2xl p-4 items-center" style={{ width: '47%' }}>
+                          <MaterialIcons name="favorite" size={28} color={t.primary} />
+                          <Text className="font-bold text-on-surface text-sm text-center mt-1" numberOfLines={2}>{p.name}</Text>
+                          <Text className="text-primary font-bold text-xs mt-1">{p.qty} unidades</Text>
+                        </View>
+                      ))}
+                    </View>
                   )}
                 </View>
 

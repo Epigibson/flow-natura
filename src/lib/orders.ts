@@ -39,6 +39,22 @@ export interface OrderSummary {
 /** Amounts are cents-accurate; compare with this tolerance. */
 export const MONEY_EPSILON = 0.005;
 
+/** Default payment frequency for abonos (web + mobile). */
+export const DEFAULT_FREQUENCY = 'Semanal';
+
+/** Inventory adjustment reasons (value = DB code, label = short display label). */
+export const ADJUSTMENT_REASONS: { value: string; label: string }[] = [
+  { value: 'restock', label: 'Reposición' },
+  { value: 'return', label: 'Devolución' },
+  { value: 'damaged', label: 'Envase dañado' },
+  { value: 'demo', label: 'Demostración' },
+  { value: 'personal', label: 'Uso personal' },
+  { value: 'incentive', label: 'Incentivo cliente' },
+  { value: 'count', label: 'Conteo cíclico' },
+  { value: 'expired', label: 'Producto vencido' },
+  { value: 'other', label: 'Otro' },
+];
+
 export function summarizeOrder(order: OrderLike): OrderSummary {
   const payments = [...(order.order_payments || [])].sort(
     (a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime()
@@ -108,4 +124,38 @@ export function orderStatusChips(order: OrderLike): { delivery: StatusChip; paym
     : sum.isFullyPaid ? { label: 'Pagada', tone: 'success' }
     : { label: 'Con saldo ' + formatMoney(sum.balance), tone: 'warning' };
   return { delivery, payment };
+}
+
+/** WhatsApp ticket text sent from the sale detail (identical on web and mobile). */
+export function buildTicketMessage(order: any, sum: any, customerName: string): string {
+  const s: OrderSummary = sum || summarizeOrder(order);
+  const total = Number(order.total_amount) || 0;
+
+  let message = '¡Hola ' + customerName + '! 👋 Espero que estés teniendo un excelente día.\n\n';
+  message += 'Te comparto el detalle de tu compra 🛍️:\n\n';
+  message += '🏷️ *Total de la compra:* $' + total.toFixed(2) + ' MXN\n';
+
+  if (s.isAbonos || s.paid < total) {
+    message += '💸 *Llevas pagado:* $' + s.paid.toFixed(2) + ' MXN\n';
+    if (!s.isFullyPaid) message += '📌 *Saldo pendiente:* $' + s.balance.toFixed(2) + ' MXN\n';
+    else message += '✨ ¡Tu cuenta ya está totalmente pagada! 🎉\n';
+  } else {
+    message += '✨ ¡Tu compra fue de contado y ya está totalmente pagada! 🎉\n';
+  }
+
+  message += '\n';
+
+  if (order.status === 'delivered') {
+    if (s.isFullyPaid) {
+      message += 'Tu pedido ya fue entregado. ¡Espero que lo disfrutes mucho! 🥰\n\n';
+    } else {
+      message += '✅ *Pedido Entregado* 🌿\n\n';
+    }
+  } else {
+    message += 'Tu pedido está *Pendiente de Entrega*. Te avisaré en cuanto lo tenga listo para entregártelo. 🌿\n\n';
+  }
+
+  message += '¡Muchísimas gracias por tu confianza! Cualquier duda, aquí estoy a la orden. ✨';
+  message += '\n\n_(Folio: #' + formatFolio(String(order.id)) + ')_';
+  return message;
 }

@@ -162,6 +162,14 @@ export default function DashboardScreen() {
     ]);
   }
 
+  const buildCSV = (headers: string[], rows: any[][]) => {
+    const bom = '\uFEFF';
+    return (
+      bom + headers.join(',') + '\n' +
+      rows.map(r => r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')).join('\n')
+    );
+  };
+
   const exportToCSV = async (type: 'sales' | 'customers' | 'inventory') => {
     try {
       setExportModalVisible(false);
@@ -172,25 +180,25 @@ export default function DashboardScreen() {
 
       if (type === 'sales') {
         const orders = await api.orders.list();
-        csvContent = 'ID Venta,Cliente,Total,Metodo,Estado,Fecha\n';
-        orders.forEach((o: any) => {
-          csvContent += `${o.id},"${o.customer_name || ''}",${o.total_amount},${o.payment_method},${o.status},${new Date(o.created_at).toLocaleDateString('es-MX')}\n`;
-        });
-        filename = 'Ventas_Natura.csv';
+        const rows = (orders || []).map((o: any) => [
+          o.id, o.customer_name || '', o.total_amount, o.payment_method, o.status, o.items_summary || '', new Date(o.created_at).toLocaleDateString('es-MX')
+        ]);
+        csvContent = buildCSV(['ID', 'Cliente', 'Total', 'Método Pago', 'Estado', 'Productos', 'Fecha'], rows);
+        filename = 'ventas_naturaflow.csv';
       } else if (type === 'customers') {
         const customers = await api.customers.list();
-        csvContent = 'Nombre,Telefono,Email,Direccion\n';
-        customers.forEach((c: any) => {
-          csvContent += `"${c.full_name}","${c.phone || ''}","${c.email || ''}","${c.address || ''}"\n`;
-        });
-        filename = 'Clientes_Natura.csv';
+        const rows = (customers || []).map((c: any) => [
+          c.id, c.full_name, c.phone, c.email || '', c.address || '', c.preferences || '', new Date(c.created_at).toLocaleDateString('es-MX')
+        ]);
+        csvContent = buildCSV(['ID', 'Nombre', 'Teléfono', 'Correo', 'Dirección', 'Preferencias', 'Registro'], rows);
+        filename = 'clientes_naturaflow.csv';
       } else if (type === 'inventory') {
         const inventory = await api.inventory.list();
-        csvContent = 'Producto,Categoria,Precio,Cantidad\n';
-        inventory.forEach((i: any) => {
-          csvContent += `"${i.product_name}","${i.category || ''}",${i.price},${i.quantity}\n`;
-        });
-        filename = 'Inventario_Natura.csv';
+        const rows = (inventory || []).map((p: any) => [
+          p.product_id, p.product_name, p.category || '', p.price, p.quantity || 0, '—'
+        ]);
+        csvContent = buildCSV(['ID', 'Nombre', 'Categoría', 'Precio', 'Stock', 'Registro'], rows);
+        filename = 'inventario_naturaflow.csv';
       }
 
       const FS: any = FileSystem;
@@ -218,6 +226,9 @@ export default function DashboardScreen() {
   const goalReached = goalAmount > 0 && totalRevenue >= goalAmount;
   const gData = userProfile?.latest_growth_data;
   const hasSyncedBefore = !!userProfile?.growth_sync_date;
+  const growthLevelDesc = gData?.level?.description;
+  const growthProfit = growthLevelDesc ? CAMINO_CRECIMIENTO[growthLevelDesc as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage : undefined;
+  const maintenanceGap = Number(gData?.level?.maintenanceGap || 0);
 
   return (
     <SafeAreaView className="flex-1 bg-surface">
@@ -298,12 +309,16 @@ export default function DashboardScreen() {
                       )}
                     </View>
                     
-                    <Text className="text-4xl font-serif text-on-surface">{userProfile?.latest_growth_data?.level?.description || 'Consultor'}</Text>
+                    <Text className="text-4xl font-serif text-on-surface">{growthLevelDesc || 'Consultor'}</Text>
                     <View className="flex-row items-center gap-2 mb-6">
-                      <View className="px-2 py-1 rounded-md" style={{ backgroundColor: t.secondaryContainer }}>
-                         <Text className="text-secondary font-bold text-xs">Ganancia del {CAMINO_CRECIMIENTO[(userProfile?.latest_growth_data?.level?.description || 'Consultor') as keyof typeof CAMINO_CRECIMIENTO]?.profitPercentage || 25}%</Text>
-                      </View>
-                      <Text className="text-sm font-bold text-on-surface-variant">{userProfile?.latest_growth_data?.nextLevelProgress?.currentValue?.toLocaleString() || 0} <Text className="font-normal">pts acumulados</Text></Text>
+                      {!!growthProfit && (
+                        <View className="px-2 py-1 rounded-md" style={{ backgroundColor: t.secondaryContainer }}>
+                          <Text className="text-secondary font-bold text-xs">Ganancia del {growthProfit}%</Text>
+                        </View>
+                      )}
+                      <Text className="text-sm font-bold text-on-surface-variant">
+                        {gData?.level ? (gData.nextLevelProgress?.currentValue?.toLocaleString() || 0) : '0 (Sin sincronizar)'} <Text className="font-normal">pts acumulados</Text>
+                      </Text>
                     </View>
 
                     <View className="flex-row justify-between items-end mb-2">
@@ -313,13 +328,22 @@ export default function DashboardScreen() {
                     <View className="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden mb-2">
                       <View className="h-full bg-secondary rounded-full" style={{ width: `${Math.min(100, userProfile?.latest_growth_data?.nextLevelProgress?.progressPercentage || 0)}%` }} />
                     </View>
-                    <View className="flex-row justify-between items-center mb-6">
+                    <View className={`flex-row justify-between items-center ${maintenanceGap > 0 ? 'mb-3' : 'mb-6'}`}>
                       <Text className="text-xs text-on-surface-variant">Faltan <Text className="font-bold text-on-surface">{userProfile?.latest_growth_data?.nextLevelProgress?.gap?.toLocaleString() || 0} pts</Text></Text>
                       <Text className="text-xs text-on-surface-variant">{userProfile?.latest_growth_data?.period?.daysFinalDate || 0} días para cerrar</Text>
                     </View>
 
+                    {maintenanceGap > 0 && (
+                      <View className="mb-6 pt-4 border-t border-outline-variant flex-row items-center gap-2">
+                        <Text className="text-error text-xs">ⓘ</Text>
+                        <Text className="text-xs text-on-surface-variant flex-1">
+                          <Text className="font-bold">Mantenimiento:</Text> Faltan {maintenanceGap} pts para conservar el nivel {growthLevelDesc}.
+                        </Text>
+                      </View>
+                    )}
+
                     <TouchableOpacity onPress={() => setSyncModalVisible(true)} className="w-full py-4 bg-surface-container-highest rounded-2xl flex-row justify-center items-center gap-2 border border-outline-variant">
-                      <Text className="text-on-surface font-bold">☁️ Sincronización Silenciosa</Text>
+                      <Text className="text-on-surface font-bold">☁️ {hasSyncedBefore ? 'Sincronización Silenciosa' : 'Sincronizar'}</Text>
                     </TouchableOpacity>
                   </>
                 )}
@@ -337,7 +361,7 @@ export default function DashboardScreen() {
                   )}
                   <TouchableOpacity onPress={openGoalModal}>
                     <Text className={`text-xs mt-2 text-right ${goalReached ? 'text-secondary font-bold' : 'text-on-surface-variant'}`}>
-                      {goalAmount > 0 ? (goalReached ? '🎉 ¡META ALCANZADA!' : `Meta: $${goalAmount.toLocaleString('es-MX')} (${goalPct.toFixed(0)}%)`) : 'Definir meta →'}
+                      {goalAmount > 0 ? (goalReached ? '🎉 ¡META ALCANZADA!' : `Meta: $${goalAmount.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${goalPct.toFixed(0)}%)`) : 'Definir meta →'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -350,7 +374,7 @@ export default function DashboardScreen() {
 
                 <TouchableOpacity activeOpacity={0.85} onPress={() => router.push({ pathname: '/sales', params: { filter: 'pending' } } as any)} className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-error">Cobranza Pendiente</Text>
-                  <Text className="text-4xl font-serif mt-2 text-error">${data?.kpis?.pending_debt?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</Text>
+                  <Text className="text-4xl font-serif mt-2 text-error">${data?.kpis?.pending_debt?.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</Text>
                   <Text className="text-xs font-bold text-error mt-4">Ver ventas con saldo →</Text>
                 </TouchableOpacity>
 
@@ -393,32 +417,9 @@ export default function DashboardScreen() {
                     ))}
                   </View>
                 ) : (
-                  <View className="items-center py-6"><Text className="text-on-surface-variant">Sin ventas</Text></View>
+                  <View className="items-center py-6"><Text className="text-on-surface-variant">Sin ventas este mes. ¡Empieza una!</Text></View>
                 )}
               </View>
-
-              {/* Cobros pendientes: cobrar sin abrir la venta */}
-              {data?.upcoming_payments?.length > 0 && (
-                <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
-                  <View className="flex-row justify-between items-center mb-4 border-b border-surface-container pb-4">
-                    <Text className="text-xl font-serif font-bold text-primary">💸 Cobros Pendientes</Text>
-                    <TouchableOpacity onPress={() => router.push({ pathname: '/sales', params: { filter: 'pending' } } as any)}>
-                      <Text className="text-xs font-bold text-primary-container">Ver todos →</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {data.upcoming_payments.slice(0, 3).map((p: any, idx: number) => (
-                    <View key={p.id} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
-                      <TouchableOpacity className="flex-1 pr-3" onPress={() => router.push({ pathname: '/sales/[id]', params: { id: p.id } } as any)}>
-                        <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{p.customer_name}</Text>
-                        <Text className="text-on-surface-variant text-xs mt-0.5">Saldo {formatMoney(Number(Number(p.balance)))}</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity className="bg-primary px-4 py-2 rounded-full" onPress={() => setCollectItem(p)}>
-                        <Text className="text-white font-bold text-xs">Cobrar</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              )}
 
               {/* Acciones Rápidas */}
               <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
@@ -447,7 +448,9 @@ export default function DashboardScreen() {
               <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
                 <View className="flex-row justify-between items-center mb-6">
                   <Text className="text-lg font-serif font-bold text-secondary">⭐ Top Clientes</Text>
-                  <Text className="text-primary text-xs font-bold">Ver todos</Text>
+                  <TouchableOpacity onPress={() => router.push('/customers')}>
+                    <Text className="text-primary text-xs font-bold">Ver todos</Text>
+                  </TouchableOpacity>
                 </View>
                 {data?.top_clients?.map((c: any, idx: number) => (
                   <View key={idx} className="flex-row items-center justify-between mb-4">
@@ -465,13 +468,14 @@ export default function DashboardScreen() {
                 <Text className="text-xl font-serif font-bold text-error mb-6">⚠️ Alertas de Stock</Text>
                 {data?.stock_alerts?.length > 0 ? (
                   data.stock_alerts.map((item: any, idx: number) => (
-                    <View key={idx} className={`flex-row justify-between items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                    <View key={idx} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                      <Text className={`font-bold text-xs px-2 py-1 rounded-md mr-2 ${item.is_out ? 'text-error' : 'text-primary'}`} style={{ backgroundColor: (item.is_out ? t.error : t.primary) + '1A' }}>{item.is_out ? 'AGOTADO' : `${item.stock} uds`}</Text>
                       <Text className="flex-1 font-bold text-on-surface text-sm pr-2" numberOfLines={1}>{item.product_name}</Text>
-                      <Text className="text-error font-bold text-sm px-2 py-1 rounded-md" style={{ backgroundColor: t.error + '1A' }}>{item.quantity} rest</Text>
+                      <Text className="text-xs text-on-surface-variant">{item.category || ''}</Text>
                     </View>
                   ))
                 ) : (
-                  <View className="items-center py-4"><Text className="text-on-surface-variant">Sin alertas de stock bajo</Text></View>
+                  <View className="items-center py-4"><Text className="text-on-surface-variant">¡Todo en orden! No hay alertas de stock.</Text></View>
                 )}
               </View>
 
@@ -480,33 +484,43 @@ export default function DashboardScreen() {
                 <Text className="text-xl font-serif font-bold text-primary mb-6">📈 Más Vendidos</Text>
                 {data?.top_products?.length > 0 ? (
                   data.top_products.map((item: any, idx: number) => (
-                    <View key={idx} className={`flex-row justify-between items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
-                      <Text className="flex-1 font-bold text-on-surface text-sm pr-2" numberOfLines={1}>{item.product_name}</Text>
-                      <Text className="text-primary font-bold text-sm">{item.units_sold} ud</Text>
+                    <View key={idx} className={`py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                      <View className="flex-row justify-between items-center">
+                        <Text className="flex-1 font-bold text-on-surface text-sm pr-2" numberOfLines={1}>{item.product_name}</Text>
+                        <Text className="text-primary font-bold text-sm">{formatMoney(Number(item.revenue))}</Text>
+                      </View>
+                      <Text className="text-xs text-on-surface-variant mt-1">{item.units_sold} unidades vendidas</Text>
                     </View>
                   ))
                 ) : (
-                  <View className="items-center py-4"><Text className="text-on-surface-variant">Sin datos suficientes</Text></View>
+                  <View className="items-center py-4"><Text className="text-on-surface-variant">Sin ventas para analizar.</Text></View>
                 )}
               </View>
 
               {/* Próximos Cobros */}
               <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm mb-6">
-                <Text className="text-xl font-serif font-bold text-secondary mb-6 flex-row items-center">⏳ Próximos Cobros</Text>
+                <View className="flex-row items-center gap-2 mb-6">
+                  <Text className="text-xl font-serif font-bold text-secondary">⏳ Próximos Cobros</Text>
+                  {data?.upcoming_payments?.length > 0 && (
+                    <View className="px-2 py-0.5 rounded-full bg-primary-container">
+                      <Text className="text-xs font-bold text-primary">{data.upcoming_payments.length}</Text>
+                    </View>
+                  )}
+                </View>
                 {data?.upcoming_payments?.length > 0 ? (
                   data.upcoming_payments.map((item: any, idx: number) => (
-                    <View key={idx} className={`flex-row justify-between items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
-                      <View className="flex-1 pr-2">
+                    <View key={item.id ?? idx} className={`flex-row items-center py-3 ${idx > 0 ? 'border-t border-surface-container' : ''}`}>
+                      <TouchableOpacity className="flex-1 pr-3" onPress={() => router.push({ pathname: '/sales/[id]', params: { id: item.id } } as any)}>
                         <Text className="font-bold text-on-surface text-sm" numberOfLines={1}>{item.customer_name}</Text>
-                        <Text className="text-on-surface-variant text-[10px] mt-1">{item.items_summary}</Text>
-                      </View>
-                      <View className="items-end shrink-0">
-                        <Text className="font-bold text-secondary text-sm">{formatMoney(Number(Number(item.total_amount)))}</Text>
-                      </View>
+                        <Text className="text-on-surface-variant text-xs mt-0.5">Saldo {formatMoney(Number(item.balance))} · {item.items_summary}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity className="bg-primary px-4 py-2 rounded-full" onPress={() => setCollectItem(item)}>
+                        <Text className="text-white font-bold text-xs">Cobrar</Text>
+                      </TouchableOpacity>
                     </View>
                   ))
                 ) : (
-                  <View className="items-center py-4"><Text className="text-on-surface-variant">Sin cobros pendientes</Text></View>
+                  <View className="items-center py-4"><Text className="text-on-surface-variant">No hay pagos pendientes.</Text></View>
                 )}
               </View>
             </>
@@ -541,7 +555,7 @@ export default function DashboardScreen() {
                     </Text>
                   </>
                 ) : (
-                  <Text className="text-sm text-on-surface-variant">0 pts (sin sincronizar)</Text>
+                  <Text className="text-sm text-on-surface-variant">0 (Sin sincronizar)</Text>
                 )}
                 {hasSyncedBefore && (
                   <Text className="text-xs text-on-surface-variant mt-2">

@@ -494,26 +494,19 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     resultFound.classList.add("hidden");
     resultLink.classList.add("hidden");
 
-    // Step 1: Check if this EAN is already linked
-    const { data: barcodeData } = await supabase
-      .from("product_barcodes")
-      .select(
-        "product_id, products ( id, name, code, brand, category, price, cost, points, image_url )",
-      )
-      .eq("ean", ean)
-      .maybeSingle();
+    // Step 1: Check if this EAN is already linked (shared lookup: barcodes → product code)
+    const product = await api.products.findByBarcode(ean);
 
-    if (barcodeData?.products) {
+    if (product) {
       // Found! Show product
-      showFoundProduct(ean, barcodeData.products);
+      showFoundProduct(ean, product);
     } else {
       // Not linked — show linking UI
       showLinkUI(ean);
     }
 
     // Add to recent scans
-    const product = barcodeData?.products as any;
-    const name = product?.name || "Producto no vinculado";
+    const name = (product as any)?.name || "Producto no vinculado";
     addRecentScan(ean, name);
   }
 

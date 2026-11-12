@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, ScrollView, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -16,6 +16,8 @@ export default function InventoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -61,10 +63,21 @@ export default function InventoryScreen() {
     loadInventory(true);
   };
 
-  // KPIs
+  // KPIs (over full inventory, same as web inventario.astro updateStats)
   const totalProducts = items.length;
-  const categoriesCount = new Set(items.map(i => i.category || 'General')).size;
+  const brandsCount = new Set(items.map(i => i.brand).filter(Boolean)).size;
+  const categoriesCount = new Set(items.map(i => i.category).filter(Boolean)).size;
   const inStock = items.filter(i => i.quantity > 0).length;
+
+  // Brand / category chip filters (client-side, like web filters)
+  const brandOptions = useMemo(() =>
+    [...new Set(items.map(i => i.brand).filter(Boolean))].sort() as string[], [items]);
+  const categoryOptions = useMemo(() =>
+    [...new Set(items.map(i => i.category).filter(Boolean))].sort() as string[], [items]);
+  const filteredItems = items.filter(i =>
+    (brandFilter === 'all' || i.brand === brandFilter) &&
+    (categoryFilter === 'all' || i.category === categoryFilter)
+  );
 
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -186,7 +199,7 @@ export default function InventoryScreen() {
         </View>
       </View>
 
-      {/* KPI Cards */}
+      {/* KPI Cards (same set as web: Productos, Marcas, Categorías, En stock) */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6 overflow-visible">
         <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-40 flex-row items-center gap-3 shadow-sm border border-outline-variant">
           <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.primary + '1A' }}>
@@ -197,14 +210,14 @@ export default function InventoryScreen() {
             <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Productos</Text>
           </View>
         </View>
-        
+
         <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
           <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.secondary + '1A' }}>
-            <MaterialIcons name="check-circle" size={20} color={t.onSurfaceVariant} />
+            <MaterialIcons name="local-offer" size={20} color={t.onSurfaceVariant} />
           </View>
           <View>
-            <Text className="text-xl font-serif font-bold text-on-surface">{inStock}</Text>
-            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">En Stock</Text>
+            <Text className="text-xl font-serif font-bold text-on-surface">{brandsCount}</Text>
+            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Marcas</Text>
           </View>
         </View>
 
@@ -215,6 +228,16 @@ export default function InventoryScreen() {
           <View>
             <Text className="text-xl font-serif font-bold text-on-surface">{categoriesCount}</Text>
             <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">Categorías</Text>
+          </View>
+        </View>
+
+        <View className="bg-surface-container-lowest p-4 rounded-2xl mr-3 w-36 flex-row items-center gap-3 shadow-sm border border-outline-variant">
+          <View className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: t.secondary + '1A' }}>
+            <MaterialIcons name="check-circle" size={20} color={t.onSurfaceVariant} />
+          </View>
+          <View>
+            <Text className="text-xl font-serif font-bold text-on-surface">{inStock}</Text>
+            <Text className="text-[10px] text-on-surface-variant font-medium uppercase tracking-wider">En Stock</Text>
           </View>
         </View>
       </ScrollView>
@@ -230,6 +253,64 @@ export default function InventoryScreen() {
           onChangeText={setSearch}
         />
       </View>
+
+      {/* Brand filter chips */}
+      {brandOptions.length > 0 && (
+        <>
+          <Text className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2 ml-1">Marca</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+            <View className="flex-row gap-2">
+              {[{ label: 'Todas', value: 'all' }, ...brandOptions.map(b => ({ label: b, value: b }))].map(opt => {
+                const active = brandFilter === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    onPress={() => setBrandFilter(opt.value)}
+                    className="px-3 py-1.5 rounded-full border"
+                    style={{
+                      backgroundColor: active ? t.primary + '1A' : t.surfaceContainerHighest,
+                      borderColor: active ? t.primary : 'transparent',
+                    }}
+                  >
+                    <Text className="text-[11px] font-bold" style={{ color: active ? t.primary : t.onSurfaceVariant }}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </>
+      )}
+
+      {/* Category filter chips */}
+      {categoryOptions.length > 0 && (
+        <>
+          <Text className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-2 ml-1">Categoría</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-3">
+            <View className="flex-row gap-2">
+              {[{ label: 'Todas', value: 'all' }, ...categoryOptions.map(c => ({ label: c, value: c }))].map(opt => {
+                const active = categoryFilter === opt.value;
+                return (
+                  <TouchableOpacity
+                    key={opt.value}
+                    onPress={() => setCategoryFilter(opt.value)}
+                    className="px-3 py-1.5 rounded-full border"
+                    style={{
+                      backgroundColor: active ? t.primary + '1A' : t.surfaceContainerHighest,
+                      borderColor: active ? t.primary : 'transparent',
+                    }}
+                  >
+                    <Text className="text-[11px] font-bold" style={{ color: active ? t.primary : t.onSurfaceVariant }}>
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </>
+      )}
 
       {/* Quick Actions */}
       <View className="flex-row flex-wrap justify-between mb-2">
@@ -293,7 +374,7 @@ export default function InventoryScreen() {
         </View>
       ) : (
         <FlatList
-          data={items}
+          data={filteredItems}
           keyExtractor={(item) => item.product_id}
           renderItem={renderItem}
           numColumns={2}
@@ -304,11 +385,27 @@ export default function InventoryScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[t.primary]} tintColor={t.primary} />}
           ListEmptyComponent={
             loadError ? <ErrorState message={loadError} onRetry={() => loadInventory()} /> :
-            <View className="items-center justify-center py-16">
-              <MaterialIcons name="inventory-2" size={64} color={t.surfaceContainerHighest} />
-              <Text className="text-on-surface mt-4 font-bold text-lg">Tu inventario está vacío</Text>
-              <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">Carga productos desde la web para verlos aquí.</Text>
-            </View>
+            items.length === 0 ? (
+              <View className="items-center justify-center py-16">
+                <MaterialIcons name="inventory-2" size={64} color={t.surfaceContainerHighest} />
+                <Text className="text-on-surface mt-4 font-bold text-lg">No tienes productos en tu inventario aún.</Text>
+                <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">
+                  Ve a{' '}
+                  <Text className="text-primary font-bold underline" onPress={() => router.push('/inventory/import')}>
+                    Importar Natura
+                  </Text>
+                  {' '}para cargar tu catálogo.
+                </Text>
+              </View>
+            ) : (
+              <View className="items-center justify-center py-16">
+                <MaterialIcons name="filter-list-off" size={64} color={t.surfaceContainerHighest} />
+                <Text className="text-on-surface mt-4 font-bold text-lg">Sin resultados con los filtros</Text>
+                <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">
+                  Prueba con otra marca, categoría o término de búsqueda.
+                </Text>
+              </View>
+            )
           }
         />
       )}

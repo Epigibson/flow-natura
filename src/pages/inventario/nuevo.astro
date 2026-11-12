@@ -403,7 +403,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
           </div>
 
           <!-- Pricing -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div>
               <label
                 class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
@@ -440,6 +440,21 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
                 />
               </div>
               <p class="text-[10px] text-on-surface-variant mt-1 ml-1">Auto-calculado. Puedes sobrescribirlo.</p>
+            </div>
+            <div>
+              <label
+                class="block text-sm font-bold text-on-surface-variant mb-2 ml-1"
+                for="points"
+              >Puntos</label>
+              <div class="relative flex items-center">
+                <input
+                  type="number"
+                  min="0"
+                  id="points"
+                  class="w-full px-5 py-4 bg-surface-container-highest border-none rounded-xl focus:ring-2 focus:ring-primary-container"
+                  placeholder="0"
+                />
+              </div>
             </div>
           </div>
 
@@ -618,6 +633,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
   const stockInput = document.getElementById("stock") as HTMLInputElement;
   const costInput = document.getElementById("cost") as HTMLInputElement;
   const priceInput = document.getElementById("price") as HTMLInputElement;
+  const pointsInput = document.getElementById("points") as HTMLInputElement;
   const btnSave = document.getElementById("btn-save") as HTMLButtonElement;
   const errorDiv = document.getElementById("form-error") as HTMLElement;
   const successDiv = document.getElementById("form-success") as HTMLElement;
@@ -1473,6 +1489,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     const qty = parseInt(stockInput.value) || 0;
     const cost = parseFloat(costInput.value) || 0;
     const price = parseFloat(priceInput.value) || 0;
+    const points = parseInt(pointsInput.value) || 0;
 
     if (!code || !name || qty < 1 || cost <= 0 || price <= 0) {
       showError("Por favor completa todos los campos requeridos con valores válidos.");
@@ -1525,6 +1542,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
         description: description || null,
         price,
         cost,
+        points,
         stock: qty,
       };
       if (imageUrl) productPayload.image_url = imageUrl;
@@ -1547,6 +1565,7 @@ import DashboardLayout from "../../layouts/DashboardLayout.astro";
     stockInput.value = "1";
     costInput.value = "";
     priceInput.value = "";
+    pointsInput.value = "";
     scannedEan = "";
     scannedEanInput.value = "";
     capturedImageBase64 = "";

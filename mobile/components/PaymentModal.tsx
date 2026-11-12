@@ -29,13 +29,14 @@ export function PaymentModal({ visible, orderId, customerName, balance, suggeste
   const submit = async () => {
     if (saving) return;
     const value = parseAmount(amount);
-    if (isNaN(value) || value <= 0) return Alert.alert('Monto inválido', 'Ingresa un monto mayor a 0.');
-    if (value > balance + 0.005) return Alert.alert('Monto excedido', `El monto no puede ser mayor al saldo (${formatMoney(balance)}).`);
+    if (isNaN(value) || value <= 0) return Alert.alert('Monto inválido', 'Por favor ingresa un monto válido mayor a 0.');
+    if (value > balance + 0.005) return Alert.alert('Monto excedido', `El monto no puede ser mayor al saldo pendiente ($${balance.toFixed(2)}).`);
 
     setSaving(true);
     try {
       await api.orders.addPayment(orderId, value);
       haptic.success();
+      Alert.alert('Éxito', `Abono de ${formatMoney(value)} registrado`);
       onSaved();
       onClose();
     } catch (e) {

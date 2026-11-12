@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import api from '../../../src/lib/api';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { useThemeColors } from '../../hooks/use-theme-colors';
@@ -82,12 +84,43 @@ export default function ImportScreen() {
     }
   };
 
-  // ── Preview stats ──
+  // ── Preview stats (same as web importar.astro: Productos, Categorías, Costo Prom., Precio Prom.) + Errores ──
   const stats = {
     total: rows.length,
-    brands: new Set(rows.map(r => r.brand).filter(Boolean)).size,
     categories: new Set(rows.map(r => r.category).filter(Boolean)).size,
+    avgCost: rows.length ? rows.reduce((s, r) => s + (r.cost || 0), 0) / rows.length : 0,
+    avgPrice: rows.length ? rows.reduce((s, r) => s + (r.price || 0), 0) / rows.length : 0,
     errors: rows.filter(r => r.invalid).length,
+  };
+
+  // ── Export JSON via expo-file-system + expo-sharing (same pattern as dashboard CSV export) ──
+  const handleExportJson = async () => {
+    if (!rows.length) return;
+    try {
+      const payload = JSON.stringify(rows.map(r => ({
+        code: r.code,
+        name: r.name,
+        brand: r.brand,
+        category: r.category,
+        price: r.price,
+        cost: r.cost,
+        points: r.points,
+        image_url: r.image_url,
+      })), null, 2);
+      const FS: any = FileSystem;
+      const filename = 'natura-productos-importados.json';
+      const fileUri = FS.documentDirectory + filename;
+      await FS.writeAsStringAsync(fileUri, payload, { encoding: FS.EncodingType.UTF8 });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, { mimeType: 'application/json', dialogTitle: 'Compartir ' + filename });
+      } else {
+        Alert.alert('Error', 'No se puede compartir en este dispositivo.');
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'No se pudo generar el archivo.');
+    }
   };
 
   // ── Import in batches of 100 (same contract and messages as web importar.astro) ──
@@ -215,15 +248,16 @@ export default function ImportScreen() {
             <Text className="font-bold text-on-surface">Previsualización e Importación</Text>
           </View>
 
-          {/* Stats */}
-          <View className="flex-row gap-3 mb-4">
+          {/* Stats (web importar.astro preview stats + Errores) */}
+          <View className="flex-row flex-wrap gap-2 mb-4">
             {[
               { label: 'Productos', value: String(stats.total), color: t.primary },
-              { label: 'Marcas', value: String(stats.brands), color: t.secondary },
               { label: 'Categorías', value: String(stats.categories), color: t.accent },
+              { label: 'Costo Prom.', value: `$${stats.avgCost.toFixed(0)}`, color: t.secondary },
+              { label: 'Precio Prom.', value: `$${stats.avgPrice.toFixed(0)}`, color: t.primary },
               { label: 'Errores', value: String(stats.errors), color: stats.errors > 0 ? t.error : t.secondary },
             ].map(s => (
-              <View key={s.label} className="flex-1 rounded-xl p-3 items-center" style={{ backgroundColor: s.color + '0D' }}>
+              <View key={s.label} className="w-[30.5%] rounded-xl p-3 items-center" style={{ backgroundColor: s.color + '0D' }}>
                 <Text className="text-lg font-bold" style={{ color: s.color }}>{s.value}</Text>
                 <Text className="text-[9px] text-on-surface-variant font-bold uppercase tracking-wider">{s.label}</Text>
               </View>
@@ -282,6 +316,16 @@ export default function ImportScreen() {
                 <Text className="text-white font-bold text-sm">Importar a mi BD</Text>
               </>
             )}
+          </TouchableOpacity>
+
+          {/* Export JSON (mobile: expo-file-system + expo-sharing, like dashboard CSV export) */}
+          <TouchableOpacity
+            onPress={handleExportJson}
+            className="mt-3 py-3 rounded-xl flex-row items-center justify-center gap-2 border-2"
+            style={{ borderColor: t.primary + '33' }}
+          >
+            <MaterialIcons name="download" size={16} color={t.primary} />
+            <Text className="font-bold text-sm" style={{ color: t.primary }}>Exportar JSON</Text>
           </TouchableOpacity>
 
           {!!progress && (

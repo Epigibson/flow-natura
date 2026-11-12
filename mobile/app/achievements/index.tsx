@@ -170,8 +170,8 @@ export default function AchievementsScreen() {
             <View className="flex-row gap-2 mb-3">
               {([
                 { key: 'all', label: 'Todos' },
-                { key: 'unlocked', label: 'Desbloqueados' },
-                { key: 'locked', label: 'Bloqueados' },
+                { key: 'unlocked', label: 'Logrados' },
+                { key: 'locked', label: 'Pendientes' },
               ] as const).map(f => {
                 const active = badgeFilter === f.key;
                 return (

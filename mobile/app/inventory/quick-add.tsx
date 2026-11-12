@@ -59,7 +59,7 @@ export default function QuickAddScreen() {
   }
 
   function setQuantity(id: string, val: number) {
-    setQuantities(prev => ({ ...prev, [id]: Math.max(1, val) }));
+    setQuantities(prev => ({ ...prev, [id]: Math.min(999, Math.max(1, val)) }));
   }
 
   async function handleAddToInventory(product: any) {
@@ -104,40 +104,40 @@ export default function QuickAddScreen() {
           </View>
         </View>
 
-        {isInInventory ? (
-          <View className="mt-3 bg-secondary/10 py-2 rounded-xl flex-row items-center justify-center gap-2">
-            <MaterialIcons name="check-circle" size={16} color={t.secondary} />
-            <Text className="text-secondary font-bold text-xs">Ya está en tu inventario</Text>
-          </View>
-        ) : (
-          <View className="mt-3 flex-row items-center gap-2">
-            {/* Quantity controls */}
-            <View className="flex-row items-center bg-surface-container-highest rounded-xl overflow-hidden">
-              <TouchableOpacity className="px-3 py-2" onPress={() => setQuantity(item.id, qty - 1)}>
-                <MaterialIcons name="remove" size={18} color={t.onSurfaceVariant} />
-              </TouchableOpacity>
-              <Text className="px-3 font-bold text-on-surface text-base">{qty}</Text>
-              <TouchableOpacity className="px-3 py-2" onPress={() => setQuantity(item.id, qty + 1)}>
-                <MaterialIcons name="add" size={18} color={t.onSurfaceVariant} />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              className="flex-1 bg-primary py-3 rounded-xl flex-row items-center justify-center gap-2"
-              onPress={() => handleAddToInventory(item)}
-              disabled={isAdding}
-            >
-              {isAdding ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <MaterialIcons name="add-shopping-cart" size={16} color="#fff" />
-                  <Text className="text-white font-bold text-xs">Agregar al Inventario</Text>
-                </>
-              )}
-            </TouchableOpacity>
+        {/* Always allow adding more units (accumulates like web alta.astro) */}
+        {isInInventory && (
+          <View className="mt-2 flex-row items-center gap-1.5">
+            <MaterialIcons name="check-circle" size={14} color={t.secondary} />
+            <Text className="text-secondary font-bold text-[10px]">Ya está en tu inventario — puedes sumar más unidades</Text>
           </View>
         )}
+        <View className="mt-3 flex-row items-center gap-2">
+          {/* Quantity controls */}
+          <View className="flex-row items-center bg-surface-container-highest rounded-xl overflow-hidden">
+            <TouchableOpacity className="px-3 py-2" onPress={() => setQuantity(item.id, qty - 1)} disabled={qty <= 1}>
+              <MaterialIcons name="remove" size={18} color={qty <= 1 ? t.muted : t.onSurfaceVariant} />
+            </TouchableOpacity>
+            <Text className="px-3 font-bold text-on-surface text-base">{qty}</Text>
+            <TouchableOpacity className="px-3 py-2" onPress={() => setQuantity(item.id, qty + 1)} disabled={qty >= 999}>
+              <MaterialIcons name="add" size={18} color={qty >= 999 ? t.muted : t.onSurfaceVariant} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            className="flex-1 bg-primary py-3 rounded-xl flex-row items-center justify-center gap-2"
+            onPress={() => handleAddToInventory(item)}
+            disabled={isAdding}
+          >
+            {isAdding ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <MaterialIcons name="add-shopping-cart" size={16} color="#fff" />
+                <Text className="text-white font-bold text-xs">Agregar al Inventario</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };

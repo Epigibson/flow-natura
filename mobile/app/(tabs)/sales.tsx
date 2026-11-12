@@ -6,7 +6,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { PaymentModal } from '../../components/PaymentModal';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
-import { formatMoney, formatFolio } from '../../../src/lib/orders';
+import { formatMoney, formatFolio, MONEY_EPSILON } from '../../../src/lib/orders';
 import { ErrorState } from '../../components/ErrorState';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 
@@ -18,6 +18,7 @@ export default function SalesScreen() {
   const [search, setSearch] = useState('');
   const params = useLocalSearchParams<{ filter?: string }>();
   const [filter, setFilter] = useState<'all' | 'pending'>(params.filter === 'pending' ? 'pending' : 'all');
+  const [period, setPeriod] = useState<'30' | 'month' | 'all'>('30');
   const [collectOrder, setCollectOrder] = useState<any>(null);
   const [showCancelled, setShowCancelled] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -63,14 +64,26 @@ export default function SalesScreen() {
   const validOrders = orders.filter(o => o.status !== 'cancelled');
   const totalVentas = validOrders.reduce((sum, o) => sum + Number(o.total_amount), 0);
   const totalCobrar = validOrders.reduce((sum, o) => sum + (o._debt > 0 ? o._debt : 0), 0);
-  const abonosActivos = validOrders.filter(o => o._isAbonos && o._debt > 0).length;
+  const abonosActivos = validOrders.filter(o => o._isAbonos && o._debt > MONEY_EPSILON).length;
 
   const filteredOrders = orders.filter(o => {
     const term = search.toLowerCase();
-    const matchesSearch = !term || (o.customer_name || '').toLowerCase().includes(term) || o.id.includes(term);
+    const folio = formatFolio(o.id).toLowerCase();
+    const matchesSearch = !term || (o.customer_name || '').toLowerCase().includes(term) || folio.includes(term);
     const matchesFilter = filter === 'all' || (filter === 'pending' && o._debt > 0.01);
     const matchesStatus = showCancelled ? true : o.status !== 'cancelled';
-    return matchesSearch && matchesFilter && matchesStatus;
+    // Period filter (web ventas/index.astro)
+    let matchesPeriod = true;
+    if (period !== 'all') {
+      const orderDate = new Date(o.created_at);
+      const now = new Date();
+      if (period === '30') {
+        matchesPeriod = orderDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else if (period === 'month') {
+        matchesPeriod = orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+      }
+    }
+    return matchesSearch && matchesFilter && matchesStatus && matchesPeriod;
   });
 
   const handleStatusChange = (orderId: string, action: 'deliver' | 'cancel') => {
@@ -202,7 +215,7 @@ export default function SalesScreen() {
           <Text className="text-3xl font-serif font-bold text-primary">
             ${totalCobrar.toLocaleString('es-MX', {minimumFractionDigits: 2})}
           </Text>
-          <Text className="text-on-surface-variant text-[10px] font-medium mt-1">{abonosActivos} abonos activos</Text>
+          <Text className="text-on-surface-variant text-[10px] font-medium mt-1">{abonosActivos} abonos activos con deuda</Text>
           <MaterialIcons name="schedule" size={80} color={t.primary + '1A'} style={{position: 'absolute', bottom: -10, right: -10}} />
         </TouchableOpacity>
 
@@ -229,6 +242,24 @@ export default function SalesScreen() {
           value={search}
           onChangeText={setSearch}
         />
+      </View>
+
+      {/* Periodo (web ventas/index.astro) */}
+      <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Periodo</Text>
+      <View className="flex-row gap-2 mb-4">
+        {([
+          { key: '30', label: 'Últimos 30 días' },
+          { key: 'month', label: 'Este mes' },
+          { key: 'all', label: 'Todos los tiempos' },
+        ] as const).map(p => (
+          <TouchableOpacity
+            key={p.key}
+            onPress={() => setPeriod(p.key)}
+            className={`px-3 py-1.5 rounded-xl ${period === p.key ? 'bg-primary shadow-sm' : 'bg-surface-container'}`}
+          >
+            <Text className={`text-xs font-bold ${period === p.key ? 'text-white' : 'text-on-surface-variant'}`}>{p.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View className="flex-row gap-2">

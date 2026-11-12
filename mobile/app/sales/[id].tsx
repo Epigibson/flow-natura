@@ -8,7 +8,7 @@ import { useThemeColors } from '../../hooks/use-theme-colors';
 import { whatsappPhone } from '../../../src/lib/phone';
 import { PaymentModal } from '../../components/PaymentModal';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
-import { formatMoney, formatFolio, summarizeOrder, parseAmount, errorMessage } from '../../../src/lib/orders';
+import { formatMoney, formatFolio, summarizeOrder, parseAmount, errorMessage, buildTicketMessage } from '../../../src/lib/orders';
 import { haptic } from '../../lib/haptics';
 
 export default function OrderDetailScreen() {
@@ -144,22 +144,8 @@ export default function OrderDetailScreen() {
       return;
     }
 
-    const items = order.order_items || [];
-    const itemsText = items.map((item: any) => 
-      `  • ${item.products?.name || 'Producto'} x${item.quantity} — ${formatMoney(Number((item.quantity * Number(item.unit_price))))}`
-    ).join('\n');
-
-    const msg = `🧾 *TICKET DE VENTA — Flow Natura*\n\n` +
-      `📋 Folio: *#${folio}*\n` +
-      `📅 Fecha: ${new Date(order.created_at).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}\n` +
-      `👤 Cliente: ${cName}\n\n` +
-      `─────────────────\n` +
-      `*PRODUCTOS:*\n${itemsText}\n` +
-      `─────────────────\n\n` +
-      `💰 *Total: ${formatMoney(Number(Number(order.total_amount)))} MXN*\n` +
-      `📦 Método: ${isAbonos ? 'Abonos' : 'Contado'}\n` +
-      (debtRemaining > 0 ? `⚠️ *Saldo pendiente: ${formatMoney(Number(debtRemaining))} MXN*\n` : '') +
-      `\n¡Gracias por tu compra! 🌿💚`;
+    // Same ticket text as the web (ventas/detalle.astro) via shared contract
+    const msg = buildTicketMessage(order, sum, cName);
 
     Linking.openURL(`whatsapp://send?phone=${phone}&text=${encodeURIComponent(msg)}`).catch(() => {
       Alert.alert('Error', 'No se pudo abrir WhatsApp.');

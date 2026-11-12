@@ -81,6 +81,8 @@ export default function MembershipScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
+  const [stripePrices, setStripePrices] = useState<Record<string, { monthly: number; annual_total: number; annual_per_month: number; discount?: number }> | null>(null);
+  const [usageStats, setUsageStats] = useState<{ products: number; clients: number; orders: number; revenue: number } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -97,6 +99,31 @@ export default function MembershipScreen() {
       setLoadError('No se pudo cargar tu membresía.');
     } finally {
       setLoading(false);
+    }
+
+    // Real prices from Stripe (web membresia.astro); fallback to getPlanPrice on failure
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${SITE_URL}/api/stripe/prices`, {
+        headers: session?.access_token ? { 'Authorization': `Bearer ${session.access_token}` } : {},
+      });
+      const priceData = await res.json();
+      if (priceData?.plans) setStripePrices(priceData.plans);
+    } catch (e) {
+      console.warn('Could not fetch Stripe prices, using defaults');
+    }
+
+    // Usage stats (web membresia.astro)
+    try {
+      const dashData: any = await api.dashboard.getData();
+      setUsageStats({
+        products: dashData.kpis?.inventory_count || 0,
+        clients: dashData.kpis?.total_customers || dashData.top_clients?.length || 0,
+        orders: dashData.kpis?.total_orders || 0,
+        revenue: Number(dashData.kpis?.total_revenue || 0),
+      });
+    } catch (e) {
+      console.warn('Could not load usage stats', e);
     }
   }
 
@@ -129,6 +156,24 @@ export default function MembershipScreen() {
   };
 
   const fmtPrice = (v: number) => '$' + (v % 1 === 0 ? String(v) : v.toFixed(2));
+
+  // Avg discount across plans from Stripe (web membresia.astro), fallback to web default
+  const avgDiscount = stripePrices
+    ? Math.round(Object.values(stripePrices).reduce((s, p) => s + (p.discount || 0), 0) / Math.max(1, Object.keys(stripePrices).length))
+    : 17;
+
+  // Stripe prices when available, static getPlanPrice otherwise
+  const resolvePrice = (planId: string, annual: boolean): number => {
+    const p = stripePrices?.[planId];
+    if (p) {
+      if (annual) {
+        const perMonth = p.annual_per_month || (p.annual_total / 12);
+        return Math.round(perMonth * 100) / 100;
+      }
+      return p.monthly;
+    }
+    return getPlanPrice(planId, annual ? 'annual' : 'monthly');
+  };
 
   const currentPlan = subscription?.plan || 'trial';
   const planStatus = subscription?.status || 'trialing';
@@ -258,6 +303,35 @@ export default function MembershipScreen() {
               </View>
             )}
 
+            {/* Usage Stats (web membresia.astro) */}
+            {usageStats && (
+              <>
+                <Text className="font-serif font-bold text-xl text-on-surface mb-4">Tu Uso</Text>
+                <View className="flex-row flex-wrap gap-3 mb-8">
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest rounded-2xl p-5 shadow-sm items-center border border-outline-variant/10">
+                    <MaterialIcons name="inventory-2" size={22} color={t.primary} />
+                    <Text className="text-2xl font-bold text-on-surface mt-1">{usageStats.products}</Text>
+                    <Text className="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Productos</Text>
+                  </View>
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest rounded-2xl p-5 shadow-sm items-center border border-outline-variant/10">
+                    <MaterialIcons name="group" size={22} color={t.secondary} />
+                    <Text className="text-2xl font-bold text-on-surface mt-1">{usageStats.clients}</Text>
+                    <Text className="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Clientes</Text>
+                  </View>
+                  <View className="flex-1 min-w-[45%] bg-surface-container-lowest rounded-2xl p-5 shadow-sm items-center border border-outline-variant/10">
+                    <MaterialIcons name="receipt-long" size={22} color={t.onSurfaceVariant} />
+                    <Text className="text-2xl font-bold text-on-surface mt-1">{usageStats.orders}</Text>
+                    <Text className="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Ventas</Text>
+                  </View>
+                  <View className="flex-1 min-w-[45%] rounded-2xl p-5 shadow-sm items-center border" style={{ backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }}>
+                    <MaterialIcons name="savings" size={22} color="#15803d" />
+                    <Text className="text-2xl font-bold mt-1" style={{ color: '#15803d' }}>${usageStats.revenue.toLocaleString('es-MX', { minimumFractionDigits: 0 })}</Text>
+                    <Text className="text-[10px] text-on-surface-variant mt-1 font-bold uppercase tracking-wider">Gestionado</Text>
+                  </View>
+                </View>
+              </>
+            )}
+
             {/* Planes */}
             <View className="flex-row items-center justify-between mb-4">
               <Text className="font-serif font-bold text-xl text-on-surface">Planes Disponibles</Text>
@@ -273,7 +347,7 @@ export default function MembershipScreen() {
                   className={`px-4 py-2 rounded-lg ${isAnnual ? 'bg-primary' : ''}`}
                 >
                   <Text className={`text-xs font-bold ${isAnnual ? 'text-white' : 'text-on-surface-variant'}`}>
-                    Anual <Text className="text-[10px] text-secondary">-17%</Text>
+                    Anual <Text className="text-[10px] text-secondary">-{avgDiscount}%</Text>
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -281,7 +355,7 @@ export default function MembershipScreen() {
 
             {PLAN_CARDS.map(card => {
               const isCurrent = activePaid && currentPlan === card.id;
-              const price = getPlanPrice(card.id, isAnnual ? 'annual' : 'monthly');
+              const price = resolvePrice(card.id, isAnnual);
               return (
                 <View
                   key={card.id}
@@ -349,6 +423,16 @@ export default function MembershipScreen() {
                 </Text>
               </View>
             )}
+
+            {/* Historial de Pagos (web membresia.astro) */}
+            <Text className="font-serif font-bold text-xl text-on-surface mb-4">Historial de Pagos</Text>
+            <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 p-8 items-center mb-8">
+              <View className="w-14 h-14 bg-surface-container rounded-2xl items-center justify-center mb-3">
+                <MaterialIcons name="receipt-long" size={28} color={t.onSurfaceVariant} />
+              </View>
+              <Text className="text-on-surface-variant font-bold text-sm">Sin historial de pagos</Text>
+              <Text className="text-on-surface-variant/60 text-xs mt-1 text-center">Tu primer recibo aparecerá aquí después de tu primer pago</Text>
+            </View>
 
             {/* Cerrar Sesión */}
             <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden">

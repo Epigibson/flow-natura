@@ -9,6 +9,7 @@ import { useThemeColors } from '../../hooks/use-theme-colors';
 export default function MentoringScreen() {
   const t = useThemeColors();
   const [modules, setModules] = useState<any[]>([]);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
@@ -22,8 +23,13 @@ export default function MentoringScreen() {
     setLoading(true);
     setLoadError(null);
     try {
-      const data = await api.mentorship.getModules();
-      setModules(data || []);
+      const [modData, progressData] = await Promise.all([
+        api.mentorship.getModules(),
+        api.mentorship.getProgress(),
+      ]);
+      setModules(modData || []);
+      // getModules() does not return lesson.completed; progress rows carry lesson_id (web mentoria.astro)
+      setCompletedIds(new Set((progressData || []).map((p: any) => p.lesson_id)));
     } catch (err) {
       console.error(err);
       setLoadError('No se pudieron cargar los módulos.');
@@ -56,6 +62,17 @@ export default function MentoringScreen() {
     }
   };
 
+  // Real progress + tramo labels (web mentoria.astro)
+  const totalLessons = modules.reduce((acc, m) => acc + ((m.lessons || []).length), 0);
+  const completedCount = completedIds.size;
+  const pct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+  const progressLabel =
+    pct === 0 ? '¡Lee tu primera guía de negocio! ✨'
+    : pct < 30 ? '¡Gran inicio! Cada tip cuenta 💪'
+    : pct < 60 ? '¡Vas volando! Estás perfeccionando tu negocio 🔥'
+    : pct < 100 ? '¡Casi experta! Ya falta poco para leerlas todas 🚀'
+    : '🎉 ¡100% completado! ¡Eres toda una crack en ventas!';
+
   return (
     <SecondaryLayout title="Mentoría 🎓" scrollable={false}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 96 }} showsVerticalScrollIndicator={false}>
@@ -64,13 +81,13 @@ export default function MentoringScreen() {
         <View className="bg-primary p-6 rounded-3xl mb-8 shadow-lg shadow-primary/30 relative overflow-hidden">
           <MaterialIcons name="school" size={100} color="rgba(255,255,255,0.1)" style={{position: 'absolute', right: -10, top: -10}} />
           <Text className="text-white/80 font-bold uppercase tracking-widest text-xs mb-2">Tu Progreso</Text>
-          <Text className="text-white font-serif font-bold text-2xl mb-1">Cinturón Blanco</Text>
-          <Text className="text-white/90 text-sm mb-4">Completa módulos para subir de nivel y obtener mejores beneficios.</Text>
+          <Text className="text-white font-serif font-bold text-2xl mb-1">{pct}% completado</Text>
+          <Text className="text-white/90 text-sm mb-4">{progressLabel}</Text>
           
           <View className="h-2 bg-white/20 rounded-full overflow-hidden mb-2">
-            <View className="h-full bg-white rounded-full w-1/3" />
+            <View className="h-full bg-white rounded-full" style={{ width: `${pct}%` }} />
           </View>
-          <Text className="text-white/80 text-xs text-right font-bold">30% al siguiente nivel</Text>
+          <Text className="text-white/80 text-xs text-right font-bold">{completedCount} de {totalLessons} lecciones</Text>
         </View>
 
         {loading ? (
@@ -113,7 +130,7 @@ export default function MentoringScreen() {
                         <Text className="font-bold text-on-surface text-sm">{lesson.title}</Text>
                         <Text className="text-xs text-on-surface-variant mt-0.5">{lesson.duration_minutes} min</Text>
                       </View>
-                      {lesson.completed ? (
+                      {completedIds.has(lesson.id) ? (
                         <MaterialIcons name="check-circle" size={24} color={t.secondary} />
                       ) : (
                         <MaterialIcons name="play-circle-outline" size={24} color="#888" />
@@ -147,7 +164,7 @@ export default function MentoringScreen() {
                   {selectedLesson.content || selectedLesson.description || 'Contenido de la lección próximamente. Mantente atenta a las actualizaciones.'}
                 </Text>
 
-                {!selectedLesson.completed && (
+                {!completedIds.has(selectedLesson.id) && (
                   <TouchableOpacity 
                     className="bg-primary py-4 rounded-full flex-row items-center justify-center gap-2 shadow-lg"
                     style={{ shadowColor: t.primary }}
@@ -165,7 +182,7 @@ export default function MentoringScreen() {
                   </TouchableOpacity>
                 )}
 
-                {selectedLesson.completed && (
+                {completedIds.has(selectedLesson.id) && (
                   <View className="bg-secondary/10 p-4 rounded-2xl flex-row items-center gap-3">
                     <MaterialIcons name="check-circle" size={24} color={t.secondary} />
                     <Text className="text-secondary font-bold">¡Ya completaste esta lección!</Text>

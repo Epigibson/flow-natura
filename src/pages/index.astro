@@ -300,6 +300,7 @@ import PageLoader from '../components/PageLoader.astro';
   import { esc } from '../lib/security';
   import { supabase } from '../lib/supabase';
   import { authFetch } from '../lib/auth-fetch';
+  import { formatMoney } from '../lib/orders';
   import api, { dashboard, consultant } from '../lib/api';
 
   const { data: { session } } = await supabase.auth.getSession();
@@ -575,11 +576,10 @@ import PageLoader from '../components/PageLoader.astro';
   const totalRevenue = Number(dashData.kpis.total_revenue || 0);
   const totalDebt = Number(dashData.kpis.pending_debt || 0);
   const outOfStock = dashData.kpis.out_of_stock || 0;
-  const validOrders = dashData.recent_orders || [];
 
   (document.getElementById('kpi-revenue') as HTMLElement).textContent = '$' + totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 });
   (document.getElementById('kpi-orders') as HTMLElement).textContent = String(dashData.kpis.total_orders || 0);
-  (document.getElementById('kpi-debt') as HTMLElement).textContent = totalDebt > 0 ? '$' + totalDebt.toFixed(2) : '$0';
+  (document.getElementById('kpi-debt') as HTMLElement).textContent = formatMoney(totalDebt);
   (document.getElementById('kpi-outofstock') as HTMLElement).textContent = String(outOfStock);
 
   // ⚡ Swap skeleton → real content with fade-in
@@ -597,13 +597,13 @@ import PageLoader from '../components/PageLoader.astro';
   if (savedGoal > 0) {
     const pct = Math.min(100, (totalRevenue / savedGoal) * 100);
     goalBar.style.width = pct + '%';
-    goalText.textContent = `Meta: $${savedGoal.toLocaleString()} (${pct.toFixed(0)}%)`;
+    goalText.textContent = `Meta: ${formatMoney(savedGoal)} (${pct.toFixed(0)}%)`;
   }
 
   // Subtitle
   const subtitle = document.getElementById('subtitle') as HTMLElement;
   const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
-  subtitle.textContent = `Faltan ${daysLeft} días para cerrar el ciclo. ${validOrders.length} ventas este mes.`;
+  subtitle.textContent = `Faltan ${daysLeft} días para cerrar el ciclo. ${dashData.kpis.total_orders || 0} ventas este mes.`;
 
   // ---- RECENT ORDERS (from API) ----
   const recentContainer = document.getElementById('recent-orders') as HTMLElement;
@@ -712,7 +712,8 @@ import PageLoader from '../components/PageLoader.astro';
   document.getElementById('btn-close-goal')!.addEventListener('click', () => goalModal.close());
   document.getElementById('btn-save-goal')!.addEventListener('click', () => {
     const val = Number(goalInput.value);
-    if (val > 0) { localStorage.setItem('natura_goal', String(val)); window.location.reload(); }
+    if (val > 0) { localStorage.setItem('natura_goal', String(val)); window.location.reload(); return; }
+    toast.warning('Ingresa una meta mayor a 0.');
   });
 
   // ---- EXPORT ----

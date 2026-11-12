@@ -348,7 +348,7 @@ import PageLoader from '../../components/PageLoader.astro';
   import { supabase } from '../../lib/supabase';
   import api from '../../lib/api';
   import { esc } from '../../lib/security';
-  import { summarizeOrder, parseAmount, errorMessage, formatFolio, orderStatusChips } from '../../lib/orders';
+  import { summarizeOrder, parseAmount, errorMessage, formatFolio, orderStatusChips, buildTicketMessage } from '../../lib/orders';
   import { whatsappPhone } from '../../lib/phone';
   import { toast, confirmAction, chipHtml } from '../../lib/ui';
 
@@ -566,34 +566,7 @@ import PageLoader from '../../components/PageLoader.astro';
     if (phone && whatsappContainer && btnWhatsapp) {
       whatsappContainer.classList.remove('hidden');
       whatsappContainer.classList.add('flex');
-      const folioLabel = '#' + formatFolio(order.id);
-      const totalAmountVal = Number(order.total_amount);
-      let message = '¡Hola ' + cName + '! 👋 Espero que estés teniendo un excelente día.\n\n';
-      message += 'Te comparto el detalle de tu compra 🛍️:\n\n';
-      message += '🏷️ *Total de la compra:* $' + totalAmountVal.toFixed(2) + ' MXN\n';
-      
-      if (isAbonos || totalPaid < totalAmountVal) {
-        message += '💸 *Llevas pagado:* $' + totalPaid.toFixed(2) + ' MXN\n';
-        if (!isFullyPaid) message += '📌 *Saldo pendiente:* $' + debtRemaining.toFixed(2) + ' MXN\n';
-        else message += '✨ ¡Tu cuenta ya está totalmente pagada! 🎉\n';
-      } else {
-        message += '✨ ¡Tu compra fue de contado y ya está totalmente pagada! 🎉\n';
-      }
-      
-      message += '\n';
-      
-      if (order.status === 'delivered') {
-        if (isFullyPaid) {
-          message += 'Tu pedido ya fue entregado. ¡Espero que lo disfrutes mucho! 🥰\n\n';
-        } else {
-          message += '✅ *Pedido Entregado* 🌿\n\n';
-        }
-      } else {
-        message += 'Tu pedido está *Pendiente de Entrega*. Te avisaré en cuanto lo tenga listo para entregártelo. 🌿\n\n';
-      }
-      
-      message += '¡Muchísimas gracias por tu confianza! Cualquier duda, aquí estoy a la orden. ✨';
-      message += '\n\n_(Folio: ' + folioLabel + ')_';
+      const message = buildTicketMessage(order, sum, cName);
       const link = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
       btnWhatsapp.onclick = () => window.open(link, '_blank');
     }
