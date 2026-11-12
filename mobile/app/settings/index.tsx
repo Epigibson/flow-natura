@@ -21,6 +21,7 @@ export default function SettingsScreen() {
   const [offlineMode, setOfflineMode] = useState(true);
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Modal states
@@ -62,6 +63,7 @@ export default function SettingsScreen() {
       setAvatarUrl(data?.avatar_url || null);
     } catch (err) {
       console.error(err);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -90,6 +92,10 @@ export default function SettingsScreen() {
   };
 
   async function saveProfile() {
+    if (loadError) {
+      Alert.alert('Error', 'No se pudo cargar tu perfil. Revisa tu conexión y vuelve a intentarlo para no sobreescribir tus datos.');
+      return;
+    }
     setSaving(true);
     try {
       await api.consultant.updateProfile({
@@ -110,19 +116,21 @@ export default function SettingsScreen() {
     if (newPassword !== confirmPassword) return Alert.alert('Error', 'Las contraseñas no coinciden');
     
     setIsAuthUpdating(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsAuthUpdating(false);
-
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
-      Alert.alert('Éxito', 'Contraseña actualizada correctamente');
-      setNewPassword('');
-      setConfirmPassword('');
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        Alert.alert('Error', error.message);
+      } else {
+        Alert.alert('Éxito', 'Contraseña actualizada correctamente');
+        setNewPassword('');
+        setConfirmPassword('');
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo actualizar la contraseña');
+    } finally {
+      setIsAuthUpdating(false);
     }
   };
-
-  const catalogUrl = buildCatalogUrl(SITE_URL, currentUserId);
 
   const shareCatalog = async () => {
     try {
@@ -140,9 +148,15 @@ export default function SettingsScreen() {
     }
   };
 
-  const sendTemplate = (templateId: string) => {
+  const sendTemplate = async (templateId: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const id = currentUserId || session?.user?.id;
+    if (!id) {
+      Alert.alert('Inicia sesión', 'Necesitas sesión activa para compartir tu catálogo.');
+      return;
+    }
     const name = "[Nombre]";
-    const catalog = catalogUrl;
+    const catalog = buildCatalogUrl(SITE_URL, id);
     let text = "";
 
     switch (templateId) {

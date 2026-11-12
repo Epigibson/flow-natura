@@ -21,27 +21,37 @@ export default function RootLayout() {
   const [sessionChecked, setSessionChecked] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    let cancelled = false;
+
+    const redirectFor = (session: unknown) => {
       const inAuthGroup = !['login', 'register', 'forgot-password'].includes(segments[0] as string);
-      
       if (!session && inAuthGroup) {
-        // Redirect to the login page.
         router.replace('/login');
       } else if (session && segments[0] === 'login') {
-        // Redirect away from the login page.
         router.replace('/(tabs)');
       }
-      setSessionChecked(true);
+    };
+
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        if (!cancelled) redirectFor(session);
+      })
+      .catch(() => {
+        // Auth change below re-evaluates; never block the app on a failed read.
+      })
+      .finally(() => {
+        if (!cancelled) setSessionChecked(true);
+      });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!cancelled) redirectFor(session);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
-      const inAuthGroup = !['login', 'register', 'forgot-password'].includes(segments[0] as string);
-      if (!session && inAuthGroup) {
-        router.replace('/login');
-      } else if (session && segments[0] === 'login') {
-        router.replace('/(tabs)');
-      }
-    });
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [segments]);
 
   if (!sessionChecked) return null;

@@ -16,6 +16,7 @@ export default function OrderDetailScreen() {
   const t = useThemeColors();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   
   // Notes
@@ -36,20 +37,40 @@ export default function OrderDetailScreen() {
   async function loadData() {
     try {
       setLoading(true);
+      setLoadError(false);
       const data = await api.orders.get(id as string);
       setOrder(data);
     } catch {
-      Alert.alert('Error', 'No se pudo cargar la venta.');
-      router.back();
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
   }
 
-  if (loading || !order) {
+  if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-surface justify-center items-center">
         <ActivityIndicator size="large" color={t.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  if (!order) {
+    return (
+      <SafeAreaView className="flex-1 bg-surface justify-center items-center px-8">
+        <MaterialIcons name="error-outline" size={48} color={t.onSurfaceVariant} />
+        <Text className="text-on-surface font-bold text-lg mt-4 text-center">
+          {loadError ? 'No se pudo cargar la venta' : 'Venta no encontrada'}
+        </Text>
+        <Text className="text-on-surface-variant text-sm mt-2 text-center">
+          {loadError ? 'Revisa tu conexión e inténtalo de nuevo.' : 'Puede que haya sido eliminada.'}
+        </Text>
+        <TouchableOpacity onPress={loadData} className="bg-primary py-3 px-8 rounded-full mt-6">
+          <Text className="text-white font-bold">Reintentar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.back()} className="py-3 mt-2">
+          <Text className="text-primary font-bold">Volver</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }

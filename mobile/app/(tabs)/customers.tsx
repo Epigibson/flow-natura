@@ -21,6 +21,7 @@ export default function CustomersScreen() {
   const [showModal, setShowModal] = useState<'create' | 'edit' | 'detail' | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerStats, setCustomerStats] = useState<any>(null);
+  const [statsError, setStatsError] = useState(false);
   const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', preferences: '' });
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,6 +75,7 @@ export default function CustomersScreen() {
   const openDetail = async (customer: any) => {
     setSelectedCustomer(customer);
     setCustomerStats(null);
+    setStatsError(false);
     setShowModal('detail');
     try {
       const [stats, orders] = await Promise.all([
@@ -83,6 +85,7 @@ export default function CustomersScreen() {
       setCustomerStats({ ...stats, _orders: orders });
     } catch(e) {
       console.error('Error fetching stats', e);
+      setStatsError(true);
     }
   };
 
@@ -363,31 +366,37 @@ export default function CustomersScreen() {
                     <MaterialIcons name="payments" size={22} color={t.primary} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Total Comprado</Text>
                     <Text className="text-xl font-bold text-primary">
-                      {customerStats ? `$${customerStats.total_spent.toFixed(0)}` : <ActivityIndicator size="small" />}
+                      {customerStats ? `$${customerStats.total_spent.toFixed(0)}` : (statsError ? <Text className="text-sm font-bold text-on-surface-variant">—</Text> : <ActivityIndicator size="small" />)}
                     </Text>
                   </View>
                   <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
                     <MaterialIcons name="shopping-bag" size={22} color={t.secondary} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Compras</Text>
                     <Text className="text-xl font-bold text-secondary">
-                      {customerStats ? customerStats.total_orders : <ActivityIndicator size="small" />}
+                      {customerStats ? customerStats.total_orders : (statsError ? <Text className="text-sm font-bold text-on-surface-variant">—</Text> : <ActivityIndicator size="small" />)}
                     </Text>
                   </View>
                   <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
                     <MaterialIcons name="account-balance-wallet" size={22} color={t.error} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Deuda Pendiente</Text>
                     <Text className="text-xl font-bold" style={{ color: t.error }}>
-                      {customerStats ? `$${(customerStats.total_debt || 0).toFixed(0)}` : <ActivityIndicator size="small" />}
+                      {customerStats ? `$${(customerStats.total_debt || 0).toFixed(0)}` : (statsError ? <Text className="text-sm font-bold text-on-surface-variant">—</Text> : <ActivityIndicator size="small" />)}
                     </Text>
                   </View>
                   <View className="flex-1 min-w-[45%] bg-surface-container-lowest p-4 rounded-3xl border border-outline-variant shadow-sm items-center">
                     <MaterialIcons name="event" size={22} color={t.onSurfaceVariant} style={{marginBottom: 4}} />
                     <Text className="text-on-surface-variant text-[10px] uppercase tracking-wider mb-1">Última Compra</Text>
                     <Text className="text-sm font-bold text-on-surface">
-                      {customerStats ? (customerStats.last_order ? new Date(customerStats.last_order).toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' }) : '—') : <ActivityIndicator size="small" />}
+                      {customerStats ? (customerStats.last_order ? new Date(customerStats.last_order).toLocaleDateString('es-MX', { month: 'short', day: 'numeric', year: '2-digit' }) : '—') : (statsError ? <Text className="text-sm font-bold text-on-surface-variant">—</Text> : <ActivityIndicator size="small" />)}
                     </Text>
                   </View>
                 </View>
+
+                {statsError && (
+                  <TouchableOpacity onPress={() => openDetail(selectedCustomer)} className="mb-4 py-2">
+                    <Text className="text-primary font-bold text-xs text-center">No se pudieron cargar las estadísticas. Tocar para reintentar.</Text>
+                  </TouchableOpacity>
+                )}
 
                 {/* Información de Contacto */}
                 <Text className="text-xs font-bold text-on-surface-variant mb-2 ml-1 uppercase tracking-widest">Información de Contacto</Text>

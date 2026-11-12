@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, Image, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../lib/supabase';
+import { SITE_URL } from '../lib/config';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from 'nativewind';
@@ -24,7 +25,9 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: 'flownatura://reset-password',
+        // The web handles the token flow: this deep link scheme does not exist
+        // in app.json and the app has no reset-password route.
+        redirectTo: `${SITE_URL}/reset-password`,
       });
 
       if (error) {

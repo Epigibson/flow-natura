@@ -65,7 +65,10 @@ export default function DashboardScreen() {
   };
 
   async function handleLogout() {
-    await supabase.auth.signOut();
+    Alert.alert('Cerrar sesión', '¿Estás seguro de que quieres cerrar sesión?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Cerrar sesión', style: 'destructive', onPress: () => { supabase.auth.signOut(); } },
+    ]);
   }
 
   const exportToCSV = async (type: 'sales' | 'customers' | 'inventory') => {
