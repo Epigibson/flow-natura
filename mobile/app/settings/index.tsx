@@ -16,9 +16,6 @@ export default function SettingsScreen() {
   const t = useThemeColors();
   const darkMode = colorScheme === 'dark';
   const setDarkMode = (val: boolean) => setColorScheme(val ? 'dark' : 'light');
-  
-  const [notifications, setNotifications] = useState(true);
-  const [offlineMode, setOfflineMode] = useState(true);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -412,9 +409,9 @@ export default function SettingsScreen() {
                 <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                   <MaterialIcons name="notifications" size={18} color={t.onSurfaceVariant} />
                 </View>
-                <Text className="font-bold text-on-surface">Notificaciones Push</Text>
+                <Text className="font-bold text-on-surface">Notificaciones Push <Text className="text-[10px] text-on-surface-variant font-normal">(Próximamente)</Text></Text>
               </View>
-              <Switch value={notifications} onValueChange={setNotifications} trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
+              <Switch value={false} disabled trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
             </View>
 
             <View className="flex-row items-center justify-between p-4 border-b border-outline-variant/10">
@@ -432,9 +429,9 @@ export default function SettingsScreen() {
                 <View className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                   <MaterialIcons name="wifi-off" size={18} color={t.onSurfaceVariant} />
                 </View>
-                <Text className="font-bold text-on-surface">Modo Offline Automático</Text>
+                <Text className="font-bold text-on-surface">Modo Offline Automático <Text className="text-[10px] text-on-surface-variant font-normal">(Próximamente)</Text></Text>
               </View>
-              <Switch value={offlineMode} onValueChange={setOfflineMode} trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
+              <Switch value={false} disabled trackColor={{ true: t.primary, false: t.muted }} thumbColor="#fff" />
             </View>
 
           </View>

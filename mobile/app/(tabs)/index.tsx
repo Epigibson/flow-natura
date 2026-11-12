@@ -180,7 +180,7 @@ export default function DashboardScreen() {
                       secureTextEntry
                     />
                     <TouchableOpacity 
-                      onPress={() => Alert.alert('Aviso', 'Sincronización en proceso...')}
+                      onPress={() => Alert.alert('Próximamente', 'La vinculación con tu cuenta Natura estará disponible en una próxima versión.')}
                       className="w-full py-3 bg-primary rounded-xl flex-row justify-center items-center gap-2">
                       <Text className="text-white font-bold">Vincular ➡️</Text>
                     </TouchableOpacity>
@@ -414,7 +414,7 @@ export default function DashboardScreen() {
               placeholder="Ej: 6000" keyboardType="numeric"
               value={goalInput} onChangeText={setGoalInput}
             />
-            <TouchableOpacity onPress={() => {Alert.alert('Éxito', 'Meta guardada correctamente.'); setGoalModalVisible(false);}} className="w-full py-4 bg-primary rounded-xl mb-3">
+            <TouchableOpacity onPress={() => {Alert.alert('Próximamente', 'El seguimiento de metas estará disponible en una próxima versión.'); setGoalModalVisible(false);}} className="w-full py-4 bg-primary rounded-xl mb-3">
               <Text className="text-white font-bold text-center">Guardar Meta</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setGoalModalVisible(false)} className="w-full py-3">

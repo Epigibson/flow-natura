@@ -89,6 +89,7 @@ import PageLoader from '../../components/PageLoader.astro';
   import { supabase } from '../../lib/supabase';
   import { esc } from '../../lib/security';
   import { summarizeOrder } from '../../lib/orders';
+  import { toast } from '../../lib/ui';
 
   const kpiTotalClients = document.getElementById('kpi-total-clients') as HTMLElement;
   const kpiWithDebt = document.getElementById('kpi-with-debt') as HTMLElement;
@@ -111,18 +112,22 @@ import PageLoader from '../../components/PageLoader.astro';
     const userId = session.session.user.id;
 
     // Get all customers
-    const { data: customers } = await supabase
+    const { data: customers, error: custError } = await supabase
       .from('customers')
       .select('id, full_name, consultant_id')
       .eq('consultant_id', userId);
 
     // Get all orders with items
-    const { data: orders } = await supabase
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('*, order_items (*, products (*)), order_payments (id, amount, kind, paid_at)')
       .eq('consultant_id', userId)
       .neq('payment_method', 'adjustment');
 
+    if (custError || ordersError) {
+      toast.error('No se pudieron cargar los datos de análisis.');
+      return;
+    }
     if (!customers) return;
 
     kpiTotalClients.textContent = String(customers.length);

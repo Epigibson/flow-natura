@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, Share, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
+import { ErrorState } from '../../components/ErrorState';
 import { inventory } from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
@@ -11,6 +12,7 @@ import { catalogUrl as buildCatalogUrl } from '../../../src/lib/links';
 export default function CatalogScreen() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -23,19 +25,24 @@ export default function CatalogScreen() {
     setUserId(session?.user?.id || null);
   }
 
-  useEffect(() => {
-    async function loadCatalog() {
-      setLoading(true);
-      try {
-        const data = await inventory.list({ search });
-        setItems(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+  async function loadCatalog() {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const data = await inventory.list({ search });
+      setItems(data);
+    } catch (err) {
+      console.error(err);
+      setLoadError('No se pudo cargar el catálogo.');
+    } finally {
+      setLoading(false);
     }
-    loadCatalog();
+  }
+
+  useEffect(() => {
+    const timer = setTimeout(loadCatalog, 300);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   async function handleShare() {
@@ -140,10 +147,11 @@ export default function CatalogScreen() {
           columnWrapperClassName="justify-between"
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
+            loadError ? <ErrorState message={loadError} onRetry={() => loadCatalog()} /> : (
             <View className="flex-1 items-center justify-center mt-20">
               <MaterialIcons name="search-off" size={64} color="#e7e0eb" />
               <Text className="text-on-surface-variant mt-4 text-lg font-bold">No se encontraron productos</Text>
-            </View>
+            </View>)
           }
         />
       )}

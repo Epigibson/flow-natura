@@ -267,7 +267,7 @@ import PageLoader from '../components/PageLoader.astro';
     }).join('');
 
     const topicBadge = post.topic !== 'general'
-      ? `<span class="px-3 py-1 rounded-full text-xs font-bold ${topicColors[post.topic] || ''}">${topicLabels[post.topic] || post.topic}</span>`
+      ? `<span class="px-3 py-1 rounded-full text-xs font-bold ${topicColors[post.topic] || ''}">${esc(topicLabels[post.topic] || post.topic)}</span>`
       : '';
 
     const deleteBtn = isOwn
@@ -275,7 +275,7 @@ import PageLoader from '../components/PageLoader.astro';
       : '';
 
     return `
-      <article class="post-card bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all" data-topic="${post.topic}" data-post-id="${post.id}">
+      <article class="post-card bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm hover:shadow-md transition-all" data-topic="${esc(post.topic)}" data-post-id="${post.id}">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-11 h-11 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm">
             <span class="font-bold text-sm">${esc(initials)}</span>
@@ -482,7 +482,7 @@ import PageLoader from '../components/PageLoader.astro';
       document.getElementById('stat-posts')!.textContent = String(stats.post_count || 0);
       document.getElementById('stat-reactions')!.textContent = String(stats.reaction_count || 0);
       document.getElementById('stat-comments')!.textContent = String(stats.comment_count || 0);
-    } catch(e) { console.warn('[Comunidad] Failed to create comment:', e); }
+    } catch(e) { console.warn('[Comunidad] Failed to load sidebar stats:', e); toast.error('No se pudieron cargar las estadísticas.'); }
   }
 
   // Top contributors

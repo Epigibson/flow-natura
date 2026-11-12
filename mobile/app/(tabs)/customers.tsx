@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, TouchableOpacity, Linking, Alert, Modal, ScrollView, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { whatsappPhone } from '../../../src/lib/phone';
 import { formatFolio } from '../../../src/lib/orders';
 import { OrderStatusChips } from '../../components/OrderStatusChips';
@@ -25,12 +25,18 @@ export default function CustomersScreen() {
   const [formData, setFormData] = useState({ full_name: '', phone: '', email: '', preferences: '' });
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const loadCustomers = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
       setLoadError(null);
-      const data = await api.customers.list(search);
+      const data = await api.customers.list(debouncedSearch);
       setCustomers(data || []);
     } catch (err: any) {
       console.error(err);
@@ -39,7 +45,7 @@ export default function CustomersScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [search]);
+  }, [debouncedSearch]);
 
   useFocusEffect(
     useCallback(() => {

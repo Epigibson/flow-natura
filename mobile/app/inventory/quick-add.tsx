@@ -6,12 +6,14 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import api from '../../../src/lib/api';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { ErrorState } from '../../components/ErrorState';
 
 export default function QuickAddScreen() {
   const t = useThemeColors();
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [adding, setAdding] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
@@ -24,6 +26,7 @@ export default function QuickAddScreen() {
 
   async function loadData() {
     setLoading(true);
+    setLoadError(null);
     try {
       const [allProducts, inv] = await Promise.all([
         api.products.list({ search: '' }),
@@ -34,6 +37,7 @@ export default function QuickAddScreen() {
       setMyInventory(invIds as Set<string>);
     } catch (err) {
       console.error(err);
+      setLoadError('No se pudieron cargar los productos.');
     } finally {
       setLoading(false);
     }
@@ -192,13 +196,14 @@ export default function QuickAddScreen() {
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
+            loadError ? <ErrorState message={loadError} onRetry={() => loadData()} /> : (
             <View className="items-center justify-center py-16">
               <MaterialIcons name="search-off" size={64} color={t.surfaceContainerHighest} />
               <Text className="text-on-surface mt-4 font-bold text-lg">No hay resultados</Text>
               <Text className="text-on-surface-variant mt-1 text-center text-sm px-10">
                 Prueba con otro término de búsqueda.
               </Text>
-            </View>
+            </View>)
           }
         />
       )}

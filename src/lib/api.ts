@@ -774,7 +774,8 @@ export const community = {
   },
   createPost: async (input: string | { content: string; topic?: string; author_name?: string }, topic: string = 'general') => {
     const content = (typeof input === 'string' ? input : input.content).trim();
-    const finalTopic = (typeof input === 'string' ? topic : input.topic) || 'general';
+    const rawTopic = (typeof input === 'string' ? topic : input.topic) || 'general';
+    const finalTopic = ['logro', 'tip', 'pregunta', 'motivacion', 'general'].includes(rawTopic) ? rawTopic : 'general';
     if (!content) throw new Error('El post no puede estar vacío');
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('No user');

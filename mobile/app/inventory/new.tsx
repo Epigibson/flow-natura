@@ -3,7 +3,7 @@ import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../../../src/lib/api';
@@ -40,6 +40,10 @@ export default function NewProductScreen() {
 
   // Form State
   const [code, setCode] = useState('');
+  const { code: codeParam } = useLocalSearchParams<{ code?: string }>();
+  useEffect(() => {
+    if (codeParam) setCode(String(codeParam));
+  }, [codeParam]);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [brand, setBrand] = useState('Natura');

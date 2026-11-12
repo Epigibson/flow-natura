@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -107,6 +107,7 @@ export default function NewSaleScreen() {
     setCart(prev => prev.map(item => {
       if (item.product_id === productId) {
         let val = Number(value) || 0;
+        if (val < 0) val = 0;
         if (type === 'percentage' && val > 100) val = 100;
         if (type === 'amount' && val > item.unit_price) val = item.unit_price;
         return { ...item, discount_type: type, discount: val };
@@ -123,7 +124,10 @@ export default function NewSaleScreen() {
     setShowScanner(true);
   };
 
+  const scanLock = useRef(false);
   const handleBarcodeScanned = async ({ data }: any) => {
+    if (scanLock.current) return;
+    scanLock.current = true;
     setShowScanner(false);
     try {
       // Same lookup as the web: linked EAN first, then Natura product code
@@ -140,6 +144,8 @@ export default function NewSaleScreen() {
       Alert.alert('Agregado al carrito', `Se agregó ${found.product_name}.`);
     } catch (e) {
       Alert.alert('Error', 'No se pudo buscar el código. Revisa tu conexión.');
+    } finally {
+      scanLock.current = false;
     }
   };
 
@@ -169,7 +175,7 @@ export default function NewSaleScreen() {
   }, [cart]);
 
   const { calculatedGlobalDiscount, totalDiscount, finalTotal } = useMemo(() => {
-    let globalDiscNum = Number(globalDiscount) || 0;
+    let globalDiscNum = Math.max(0, Number(globalDiscount) || 0);
     let calculated = 0;
 
     if (globalDiscountType === 'percentage') {

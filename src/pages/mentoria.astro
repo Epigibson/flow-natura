@@ -263,6 +263,7 @@ import PageLoader from '../components/PageLoader.astro';
 <script>
   import { supabase } from '../lib/supabase';
   import api from '../lib/api';
+  import { esc } from '../lib/security';
 
   let currentUserId = '';
   let completedLessons: Set<string> = new Set();
@@ -363,7 +364,7 @@ import PageLoader from '../components/PageLoader.astro';
         </div>
         <h4 class="font-display font-bold text-lg text-on-surface mb-2">Guías no encontradas</h4>
         <p class="text-sm">¿Ya ejecutaste la migración SQL?</p>
-        ${error ? `<p class="text-xs mt-2 opacity-50">${error.message}</p>` : ''}
+        ${error ? `<p class="text-xs mt-2 opacity-50">${esc(error.message)}</p>` : ''}
       </div>`;
       return;
     }
@@ -397,8 +398,8 @@ import PageLoader from '../components/PageLoader.astro';
             <span class="material-symbols-outlined text-sm ${isCompleted ? 'text-secondary' : ''}"> ${isCompleted ? 'check_circle' : icon}</span>
           </div>
           <div class="flex-1 min-w-0">
-            <h5 class="font-bold text-sm text-on-surface ${isCompleted ? 'line-through decoration-secondary/30' : ''}">${lesson.title}</h5>
-            <p class="text-xs text-on-surface-variant truncate mt-0.5">${lesson.description}</p>
+            <h5 class="font-bold text-sm text-on-surface ${isCompleted ? 'line-through decoration-secondary/30' : ''}">${esc(lesson.title)}</h5>
+            <p class="text-xs text-on-surface-variant truncate mt-0.5">${esc(lesson.description)}</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <span class="text-[10px] text-on-surface-variant bg-surface-container-highest/60 px-2 py-0.5 rounded-md">${lesson.duration_minutes} min</span>
@@ -416,11 +417,11 @@ import PageLoader from '../components/PageLoader.astro';
           <div class="absolute inset-0 bg-gradient-to-r ${bgGradient} opacity-50"></div>
           <div class="relative z-10 flex items-center gap-4">
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shrink-0 shadow-lg">
-              <span class="material-symbols-outlined text-white text-2xl">${mod.icon}</span>
+              <span class="material-symbols-outlined text-white text-2xl">${esc(mod.icon)}</span>
             </div>
             <div class="flex-1">
-              <h4 class="font-display font-bold text-lg text-on-surface">${mod.title}</h4>
-              <p class="text-xs text-on-surface-variant mt-0.5">${mod.description}</p>
+              <h4 class="font-display font-bold text-lg text-on-surface">${esc(mod.title)}</h4>
+              <p class="text-xs text-on-surface-variant mt-0.5">${esc(mod.description)}</p>
             </div>
             <div class="text-right shrink-0">
               ${statusLabel}
@@ -449,7 +450,7 @@ import PageLoader from '../components/PageLoader.astro';
 
   // ========== LESSON MODAL ==========
   function simpleMarkdown(md: string): string {
-    return md
+    return esc(md)
       .replace(/^## (.*$)/gm, '<h2>$1</h2>')
       .replace(/^### (.*$)/gm, '<h3>$1</h3>')
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')

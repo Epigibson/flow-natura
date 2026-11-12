@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, ScrollView, Modal, TextInput, FlatList } from 'react-native';
 import { SafeAreaView as ModalSafeArea } from 'react-native-safe-area-context';
@@ -26,17 +26,22 @@ export default function ScanSearchScreen() {
   const [linkSearching, setLinkSearching] = useState(false);
   const [linking, setLinking] = useState(false);
 
-  async function searchProductsToLink(q: string) {
+  const linkSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function searchProductsToLink(q: string) {
     setLinkQuery(q);
     if (q.trim().length < 2) { setLinkResults([]); return; }
-    setLinkSearching(true);
-    try {
-      setLinkResults((await api.products.list({ search: q.trim(), limit: 30 })) || []);
-    } catch {
-      setLinkResults([]);
-    } finally {
-      setLinkSearching(false);
-    }
+    if (linkSearchTimer.current) clearTimeout(linkSearchTimer.current);
+    linkSearchTimer.current = setTimeout(async () => {
+      setLinkSearching(true);
+      try {
+        setLinkResults((await api.products.list({ search: q.trim(), limit: 30 })) || []);
+      } catch {
+        setLinkResults([]);
+      } finally {
+        setLinkSearching(false);
+      }
+    }, 300);
   }
 
   async function linkToProduct(product: any) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SITE_URL } from '../../lib/config';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
+import { ErrorState } from '../../components/ErrorState';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { supabase } from '../../lib/supabase';
@@ -12,6 +13,7 @@ export default function MembershipScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -19,6 +21,7 @@ export default function MembershipScreen() {
 
   async function loadData() {
     setLoading(true);
+    setLoadError(null);
     try {
       const [profData, subData] = await Promise.all([
         api.consultant.getProfile(),
@@ -28,6 +31,7 @@ export default function MembershipScreen() {
       setSubscription(subData);
     } catch (err) {
       console.error(err);
+      setLoadError('No se pudo cargar tu membresía.');
     } finally {
       setLoading(false);
     }
@@ -78,6 +82,8 @@ export default function MembershipScreen() {
           <View className="py-10 items-center justify-center">
             <ActivityIndicator size="large" color={t.primary} />
           </View>
+        ) : loadError ? (
+          <ErrorState message={loadError} onRetry={() => loadData()} />
         ) : (
           <>
             {/* Perfil */}

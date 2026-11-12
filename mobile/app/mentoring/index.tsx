@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Modal, Alert } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
+import { ErrorState } from '../../components/ErrorState';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
 import { useThemeColors } from '../../hooks/use-theme-colors';
@@ -9,6 +10,7 @@ export default function MentoringScreen() {
   const t = useThemeColors();
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
   const [completingLesson, setCompletingLesson] = useState(false);
 
@@ -18,11 +20,13 @@ export default function MentoringScreen() {
 
   async function loadMentoring() {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await api.mentorship.getModules();
       setModules(data || []);
     } catch (err) {
       console.error(err);
+      setLoadError('No se pudieron cargar los módulos.');
     } finally {
       setLoading(false);
     }
@@ -73,6 +77,8 @@ export default function MentoringScreen() {
           <View className="py-10 items-center justify-center">
             <ActivityIndicator size="large" color="#476810" />
           </View>
+        ) : loadError ? (
+          <ErrorState message={loadError} onRetry={() => loadMentoring()} />
         ) : modules.length === 0 ? (
           <View className="items-center justify-center py-10">
             <MaterialIcons name="auto-stories" size={48} color="#e7e0eb" />

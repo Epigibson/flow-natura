@@ -570,7 +570,7 @@ import PageLoader from '../components/PageLoader.astro';
   // ---- LOAD REAL DATA (from API) ----
   const now = new Date();
   let dashData: any = { kpis: {}, recent_orders: [], top_clients: [], stock_alerts: [], top_products: [], upcoming_payments: [] };
-  try { dashData = await dashboard.getData(); } catch(e) { console.warn('Dashboard fetch failed', e); }
+  try { dashData = await dashboard.getData(); } catch(e) { console.warn('Dashboard fetch failed', e); toast.error('No se pudieron cargar los datos del dashboard.'); }
 
   const totalRevenue = Number(dashData.kpis.total_revenue || 0);
   const totalDebt = Number(dashData.kpis.pending_debt || 0);

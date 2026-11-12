@@ -16,29 +16,6 @@ export interface Subscription {
   updated_at: string;
 }
 
-// Plan hierarchy for upgrade/downgrade logic
-const PLAN_RANK: Record<string, number> = { trial: 0, basico: 1, pro: 2, premium: 3 };
-
-// Plan limits
-const PLAN_LIMITS: Record<string, { products: number; clients: number; features: string[] }> = {
-  trial: {
-    products: 9999, clients: 9999,
-    features: ['dashboard', 'inventory', 'sales', 'clients', 'cobranza', 'abonos', 'catalogo_import', 'catalogo_digital'],
-  },
-  basico: {
-    products: 50, clients: 20,
-    features: ['dashboard', 'inventory', 'sales', 'clients'],
-  },
-  pro: {
-    products: 9999, clients: 9999,
-    features: ['dashboard', 'inventory', 'sales', 'clients', 'cobranza', 'abonos', 'catalogo_import', 'catalogo_digital', 'recordatorios'],
-  },
-  premium: {
-    products: 9999, clients: 9999,
-    features: ['dashboard', 'inventory', 'sales', 'clients', 'cobranza', 'abonos', 'catalogo_import', 'catalogo_digital', 'recordatorios', 'reportes_avanzados', 'ia_prediccion', 'soporte_prioritario', 'mentoria', 'exports'],
-  },
-};
-
 export async function getUserSubscription(userId: string): Promise<Subscription | null> {
   const { data, error } = await supabase
     .from('subscriptions')
@@ -48,19 +25,6 @@ export async function getUserSubscription(userId: string): Promise<Subscription 
 
   if (error || !data) return null;
   return data as Subscription;
-}
-
-export function getPlanLimits(plan: string) {
-  return PLAN_LIMITS[plan] || PLAN_LIMITS.trial;
-}
-
-export function canAccess(plan: string, feature: string): boolean {
-  const limits = getPlanLimits(plan);
-  return limits.features.includes(feature);
-}
-
-export function isUpgrade(currentPlan: string, newPlan: string): boolean {
-  return (PLAN_RANK[newPlan] || 0) > (PLAN_RANK[currentPlan] || 0);
 }
 
 export function isTrialActive(sub: Subscription | null): boolean {

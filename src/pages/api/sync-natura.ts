@@ -6,7 +6,8 @@ import { decrypt } from '../../utils/crypto';
 export const prerender = false;
 
 const SCRAPER_URL = import.meta.env.SCRAPER_SERVICE_URL || 'http://localhost:3001';
-const SCRAPER_SECRET = import.meta.env.SCRAPER_API_SECRET || 'dev-secret-key';
+const SCRAPER_SECRET = import.meta.env.SCRAPER_API_SECRET || process.env.SCRAPER_API_SECRET || '';
+if (!SCRAPER_SECRET) throw new Error('SCRAPER_API_SECRET no está definida');
 
 export const POST: APIRoute = async ({ request }) => {
   try {

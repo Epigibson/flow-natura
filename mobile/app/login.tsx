@@ -33,8 +33,9 @@ export default function LoginScreen() {
       if (compatible && enrolled) {
         setBiometricSupported(true);
         const savedEmail = await SecureStore.getItemAsync('fn_user_email');
-        const savedPwd = await SecureStore.getItemAsync('fn_user_password');
-        if (savedEmail && savedPwd) {
+        // Credentials must never be persisted; drop passwords saved by old builds
+        await SecureStore.deleteItemAsync('fn_user_password');
+        if (savedEmail) {
           setHasSavedCredentials(true);
           // Auto-trigger biometric login
           setTimeout(() => {
@@ -54,23 +55,23 @@ export default function LoginScreen() {
       disableDeviceFallback: true,
     });
 
-    if (result.success) {
-      const savedEmail = await SecureStore.getItemAsync('fn_user_email');
-      const savedPwd = await SecureStore.getItemAsync('fn_user_password');
-      if (savedEmail && savedPwd) {
-        setLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({ 
-          email: savedEmail, 
-          password: savedPwd 
-        });
-        
-        if (error) {
-          Alert.alert('Error', error.message);
-          setLoading(false);
-        } else {
-          router.replace('/(tabs)');
-        }
+    if (!result.success) return;
+
+    setLoading(true);
+    try {
+      // The session (with refresh token) is what unlocks the app; never a stored password
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.replace('/(tabs)');
+      } else {
+        const savedEmail = await SecureStore.getItemAsync('fn_user_email');
+        if (savedEmail) setEmail(savedEmail);
+        Alert.alert('Sesión expirada', 'Ingresa tu correo y contraseña nuevamente.');
       }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'No se pudo iniciar sesión.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -79,29 +80,30 @@ export default function LoginScreen() {
       Alert.alert('Atención', 'Por favor ingresa correo y contraseña.');
       return;
     }
-    
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) {
-      Alert.alert('Error', error.message);
-      setLoading(false);
-    } else {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        Alert.alert('Error', error.message);
+        return;
+      }
+
       if (biometricSupported && !hasSavedCredentials) {
         Alert.alert(
           'Autenticación Rápida',
           '¿Deseas activar Face ID / Huella Digital para ingresar más rápido en el futuro?',
           [
             { text: 'Quizás después', style: 'cancel', onPress: () => router.replace('/(tabs)') },
-            { 
-              text: 'Sí, activar', 
+            {
+              text: 'Sí, activar',
               style: 'default',
               onPress: async () => {
                 await SecureStore.setItemAsync('fn_user_email', email.trim());
-                await SecureStore.setItemAsync('fn_user_password', password);
                 router.replace('/(tabs)');
               }
             }
@@ -110,6 +112,10 @@ export default function LoginScreen() {
       } else {
         router.replace('/(tabs)');
       }
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'No se pudo iniciar sesión.');
+    } finally {
+      setLoading(false);
     }
   }
 

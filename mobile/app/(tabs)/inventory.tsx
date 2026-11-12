@@ -1,6 +1,6 @@
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, ScrollView, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import api from '../../../src/lib/api';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -15,12 +15,18 @@ export default function InventoryScreen() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const loadInventory = useCallback(async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
     try {
       setLoadError(null);
-      const data = await api.inventory.list({ search });
+      const data = await api.inventory.list({ search: debouncedSearch });
       setItems(data);
     } catch (err: any) {
       console.error(err);
@@ -29,7 +35,7 @@ export default function InventoryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [search]);
+  }, [debouncedSearch]);
 
   // One-time cleanup of duplicate inventory records
   const hasCleanedUp = React.useRef(false);

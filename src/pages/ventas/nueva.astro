@@ -314,7 +314,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         const preselected = new URLSearchParams(window.location.search).get('cliente');
         if (preselected && customers.some((c: any) => c.id === preselected)) selectCustomer.value = preselected;
       }
-    } catch(e) { console.warn('Error loading customers', e); }
+    } catch(e) { console.warn('Error loading customers', e); toast.error('No se pudieron cargar los clientes.'); }
 
     // 2. Load inventory items with product details from Supabase
     try {
@@ -347,7 +347,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         availableProducts.sort((a: any, b: any) => a.name.localeCompare(b.name));
         renderProducts(availableProducts);
       }
-    } catch(e) { console.warn('Error loading inventory', e); }
+    } catch(e) { console.warn('Error loading inventory', e); toast.error('No se pudieron cargar los productos.'); }
   }
 
   function renderProducts(products: any[]) {
