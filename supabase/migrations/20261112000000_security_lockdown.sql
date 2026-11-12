@@ -234,6 +234,8 @@ CREATE TRIGGER protect_order_columns
     FOR EACH ROW EXECUTE FUNCTION public.protect_order_columns();
 
 DROP POLICY IF EXISTS "Consultants manage items for their orders." ON public.order_items;
+DROP POLICY IF EXISTS "Consultants manage their own order items." ON public.order_items;
+DROP POLICY IF EXISTS "Consultants can view their order items." ON public.order_items;
 CREATE POLICY "Consultants can view their order items."
     ON public.order_items FOR SELECT
     TO authenticated
