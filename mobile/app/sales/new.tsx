@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { formatMoney } from '../../../src/lib/orders';
-import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Modal, FlatList, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -37,6 +37,14 @@ export default function NewSaleScreen() {
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Quick-add customer (same as web: create without leaving the sale)
+  const [quickCustomerMode, setQuickCustomerMode] = useState(false);
+  const [qcName, setQcName] = useState('');
+  const [qcPhone, setQcPhone] = useState('');
+  const [qcEmail, setQcEmail] = useState('');
+  const [qcSaving, setQcSaving] = useState(false);
+  const [qcError, setQcError] = useState('');
   
   // Scanner
   const [permission, requestPermission] = useCameraPermissions();
@@ -68,6 +76,38 @@ export default function NewSaleScreen() {
       setLoading(false);
     }
   }
+
+  const openQuickCustomer = () => {
+    setQcName('');
+    setQcPhone('');
+    setQcEmail('');
+    setQcError('');
+    setQuickCustomerMode(true);
+  };
+
+  const handleQuickCustomerSave = async () => {
+    const name = qcName.trim();
+    if (!name) {
+      setQcError('El nombre es obligatorio.');
+      return;
+    }
+    setQcSaving(true);
+    setQcError('');
+    try {
+      const payload: any = { full_name: name, phone: qcPhone.trim() };
+      if (qcEmail.trim()) payload.email = qcEmail.trim();
+      const c = await api.customers.create(payload);
+      setCustomers(prev => [...prev, c]);
+      setSelectedCustomer(c);
+      setQuickCustomerMode(false);
+      setShowCustomerModal(false);
+      haptic.success();
+    } catch (err: any) {
+      setQcError(err?.message || 'No se pudo guardar el cliente.');
+    } finally {
+      setQcSaving(false);
+    }
+  };
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -295,7 +335,7 @@ export default function NewSaleScreen() {
         <Text className="font-bold text-on-surface mb-3 ml-1 text-sm uppercase tracking-widest text-primary opacity-80">1. Cliente</Text>
         <TouchableOpacity 
           className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant mb-6 flex-row items-center justify-between shadow-sm"
-          onPress={() => setShowCustomerModal(true)}
+          onPress={() => { setQuickCustomerMode(false); setQcError(''); setShowCustomerModal(true); }}
         >
           <View className="flex-row items-center gap-3">
             <View className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: t.primaryContainer + '66' }}>
@@ -544,32 +584,101 @@ export default function NewSaleScreen() {
 
       {/* Modals */}
       <Modal visible={showCustomerModal} animationType="slide" presentationStyle="pageSheet">
-        <SafeAreaView className="flex-1 bg-surface p-6">
-          <View className="flex-row justify-between items-center mb-6">
-            <Text className="text-2xl font-serif font-bold text-on-surface">Seleccionar Cliente</Text>
-            <TouchableOpacity onPress={() => setShowCustomerModal(false)}>
-              <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity 
-            className="p-4 rounded-2xl mb-4 border"
-            style={{ backgroundColor: t.primary + '1A', borderColor: t.primary + '33' }}
-            onPress={() => { setSelectedCustomer(null); setShowCustomerModal(false); }}
-          >
-            <Text className="font-bold text-primary text-center">Usar Cliente Mostrador</Text>
-          </TouchableOpacity>
-          <FlatList
-            data={customers}
-            keyExtractor={c => c.id}
-            renderItem={({item}) => (
-              <TouchableOpacity 
-                className="p-4 bg-surface-container-lowest rounded-2xl mb-2 border border-outline-variant"
-                onPress={() => { setSelectedCustomer(item); setShowCustomerModal(false); }}
-              >
-                <Text className="font-bold text-on-surface text-lg">{item.full_name}</Text>
-              </TouchableOpacity>
+        <SafeAreaView className="flex-1 bg-surface">
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+            <View className="px-6 pt-6">
+              <View className="flex-row justify-between items-center mb-6">
+                <Text className="text-2xl font-serif font-bold text-on-surface">
+                  {quickCustomerMode ? 'Nuevo Cliente' : 'Seleccionar Cliente'}
+                </Text>
+                <View className="flex-row items-center gap-4">
+                  {!quickCustomerMode && (
+                    <TouchableOpacity onPress={openQuickCustomer} className="flex-row items-center gap-1">
+                      <MaterialIcons name="person-add" size={20} color={t.secondary} />
+                      <Text className="text-secondary font-semibold text-sm">Nuevo Cliente</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity onPress={() => { setShowCustomerModal(false); setQuickCustomerMode(false); }}>
+                    <MaterialIcons name="close" size={28} color={t.onSurfaceVariant} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            {quickCustomerMode ? (
+              <ScrollView className="flex-1 px-6" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                {qcError ? (
+                  <View className="bg-error-container p-3 rounded-md mb-4">
+                    <Text className="text-error text-sm">{qcError}</Text>
+                  </View>
+                ) : null}
+                <TextInput
+                  className="bg-surface-container-highest rounded-xl px-4 py-3 text-on-surface mb-3"
+                  placeholder="Nombre completo"
+                  placeholderTextColor={t.muted}
+                  value={qcName}
+                  onChangeText={setQcName}
+                />
+                <TextInput
+                  className="bg-surface-container-highest rounded-xl px-4 py-3 text-on-surface mb-3"
+                  placeholder="Teléfono (opcional)"
+                  placeholderTextColor={t.muted}
+                  keyboardType="phone-pad"
+                  value={qcPhone}
+                  onChangeText={setQcPhone}
+                />
+                <TextInput
+                  className="bg-surface-container-highest rounded-xl px-4 py-3 text-on-surface mb-6"
+                  placeholder="correo@ejemplo.com"
+                  placeholderTextColor={t.muted}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={qcEmail}
+                  onChangeText={setQcEmail}
+                />
+                <View className="flex-row gap-3">
+                  <TouchableOpacity
+                    className="flex-1 py-3 rounded-xl bg-surface-container"
+                    onPress={() => { setQuickCustomerMode(false); setQcError(''); }}
+                    disabled={qcSaving}
+                  >
+                    <Text className="font-bold text-on-surface text-center">Cancelar</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 py-3 rounded-xl bg-primary flex-row items-center justify-center"
+                    onPress={handleQuickCustomerSave}
+                    disabled={qcSaving}
+                  >
+                    {qcSaving ? <ActivityIndicator color="#fff" /> : <Text className="font-bold text-white text-center">Guardar</Text>}
+                  </TouchableOpacity>
+                </View>
+                <View className="h-10" />
+              </ScrollView>
+            ) : (
+              <View className="flex-1 px-6">
+                <TouchableOpacity 
+                  className="p-4 rounded-2xl mb-4 border"
+                  style={{ backgroundColor: t.primary + '1A', borderColor: t.primary + '33' }}
+                  onPress={() => { setSelectedCustomer(null); setShowCustomerModal(false); }}
+                >
+                  <Text className="font-bold text-primary text-center">Usar Cliente Mostrador</Text>
+                </TouchableOpacity>
+                <FlatList
+                  data={customers}
+                  keyExtractor={c => c.id}
+                  keyboardShouldPersistTaps="handled"
+                  renderItem={({item}) => (
+                    <TouchableOpacity 
+                      className="p-4 bg-surface-container-lowest rounded-2xl mb-2 border border-outline-variant"
+                      onPress={() => { setSelectedCustomer(item); setShowCustomerModal(false); }}
+                    >
+                      <Text className="font-bold text-on-surface text-lg">{item.full_name}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
             )}
-          />
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>
 

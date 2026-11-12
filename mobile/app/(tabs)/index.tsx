@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal, TextInput, Alert, RefreshControl, Linking } from 'react-native';
 import { formatMoney } from '../../../src/lib/orders';
 import { supabase } from '../../lib/supabase';
 import api from '../../../src/lib/api';
@@ -11,6 +11,12 @@ import { useThemeColors } from '../../hooks/use-theme-colors';
 import { PaymentModal } from '../../components/PaymentModal';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SITE_URL } from '../../lib/config';
+
+const GOAL_KEY = 'natura_goal';
+const GOAL_CELEBRATED_KEY = 'natura_goal_celebrated';
+const NATURA_SYNC_DOWNLOAD_URL = 'https://github.com/Epigibson/flow-natura/releases/latest/download/NaturaManager-Sync.exe';
 
 export default function DashboardScreen() {
   const t = useThemeColors();
@@ -25,13 +31,17 @@ export default function DashboardScreen() {
   
   const [goalModalVisible, setGoalModalVisible] = useState(false);
   const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [syncModalVisible, setSyncModalVisible] = useState(false);
   const [goalInput, setGoalInput] = useState('');
+  const [goalAmount, setGoalAmount] = useState(0);
   const [naturaEmail, setNaturaEmail] = useState('');
   const [naturaPassword, setNaturaPassword] = useState('');
+  const [connecting, setConnecting] = useState(false);
 
   useFocusEffect(
     React.useCallback(() => {
       loadData();
+      loadGoal();
       calculateGreeting();
     }, [])
   );
@@ -51,6 +61,7 @@ export default function DashboardScreen() {
       ]);
       setData(result);
       setUserProfile(profileResult);
+      celebrateGoalReached(Number(result?.kpis?.total_revenue || 0));
     } catch (err) {
       console.error(err);
     } finally {
@@ -63,6 +74,86 @@ export default function DashboardScreen() {
     setRefreshing(true);
     loadData(true);
   };
+
+  async function loadGoal() {
+    try {
+      const raw = await AsyncStorage.getItem(GOAL_KEY);
+      setGoalAmount(Number(raw || 0));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function celebrateGoalReached(revenue: number) {
+    try {
+      const raw = await AsyncStorage.getItem(GOAL_KEY);
+      const goal = Number(raw || 0);
+      if (!(goal > 0) || revenue < goal) return;
+      const celebrated = await AsyncStorage.getItem(GOAL_CELEBRATED_KEY);
+      if (celebrated === String(goal)) return;
+      await AsyncStorage.setItem(GOAL_CELEBRATED_KEY, String(goal));
+      Alert.alert('🎉 ¡META ALCANZADA!', `¡Felicitaciones! Alcanzaste tu meta de $${goal.toLocaleString('es-MX')} este ciclo. 🌿✨`);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function openGoalModal() {
+    setGoalInput(goalAmount > 0 ? String(goalAmount) : '');
+    setGoalModalVisible(true);
+  }
+
+  async function handleSaveGoal() {
+    const val = Number(goalInput);
+    if (!(val > 0)) {
+      Alert.alert('Meta no válida', 'Ingresa un monto mayor a 0.');
+      return;
+    }
+    try {
+      await AsyncStorage.setItem(GOAL_KEY, String(val));
+      setGoalAmount(val);
+      setGoalModalVisible(false);
+      celebrateGoalReached(Number(data?.kpis?.total_revenue || 0));
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'No se pudo guardar la meta.');
+    }
+  }
+
+  async function handleConnectNatura() {
+    const email = naturaEmail.trim();
+    const pwd = naturaPassword;
+    if (!email || !pwd) {
+      Alert.alert('Faltan datos', 'Ingresa tu correo y contraseña de Mi Negocio.');
+      return;
+    }
+    setConnecting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${SITE_URL}/api/connect-natura`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`,
+        },
+        body: JSON.stringify({ userId: session?.user?.id, natura_email: email, natura_password: pwd }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        setNaturaEmail('');
+        setNaturaPassword('');
+        Alert.alert('Cuenta vinculada', 'Tus credenciales de Mi Negocio quedaron guardadas de forma segura. Ahora usa la Sincronización Silenciosa para actualizar tus puntos del Camino de Crecimiento.');
+        loadData(true);
+      } else {
+        Alert.alert('Error', 'Error al vincular: ' + (d.error || ''));
+      }
+    } catch (e) {
+      console.error(e);
+      Alert.alert('Error', 'Error de red');
+    } finally {
+      setConnecting(false);
+    }
+  }
 
   async function handleLogout() {
     Alert.alert('Cerrar sesión', '¿Estás seguro de que quieres cerrar sesión?', [
@@ -122,6 +213,12 @@ export default function DashboardScreen() {
   const now = new Date();
   const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
 
+  const totalRevenue = Number(data?.kpis?.total_revenue || 0);
+  const goalPct = goalAmount > 0 ? Math.min(100, (totalRevenue / goalAmount) * 100) : 0;
+  const goalReached = goalAmount > 0 && totalRevenue >= goalAmount;
+  const gData = userProfile?.latest_growth_data;
+  const hasSyncedBefore = !!userProfile?.growth_sync_date;
+
   return (
     <SafeAreaView className="flex-1 bg-surface">
       {/* Scrollable Container with exact white styling from screenshot */}
@@ -142,7 +239,7 @@ export default function DashboardScreen() {
 
           {/* Action Buttons */}
           <View className="flex-row items-center gap-3 mb-8">
-            <TouchableOpacity onPress={() => setGoalModalVisible(true)} className="flex-row items-center gap-2 py-2 px-5 rounded-full border border-primary bg-surface-container-lowest" style={{ shadowColor: t.primary, elevation: 2, shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
+            <TouchableOpacity onPress={openGoalModal} className="flex-row items-center gap-2 py-2 px-5 rounded-full border border-primary bg-surface-container-lowest" style={{ shadowColor: t.primary, elevation: 2, shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } }}>
               <Text className="text-primary font-bold text-sm">🏳️ Mi Meta</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setExportModalVisible(true)} className="flex-row items-center gap-2 py-2 px-5 rounded-full bg-secondary">
@@ -180,9 +277,14 @@ export default function DashboardScreen() {
                       secureTextEntry
                     />
                     <TouchableOpacity 
-                      onPress={() => Alert.alert('Próximamente', 'La vinculación con tu cuenta Natura estará disponible en una próxima versión.')}
+                      onPress={handleConnectNatura}
+                      disabled={connecting}
                       className="w-full py-3 bg-primary rounded-xl flex-row justify-center items-center gap-2">
-                      <Text className="text-white font-bold">Vincular ➡️</Text>
+                      {connecting ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text className="text-white font-bold">Vincular ➡️</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -216,7 +318,7 @@ export default function DashboardScreen() {
                       <Text className="text-xs text-on-surface-variant">{userProfile?.latest_growth_data?.period?.daysFinalDate || 0} días para cerrar</Text>
                     </View>
 
-                    <TouchableOpacity className="w-full py-4 bg-surface-container-highest rounded-2xl flex-row justify-center items-center gap-2 border border-outline-variant">
+                    <TouchableOpacity onPress={() => setSyncModalVisible(true)} className="w-full py-4 bg-surface-container-highest rounded-2xl flex-row justify-center items-center gap-2 border border-outline-variant">
                       <Text className="text-on-surface font-bold">☁️ Sincronización Silenciosa</Text>
                     </TouchableOpacity>
                   </>
@@ -227,8 +329,17 @@ export default function DashboardScreen() {
               <View className="gap-4 mb-8">
                 <View className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
                   <Text className="text-xs font-bold tracking-widest uppercase text-secondary">Ventas del Ciclo</Text>
-                  <Text className="text-4xl font-serif mt-2 text-on-surface">${data?.kpis?.total_revenue?.toLocaleString('es-MX', { minimumFractionDigits: 2 }) || '0.00'}</Text>
-                  <Text className="text-xs text-on-surface-variant mt-4 text-right">Definir meta →</Text>
+                  <Text className="text-4xl font-serif mt-2 text-on-surface">${totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</Text>
+                  {goalAmount > 0 && (
+                    <View className="mt-4 w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                      <View className="h-full bg-secondary rounded-full" style={{ width: `${goalPct}%` }} />
+                    </View>
+                  )}
+                  <TouchableOpacity onPress={openGoalModal}>
+                    <Text className={`text-xs mt-2 text-right ${goalReached ? 'text-secondary font-bold' : 'text-on-surface-variant'}`}>
+                      {goalAmount > 0 ? (goalReached ? '🎉 ¡META ALCANZADA!' : `Meta: $${goalAmount.toLocaleString('es-MX')} (${goalPct.toFixed(0)}%)`) : 'Definir meta →'}
+                    </Text>
+                  </TouchableOpacity>
                 </View>
 
                 <TouchableOpacity activeOpacity={0.85} onPress={() => router.push('/sales')} className="bg-surface-container-lowest rounded-[2rem] p-6 shadow-sm">
@@ -404,6 +515,91 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* Modals placed outside ScrollView but inside SafeAreaView */}
+      <Modal visible={syncModalVisible} animationType="fade" transparent={true}>
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-surface rounded-[2rem] p-8 w-full border border-outline-variant max-h-[85%]">
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text className="text-2xl font-serif font-bold mb-2 text-on-surface">
+                {hasSyncedBefore ? '✅ Sincronización Activa' : '🔄 Sincronizar con Natura'}
+              </Text>
+              <Text className="text-sm text-on-surface-variant mb-4">
+                {hasSyncedBefore
+                  ? 'Tu computadora ya tiene configurada la sincronización automática y silenciosa gracias a Natura Manager Sync.'
+                  : 'Tus datos se sincronizarán automáticamente en segundo plano gracias a Natura Manager Sync. Es invisible y solo necesitas instalarlo una vez.'}
+              </Text>
+
+              <View className="bg-surface-container rounded-2xl p-4 mb-4">
+                <Text className="text-xs font-bold tracking-widest uppercase text-primary mb-2">⭐ Camino de Crecimiento</Text>
+                {gData?.level ? (
+                  <>
+                    <Text className="text-lg font-bold text-on-surface">{gData.level.description || 'Consultor'}</Text>
+                    <Text className="text-sm text-on-surface-variant">
+                      {(gData.nextLevelProgress?.currentValue ?? 0).toLocaleString()} pts acumulados · Próximo: {gData.nextLevel || '?'} ({Math.min(100, gData.nextLevelProgress?.progressPercentage || 0)}%)
+                    </Text>
+                    <Text className="text-xs text-on-surface-variant mt-1">
+                      Faltan {(gData.nextLevelProgress?.gap ?? 0).toLocaleString()} pts · {gData.period?.daysFinalDate || 0} días para cerrar
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-sm text-on-surface-variant">0 pts (sin sincronizar)</Text>
+                )}
+                {hasSyncedBefore && (
+                  <Text className="text-xs text-on-surface-variant mt-2">
+                    Última sincronización: {new Date(userProfile.growth_sync_date).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
+                  </Text>
+                )}
+              </View>
+
+              <View className="bg-surface-container rounded-2xl p-4 mb-3">
+                <Text className="text-sm font-bold text-on-surface mb-2">Windows — Natura Manager Sync</Text>
+                {hasSyncedBefore ? (
+                  <Text className="text-xs text-on-surface-variant leading-5">
+                    Tus puntos se han actualizado al ras del arranque del sistema. Si aún deseas forzar un escaneo nuevo en este preciso instante, solo dale doble click a NaturaManager-Sync.exe en la carpeta de descargas o escritorio de tu PC.
+                  </Text>
+                ) : (
+                  <>
+                    <Text className="text-xs text-on-surface-variant leading-5 mb-3">
+                      ✨ Se ejecuta de forma segura al encender tu PC.{'\n'}
+                      ✨ Tus credenciales nunca salen de tu equipo principal.{'\n'}
+                      ✨ Actualiza tus puntos automáticamente.
+                    </Text>
+                    <Text className="text-xs text-on-surface-variant text-center mb-2">Descarga la herramienta aquí</Text>
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL(NATURA_SYNC_DOWNLOAD_URL).catch(() => Alert.alert('Error', 'No se pudo abrir el enlace de descarga.'))}
+                      className="w-full py-3 rounded-xl border border-outline-variant items-center">
+                      <Text className="text-on-surface font-bold text-sm">⬇️ Descargar Instalador</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+
+              <View className="bg-surface-container rounded-2xl p-4 mb-4">
+                <Text className="text-sm font-bold text-on-surface mb-2">Linux / Pop!_OS — cron</Text>
+                {hasSyncedBefore ? (
+                  <>
+                    <Text className="text-xs text-on-surface-variant leading-5 mb-2">Para forzar un escaneo ahora mismo, abre tu terminal y ejecuta:</Text>
+                    <Text className="text-xs text-secondary bg-surface-container-highest rounded-md px-2 py-2">node scripts/scrape-nivel-auto.mjs</Text>
+                  </>
+                ) : (
+                  <>
+                    <Text className="text-xs text-on-surface-variant leading-5 mb-2">
+                      Elige tu editor favorito (ej. nano) y configura cron agregando esta línea (EDITOR=nano crontab -e):
+                    </Text>
+                    <Text className="text-xs text-secondary bg-surface-container-highest rounded-md px-2 py-2">
+                      0 10 * * * NATURA_USER="correo" NATURA_PASS="pass" /usr/bin/node /ruta/a/scripts/scrape-nivel-auto.mjs
+                    </Text>
+                  </>
+                )}
+              </View>
+
+              <TouchableOpacity onPress={() => setSyncModalVisible(false)} className="w-full py-4 bg-primary rounded-xl">
+                <Text className="text-white font-bold text-center">{hasSyncedBefore ? 'Entendido' : 'Cerrar'}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <Modal visible={goalModalVisible} animationType="fade" transparent={true}>
         <View className="flex-1 bg-black/50 justify-center items-center px-6">
           <View className="bg-surface rounded-[2rem] p-8 w-full border border-outline-variant">
@@ -414,7 +610,7 @@ export default function DashboardScreen() {
               placeholder="Ej: 6000" keyboardType="numeric"
               value={goalInput} onChangeText={setGoalInput}
             />
-            <TouchableOpacity onPress={() => {Alert.alert('Próximamente', 'El seguimiento de metas estará disponible en una próxima versión.'); setGoalModalVisible(false);}} className="w-full py-4 bg-primary rounded-xl mb-3">
+            <TouchableOpacity onPress={handleSaveGoal} className="w-full py-4 bg-primary rounded-xl mb-3">
               <Text className="text-white font-bold text-center">Guardar Meta</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setGoalModalVisible(false)} className="w-full py-3">

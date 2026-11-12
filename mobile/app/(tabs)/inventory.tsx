@@ -250,7 +250,7 @@ export default function InventoryScreen() {
           <Text className="text-secondary font-bold text-xs">Alta Rápida</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 flex-row gap-2"
+          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 mb-3 flex-row gap-2"
           style={{ backgroundColor: t.surfaceContainerHighest }}
           onPress={() => router.push('/inventory/adjustments')}
         >
@@ -258,12 +258,28 @@ export default function InventoryScreen() {
           <Text className="text-on-surface-variant font-bold text-xs">Ajustes</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 flex-row gap-2"
+          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 mb-3 flex-row gap-2"
           style={{ backgroundColor: t.surfaceContainerHighest }}
           onPress={() => router.push('/inventory/performance')}
         >
           <MaterialIcons name="analytics" size={18} color={t.onSurfaceVariant} />
           <Text className="text-on-surface-variant font-bold text-xs">Rendimiento</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 flex-row gap-2"
+          style={{ backgroundColor: t.surfaceContainerHighest }}
+          onPress={() => router.push('/inventory/catalog')}
+        >
+          <MaterialIcons name="list-alt" size={18} color={t.onSurfaceVariant} />
+          <Text className="text-on-surface-variant font-bold text-xs">Catálogo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          className="w-[48%] p-3 rounded-2xl items-center border border-outline-variant/20 flex-row gap-2"
+          style={{ backgroundColor: t.surfaceContainerHighest }}
+          onPress={() => router.push('/inventory/import')}
+        >
+          <MaterialIcons name="file-upload" size={18} color={t.onSurfaceVariant} />
+          <Text className="text-on-surface-variant font-bold text-xs">Importar</Text>
         </TouchableOpacity>
       </View>
     </View>

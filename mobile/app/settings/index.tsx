@@ -6,7 +6,7 @@ import { useColorScheme } from 'nativewind';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
-import { supabase } from '../../../src/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import { useThemeColors } from '../../hooks/use-theme-colors';
 import * as Updates from 'expo-updates';
 import * as ImagePicker from 'expo-image-picker';
@@ -36,6 +36,14 @@ export default function SettingsScreen() {
   const [currentUserId, setCurrentUserId] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [city, setCity] = useState('');
+
+  // Account email (auth) states
+  const [accountEmail, setAccountEmail] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+  const [changingEmail, setChangingEmail] = useState(false);
 
   // Password states
   const [newPassword, setNewPassword] = useState('');
@@ -51,6 +59,7 @@ export default function SettingsScreen() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setCurrentUserId(session.user.id);
+        setAccountEmail(session.user.email || '');
       }
       
       const data = await api.consultant.getProfile();
@@ -58,6 +67,9 @@ export default function SettingsScreen() {
       setNaturaCode(data?.natura_code || '');
       setEmail(data?.natura_email || '');
       setAvatarUrl(data?.avatar_url || null);
+      setPhone(data?.phone || '');
+      setBusinessName(data?.business_name || '');
+      setCity(data?.city || '');
     } catch (err) {
       console.error(err);
       setLoadError(true);
@@ -95,8 +107,15 @@ export default function SettingsScreen() {
     }
     setSaving(true);
     try {
+      if (!fullName.trim()) {
+        Alert.alert('Error', 'El nombre no puede estar vacío.');
+        return;
+      }
       await api.consultant.updateProfile({
-        full_name: fullName,
+        full_name: fullName.trim(),
+        phone: phone.trim() || null,
+        business_name: businessName.trim() || null,
+        city: city.trim() || null,
         natura_code: naturaCode,
         natura_email: email
       });
@@ -107,6 +126,43 @@ export default function SettingsScreen() {
       setSaving(false);
     }
   }
+
+  const handleChangeEmail = async () => {
+    const trimmed = newEmail.trim();
+    if (!trimmed) {
+      Alert.alert('Error', 'Ingresa un correo válido.');
+      return;
+    }
+    Alert.alert(
+      'Cambiar correo',
+      `¿Cambiar el correo de tu cuenta a ${trimmed}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cambiar',
+          onPress: async () => {
+            setChangingEmail(true);
+            try {
+              const { error } = await supabase.auth.updateUser({ email: trimmed });
+              if (error) {
+                Alert.alert('Error', 'Error: ' + error.message);
+              } else {
+                Alert.alert(
+                  'Verificación enviada',
+                  '✓ Se envió un link de confirmación a tu nuevo correo. Debes abrirlo para completar el cambio.'
+                );
+                setNewEmail('');
+              }
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'No se pudo cambiar el correo');
+            } finally {
+              setChangingEmail(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) return Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
@@ -280,7 +336,44 @@ export default function SettingsScreen() {
                     <TextInput
                       value={fullName}
                       onChangeText={setFullName}
-                      placeholder="Tu nombre"
+                      placeholder="Tu nombre completo"
+                      className="text-on-surface font-sans"
+                    />
+                  </View>
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-xs text-on-surface-variant font-bold mb-1">Teléfono WhatsApp</Text>
+                  <View className="bg-surface-container-highest rounded-xl px-4 py-3">
+                    <TextInput
+                      value={phone}
+                      onChangeText={setPhone}
+                      placeholder="55 1234 5678"
+                      className="text-on-surface font-sans"
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-xs text-on-surface-variant font-bold mb-1">Nombre del Negocio</Text>
+                  <View className="bg-surface-container-highest rounded-xl px-4 py-3">
+                    <TextInput
+                      value={businessName}
+                      onChangeText={setBusinessName}
+                      placeholder="Ej: Natura con Mariana"
+                      className="text-on-surface font-sans"
+                    />
+                  </View>
+                </View>
+
+                <View className="mb-4">
+                  <Text className="text-xs text-on-surface-variant font-bold mb-1">Ciudad / Zona</Text>
+                  <View className="bg-surface-container-highest rounded-xl px-4 py-3">
+                    <TextInput
+                      value={city}
+                      onChangeText={setCity}
+                      placeholder="Ej: CDMX Sur"
                       className="text-on-surface font-sans"
                     />
                   </View>
@@ -327,6 +420,41 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
               </>
             )}
+          </View>
+        </View>
+
+        {/* Correo Electrónico (cuenta) */}
+        <View className="mb-6">
+          <Text className="text-[10px] uppercase font-bold tracking-widest text-primary/70 mb-2 px-2">Correo Electrónico</Text>
+          <View className="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden p-5">
+            <Text className="text-xs text-on-surface-variant mb-4">
+              Tu correo actual: <Text className="font-bold text-on-surface">{accountEmail || '—'}</Text>
+            </Text>
+            <Text className="text-xs text-on-surface-variant font-bold mb-1">Nuevo Correo</Text>
+            <View className="bg-surface-container-highest rounded-xl px-4 py-3 mb-4">
+              <TextInput
+                value={newEmail}
+                onChangeText={setNewEmail}
+                placeholder="nuevo@correo.com"
+                className="text-on-surface font-sans"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+            <TouchableOpacity
+              onPress={handleChangeEmail}
+              disabled={changingEmail}
+              className={`py-3 rounded-full flex-row items-center justify-center border border-secondary/30 ${changingEmail ? 'bg-outline' : 'bg-transparent'}`}
+            >
+              {changingEmail ? (
+                <ActivityIndicator size="small" color={t.secondary} />
+              ) : (
+                <Text className="text-secondary font-bold">Cambiar Correo</Text>
+              )}
+            </TouchableOpacity>
+            <Text className="text-[10px] text-on-surface-variant mt-3 leading-4">
+              Por seguridad, te enviaremos un link de verificación a tu nuevo correo para confirmar el cambio.
+            </Text>
           </View>
         </View>
 

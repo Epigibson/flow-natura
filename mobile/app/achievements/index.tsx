@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
 import { MaterialIcons } from '@expo/vector-icons';
 import api from '../../../src/lib/api';
@@ -14,6 +14,7 @@ export default function AchievementsScreen() {
   const [stats, setStats] = useState<AchievementStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [badgeFilter, setBadgeFilter] = useState<'all' | 'unlocked' | 'locked'>('all');
 
   useEffect(() => {
     loadData();
@@ -37,6 +38,10 @@ export default function AchievementsScreen() {
   const salesTotal = stats?.revenue || 0;
   const customersCount = stats?.customers || 0;
   const badges = stats ? buildBadges(stats) : [];
+  const filteredBadges =
+    badgeFilter === 'all' ? badges : badgeFilter === 'unlocked' ? badges.filter(b => b.unlocked) : badges.filter(b => !b.unlocked);
+
+  const growthData = profile?.latest_growth_data || null;
 
   const levelDesc = profile?.latest_growth_data?.level?.description || 'Consultor';
   const currentPts = profile?.latest_growth_data?.nextLevelProgress?.currentValue || 0;
@@ -113,7 +118,8 @@ export default function AchievementsScreen() {
                 <MaterialIcons name="workspace-premium" size={20} color={t.secondary} />
                 <Text className="font-serif font-bold text-lg text-on-surface">Tus Beneficios Comerciales</Text>
               </View>
-              
+
+              {growthData ? (
               <View className="flex-row flex-wrap justify-between gap-y-4">
                 <View className="w-[48%] rounded-xl p-4 items-center border" style={{ backgroundColor: t.primaryContainer + '1A', borderColor: t.primaryContainer + '33' }}>
                   <MaterialIcons name="sell" size={24} color={t.primary} />
@@ -145,6 +151,14 @@ export default function AchievementsScreen() {
                   </View>
                 )}
               </View>
+              ) : (
+                <View className="py-8 items-center">
+                  <MaterialIcons name="link-off" size={36} color={t.onSurfaceVariant} />
+                  <Text className="text-on-surface-variant text-sm mt-2 text-center">
+                    Sincroniza tu cuenta Natura en el Inicio para ver tus beneficios oficiales.
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Hitos Históricos */}
@@ -153,11 +167,36 @@ export default function AchievementsScreen() {
               <Text className="font-serif font-bold text-xl text-on-surface">Hitos Históricos</Text>
             </View>
 
+            <View className="flex-row gap-2 mb-3">
+              {([
+                { key: 'all', label: 'Todos' },
+                { key: 'unlocked', label: 'Desbloqueados' },
+                { key: 'locked', label: 'Bloqueados' },
+              ] as const).map(f => {
+                const active = badgeFilter === f.key;
+                return (
+                  <TouchableOpacity
+                    key={f.key}
+                    onPress={() => setBadgeFilter(f.key)}
+                    className={`px-3 py-1.5 rounded-full ${active ? 'bg-primary' : ''}`}
+                  >
+                    <Text className={`text-xs font-bold ${active ? 'text-white' : 'text-on-surface-variant'}`}>{f.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             <Text className="text-xs font-bold mb-3" style={{ color: t.onSurfaceVariant }}>
               {badges.filter(b => b.unlocked).length} de {badges.length} logrados
             </Text>
 
-            {badges.map((item) => (
+            {filteredBadges.length === 0 ? (
+              <View className="py-8 items-center">
+                <Text className="text-on-surface-variant text-sm text-center">
+                  {badgeFilter === 'unlocked' ? 'Aún no has desbloqueado hitos. ¡Empieza vendiendo!' : 'Ya desbloqueaste todos los hitos. 🏆'}
+                </Text>
+              </View>
+            ) : filteredBadges.map((item) => (
               <View key={item.id} className="flex-row items-center p-4 rounded-2xl mb-3 shadow-sm border" style={{ backgroundColor: item.unlocked ? t.surfaceContainerLowest : t.surfaceContainer, borderColor: item.unlocked ? t.secondary + '33' : t.outlineVariant + '1A', opacity: item.unlocked ? 1 : 0.8 }}>
                 <View className="w-12 h-12 rounded-full flex items-center justify-center mr-4" style={{ backgroundColor: item.unlocked ? t.secondaryContainer : t.surfaceContainerHighest }}>
                   <Text style={{ fontSize: 22 }}>{item.icon}</Text>

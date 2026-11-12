@@ -55,6 +55,10 @@ export default function NewProductScreen() {
   const [points, setPoints] = useState('0');
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
   const [costManuallyEdited, setCostManuallyEdited] = useState(false);
+
+  // Manual product image (upload / catalog)
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageBusyText, setImageBusyText] = useState('');
   
   // ═══════════ AI ANALYSIS ═══════════
 
@@ -97,6 +101,78 @@ export default function NewProductScreen() {
       const base64 = result.assets[0].base64;
       setCapturedPhoto(`data:image/jpeg;base64,${base64}`);
       analyzeWithAI(base64);
+    }
+  }
+
+  // ── Manual product image: upload to storage / take from catalog ──
+
+  async function uploadProductImage(base64: string, fileName: string, mimeType: string): Promise<string> {
+    const token = await getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/api/upload-product-image`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.error || 'No se pudo subir la imagen.');
+    return data.url;
+  }
+
+  async function pickAndUploadImage(source: 'camera' | 'library') {
+    try {
+      if (source === 'camera') {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara.');
+          return;
+        }
+      }
+      const result = source === 'camera'
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], base64: true, quality: 0.8 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: true, quality: 0.8 });
+
+      if (result.canceled || !result.assets[0]?.base64) return;
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const ext = mimeType.includes('png') ? 'png' : 'jpg';
+
+      setImageUploading(true);
+      setImageBusyText('Subiendo imagen...');
+      const url = await uploadProductImage(asset.base64!, `${source === 'camera' ? 'cam' : 'new'}_${Date.now()}.${ext}`, mimeType);
+      setImageUrl(url);
+      setAiGeneratedImage(null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo subir la imagen.');
+    } finally {
+      setImageUploading(false);
+      setImageBusyText('');
+    }
+  }
+
+  async function useCatalogImage() {
+    if (!name.trim()) {
+      Alert.alert('Sin nombre', 'Ingresa el nombre del producto para buscar en el catálogo.');
+      return;
+    }
+    setImageUploading(true);
+    setImageBusyText('Buscando en el catálogo...');
+    try {
+      const results = await api.products.list({ search: name.trim() });
+      const match = (results || []).find((p: any) => p.image_url);
+      if (!match) {
+        Alert.alert('Sin resultado', 'No se encontró una imagen en el catálogo para este producto.');
+        return;
+      }
+      setImageUrl(match.image_url);
+      setAiGeneratedImage(null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo buscar en el catálogo.');
+    } finally {
+      setImageUploading(false);
+      setImageBusyText('');
     }
   }
 
@@ -454,20 +530,56 @@ export default function NewProductScreen() {
         {/* Image Preview */}
         <View className="mb-6">
           <Text className="text-sm font-bold text-on-surface-variant mb-1 ml-1">Imagen del Producto</Text>
+
           {imageUrl ? (
             <View className="mt-2 items-center">
-              <Image source={{ uri: imageUrl }} className="w-32 h-32 rounded-2xl bg-surface-container-highest" resizeMode="contain" />
+              <Image source={{ uri: imageUrl }} className="w-32 h-32 rounded-2xl bg-white border border-outline-variant/20" resizeMode="contain" />
               <TouchableOpacity className="mt-2" onPress={() => { setImageUrl(''); setAiGeneratedImage(null); }}>
                 <Text className="text-xs text-error font-bold">Quitar imagen</Text>
               </TouchableOpacity>
             </View>
-          ) : (
-            <TextInput 
-              className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
-              placeholder="https://... (Opcional o usa IA)"
-              value={imageUrl} onChangeText={setImageUrl}
-            />
-          )}
+          ) : null}
+
+          <View className="flex-row gap-2 mt-3 mb-3">
+            <TouchableOpacity
+              className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest border border-outline-variant/20"
+              onPress={() => pickAndUploadImage('camera')}
+              disabled={imageUploading}
+            >
+              <MaterialIcons name="photo-camera" size={20} color={t.primary} />
+              <Text className="text-[10px] font-bold text-on-surface-variant">Tomar foto</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest border border-outline-variant/20"
+              onPress={() => pickAndUploadImage('library')}
+              disabled={imageUploading}
+            >
+              <MaterialIcons name="upload-file" size={20} color={t.primary} />
+              <Text className="text-[10px] font-bold text-on-surface-variant">Galería</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl border border-primary/30 bg-primary/5"
+              onPress={useCatalogImage}
+              disabled={imageUploading}
+            >
+              <MaterialIcons name="image-search" size={20} color={t.primary} />
+              <Text className="text-[10px] font-bold text-primary text-center">Del catálogo</Text>
+            </TouchableOpacity>
+          </View>
+
+          {imageUploading ? (
+            <View className="flex-row items-center gap-2 mb-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
+              <ActivityIndicator size="small" color={t.primary} />
+              <Text className="text-xs font-bold text-primary">{imageBusyText || 'Procesando...'}</Text>
+            </View>
+          ) : null}
+
+          <TextInput
+            className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
+            placeholder="https://... (Opcional o usa IA)"
+            autoCapitalize="none"
+            value={imageUrl} onChangeText={setImageUrl}
+          />
         </View>
 
         {/* Pricing */}

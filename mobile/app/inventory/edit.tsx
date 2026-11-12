@@ -4,14 +4,37 @@ import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, Stack } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import api from '../../../src/lib/api';
 import { calculateConsultantPrice, type ConsultantLevel } from '../../../src/lib/camino-crecimiento';
 import { useThemeColors } from '../../hooks/use-theme-colors';
+import { supabase } from '../../lib/supabase';
+import { SITE_URL } from '../../lib/config';
 
 const CATEGORIES = [
   'Perfumería', 'Maquillaje', 'Cuerpo', 'Cabello',
   'Rostro', 'Cuidado Personal', 'Accesorios'
 ];
+
+async function getAuthToken(): Promise<string> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token || '';
+}
+
+async function uploadProductImage(base64: string, fileName: string, mimeType: string): Promise<string> {
+  const token = await getAuthToken();
+  const res = await fetch(`${SITE_URL}/api/upload-product-image`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ imageBase64: base64, fileName, mimeType }),
+  });
+  const data = await res.json();
+  if (!res.ok || !data.url) throw new Error(data.error || 'No se pudo subir la imagen.');
+  return data.url;
+}
 
 export default function EditProductScreen() {
   const t = useThemeColors();
@@ -32,6 +55,11 @@ export default function EditProductScreen() {
   const [level, setLevel] = useState<ConsultantLevel>('Bronce');
   const [costManuallyEdited, setCostManuallyEdited] = useState(false);
   const [stock, setStock] = useState('0');
+
+  // Image management
+  const [imageBusy, setImageBusy] = useState(false);
+  const [imageBusyText, setImageBusyText] = useState('');
+  const [aiResult, setAiResult] = useState<{ preview: string; url: string | null; base64: string | null; name: string; label: string } | null>(null);
 
   useEffect(() => {
     if (productId) loadProduct();
@@ -81,6 +109,117 @@ export default function EditProductScreen() {
     setCostManuallyEdited(false);
     if (parsedPrice > 0) {
       setCost(calculateConsultantPrice(parsedPrice, newLevel, brand, category).toFixed(2));
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // IMAGE: upload (camera/gallery) + AI enhance
+  // ──────────────────────────────────────────────
+  async function pickAndUploadImage(source: 'camera' | 'library') {
+    try {
+      if (source === 'camera') {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert('Permiso denegado', 'Se requiere acceso a la cámara.');
+          return;
+        }
+      }
+      const result = source === 'camera'
+        ? await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], base64: true, quality: 0.8 })
+        : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: true, quality: 0.8 });
+
+      if (result.canceled || !result.assets[0]?.base64) return;
+      const asset = result.assets[0];
+      const mimeType = asset.mimeType || 'image/jpeg';
+      const ext = mimeType.includes('png') ? 'png' : 'jpg';
+
+      setImageBusy(true);
+      setImageBusyText('Subiendo imagen...');
+      setAiResult(null);
+      const url = await uploadProductImage(asset.base64!, `${source === 'camera' ? 'cam' : 'edit'}_${Date.now()}.${ext}`, mimeType);
+      setImageUrl(url);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo subir la imagen.');
+    } finally {
+      setImageBusy(false);
+      setImageBusyText('');
+    }
+  }
+
+  async function handleEnhanceImage() {
+    if (!name && !code && !description && !imageUrl) {
+      Alert.alert('Sin datos', 'Necesitas ingresar un nombre, código, descripción o tener una foto actual para procesar la imagen de estudio.');
+      return;
+    }
+    setImageBusy(true);
+    setImageBusyText('Buscando imagen de estudio con IA...');
+    setAiResult(null);
+    try {
+      const token = await getAuthToken();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      const res = await fetch(`${SITE_URL}/api/enhance-product-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productName: name,
+          productCode: code,
+          productDesc: description,
+          imageBase64: null,
+          imageUrl: imageUrl || null,
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (!data.suggested_image_url && !data.image_base64) {
+        throw new Error('La IA no pudo procesar la imagen. Intenta con otra foto.');
+      }
+      const strategy = data.strategy === 'imagen_bkg_removal' ? '🎯 Fondo removido'
+        : (data.strategy || '').startsWith('gemini_image_gen') ? '✨ Generada por IA'
+        : data.strategy === 'text_catalog_search' ? '📂 Catálogo oficial' : 'IA';
+      const confText = data.confidence === 'high' ? 'Alta confianza' : data.confidence === 'medium' ? 'Confianza media' : 'Baja confianza';
+      setAiResult({
+        preview: data.image_base64 || data.suggested_image_url || '',
+        url: data.suggested_image_url || null,
+        base64: data.suggested_image_url ? null : (data.image_base64 || null),
+        name: data.identified_name || name || 'Producto AI',
+        label: `${strategy} • ${confText} • ${data.notes || ''}`,
+      });
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        Alert.alert('Error', 'La solicitud tardó demasiado (30s). Intenta de nuevo.');
+      } else {
+        Alert.alert('Error', 'Error conectando con IA: ' + (err.message || err));
+      }
+    } finally {
+      setImageBusy(false);
+      setImageBusyText('');
+    }
+  }
+
+  async function applyAiImage() {
+    if (!aiResult) return;
+    try {
+      setImageBusy(true);
+      setImageBusyText('Aplicando imagen...');
+      if (aiResult.url) {
+        setImageUrl(aiResult.url);
+      } else if (aiResult.base64) {
+        const clean = aiResult.base64.replace(/^data:image\/\w+;base64,/, '');
+        const url = await uploadProductImage(clean, `ai_${Date.now()}.png`, 'image/png');
+        setImageUrl(url);
+      }
+      setAiResult(null);
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'No se pudo usar la imagen.');
+    } finally {
+      setImageBusy(false);
+      setImageBusyText('');
     }
   };
 
@@ -178,15 +317,85 @@ export default function EditProductScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
 
-        {/* Image preview */}
+        {/* ── Imagen del producto ── */}
+        <Text className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Imagen del Producto</Text>
+
         {imageUrl ? (
-          <View className="items-center mb-6">
-            <Image source={{ uri: imageUrl }} className="w-28 h-28 rounded-2xl bg-surface-container-highest" resizeMode="contain" />
-            <TouchableOpacity className="mt-2" onPress={() => setImageUrl('')}>
+          <View className="items-center mb-4">
+            <Image source={{ uri: imageUrl }} className="w-32 h-32 rounded-2xl bg-white border border-outline-variant/20" resizeMode="contain" />
+            <TouchableOpacity className="mt-2" onPress={() => { setImageUrl(''); setAiResult(null); }}>
               <Text className="text-xs text-error font-bold">Quitar imagen</Text>
             </TouchableOpacity>
           </View>
         ) : null}
+
+        <View className="flex-row gap-2 mb-3">
+          <TouchableOpacity
+            className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest border border-outline-variant/20"
+            onPress={() => pickAndUploadImage('camera')}
+            disabled={imageBusy}
+          >
+            <MaterialIcons name="photo-camera" size={20} color={t.primary} />
+            <Text className="text-[10px] font-bold text-on-surface-variant">Tomar foto</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl bg-surface-container-highest border border-outline-variant/20"
+            onPress={() => pickAndUploadImage('library')}
+            disabled={imageBusy}
+          >
+            <MaterialIcons name="upload-file" size={20} color={t.primary} />
+            <Text className="text-[10px] font-bold text-on-surface-variant">Galería</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 flex-col items-center gap-1 py-3 px-2 rounded-xl border border-primary/30 bg-primary/5"
+            onPress={handleEnhanceImage}
+            disabled={imageBusy}
+          >
+            <MaterialIcons name="auto-awesome" size={20} color={t.primary} />
+            <Text className="text-[10px] font-bold text-primary">Mejorar con IA</Text>
+          </TouchableOpacity>
+        </View>
+
+        {(imageBusy || imageBusyText) ? (
+          <View className="flex-row items-center gap-2 mb-3 p-3 rounded-xl bg-primary/5 border border-primary/10">
+            <ActivityIndicator size="small" color={t.primary} />
+            <Text className="text-xs font-bold text-primary">{imageBusyText || 'Procesando...'}</Text>
+          </View>
+        ) : null}
+
+        {aiResult && !imageBusy ? (
+          <View className="mb-3 p-3 rounded-xl bg-surface-container-lowest border border-outline-variant/20">
+            <View className="flex-row items-center gap-1 mb-2">
+              <MaterialIcons name="check-circle" size={14} color={t.secondary} />
+              <Text className="text-xs font-bold text-secondary">Imagen encontrada</Text>
+            </View>
+            <View className="flex-row gap-3 items-center">
+              <Image source={{ uri: aiResult.preview }} className="w-16 h-16 rounded-lg bg-white border border-outline-variant/20" resizeMode="contain" />
+              <View className="flex-1">
+                <Text className="text-xs text-on-surface font-bold" numberOfLines={1}>{aiResult.name}</Text>
+                <Text className="text-[9px] text-on-surface-variant" numberOfLines={2}>{aiResult.label}</Text>
+                <View className="flex-row gap-2 mt-2">
+                  <TouchableOpacity className="bg-secondary px-3 py-1.5 rounded-full" onPress={applyAiImage}>
+                    <Text className="text-[10px] font-bold text-white">Usar esta imagen</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity className="px-3 py-1.5 rounded-full border border-outline-variant" onPress={() => setAiResult(null)}>
+                    <Text className="text-[10px] font-bold text-on-surface-variant">Mantener original</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        <View className="mb-6">
+          <Text className="text-sm font-bold text-on-surface-variant mb-1 ml-1">URL de Imagen</Text>
+          <TextInput
+            className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
+            placeholder="https://..."
+            autoCapitalize="none"
+            value={imageUrl} onChangeText={setImageUrl}
+          />
+        </View>
 
         {/* Basic Info */}
         <Text className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Información Principal</Text>
@@ -252,18 +461,6 @@ export default function EditProductScreen() {
             ))}
           </ScrollView>
         </View>
-
-        {/* Image URL */}
-        {!imageUrl && (
-          <View className="mb-6">
-            <Text className="text-sm font-bold text-on-surface-variant mb-1 ml-1">URL de Imagen</Text>
-            <TextInput
-              className="bg-surface-container-highest rounded-xl px-4 py-4 text-on-surface text-base"
-              placeholder="https://..."
-              value={imageUrl} onChangeText={setImageUrl}
-            />
-          </View>
-        )}
 
         {/* Pricing */}
         <Text className="text-xs font-bold uppercase tracking-widest text-primary mb-4">Finanzas</Text>
