@@ -1,0 +1,809 @@
+{
+  "brand": {
+    "name": "Casa & Estilo",
+    "positioning": "Casa & Estilo (\"Casa Y Estilo\") es la línea de hogar, cocina, textiles y organización del catálogo de venta directa de Avon México, parte del ecosistema Natura & Avon en México. En avon.mx es una categoría principal del sitio (aprox. 493 productos al momento de la consulta) con las subcategorías Plásticos (145), Blancos (85), Infantil (63), Varios (29) y Sartenería (25). El portafolio mezcla artículos funcionales para el hogar —recipientes, botellas, vasos, vajilla, sartenería, edredones, sábanas, cortinas, organizadores— con productos de entretenimiento con personajes licenciados (Disney/Pixar, Bluey, Stitch, BT21, Kuromi y otros). Se vende por venta directa a través de consultoras/os (en avon.mx el pie de página enlaza a 'Conviértete en Consultor/a' en registro.natura-avon.com), y cada producto tiene ficha pública en avon.mx con código AVNMEX. Las fichas de producto consultadas confirman materiales como plástico (frecuentemente libre de BPA), poliéster, aluminio y metal; también aparecen líneas en vidrio, acero, bambú, cerámica y silicón según los nombres de catálogo.",
+    "fuente": "https://www.avon.mx/c/casa-y-estilo"
+  },
+  "product_types": {
+    "alicata": {
+      "match": [
+        "alicata",
+        "alicatas"
+      ],
+      "type": "Alicata de uñas",
+      "uso_principal": "Cortar y dar forma a las uñas de manos y pies.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Existe la versión 'doble uso' (según nombre de catálogo)."
+    },
+    "asador": {
+      "match": [
+        "asador"
+      ],
+      "type": "Asador",
+      "uso_principal": "Asar alimentos al aire libre o en cocina.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "El catálogo incluye el modelo 'asador mágico' (según nombre de catálogo)."
+    },
+    "papillero": {
+      "match": [
+        "papillero"
+      ],
+      "type": "Papillero / kit de alimentación infantil",
+      "uso_principal": "Servir papillas y alimentos a bebés con cuchara incluida, ideal para llevar.",
+      "material_sugerido": "Plástico (coherente con líneas infantiles 'to go' confirmadas en plástico en fichas avon.mx).",
+      "cuidado": "",
+      "highlight": "Formato 'to go' con cuchara incluida (según nombre de catálogo)."
+    },
+    "mantel": {
+      "match": [
+        "mantel",
+        "posa vaso",
+        "posavasos",
+        "servilletero",
+        "portarrollo",
+        "portarollo"
+      ],
+      "type": "Mantel / accesorios de mesa",
+      "uso_principal": "Vestir la mesa y organizar servilletas y rollos de papel.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye juegos de mantel con posavasos y servilleteros decorativos (pajarito)."
+    },
+    "plancha": {
+      "match": [
+        "plancha"
+      ],
+      "type": "Plancha / protector de plancha",
+      "uso_principal": "Alisar ropa o cabello; el protector de silicón cuida la superficie de la plancha.",
+      "material_sugerido": "Silicón en el protector de plancha (nombre de catálogo: 'protector plancha silicona').",
+      "cuidado": "",
+      "highlight": "Existe la variante 'megaplaancha rectangular' y protector de silicón (según nombres de catálogo)."
+    },
+    "guarda_alimentos": {
+      "match": [
+        "guarda aguacate",
+        "guarda cebolla",
+        "guarda jitomate",
+        "guarda limon",
+        "guarda limón",
+        "guarda "
+      ],
+      "type": "Guarda alimentos frescos",
+      "uso_principal": "Conservar mitades de frutas y verduras (aguacate, cebolla, jitomate, limón) en refrigerador.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Piezas específicas por alimento para reducir desperdicio (según nombres de catálogo)."
+    },
+    "cubresillon": {
+      "match": [
+        "cubresillon",
+        "cubre sillón"
+      ],
+      "type": "Cubresillón",
+      "uso_principal": "Proteger y renovar el tapizado de sillones de 1, 2 o 3 plazas.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Disponible en medidas 1, 2 y 3 plazas según nombres de catálogo."
+    },
+    "funda_lavadora": {
+      "match": [
+        "funda de lavadora",
+        "funda lavadora",
+        "funda para lentes"
+      ],
+      "type": "Funda para lavadora o lentes",
+      "uso_principal": "Proteger la lavadora del polvo o guardar gafas/anteojos.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Diseños decorativos (atrapasueños, mariposa, girasoles) según nombres de catálogo."
+    },
+    "escurridor": {
+      "match": [
+        "escurridor",
+        "escurridero"
+      ],
+      "type": "Escurridor",
+      "uso_principal": "Escurrir frutas, verduras, cubiertos y utensilios después del lavado.",
+      "material_sugerido": "Plástico (ficha avon.mx 'Escurridor plegable').",
+      "cuidado": "No apto para microondas (ficha avon.mx 'Escurridor plegable').",
+      "highlight": "Diseño plegable para ahorrar espacio, ligero y resistente (ficha avon.mx)."
+    },
+    "bascula": {
+      "match": [
+        "báscula",
+        "bascula"
+      ],
+      "type": "Báscula digital de cocina",
+      "uso_principal": "Pesar ingredientes con precisión al cocinar.",
+      "material_sugerido": "Plástico (ficha avon.mx 'Báscula digital').",
+      "cuidado": "Usa 2 baterías AAA 1.5 V no incluidas (ficha avon.mx).",
+      "highlight": "Apagado automático y capacidad hasta 10 kg (ficha avon.mx)."
+    },
+    "pastillero": {
+      "match": [
+        "pastillero"
+      ],
+      "type": "Pastillero",
+      "uso_principal": "Organizar y dosificar medicamentos o suplementos por día.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": ""
+    },
+    "aromatizante": {
+      "match": [
+        "aromatizante",
+        "aromatizantes"
+      ],
+      "type": "Aromatizante de ambiente",
+      "uso_principal": "Perfumar y ambientar espacios del hogar.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Línea 'flor aromatizante' en fragancias como lavanda, berry y energía (según nombres de catálogo)."
+    },
+    "revista_cye": {
+      "match": [
+        "revista",
+        "revistas"
+      ],
+      "type": "Revista / material de venta Casa & Estilo",
+      "uso_principal": "Catálogos o revistas de venta para consultoras, en kits por ciclo (ej. C05/C06 2026).",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Se comercializan en kits de 10, 20 o 30 revistas por ciclo de venta (según nombres de catálogo)."
+    },
+    "kit_manualidades": {
+      "match": [
+        "crea pulseras",
+        "kit crea",
+        "joyeria",
+        "herramientas y casco"
+      ],
+      "type": "Kit de manualidades / juguete",
+      "uso_principal": "Crear pulseras y accesorios; juguetes de ducha para niños.",
+      "material_sugerido": "Plástico (fichas avon.mx de kits 'Crea pulseras').",
+      "cuidado": "",
+      "highlight": "Kits con estuche temático (mariposa, mochila), piezas de cuentas y hilo elástico; edad recomendada a partir de 5 años (ficha avon.mx)."
+    },
+    "botella": {
+      "match": [
+        "botella"
+      ],
+      "type": "Botella para agua / bebidas",
+      "uso_principal": "Transportar y beber agua u otras bebidas en casa, escuela o viaje.",
+      "material_sugerido": "Plástico libre de BPA (ficha avon.mx del set lunch con botella).",
+      "cuidado": "",
+      "highlight": "Tapa de rosca para evitar derrames (ficha avon.mx); variantes con popote, asa 'to go', asa flexible, bomba, spray y líneas herméticas según nombres de catálogo."
+    },
+    "lunch_lonchera": {
+      "match": [
+        "lunch box",
+        "lonchera",
+        "lonch",
+        "gran set lunch",
+        "set lunch"
+      ],
+      "type": "Set lunch / lonchera",
+      "uso_principal": "Guardar y transportar el almuerzo escolar o de oficina con cubiertos y bebida.",
+      "material_sugerido": "Plástico libre de BPA (ficha avon.mx 'Gran set lunch rectangular').",
+      "cuidado": "",
+      "highlight": "Sets con botella de tapa de rosca anti-derrames, mini contenedor para botanas y tenedor/cuchara anclables (ficha avon.mx)."
+    },
+    "especiero": {
+      "match": [
+        "especiero",
+        "especieros",
+        "molinillo"
+      ],
+      "type": "Especiero / molinillo de especias",
+      "uso_principal": "Guardar, moler y dosificar especias y condimentos.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "El catálogo incluye juegos '0 fugas' (según nombre de catálogo)."
+    },
+    "organizador": {
+      "match": [
+        "organizador",
+        "organizadores",
+        "caja"
+      ],
+      "type": "Organizador del hogar",
+      "uso_principal": "Ordenar utensilios, tapas, clips, accesorios y objetos de cocina o baño.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay modelos de 2 niveles, para tapas, con rejillas y con diseños decorativos (pajarito)."
+    },
+    "jarra": {
+      "match": [
+        "jarra",
+        "chocolatera"
+      ],
+      "type": "Jarra / jarra para bebidas calientes",
+      "uso_principal": "Preparar y servir café, chocolate, atole, jugos y otras bebidas.",
+      "material_sugerido": "Aluminio (ficha avon.mx 'Jarra chocolatera 2 L'); también vidrio ('jarra de vidrio').",
+      "cuidado": "",
+      "highlight": "El aluminio distribuye el calor de forma uniforme para calentar rápido (ficha avon.mx); capacidades típicas de 2 L, algunas con vasos incluidos."
+    },
+    "tetera": {
+      "match": [
+        "tetera"
+      ],
+      "type": "Tetera",
+      "uso_principal": "Preparar y servir té e infusiones.",
+      "material_sugerido": "Acero según nombres de catálogo ('tetera de acero'); cerámica en líneas 'elegancia limones ceramic'.",
+      "cuidado": "",
+      "highlight": "Hay modelos 'fuego directo' (según nombre de catálogo) y sets con tazas."
+    },
+    "sarten": {
+      "match": [
+        "sarten",
+        "sandwichera",
+        "sandwichera",
+        "mini sarten"
+      ],
+      "type": "Sartén / sartén taquero",
+      "uso_principal": "Freír, calentar y guisar alimentos (tacos, quesadillas, carnes).",
+      "material_sugerido": "Aluminio con superficie antiadherente (ficha avon.mx 'Sartén taquero').",
+      "cuidado": "",
+      "highlight": "Recubrimiento antiadherente; el 'sartén taquero' mide 32 cm de diámetro x 4 cm de alto (ficha avon.mx)."
+    },
+    "olla": {
+      "match": [
+        "olla",
+        "ollas",
+        "cacerola",
+        "wok",
+        "arrocera",
+        "multiq"
+      ],
+      "type": "Olla / cacerola / wok",
+      "uso_principal": "Cocinar guisados, sopas, arroces y salteados a fuego de estufa.",
+      "material_sugerido": "Acero inoxidable ('juego de 3 ollas inoxidables', 'ollas de acero'); aluminio en sartenería según fichas avon.mx.",
+      "cuidado": "",
+      "highlight": "Incluye juegos con tapa de vidrio ('cacerola redonda tapa vidrio') y sets con mangos."
+    },
+    "molde": {
+      "match": [
+        "molde",
+        "moldes"
+      ],
+      "type": "Molde para cocina o hielo",
+      "uso_principal": "Dar forma a postres, hielo, chocolates o panes; moldes con tapa para preparar y guardar.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye moldes con tapa, formas (corazón, estrella navideña) y molde de hielo para rostro."
+    },
+    "edredon": {
+      "match": [
+        "edredon",
+        "edredón",
+        "frazada"
+      ],
+      "type": "Edredón",
+      "uso_principal": "Cubrir y abrigar la cama individual o matrimonial.",
+      "material_sugerido": "Poliéster (fichas avon.mx 'Edredón IND/MT Bluey').",
+      "cuidado": "No incluye sábanas ni funda de almohada (nota de ficha avon.mx).",
+      "highlight": "Doble vista reversible para cambiar el look del cuarto, costura capitonada y grosor delgado (ficha avon.mx); medidas 1.60 x 2.20 m individual y 2.10 x 2.20 m matrimonial."
+    },
+    "colcha": {
+      "match": [
+        "colcha"
+      ],
+      "type": "Colcha",
+      "uso_principal": "Cobertor decorativo y abrigo para cama individual o matrimonial.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Disponible en tamaños KS (king size) y MT (matrimonial) según nombres de catálogo."
+    },
+    "sabanas": {
+      "match": [
+        "sabana",
+        "sábana"
+      ],
+      "type": "Juego de sábanas",
+      "uso_principal": "Vestir el colchón y la almohada para el descanso.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay juegos en tamaños MT/KS y versiones 'refrescantes' o metalizadas según nombres de catálogo."
+    },
+    "cortina": {
+      "match": [
+        "cortina"
+      ],
+      "type": "Cortina (baño, cocina o recámara)",
+      "uso_principal": "Privacidad y decoración de baño, cocina o habitación.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Colecciones temáticas (limones, perritos, Bluey) según nombres de catálogo."
+    },
+    "toalla": {
+      "match": [
+        "toalla",
+        "toallas"
+      ],
+      "type": "Toalla",
+      "uso_principal": "Secado del cuerpo después del baño; también toallas faciales y de cocina.",
+      "material_sugerido": "Poliéster (ficha avon.mx 'Toalla de baño Bluey').",
+      "cuidado": "",
+      "highlight": "Tela resistente a las arrugas, ligera y durable (ficha avon.mx); medidas 1.40 x 0.70 m en la toalla de baño."
+    },
+    "vajilla": {
+      "match": [
+        "vajilla"
+      ],
+      "type": "Juego de vajilla",
+      "uso_principal": "Comedor completo para servir alimentos en familia o para niños.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay sets infantiles con personajes licenciados (Mickey, Minnie, Pooh) y líneas temáticas (dino, osito)."
+    },
+    "plato": {
+      "match": [
+        "plato",
+        "platos",
+        "trinche",
+        "tabla"
+      ],
+      "type": "Plato / tabla para picar",
+      "uso_principal": "Servir alimentos y picar/cortar ingredientes en la cocina.",
+      "material_sugerido": "Cerámica ('plato plano limones cerámica'), bambú ('plato trinche de bambú') y plástico según nombres de catálogo.",
+      "cuidado": "",
+      "highlight": "Incluye platos con divisiones, plato pizza y juegos de tablas para picar."
+    },
+    "cubiertos": {
+      "match": [
+        "cubiertos",
+        "cuchillo",
+        "cuchillos",
+        "cuchara",
+        "cucharas",
+        "cuchar"
+      ],
+      "type": "Cubiertos y utensilios de cocina",
+      "uso_principal": "Cortar, servir y preparar alimentos; sets 'to go' para lonchera escolar.",
+      "material_sugerido": "Plástico y metal (ficha avon.mx 'Juego de cuchillos y utensilios'); acero en cucharas colador; plástico libre de BPA en cubiertos to go.",
+      "cuidado": "",
+      "highlight": "Cubiertos to go con capuchón porta-cubiertos, libres de BPA y recomendados a partir de 3 años (ficha avon.mx)."
+    },
+    "reloj": {
+      "match": [
+        "reloj",
+        "relojes"
+      ],
+      "type": "Reloj de pared decorativo",
+      "uso_principal": "Marcar la hora y decorar el hogar.",
+      "material_sugerido": "Plástico (ficha avon.mx 'Reloj glow in the dark').",
+      "cuidado": "Funciona con 1 batería AA no incluida (ficha avon.mx).",
+      "highlight": "Versión que brilla en la oscuridad para leer la hora de noche (ficha avon.mx); 24.8 x 24.8 x 4.3 cm."
+    },
+    "espejo": {
+      "match": [
+        "espejo"
+      ],
+      "type": "Espejo",
+      "uso_principal": "Maquillarse y revisar el arreglo personal; hay modelos de bolsillo y con luz.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Modelo giratorio con luz y espejos de bolsillo básicos (según nombres de catálogo)."
+    },
+    "cartera": {
+      "match": [
+        "cartera",
+        "neceser",
+        "cosmetiquera",
+        "cosmetiqueras"
+      ],
+      "type": "Cartera / neceser / cosmetiquera",
+      "uso_principal": "Organizar dinero, tarjetas, cosméticos y artículos de tocador.",
+      "material_sugerido": "Poliéster (ficha avon.mx 'Cartera Ezequiel': poliéster, 11 x 9.5 cm).",
+      "cuidado": "",
+      "highlight": "Carteras con compartimentos (1 para billetes, 6 internos) según ficha avon.mx."
+    },
+    "bolsa_bolso": {
+      "match": [
+        "bolsa",
+        "bolso",
+        "bandolera",
+        "practitote",
+        "practitot",
+        "mochila"
+      ],
+      "type": "Bolso / bolsa de mano y bandolera",
+      "uso_principal": "Transportar objetos personales, compras o accesorios.",
+      "material_sugerido": "Poliéster en carteras (ficha avon.mx 'Cartera Ezequiel'); para bolsas el material no está confirmado en las fuentes consultadas.",
+      "cuidado": "",
+      "highlight": "Incluye formatos 'practitote', bandoleras y bolsas de viaje expandibles (según nombres de catálogo)."
+    },
+    "lentes": {
+      "match": [
+        "lentes de vista",
+        "lentes vista",
+        "vista cansada"
+      ],
+      "type": "Lentes de vista cansada",
+      "uso_principal": "Apoyo visual para lectura y tareas de cerca (vista cansada).",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Disponibles en graduaciones 1.5, 2.0 y 2.5 y en modelos Valeria, Katia y Paty (según nombres de catálogo)."
+    },
+    "tijeras_pinzas": {
+      "match": [
+        "tijeras",
+        "pinzas",
+        "lima",
+        "limas",
+        "perfilador",
+        "cejador"
+      ],
+      "type": "Tijeras, pinzas y limas de belleza",
+      "uso_principal": "Cuidado de uñas, cejas y cabello (corte, depilación, limado).",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay kits de perfiladores de cejas dobles y limas portátiles según nombres de catálogo."
+    },
+    "brocha": {
+      "match": [
+        "brocha",
+        "brochas"
+      ],
+      "type": "Brocha de maquillaje / afeitado",
+      "uso_principal": "Aplicar maquillaje, peinar cejas o afeitar.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye brochas multiuso y de 4 en 1 (según nombres de catálogo)."
+    },
+    "cepillo": {
+      "match": [
+        "cepillo",
+        "cepillos",
+        "peine",
+        "peines",
+        "desenreda"
+      ],
+      "type": "Cepillo / peine",
+      "uso_principal": "Desenredar, estilizar y cepillar el cabello.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay cepillos desenredantes, con glitter y líneas para hombre (según nombres de catálogo)."
+    },
+    "accesorios_cabello": {
+      "match": [
+        "clips",
+        "ligas",
+        "diadema",
+        "moño",
+        "gorro",
+        "gorra",
+        "donas para cabello",
+        "cabello",
+        "curly",
+        "separador"
+      ],
+      "type": "Accesorios para cabello",
+      "uso_principal": "Peinar y decorar el cabello; gorras y gorros también funcionan como accesorio de vestir.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye gorras con licencias (BT21) y gorros de satén (según nombres de catálogo)."
+    },
+    "bano_accesorios": {
+      "match": [
+        "juego de baño",
+        "juego de bano",
+        "juego bano",
+        "juego baño",
+        "pedicure",
+        "ducha",
+        "esponja"
+      ],
+      "type": "Set de baño y pedicura",
+      "uso_principal": "Accesorios para el baño: sets coordinados, cuidado de pies y juguetes de ducha.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Hay sets en cerámica, peluche y juguetes para la ducha infantiles (según nombres de catálogo)."
+    },
+    "belleza_accesorios": {
+      "match": [
+        "maquillaje",
+        "pestañas",
+        "cejas",
+        "facial",
+        "limpiador facial",
+        "masajeador",
+        "removedor",
+        "recortadora",
+        "afeitar",
+        "plantilla",
+        "delineados",
+        "spa",
+        "manos",
+        "belleza",
+        "bienestar"
+      ],
+      "type": "Accesorios de belleza y cuidado personal",
+      "uso_principal": "Herramientas para maquillaje, limpieza facial, arreglo de cejas, pestañas y uñas.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye limpiadores faciales, plantillas de delineado, recortadoras de barba y kits de spa (según nombres de catálogo)."
+    },
+    "utensilios_cocina": {
+      "match": [
+        "rallador",
+        "tortillero",
+        "pizzaron",
+        "vitrolero",
+        "espumador",
+        "guante",
+        "utensilio",
+        "colador"
+      ],
+      "type": "Utensilios varios de cocina",
+      "uso_principal": "Rallar verduras, servir tortillas y pizza, dispensar bebidas, proteger manos y remover alimentos.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye tortilleros decorativos (limones), vitrolero 'diamante' y utensilios multiusos (según nombres de catálogo)."
+    },
+    "recipiente": {
+      "match": [
+        "recipiente",
+        "contenedor",
+        "contendor",
+        "contedore",
+        "botes",
+        "bote ",
+        "guardatodo",
+        "foodkeper",
+        "foodkeeper",
+        "acuario",
+        "cuadrados colors",
+        "apilabre"
+      ],
+      "type": "Recipiente / contenedor de alimentos",
+      "uso_principal": "Guardar, organizar y conservar alimentos o sobras en cocina y refrigerador.",
+      "material_sugerido": "Plástico (fichas avon.mx: contenedores apilables y sets de lunch); también hay líneas de vidrio (nombres de catálogo: 'contenedores de vidrio').",
+      "cuidado": "",
+      "highlight": "Cierres a presión con almacenamiento hermético y diseño apilable (ficha avon.mx 'Contenedores apilables'); el catálogo incluye líneas '0 fugas', con válvula y tapas de cierre hermético."
+    },
+    "tazon": {
+      "match": [
+        "tazon",
+        "tazones",
+        "frigotazon"
+      ],
+      "type": "Tazón",
+      "uso_principal": "Servir y consumir sopas, cereales, frutas y porciones individuales.",
+      "material_sugerido": "Vidrio, bambú y acero según nombres de catálogo ('tazones de vidrio', 'tazón de bambú', 'tazones de acero'); plástico en líneas infantiles tipo 'frigotazones'.",
+      "cuidado": "",
+      "highlight": "Existe la variante 'palomera' (tazón para palomitas) y modelos con personajes licenciados."
+    },
+    "taza": {
+      "match": [
+        "taza",
+        "tazas",
+        "tarro",
+        "mega taza"
+      ],
+      "type": "Taza / jarro",
+      "uso_principal": "Beber café, té, chocolate y otras bebidas calientes o frías.",
+      "material_sugerido": "Cerámica en líneas del catálogo ('tazas limones cerámica'); plástico en tarros tipo 'taza tarro' con personajes.",
+      "cuidado": "",
+      "highlight": "Incluye tarros con popote y modelos con licencias (Frozen, Minecraft, Paw Patrol, Spider-Man)."
+    },
+    "vaso": {
+      "match": [
+        "vaso",
+        "vasos",
+        "copa",
+        "copas"
+      ],
+      "type": "Vaso / vaso para niños",
+      "uso_principal": "Beber agua y bebidas; hay modelos infantiles con popote y de entrenamiento.",
+      "material_sugerido": "Plástico (ficha avon.mx 'Vaso multifunciones'); también vidrio y bambú en líneas del catálogo ('vaso de vidrio', 'vaso bambú').",
+      "cuidado": "",
+      "highlight": "Vaso multifunciones con 3 tapas (entrenadora, para popote y dosificadora), 280 ml y asas laterales (ficha avon.mx); hay modelos con popote 3D, termocromáticos y con tapa snack."
+    },
+    "thermo": {
+      "match": [
+        "thermo"
+      ],
+      "type": "Termo / botella térmica",
+      "uso_principal": "Mantener bebidas calientes o frías al traslado.",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye modelos con licencias (por ejemplo Mickey)."
+    },
+    "kit_hogar": {
+      "match": [
+        "kit ",
+        "combo ",
+        "oferta",
+        "paquete",
+        "juego de 2",
+        "juego de 3",
+        "juego de 4",
+        "juego de 5",
+        "juego 2",
+        "juego 3",
+        "juego 4",
+        "gran set",
+        "set 5",
+        "kit cye",
+        "kit plastico",
+        "kit plástico",
+        "kit vajilla",
+        "kit tetera",
+        "kit sarten",
+        "kit botella"
+      ],
+      "type": "Kit / combo / set del hogar",
+      "uso_principal": "Paquetes promocionales o sets combinados (vajilla, plásticos, tetera con tazas, sartén con olla, botella con lonchera).",
+      "material_sugerido": "",
+      "cuidado": "",
+      "highlight": "Incluye kits por ciclo de venta (nombres con C 05/C 06 2026 MX) y sets temáticos (limones, Bluey, blush)."
+    }
+  },
+  "licensed_designs": {
+    "bluey": {
+      "match": [
+        "bluey"
+      ],
+      "note": "diseño con licencia oficial Bluey (personaje de la serie de animación Bluey)"
+    },
+    "toy_story": {
+      "match": [
+        "toy story",
+        "woody"
+      ],
+      "note": "diseño con licencia oficial Toy Story (Pixar/Disney)"
+    },
+    "monsters_inc": {
+      "match": [
+        "monsters",
+        "monsters inc",
+        "monsters inc babies"
+      ],
+      "note": "diseño con licencia oficial Monsters, Inc. (Pixar/Disney)"
+    },
+    "cars": {
+      "match": [
+        "cars",
+        "pixar cars"
+      ],
+      "note": "diseño con licencia oficial Cars (Pixar/Disney)"
+    },
+    "lotso": {
+      "match": [
+        "lotso"
+      ],
+      "note": "diseño con licencia oficial Lotso (Toy Story 3, Pixar/Disney)"
+    },
+    "intensamente": {
+      "match": [
+        "intensamente",
+        "intensa"
+      ],
+      "note": "diseño con licencia oficial Intensamente / Inside Out (Pixar/Disney)"
+    },
+    "stitch": {
+      "match": [
+        "stitch"
+      ],
+      "note": "diseño con licencia oficial Stitch (Disney)"
+    },
+    "mickey": {
+      "match": [
+        "mickey"
+      ],
+      "note": "diseño con licencia oficial Mickey Mouse (Disney)"
+    },
+    "minnie": {
+      "match": [
+        "minnie"
+      ],
+      "note": "diseño con licencia oficial Minnie Mouse (Disney)"
+    },
+    "frozen": {
+      "match": [
+        "frozen"
+      ],
+      "note": "diseño con licencia oficial Frozen (Disney)"
+    },
+    "moana": {
+      "match": [
+        "moana"
+      ],
+      "note": "diseño con licencia oficial Moana / Vaiana (Disney)"
+    },
+    "pooh": {
+      "match": [
+        "pooh"
+      ],
+      "note": "diseño con licencia oficial Winnie the Pooh (Disney)"
+    },
+    "baby_yoda": {
+      "match": [
+        "baby yoda",
+        "grogu"
+      ],
+      "note": "diseño con licencia oficial Baby Yoda / Grogu (Star Wars, Disney)"
+    },
+    "spiderman": {
+      "match": [
+        "spider",
+        "spiderman",
+        "spidey"
+      ],
+      "note": "diseño con licencia oficial Spider-Man (Marvel)"
+    },
+    "kuromi": {
+      "match": [
+        "kuromi"
+      ],
+      "note": "diseño con licencia oficial Kuromi (Sanrio)"
+    },
+    "hello_kitty": {
+      "match": [
+        "kitty"
+      ],
+      "note": "diseño con licencia oficial Hello Kitty (Sanrio)"
+    },
+    "bt21": {
+      "match": [
+        "bt21",
+        "bt 21"
+      ],
+      "note": "diseño con licencia oficial BT21 (LINE FRIENDS)"
+    },
+    "minions": {
+      "match": [
+        "minions"
+      ],
+      "note": "diseño con licencia oficial Minions (Illumination/Universal)"
+    },
+    "gabbys": {
+      "match": [
+        "gabbys",
+        "gabby"
+      ],
+      "note": "diseño con licencia oficial Gabby's Dollhouse (DreamWorks)"
+    },
+    "paw_patrol": {
+      "match": [
+        "paw patrol"
+      ],
+      "note": "diseño con licencia oficial PAW Patrol (Nickelodeon/Spin Master)"
+    },
+    "minecraft": {
+      "match": [
+        "minecraft"
+      ],
+      "note": "diseño con licencia oficial Minecraft (Mojang/Microsoft)"
+    },
+    "snoopy": {
+      "match": [
+        "snoopy"
+      ],
+      "note": "diseño con licencia oficial Snoopy / Peanuts"
+    },
+    "pixar": {
+      "match": [
+        "pixar"
+      ],
+      "note": "diseño con licencia oficial Pixar (personajes de películas de Disney/Pixar)"
+    },
+    "disney": {
+      "match": [
+        "disney",
+        "vaso de disney"
+      ],
+      "note": "diseño con licencia oficial Disney (personajes de Disney)"
+    },
+    "tie_dye": {
+      "match": [
+        "tie dye",
+        "tie-dye"
+      ],
+      "note": "estampado estilo tie dye (técnica de teñido; no es franquicia)"
+    }
+  }
+}

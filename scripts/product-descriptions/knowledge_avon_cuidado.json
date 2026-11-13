@@ -1,0 +1,922 @@
+{
+  "families": {
+    "anew_protinol_power": {
+      "match": [
+        "anew power",
+        "piel renovada",
+        "10x protinol",
+        "ampolletas protinol",
+        "power serum",
+        "power sérum"
+      ],
+      "line": "Anew Power (Piel Renovada)",
+      "category": "cuidado facial",
+      "beneficio_principal": "Máxima concentración de Protinol (10x vs Reversalist/Ultimate/Platinum) combinada con Niacinamida para una piel visiblemente más joven; estimula la producción de colágeno dual.",
+      "ingredientes_clave": "Protinol (tecnología patentada por Avon, Premio Edison 2021) + Niacinamida.",
+      "sensacion_textura": "Sérum ligero de rápida absorción, sin sensación grasa; crema hidratante.",
+      "resultado": "En 7 días: piel intensamente hidratada, reducción notable de líneas finas, firmeza restaurada y brillo. Ampolletas: ayudan a restaurar 7 años de pérdida de colágeno en 7 días (día 1 suave e hidratada, día 3 más volumen, día 7 más elasticidad y menos arrugas).",
+      "como_usar": "Aplicar el sérum antes de la crema de día o de noche.",
+      "fuente": "https://www.avon.mx/p/anew-serum-fac-power-renovador-30-ml/AVNMEX-201619"
+    },
+    "anew_reversalist": {
+      "match": [
+        "anew reversalist",
+        "reversalist"
+      ],
+      "line": "Anew Reversalist",
+      "category": "cuidado facial",
+      "beneficio_principal": "Ayuda a reducir la apariencia de las primeras líneas de expresión; suavidad y luminosidad para una piel radiante.",
+      "ingredientes_clave": "Protinol (tecnología patentada por Avon, Premio Edison) + Fitol.",
+      "sensacion_textura": "Crema con delicada fragancia; piel suave y rellena.",
+      "resultado": "Desde el segundo día la piel se siente increíblemente más suave; en una semana las primeras líneas de expresión se desvanecen y la textura mejora visiblemente. Pensada a partir de los 30.",
+      "como_usar": "Crema de día con FPS 20 para uso diario; versión de noche complementa la rutina.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-dia-proti-50g/AVNMEX-201617"
+    },
+    "anew_ultimate": {
+      "match": [
+        "anew ultimate",
+        "ultimate"
+      ],
+      "line": "Anew Ultimate",
+      "category": "cuidado facial",
+      "beneficio_principal": "Piel visiblemente más firme y tersa; reduce la apariencia de arrugas y líneas de expresión.",
+      "ingredientes_clave": "Protinol (tecnología patentada por Avon, Premio Edison) + Floretina.",
+      "sensacion_textura": "Crema facial nutritiva; piel firme y radiante.",
+      "resultado": "2 días después comienza a verse y sentirse la piel más firme; en 1 semana las líneas finas lucen más reducidas y el tono más uniforme. Mini crema de día orientada a piel 45+.",
+      "como_usar": "Crema de día con FPS 20.",
+      "fuente": "https://www.avon.mx/p/anew-ultimate-crema-fac-dia-proti-50g/AVNMEX-201620"
+    },
+    "anew_platinum": {
+      "match": [
+        "anew platinum",
+        "platinum",
+        "lifting serum",
+        "efecto lifting"
+      ],
+      "line": "Anew Platinum",
+      "category": "cuidado facial",
+      "beneficio_principal": "Efecto lifting y firmeza: ayuda a reducir la apariencia de arrugas profundas y a reafirmar el contorno facial; definición y suavidad.",
+      "ingredientes_clave": "Protinol (tecnología patentada por Avon, Premio Edison) + Arginina (cremas) / Activo Biotensor (sérum lifting); mascarilla peel-off con platino.",
+      "sensacion_textura": "Piel tensa y con apariencia instantáneamente más firme; crema humectante y tersa.",
+      "resultado": "Sérum: en 1 día efecto lifting; en 1 semana piel más firme y tonificada; en 2 semanas contorno más definido. Crema día: 2 días piel más tersa e hidratada; 1 semana más suavidad y elasticidad. Orientada a pieles maduras 55+.",
+      "como_usar": "Crema de día con FPS 20; sérum lifting aplicable como parte de la rutina; repuesto para rellenar el envase de vidrio.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-lifting-serum-30ml/AVNMEX-187689"
+    },
+    "anew_vitamina_c": {
+      "match": [
+        "vitamina c",
+        "vitamin c",
+        "antioxidante",
+        "radiance",
+        "anew c"
+      ],
+      "line": "Anew Vitamina C (Radiance)",
+      "category": "cuidado facial",
+      "beneficio_principal": "Sérum y cremas antioxidantes con vitamina C que ayudan a proteger la piel contra el fotoenvejecimiento prematuro y el daño ambiental, aportando luminosidad e hidratación.",
+      "ingredientes_clave": "Vitamina C pura y estable (permanece activa desde la primera hasta la última gota); en crema hidratante FPS 50 con triple acción.",
+      "sensacion_textura": "Sérum concentrado; crema hidratante de textura ligera y libre de aceite que se funde sin dejar rastro graso. Exfoliante de doble acción física y química.",
+      "resultado": "Piel más luminosa, hidratada y con apariencia más uniforme; exfoliante elimina células muertas y mejora la textura. Crema FPS 50 pensada desde los 25 años.",
+      "como_usar": "Aplicar unas gotas de sérum sobre rostro limpio y seco antes de la crema hidratante.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176260"
+    },
+    "anew_aclarado": {
+      "match": [
+        "aclarado",
+        "textura uniforme",
+        "aclaradora",
+        "clarify",
+        "salicílico",
+        "salicilico"
+      ],
+      "line": "Anew Aclarado y Textura Uniforme (Clinical / Clarify)",
+      "category": "cuidado facial",
+      "beneficio_principal": "Solución contra manchas: mejora la apariencia de 7 tipos de manchas (pecas, palidez, manchas, manchas rojizas, oscuras, tono desigual y marcas de imperfecciones) y unifica tono y textura.",
+      "ingredientes_clave": "Ácido salicílico (sérum con concentración 3 veces mayor); tecnología Precision 3T, ácido salicílico y ácido glicólico en crema de manos FPS 15.",
+      "sensacion_textura": "Sérum apto para todo tipo de piel, incluso grasa; crema de manos hidratante con FPS 15.",
+      "resultado": "Tono uniforme en 8 semanas con el sérum; crema día FPS 35 ayuda a reducir manchas oscuras por sol y edad; manos visiblemente más jóvenes y radiantes.",
+      "como_usar": "Sérum día y noche; crema de manos con protección UVA/UVB.",
+      "fuente": "https://www.avon.mx/p/anew-serum-fac-aclarado-30ml/AVNMEX-195279"
+    },
+    "anew_sensitive": {
+      "match": [
+        "anew sensitive",
+        "sensitive+",
+        "sensitive plus",
+        "colágeno dual",
+        "colageno dual"
+      ],
+      "line": "Anew Sensitive+",
+      "category": "cuidado facial",
+      "beneficio_principal": "Crema facial Colágeno Dual que ayuda a reducir el aspecto de rojeces para un tono más radiante y uniforme; piel visiblemente más firme y tersa.",
+      "ingredientes_clave": "Protinol (tecnología patentada por Avon, Premio Edison 2021) en fórmula Colágeno Dual.",
+      "sensacion_textura": "Crema facial suave para piel sensible.",
+      "resultado": "Reducción del aspecto de rojeces (estudio en consumidores después de 2 semanas de uso).",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/anew-sensitive-crema-fac-dia-50g/AVNMEX-191126"
+    },
+    "anew_hialuronico": {
+      "match": [
+        "ácido hialurónico",
+        "acido hialuronico",
+        "hialurónico",
+        "hialuronico",
+        "hydrate & plump",
+        "relleno e hidratación",
+        "relleno e hidratacion"
+      ],
+      "line": "Anew Hidratación y Relleno (Ácido Hialurónico)",
+      "category": "cuidado facial",
+      "beneficio_principal": "Hidratación intensa y efecto relleno con complejo triple de ácido hialurónico; piel más suave, hidratada y con mayor elasticidad.",
+      "ingredientes_clave": "Ácido hialurónico / complejo triple ácido hialurónico.",
+      "sensacion_textura": "Gel-crema que combina la ligereza de un gel con el confort de una crema, efecto refrescante, no grasosa y de rápida absorción; 72 h de hidratación. Mascarilla 10 min que duplica la hidratación.",
+      "resultado": "Piel más suave, hidratada, rellena y revitalizada; gel-crema con hasta 72 h de hidratación tras múltiples aplicaciones.",
+      "como_usar": "Mascarilla: aplicar sobre piel limpia y seca, dejar 10 minutos y enjuagar con agua tibia. Repuesto: girar la punta, vaciar en el frasco del sérum.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201611"
+    },
+    "anew_solar": {
+      "match": [
+        "anew solar",
+        "prot solar",
+        "protección solar",
+        "proteccion solar",
+        "fps 30",
+        "fps 50",
+        "spf 30",
+        "spf 50",
+        "triple protección"
+      ],
+      "line": "Anew Solar",
+      "category": "cuidado facial",
+      "beneficio_principal": "Protección solar facial UVA/UVB con Tecnología Triple Protección; acabado mate/invisible que además cuida e hidrata la piel.",
+      "ingredientes_clave": "FPS 30 + Niacinamida; FPS 50 + Ácido Hialurónico; versiones con color (tonos) y FPS 50 UVA/UVB.",
+      "sensacion_textura": "Loción facial mate de textura fluida que se absorbe con facilidad, sin dejar residuos; versión con color unifica y controla brillo.",
+      "resultado": "Piel protegida del daño UVA/UVB, fresca y de aspecto saludable; reaplicación cada 2 horas para mantener la efectividad.",
+      "como_usar": "Aplicar como último paso de la rutina diaria; reaplicar cada dos horas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195465"
+    },
+    "anew_agua_micelar": {
+      "match": [
+        "agua micelar",
+        "micelar",
+        "hialurónico y vitamina b3",
+        "hialuronico y vitamina b3"
+      ],
+      "line": "Anew Agua Micelar",
+      "category": "cuidado facial",
+      "beneficio_principal": "Agua micelar facial con efecto de hidratación profunda y firmeza mientras desmaquilla.",
+      "ingredientes_clave": "Ácido hialurónico y Vitamina B3.",
+      "sensacion_textura": "Agua micelar refrescante para desmaquillar.",
+      "resultado": "Piel hidratada y limpia; apta para mañana y noche.",
+      "como_usar": "Puede usarse en las mañanas y en las noches.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201610"
+    },
+    "adv_expert": {
+      "match": [
+        "adv expert",
+        "expert",
+        "bond repair",
+        "expert shampoo",
+        "expert acondicionador",
+        "expert tratamiento"
+      ],
+      "line": "Advance Techniques Expert (Bond Repair)",
+      "category": "cabello",
+      "beneficio_principal": "Rutina de recuperación intensiva para cabellos dañados o químicamente tratados: ayuda a restaurar, fortalecer y proteger la fibra capilar (70% de la fibra reparada tras la rutina completa).",
+      "ingredientes_clave": "Tecnología Fiber Fusion + Arginina.",
+      "sensacion_textura": "Shampoo con masaje 2-3 min; mascarilla de tratamiento profundo de acción rápida.",
+      "resultado": "Mascarilla: 43% más fuerza, 92% más suavidad, 3x menos quiebre, 2x más brillo (pruebas clínicas vs shampoo sin acondicionador, rutina completa).",
+      "como_usar": "Shampoo sobre cabello húmedo 2-3 min y aclarar; acondicionador de medios a puntas; mascarilla 5 minutos tras shampoo y acondicionador.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202768"
+    },
+    "adv_argan": {
+      "match": [
+        "argán",
+        "argan",
+        "oleo argan",
+        "sin sal",
+        "hidratación y suavidad",
+        "hidratacion y suavidad"
+      ],
+      "line": "Advance Techniques Argán (Hidratación y Suavidad)",
+      "category": "cabello",
+      "beneficio_principal": "Hidratación y suavidad: ayuda a dar brillo, suavizar e hidratar; cabello más suave y manejable desde el primer uso.",
+      "ingredientes_clave": "Aceites de argán y coco (shampoo/acondicionador sin cloruro de sodio y sin parabenos); sérum con aceite de argán e ingredientes acondicionadores; óleo restaurador con argán y camelia.",
+      "sensacion_textura": "Sérum que sella la cutícula y deja el cabello sin frizz, brillante; óleo que se absorbe al instante y deja el cabello ligero.",
+      "resultado": "Cabello suave, manejable y con aspecto visiblemente más saludable desde el primer uso; control de frizz y brillo.",
+      "como_usar": "Shampoo sobre cabello húmedo; acondicionador 1 minuto tras shampoo; sérum/óleo de medios a puntas sin enjuague (húmedo o seco).",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191148"
+    },
+    "adv_hydra_boost": {
+      "match": [
+        "hydra boost",
+        "hidrat pro",
+        "hidratación pro",
+        "hidratacion pro"
+      ],
+      "line": "Advance Techniques Hydra Boost",
+      "category": "cabello",
+      "beneficio_principal": "Hidratación profunda con acabado ligero y liviano, sin agregar peso; contribuye a controlar el frizz.",
+      "ingredientes_clave": "Ácido Hialurónico y Complejo de Aminoácidos. Fórmula sin parabenos.",
+      "sensacion_textura": "Acabado con aspecto ligero y liviano; cabello saludable y brillante desde la raíz.",
+      "resultado": "Cabello con apariencia saludable y brillante; control de frizz.",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201636"
+    },
+    "adv_rizos": {
+      "match": [
+        "rizos fabulosos",
+        "rizos",
+        "day after",
+        "loción tratamiento"
+      ],
+      "line": "Advance Techniques Rizos Fabulosos",
+      "category": "cabello",
+      "beneficio_principal": "Línea que cuida los rizos: mantiene el cabello nutrido para un peinado definido y duradero; mejora la apariencia del cabello rizado.",
+      "ingredientes_clave": "Shampoo, Acondicionador y Loción tratamiento cosmético Day After (sin enjuague).",
+      "sensacion_textura": "Rizos definidos y nutridos; loción para cabello seco o húmedo.",
+      "resultado": "Rizos definidos en un instante y peinado duradero (basado en pruebas clínicas instrumentales vs shampoo sin agente).",
+      "como_usar": "Rutina en 3 pasos: shampoo, acondicionador de medios a puntas 2-3 min, loción Day After sin enjuague.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195301"
+    },
+    "adv_serums": {
+      "match": [
+        "brillo serum",
+        "brillo sérum",
+        "hidratación serum",
+        "hidratacion serum",
+        "reconstrucción serum",
+        "reconstruccion serum",
+        "oleo restaurador",
+        "óleo restaurador",
+        "oleo hidratante",
+        "serum capilar",
+        "sérum capilar"
+      ],
+      "line": "Advance Techniques Séruns y Óleos Capilares",
+      "category": "cabello",
+      "beneficio_principal": "Tratamientos sin enjuague: brillo extraordinario, reparación de puntas, restauración e hidratación.",
+      "ingredientes_clave": "Tecnología Crystal Light (sérum brillo); silicona, agentes hidratantes y filtro UV (sérum reconstrucción); aceites de argán y camelia (óleo restaurador).",
+      "sensacion_textura": "Sérum ligeros; óleo que se absorbe al instante, sin frizz y sin sensación pesada.",
+      "resultado": "Brillo: cabello 100% más brillante. Reconstrucción: ayuda a reparar puntas secas y abiertas, más fuertes e hidratadas. Óleo: hidratación instantánea y suavidad desde el primer uso.",
+      "como_usar": "Óleo restaurador: distribuir en palma y aplicar de medios a puntas sobre cabello húmedo o seco, sin enjuague.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201631"
+    },
+    "clearskin": {
+      "match": [
+        "clearskin",
+        "blemish clearing",
+        "puntos negros",
+        "imperfecciones",
+        "ácido salicílico clearskin"
+      ],
+      "line": "Clearskin (Blemish Clearing / Pore and Shine / Blackhead Clearing)",
+      "category": "cuidado facial",
+      "beneficio_principal": "Limpieza profunda y control de grasa, brillo, poros e imperfecciones para piel grasa o con tendencia acnéica.",
+      "ingredientes_clave": "Ácido salicílico (hasta concentración máxima permitida en cosméticos: 2%); extracto de carbón; extracto de eucalipto y avellana de bruja; arcilla rosa y gránulos naturales; bicarbonato de sodio; extracto de trigo y vitamina A (gel reductor).",
+      "sensacion_textura": "Geles refrescantes sin aceite, mascarillas que atraen el exceso de grasa como un imán, tónico astringente.",
+      "resultado": "Rostro sin brillo y poros limpios; piel suave y radiante; gel reductor minimiza el enrojecimiento en 3 horas; prevención de puntos negros en zona T.",
+      "como_usar": "Gel reductor: limpiar, aplicar capa fina en zonas a tratar, empezar 1 vez/día y subir a 2-3 si es necesario. Tónico tras la limpieza.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201629"
+    },
+    "footworks": {
+      "match": [
+        "foot works",
+        "footworks",
+        "ac fw",
+        "foot cr",
+        "callos",
+        "talones",
+        "pies"
+      ],
+      "line": "Avon Care Footworks",
+      "category": "manos y pies",
+      "beneficio_principal": "Cuidado específico para pies: hidratación intensiva y duradera, control de callosidades y talones agrietados, exfoliación y control de olores.",
+      "ingredientes_clave": "Vitamina E (sprays y línea Guayaba y Maracuyá); variantes con aroma a guayaba y maracuyá.",
+      "sensacion_textura": "Cremas que dejan la piel con aspecto y sensación suave y tersa; sprays refrescantes para pies y calzado.",
+      "resultado": "Callosidades/extra secos: resultados visibles en 1 semana. Talones: resultados visibles en 3 días. Exfoliante 3 en 1: suavidad en 1 semana. Pies secos: 2 semanas. Cuidado nocturno: pies acondicionados e hidratados durante la noche.",
+      "como_usar": "Spray: aplicar en los pies y dejar secar; puede usarse en el calzado.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-168812"
+    },
+    "avoncare_derma": {
+      "match": [
+        "ac derma",
+        "derma",
+        "firmeza",
+        "hidratación intensiva 350",
+        "tono uniforme"
+      ],
+      "line": "Avon Care Derma",
+      "category": "corporal",
+      "beneficio_principal": "Línea diseñada por expertos para un nuevo y mejorado cuidado de la piel: nutrición con firmeza, hidratación intensiva o tono uniforme según variante; refuerza la barrera cutánea.",
+      "ingredientes_clave": "Complejo B3 + Niacinamida (todas las variantes); aceite de oliva y derivado de vitamina E. Variantes: Ácido Hialurónico y Aceite de Arroz (hidratación intensiva); Vitamina C y Té Verde (tono uniforme); Péptidos y Aceite de Café (firmeza).",
+      "sensacion_textura": "Crema corporal nutritiva, apta para uso diario.",
+      "resultado": "Dermatológicamente y clínicamente probada con hasta 72 horas de humectación; resultados visibles después de 4 semanas. Piel nutrida de aspecto saludable.",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195260"
+    },
+    "avoncare_deo": {
+      "match": [
+        "avon care deo",
+        "humectante roll",
+        "neutro roll",
+        "desodorante neutro",
+        "sin perfume",
+        "sin fragancia"
+      ],
+      "line": "Avon Care Desodorantes Roll-On",
+      "category": "desodorante",
+      "beneficio_principal": "Protección diaria 3 en 1 hasta 48 horas contra el mal olor, cuidando la piel de las axilas; versión Neutro sin perfume; 0% alcohol; ideal incluso después del afeitado.",
+      "ingredientes_clave": "Extracto de almendras y derivado de vitamina E (variante Humectación Suave); fórmula sin alcohol (ambas).",
+      "sensacion_textura": "Roll-on antitranspirante; piel de axilas suave, cuidada y perfumada (variante con aroma).",
+      "resultado": "48 horas de protección antiolor (estudio de eficacia clínica tras múltiples aplicaciones); piel suave y radiante.",
+      "como_usar": "Aplicar en las axilas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195304"
+    },
+    "avoncare_cuerpo": {
+      "match": [
+        "avon care crema",
+        "crema coco",
+        "crema glicerina",
+        "crema corporal",
+        "crema jalea",
+        "crema rosas",
+        "crema sandia",
+        "crema cereza",
+        "crema frutos rojos",
+        "crema jojoba",
+        "crema almendras",
+        "crema avena",
+        "crema toronja",
+        "crema frutas",
+        "crema mickey",
+        "humectación esencial"
+      ],
+      "line": "Avon Care Cuerpo (cremas y lociones)",
+      "category": "corporal",
+      "beneficio_principal": "Beneficio 6 en 1 para toda la familia: 24 h de humectación, piel nutrida, piel con aspecto saludable, rápida absorción y fórmula no grasosa.",
+      "ingredientes_clave": "Según variante: aceite de coco, glicerina y aceite de almendras, jalea real, avena y vainilla, frutos rojos, almendras, jojoba, rosas, sandía, toronja y jengibre, frutas tropicales.",
+      "sensacion_textura": "Cremas corporales de rápida absorción, no grasas; hidratación refrescante.",
+      "resultado": "24 horas de humectación; piel nutrida e hidratada para uso diario, cuerpo y/o rostro según variante.",
+      "como_usar": "Uso diario; algunas cremas 1 L son de día y noche para cuerpo y rostro.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191113"
+    },
+    "avoncare_manos": {
+      "match": [
+        "avon care cr manos",
+        "crema manos",
+        "crema para manos",
+        "silicone crema manos",
+        "mickey and fri cr manos"
+      ],
+      "line": "Avon Care Manos",
+      "category": "manos y pies",
+      "beneficio_principal": "Beneficio 6 en 1: 24 h de humectación, piel nutrida, hidratación para toda la familia, piel con aspecto saludable, rápida absorción y no grasosa.",
+      "ingredientes_clave": "Según variante: coco, glicerina y almendras, jalea real (doble humectación), avena y vainilla, cereza, frutos rojos, frutas tropicales, rosas, sandía, argán y naranja, toronja y jengibre, extracto de almendras, jojoba.",
+      "sensacion_textura": "Crema de rápida absorción, no grasosa.",
+      "resultado": "Manos humectadas y nutridas durante 24 h.",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-196467"
+    },
+    "avoncare_facial": {
+      "match": [
+        "avon care cold cream",
+        "avon care crema facial",
+        "avon care serum",
+        "avon care sérum",
+        "multivitaminas",
+        "avon care gel facial",
+        "avon care tonico",
+        "avon care mascarilla",
+        "avon care agua micelar"
+      ],
+      "line": "Avon Care Facial",
+      "category": "cuidado facial",
+      "beneficio_principal": "Cuidado facial multibeneficio: limpieza e hidratación 3 en 1 (Cold Cream), crema 5 en 1 con vitaminas, sérum 6 en 1 y agua micelar 3 en 1 con vitamina E.",
+      "ingredientes_clave": "Vitamina E (Tocopheryl acetate) y aceite de soja + complejo Vita-E (Cold Cream); Vitamina B3, Vitamina E y extracto de cítricos (crema multivitaminas).",
+      "sensacion_textura": "Texturas que dejan la piel suave y nutrida; sérum multibeneficios ligero.",
+      "resultado": "Cold Cream: piel nutrida y radiante. Multivitaminas: ilumina, suaviza, revitaliza, mejora textura y 24 h de hidratación. Sérum 6 en 1: 72 h de hidratación, fortalece la barrera, rellena e hidrata líneas de expresión.",
+      "como_usar": "Sérum: usar antes de la crema hidratante.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191120"
+    },
+    "avoncare_jabones": {
+      "match": [
+        "avon care jabon",
+        "jabón en barra",
+        "jabon en barra neutro",
+        "avon care jabón"
+      ],
+      "line": "Avon Care Jabones",
+      "category": "corporal",
+      "beneficio_principal": "Limpieza delicada de la piel para toda la familia; versión neutra sin fragancia ni colorantes.",
+      "ingredientes_clave": "Variante neutra sin fragancia; variante con avena.",
+      "sensacion_textura": "Jabón en barra de uso diario.",
+      "resultado": "Piel limpia, humectada y libre de gérmenes.",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191154"
+    },
+    "desodorante_300km": {
+      "match": [
+        "300 km",
+        "300km",
+        "300 km/h",
+        "300 km h"
+      ],
+      "line": "300 km/h",
+      "category": "desodorante",
+      "beneficio_principal": "Desodorantes roll-on antitranspirantes de fragancia de larga duración con aromas frescos y aromáticos que encienden una sensación de energía; protección contra el mal olor.",
+      "ingredientes_clave": "Aromas característicos por variante (Original/Clásico, Pulse con acorde musical, Quantum, Max Turbo, Surfer, Boost).",
+      "sensacion_textura": "Roll-on antitranspirante; viaje sensorial revitalizante.",
+      "resultado": "Protección antitranspirante contra el mal olor por más tiempo; posibilidad de rutina de perfumación en capas con el resto de la línea.",
+      "como_usar": "Aplicar sobre las axilas con movimientos de arriba hacia abajo.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201770"
+    },
+    "desodorante_black_suede": {
+      "match": [
+        "black suede"
+      ],
+      "line": "Black Suede",
+      "category": "desodorante",
+      "beneficio_principal": "Fragancia masculina clásica y sofisticada; la línea incluye desodorantes roll-on. Black Suede Original: hojas verdes, cuero y maderas cálidas (familia aromática leathery oriental). Black Suede Secret: eau de toilette amaderada ambarada con notas de pulpa de manzana roja, tonkalactona y acorde cui velours DL.",
+      "ingredientes_clave": "Notas de hojas verdes, cuero y maderas cálidas (Original); notas amaderadas ambaradas (Secret).",
+      "sensacion_textura": "Frescura natural y herbácea con profundidad ahumada del cuero y calidez de maderas (Original); aura exótica y elegante (Secret).",
+      "resultado": "Huella aromática duradera de elegancia y refinamiento; espíritu aventurero y confianza.",
+      "como_usar": "Fragancia: aplicar en muñecas, cuello y detrás de las orejas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-130791"
+    },
+    "shampoo_300km_hbw": {
+      "match": [
+        "hbw",
+        "300 km/h boost",
+        "300 km/h max turbo hbw",
+        "300 km/h pulse hbw",
+        "300 km/h quantum hbw",
+        "300 km/h surfer hbw"
+      ],
+      "line": "300 km/h Hair & Body Wash (HBW)",
+      "category": "cabello",
+      "beneficio_principal": "Shampoo cabello y cuerpo con limpieza profunda y acondicionamiento, y fragancia duradera de la línea 300 km/h.",
+      "ingredientes_clave": "Aromas característicos de cada variante (Quantum, Pulse, Max Turbo, Surfer, Boost).",
+      "sensacion_textura": "Cabello suave, brillante y manejable; piel fresca e hidratada.",
+      "resultado": "Limpieza profunda para cabello y cuerpo; fragancia que revitaliza de pies a cabeza.",
+      "como_usar": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195394"
+    }
+  },
+  "products": {
+    "ANEW REVERSALIST CREMA FACIAL CON PROTINOL DÍA FPS 20 50G": {
+      "beneficio_principal": "Ayuda a reducir la apariencia de las primeras líneas de expresión; Protinol + Fitol para suavidad y luminosidad.",
+      "resultado": "Desde el segundo día la piel se siente más suave; en una semana las primeras líneas se desvanecen y mejora la textura. FPS 20, uso +30.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-dia-proti-50g/AVNMEX-201617"
+    },
+    "ANEW REVERSALIST CREMA DE DIA PROTINOL FPS 20 50G": {
+      "beneficio_principal": "Ayuda a reducir la apariencia de las primeras líneas de expresión; Protinol + Fitol.",
+      "resultado": "Piel más suave desde el 2º día; líneas atenuadas en 1 semana. FPS 20.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-dia-proti-50g/AVNMEX-201617"
+    },
+    "ANEW REVERSALIST CREMA FACIAL CON PROTINOL NOCHE 50G": {
+      "beneficio_principal": "Suavidad y luminosidad; ayuda a reducir la apariencia de las primeras líneas de expresión con Protinol + Fitol.",
+      "resultado": "En 2 días suavidad excepcional; en 1 semana las finas líneas de expresión se reducen y mejora la textura. Uso +30.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-noc-proti-50g/AVNMEX-201618"
+    },
+    "ANEW REVERSALIST CREMA CON PROTINOL DE NOCHE 50G": {
+      "beneficio_principal": "Suavidad y luminosidad para una piel radiante; Protinol + Fitol.",
+      "resultado": "Piel más suave y rellena; líneas finas reducidas en 1 semana.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-noc-proti-50g/AVNMEX-201618"
+    },
+    "ANEW REVERSALIST DIA TRIAL SIZE 15G": {
+      "beneficio_principal": "Mini crema facial de día: ayuda a reducir la apariencia de líneas de expresión y arrugas.",
+      "resultado": "8/10 notaron las líneas más suaves en 2 días. FPS 20. Uso +30.",
+      "fuente": "https://www.avon.mx/p/anew-reversalist-crema-fac-dia-proti-50g/AVNMEX-201617"
+    },
+    "ANEW ULTIMATE CREMA FACIAL CON PROTINOL DÍA FPS 20 50G": {
+      "beneficio_principal": "Piel visiblemente más firme y tersa; reduce la apariencia de arrugas y líneas de expresión con Protinol + Floretina.",
+      "resultado": "2 días: piel más firme. 1 semana: líneas finas más reducidas y tono más uniforme. FPS 20.",
+      "fuente": "https://www.avon.mx/p/anew-ultimate-crema-fac-dia-proti-50g/AVNMEX-201620"
+    },
+    "ANEW ULTIMATE CREMA DIA FPS 20 PROTINOL 50G": {
+      "beneficio_principal": "Piel más firme y tersa; Protinol + Floretina.",
+      "resultado": "Firmeza desde 2 días; líneas y tono mejorados en 1 semana.",
+      "fuente": "https://www.avon.mx/p/anew-ultimate-crema-fac-dia-proti-50g/AVNMEX-201620"
+    },
+    "ANEW ULTIMATE DIA TRIAL SIZE 15G": {
+      "beneficio_principal": "Mini crema de día: piel visiblemente más firme, suave y radiante.",
+      "resultado": "9/10 notaron líneas más suaves en 2 días. FPS 20. Uso +45.",
+      "fuente": "https://www.avon.mx/p/anew-ultimate-crema-fac-dia-proti-50g/AVNMEX-201620"
+    },
+    "ANEW PLATINUM CREMA FACIAL CON PROTINOL DÍA FPS 20 50G": {
+      "beneficio_principal": "Piel visiblemente más firme y elástica; ayuda a reducir la apariencia de arrugas profundas con Protinol + Arginina.",
+      "resultado": "2 días: piel más tersa e hidratada. 1 semana: más suavidad y elasticidad. FPS 20. Uso +55.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-crema-fac-dia-proti-50g/AVNMEX-201613"
+    },
+    "ANEW PLATINUM CREMA DIA FPS 20 PROTINOL 50G": {
+      "beneficio_principal": "Firmeza y elasticidad con Protinol + Arginina; reduce apariencia de arrugas profundas.",
+      "resultado": "Piel tersa en 2 días; elasticidad en 1 semana.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-crema-fac-dia-proti-50g/AVNMEX-201613"
+    },
+    "ANEW PLATINUM DIA TRIAL SIZE 15G": {
+      "beneficio_principal": "Mini crema de día: ayuda a disminuir la apariencia de flacidez, la piel luce más firme.",
+      "resultado": "9/10 acordaron que visiblemente reafirma la piel. FPS 20. Uso +55.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-crema-fac-dia-proti-50g/AVNMEX-201613"
+    },
+    "ANEW PLATINUM LIFTING SERUM 30ML": {
+      "beneficio_principal": "Efecto lifting, definición y suavidad con Protinol + Activo Biotensor; co-creado con científicos y dermatólogos.",
+      "resultado": "1 día: efecto lifting. 1 semana: piel más firme y tonificada. 2 semanas: contorno más definido.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-lifting-serum-30ml/AVNMEX-187689"
+    },
+    "ANEW LIFTING SERUM REFILL TUBE 30ML": {
+      "beneficio_principal": "Misma fórmula del sérum lifting (Protinol + Activo Biotensor) en formato repuesto más económico.",
+      "resultado": "Resultados visibles desde el primer día: efecto lifting, definición y suavidad.",
+      "fuente": "https://www.avon.mx/p/anew-platinum-lifting-serum-30ml/AVNMEX-187689"
+    },
+    "ANEW PIEL RENOVADA POWER SÉRUM FACIAL 10X PROTINOL 30ML": {
+      "beneficio_principal": "Sérum con la más alta concentración de Protinol (10x) + Niacinamida; estimula colágeno, hidrata y reduce arrugas.",
+      "resultado": "Piel más joven, firme y luminosa; mejora elasticidad; apto todo tipo de piel, dermatológicamente probado.",
+      "fuente": "https://www.avon.mx/p/anew-serum-fac-power-renovador-30-ml/AVNMEX-201619"
+    },
+    "ANEW POWER SÉRUM FACIAL REPUESTO 10X PROTINOL + NIACINAMIDA 30ML": {
+      "beneficio_principal": "Repuesto del sérum 10x Protinol + Niacinamida; 89% menos empaque que el frasco regular.",
+      "resultado": "Piel más fresca, hidratada y radiante; úsalo antes de la crema de día o noche.",
+      "fuente": "https://www.avon.mx/p/anew-serum-fac-power-renovador-30-ml/AVNMEX-201619"
+    },
+    "ANEW PIEL RENOVADA POWER CREMA FACIAL 10X PROTINOL + NIACINAMIDA 50G": {
+      "beneficio_principal": "Máxima concentración de Protinol en crema (10x) + Niacinamida para una piel visiblemente más joven; potencia el colágeno dual.",
+      "resultado": "En 7 días: intensamente hidratada, menos líneas finas, más firmeza y brillo.",
+      "fuente": "https://www.avon.mx/p/anew-hid-antis-power-hisp-50g-mex/AVNMEX-201616"
+    },
+    "ANEW PIEL RENOVADA POWER CREMA PARA CONTORNO DE OJOS 10X PROTINOL 15G": {
+      "beneficio_principal": "Difumina e ilumina la zona del contorno de ojos; disminuye la apariencia de líneas y arrugas.",
+      "resultado": "Mejores resultados usándolo junto con Anew Power Sérum y Crema.",
+      "fuente": "https://www.avon.mx/p/anew-power-crema-ojos-renovadora-15g/AVNMEX-201615"
+    },
+    "ANEW POWER 7 AMPOLLETAS CONCENTRADO FACIAL EFECTO RELLENO 10X PROTINOL": {
+      "beneficio_principal": "Ampolletas de acción intensiva 10x Protinol con efecto relleno; ayudan a restaurar 7 años de pérdida de colágeno en 7 días.",
+      "resultado": "Día 1: piel suave e hidratada. Día 3: más volumen. Día 7: mayor elasticidad y menos arrugas.",
+      "fuente": "https://www.avon.mx/p/anew-power-doses-conc-protinol-713ml/AVNMEX-172101"
+    },
+    "ANEW SERUM FACIAL ANTIOXIDANTE CON VITAMINA C 30ML": {
+      "beneficio_principal": "Sérum antioxidante que ayuda a proteger contra el fotoenvejecimiento prematuro; aporta luminosidad e hidratación.",
+      "resultado": "Piel radiante y revitalizada de apariencia más uniforme.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176260"
+    },
+    "ANEW SERUM VITAMINA C 30ML": {
+      "beneficio_principal": "Sérum facial antioxidante con vitamina C: ilumina, hidrata y protege del daño ambiental.",
+      "resultado": "Piel luminosa y de aspecto uniforme.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176260"
+    },
+    "ANEW C SÉRUM FACIAL ANTIOXIDANTE CON VITAMINA C REPUESTO": {
+      "beneficio_principal": "Repuesto del sérum antioxidante con vitamina C pura y estable; 89% menos empaque.",
+      "resultado": "Mejora la calidad de la piel con aspecto más hidratado y firme; la vitamina C mantiene su potencia.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187752"
+    },
+    "ANEW CREMA EXFOLIANTE FACIAL ANTIOXIDANTE CON VITAMINA C 50G": {
+      "beneficio_principal": "Crema doble acción exfoliante con vitamina C: exfoliación física y química que elimina células muertas.",
+      "resultado": "Mejora la textura y deja un aspecto luminoso.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195281"
+    },
+    "ANEW CREMA HIDRATANTE FACIAL FPS 50 VITAMINA C 50G": {
+      "beneficio_principal": "Crema hidratante y antioxidante con vitamina C; hidratación y protección con triple acción FPS 50.",
+      "resultado": "Piel más luminosa, suave y protegida; textura ligera sin rastro graso. Uso desde los 25 años.",
+      "fuente": "https://www.avon.mx/p/anew-radian-crema-hidrat-vit-c-spf50-50g/AVNMEX-191122"
+    },
+    "ANEW ACLARADO Y TEXTURA UNIFORME SÉRUM FACIAL CON ÁCIDO SALICÍLICO 30 ML": {
+      "beneficio_principal": "Aliado contra las manchas con concentración 3 veces mayor de ácido salicílico; mejora 7 tipos de manchas.",
+      "resultado": "Tono uniforme en 8 semanas; piel visiblemente más joven. Apto para todo tipo de piel, incluso grasa.",
+      "fuente": "https://www.avon.mx/p/anew-serum-fac-aclarado-30ml/AVNMEX-195279"
+    },
+    "ANEW ACLARADO Y TEXTURA UNIFORME CREMA PARA MANOS CON ÁCIDO SALICÍLICO 75G": {
+      "beneficio_principal": "Combate los 7 tipos de manchas con tecnología Precision 3T, ácido salicílico y glicólico; hidrata y protege FPS 15.",
+      "resultado": "Manos visiblemente más jóvenes y radiantes; mejora tonalidad y textura.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198400"
+    },
+    "ANEW CREMA FACIAL ACLARADORA DÍA FPS 35 30G": {
+      "beneficio_principal": "Reduce la apariencia de manchas oscuras por sol y edad con tecnología Precision 3T; FPS 35.",
+      "resultado": "Piel visiblemente más uniforme y luminosa; combate 7 tipos de imperfecciones.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158866"
+    },
+    "ANEW SENSITIVE+ CREMA FACIAL COLÁGENO DUAL 50G": {
+      "beneficio_principal": "Reduce el aspecto de rojeces; piel visiblemente más firme y tersa con Protinol + Colágeno Dual.",
+      "resultado": "Tono más radiante y uniforme (estudio tras 2 semanas de uso).",
+      "fuente": "https://www.avon.mx/p/anew-sensitive-crema-fac-dia-50g/AVNMEX-191126"
+    },
+    "ANEW GEL- CREMA FACIAL ÁCIDO HIALURÓNICO 50G": {
+      "beneficio_principal": "Gel-crema con ácido hialurónico: hidratación profunda con textura ligera y refrescante.",
+      "resultado": "Hasta 72 h de hidratación tras múltiples aplicaciones; no grasosa, rápida absorción.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201611"
+    },
+    "ANEW MASCARILLA FACIAL 10 MIN CON ÁCIDO HIALURÓNICO 50G": {
+      "beneficio_principal": "Mascarilla con ácido hialurónico que ayuda a duplicar la hidratación de la piel en 10 minutos; efecto relleno.",
+      "resultado": "Piel revitalizada, suave y rellena; aplicar 10 min y enjuagar.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187693"
+    },
+    "ANEW SÉRUM FACIAL CON COMPLEJO TRIPLE ÁCIDO HIALURÓNICO 30 ML": {
+      "beneficio_principal": "Sérum con complejo triple ácido hialurónico (Anew Relleno e Hidratación).",
+      "resultado": "Piel más suave, hidratada y con mayor elasticidad.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187751"
+    },
+    "RECARGA ANEW SERUM HIALURÓNICO 30ML": {
+      "beneficio_principal": "Repuesto del sérum facial con complejo triple ácido hialurónico.",
+      "resultado": "Piel más suave e hidratada con mayor elasticidad.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187751"
+    },
+    "ANEW EFECTO LIFTING PROTINOL TRATAMIENTO COSMÉTICO DUAL GEL/CREMA PARA CONTORNO DE OJOS 20G": {
+      "beneficio_principal": "Ayuda a reafirmar y tensar el contorno de ojos; gel para párpado superior (tensores + cafeína) y crema para párpado inferior (péptidos).",
+      "resultado": "Piel más suave y firme; área de ojos visiblemente más levantada. Protinol + Péptidos.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191123"
+    },
+    "ANEW SOLAR ACIDO HIALURONICO SPF 50 40G": {
+      "beneficio_principal": "Protector solar facial mate FPS 50 con ácido hialurónico y Tecnología Triple Protección.",
+      "resultado": "Acabado invisible que protege UVA/UVB; reaplicar varias veces al día.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191146"
+    },
+    "ANEW PROT SOLAR SPF 30  40 G": {
+      "beneficio_principal": "Protector solar facial fluido extra mate FPS 30 + Niacinamida.",
+      "resultado": "Se absorbe sin residuos; protege y mejora el aspecto de la piel. Reaplicar cada 2 horas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195465"
+    },
+    "ANEW PROT SOLAR LIGHT MED SPF50 40G": {
+      "beneficio_principal": "Loción facial mate FPS 50 UVA/UVB con color (Tono Medio Claro 2.0) + ácido hialurónico.",
+      "resultado": "Piel unificada, sin brillo y protegida; efecto antioxidante.",
+      "fuente": "https://www.avon.mx/p/anew-prot-solar-medium--spf50-40g/AVNMEX-195467"
+    },
+    "ANEW PROT SOLAR MEDIUM  SPF50 40G": {
+      "beneficio_principal": "Loción facial mate FPS 50 UVA/UVB con color (Tono Medio) + ácido hialurónico.",
+      "resultado": "Piel unificada y protegida del daño UVA/UVB.",
+      "fuente": "https://www.avon.mx/p/anew-prot-solar-medium--spf50-40g/AVNMEX-195467"
+    },
+    "AGUA MICELAR FACIAL ÁCIDO HIALURÓNICO Y VITAMINA B3 150 ML": {
+      "beneficio_principal": "Agua micelar facial Anew con hidratación profunda y firmeza mientras desmaquilla.",
+      "resultado": "Piel limpia e hidratada; apta para mañana y noche.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201610"
+    },
+    "ADV EXPERT SHAMPOO 300ML": {
+      "beneficio_principal": "Shampoo Bond Repair con Fiber Fusion + Arginina; restaura, fortalece y protege el cabello dañado.",
+      "resultado": "70% de la fibra capilar reparada tras la rutina completa (pruebas clínicas).",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202769"
+    },
+    "ADV EXPERT ACONDICIONADOR 300ML": {
+      "beneficio_principal": "Acondicionador Bond Repair con Fiber Fusion + Arginina para cabello dañado o químicamente tratado.",
+      "resultado": "Mantiene la resistencia de la fibra capilar; complementa la rutina de recuperación intensiva.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202767"
+    },
+    "ADV TECH EXPERT TRATAMIENTO 150ML": {
+      "beneficio_principal": "Mascarilla de tratamiento profundo Bond Repair con Fiber Fusion + Arginina.",
+      "resultado": "43% más fuerza, 92% más suavidad, 3x menos quiebre, 2x más brillo (rutina completa).",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202768"
+    },
+    "ADV TECH ARGAN SHAMPOO SIN SAL 300ML": {
+      "beneficio_principal": "Shampoo sin sal con aceites de argán y coco: da brillo, suaviza e hidrata.",
+      "resultado": "Cabello más suave y manejable desde el primer uso. Sin parabenos ni cloruro de sodio.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191148"
+    },
+    "ADV TECH ARGÁN ACONDICIONADOR 300ML": {
+      "beneficio_principal": "Acondicionador con aceites de argán y coco: hidratación y suavidad.",
+      "resultado": "Cabello manejable y suave desde el primer uso.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191147"
+    },
+    "ADV TECH HIDRATACIÓN SERUM 30ML": {
+      "beneficio_principal": "Sérum de hidratación con aceite de argán: sella la cutícula y controla el frizz.",
+      "resultado": "Cabello suave, manejable, brillante y de aspecto saludable desde el primer uso. Sin parabenos.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201630"
+    },
+    "ADV TECH HYDRA BOOST SHAMPOO 300ML": {
+      "beneficio_principal": "Shampoo Hydra Boost con ácido hialurónico y complejo de aminoácidos.",
+      "resultado": "Cabello saludable y brillante desde la raíz; contribuye a controlar el frizz. Sin parabenos.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201636"
+    },
+    "ADV TECH HYDRA BOOST ACONDICIONADOR 300ML": {
+      "beneficio_principal": "Acondicionador Hydra Boost con ácido hialurónico y aminoácidos; acabado ligero sin peso.",
+      "resultado": "Hidratación con aspecto liviano; sin parabenos.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201635"
+    },
+    "ADV RIZOS FABULOSOS ACONDICIONADOR 300ML": {
+      "beneficio_principal": "Mantiene el cabello rizado nutrido para un peinado definido y duradero.",
+      "resultado": "Rizos definidos y nutridos como parte de la rutina Shampoo + Acondicionador + Loción Day After.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195301"
+    },
+    "ADV TECH BRILLO SERUM 30 ML": {
+      "beneficio_principal": "Sérum con Tecnología Crystal Light que maximiza el reflejo de la luz.",
+      "resultado": "Cabello 100% más brillante.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201631"
+    },
+    "ADV TECH RECONSTRUCCION SERUM 30 ML": {
+      "beneficio_principal": "Repara puntas secas y abiertas con silicona, agentes hidratantes y filtro UV.",
+      "resultado": "Puntas más fuertes e hidratadas; sérum restaurador.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201634"
+    },
+    "ADV TECH OLEO RESTAURADOR 90ML": {
+      "beneficio_principal": "Óleo con aceites de argán y camelia: hidratación instantánea y restauración desde el primer uso.",
+      "resultado": "Cabello ligero, sin frizz y de apariencia saludable; facilita el peinado. Sin enjuague.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201632"
+    },
+    "CLEARSKIN GEL FACIAL DE LIMPIEZA PROFUNDA 75G": {
+      "beneficio_principal": "Gel con extracto de eucalipto y avellana de bruja: limpia en profundidad, controla grasa y brillo.",
+      "resultado": "Sensación de limpieza profunda; poros purificados; dermatológicamente probado, no obstruye poros.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195291"
+    },
+    "CLEARSKIN GEL POROS Y BRILLO 50G": {
+      "beneficio_principal": "Crema de limpieza con concentración máxima de ácido salicílico (2%).",
+      "resultado": "Piel limpia y radiante; limpia en profundidad rostro, espalda y hombros.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195292"
+    },
+    "CLEARSKIN LIMPIADOR FACIAL CON CARBON EN GEL 60G": {
+      "beneficio_principal": "Limpiador en gel con polvo de carbón de origen sustentable: limpia poros y remueve maquillaje.",
+      "resultado": "Exfolia a profundidad y elimina células muertas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195293"
+    },
+    "CLEARSKIN MASCARILLA FACIAL PURIFICANTE CON CARBON 60G": {
+      "beneficio_principal": "Mascarilla de carbón: purifica y matifica; atrae el exceso de grasa como un imán.",
+      "resultado": "Poros limpios y rostro sin brillo; remueve impurezas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201628"
+    },
+    "CLEARSKIN JABON EN BARRA CON CARBON 80G": {
+      "beneficio_principal": "Jabón purificante con extracto de carbón: elimina impurezas.",
+      "resultado": "Sensación de limpieza profunda y suavidad; poros limpios.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201626"
+    },
+    "CLEARSKIN TONICO FACIAL ASTRINGENTE 200ML": {
+      "beneficio_principal": "Loción tónica con ácido salicílico que purifica en profundidad los poros.",
+      "resultado": "Piel visiblemente más limpia y fresca; remueve grasa e impurezas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201629"
+    },
+    "CLEARSKIN MASCARILLA FACIAL TRIPLE EXFOLIACION 60G": {
+      "beneficio_principal": "Triple exfoliante con arcilla (matifica), gránulos naturales (células muertas) y ácido salicílico (impurezas).",
+      "resultado": "Piel suave y tersa sin resecar.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191145"
+    },
+    "CLEARSKIN GEL REDUCTOR DE IMPERFECCIONES 15G": {
+      "beneficio_principal": "Gel con extracto de trigo y vitamina A que minimiza el enrojecimiento en 3 horas.",
+      "resultado": "Aplicar capa fina sobre zonas a tratar; 1 a 3 veces al día.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201624"
+    },
+    "CLEARSKIN JABÓN EXFOLIANTE EN BARRA PARA PIEL GRASA 80G": {
+      "beneficio_principal": "Limpia y remueve exceso de grasa e impurezas (Blackhead Clearing).",
+      "resultado": "Piel suave y radiante, sin puntos negros.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195295"
+    },
+    "CLEARSKIN JABÓN EN BARRA ANTI-IMPERFECCIONES 80G": {
+      "beneficio_principal": "Con bicarbonato de sodio: combate barros y espinillas; remueve impurezas y grasa.",
+      "resultado": "Piel limpia para rostro y cuerpo.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201625"
+    },
+    "CLEARSKIN MASCARILLA PARA PREVENIR PUNTOS NEGROS 60G": {
+      "beneficio_principal": "Mascarilla zona T que previene y ayuda a remover puntos negros.",
+      "resultado": "Piel libre de impurezas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195298"
+    },
+    "CLEARSKIN MASCARILLA LIMPIADORA FACIAL 60G": {
+      "beneficio_principal": "Mascarilla limpiadora con ácido salicílico que remueve grasa e impurezas de los poros.",
+      "resultado": "Rostro sin imperfecciones.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201627"
+    },
+    "AC FW CALLOSIDADES 80G": {
+      "beneficio_principal": "Crema hidratante para pies extra secos: hidratación intensiva y duradera.",
+      "resultado": "Resultados visibles después de 1 semana de uso; piel suave y tersa sin asperezas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-168812"
+    },
+    "AC FW CREMA HIDRATANTE TALONES 80G": {
+      "beneficio_principal": "Control de talones agrietados: hidratación inmediata.",
+      "resultado": "Resultados visibles en 3 días; piel suave y tersa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-168813"
+    },
+    "AC FW HIDRATANTE INTENSIVA 80G": {
+      "beneficio_principal": "Crema para pies con callosidades: hidratación inmediata.",
+      "resultado": "Resultados visibles en 2 semanas de uso; piel suave y tersa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201639"
+    },
+    "AC FW CREMA EXFOLIANTE GUAVA 80G": {
+      "beneficio_principal": "Crema exfoliante Guayaba y Maracuyá con vitamina E; ayuda a proteger contra olores.",
+      "resultado": "Suavidad e hidratación; aroma tropical de guayaba y maracuyá.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195307"
+    },
+    "AC FW SPRAY GUAVA 100ML": {
+      "beneficio_principal": "Spray refrescante Guayaba y Maracuyá con vitamina E: protege los pies contra olores.",
+      "resultado": "Pies frescos; puede usarse también en el calzado.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195308"
+    },
+    "AC FW SPRAY VITAMINA E 100ML": {
+      "beneficio_principal": "Spray control de olores con vitamina E: protege contra olores para pies frescos y cómodos.",
+      "resultado": "Hidratación, suavidad y cuidado; control de olores.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201641"
+    },
+    "AVON CARE FOOT CR PIE EXFOLIANT 3EN1 80G": {
+      "beneficio_principal": "Crema exfoliante intensiva triple acción: hidratación inmediata y suavidad.",
+      "resultado": "Resultados visibles en 1 semana de uso; piel suave y tersa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201638"
+    },
+    "AVON CARE FOOT CR RENOVA PIES NOCHE 80G": {
+      "beneficio_principal": "Crema hidratante nocturna: hidratación duradera que actúa durante la noche.",
+      "resultado": "Pies acondicionados e hidratados; piel suave y tersa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195310"
+    },
+    "AVON CARE FOOT CR HIDRATANTE GUAVA 80G": {
+      "beneficio_principal": "Crema hidratante Guayaba y Maracuyá con vitamina E; ayuda a proteger contra olores.",
+      "resultado": "Cuidado eficaz con aroma suave de guayaba y notas de maracuyá.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195309"
+    },
+    "AC DERMA FIRMEZA 350ML": {
+      "beneficio_principal": "Crema corporal Avon Care Derma con péptidos y aceite de café para firmeza; Complejo B3 + Niacinamida refuerzan la barrera cutánea.",
+      "resultado": "Dermatológicamente y clínicamente probada con hasta 72 h de humectación; resultados visibles a 4 semanas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195260"
+    },
+    "AC DERMA HIDRATACIÓN INTENSIVA 350ML": {
+      "beneficio_principal": "Crema corporal con ácido hialurónico y aceite de arroz: hidratación intensiva al instante; Complejo B3 + Niacinamida.",
+      "resultado": "Hasta 72 h de humectación (clínicamente probada); resultados visibles a 4 semanas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195256"
+    },
+    "AC DERMA TONO UNIFORME 350ML": {
+      "beneficio_principal": "Crema corporal con vitamina C y té verde para unificar la apariencia del tono; Complejo B3 + Niacinamida.",
+      "resultado": "Hasta 72 h de humectación; resultados visibles a 4 semanas; hecha para piel opaca y seca.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195258"
+    },
+    "AVON CARE DEO HUMECTANTE ROLL ON 48ML": {
+      "beneficio_principal": "Desodorante antitranspirante 3 en 1 Humectación Suave con extracto de almendras y vitamina E; hasta 48 h de protección.",
+      "resultado": "Piel de axilas suave y cuidada; 0% alcohol; apto después del afeitado.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195303"
+    },
+    "AVON CARE DEO NEUTRO ROLL ON 48ML": {
+      "beneficio_principal": "Desodorante antitranspirante 3 en 1 Neutro sin perfume; hasta 48 h de protección antiolor.",
+      "resultado": "Piel de axilas suave y radiante; 0% alcohol; sin fragancia; apto después del afeitado.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195304"
+    },
+    "300 KM CLASICO DESODORANTE ROLL ON 50ML": {
+      "beneficio_principal": "Desodorante roll-on antitranspirante 300 km/h Original con aromas frescos y aromáticos.",
+      "resultado": "Protección contra el mal olor; ideal para rutina de perfumación en capas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201770"
+    },
+    "300 KM PULSE DESODORANTE ROLL ON 50 ML": {
+      "beneficio_principal": "Desodorante roll-on antitranspirante Pulse con acorde musical; protección contra el mal olor por más tiempo.",
+      "resultado": "Fragancia de larga duración que revitaliza en cada aplicación.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191423"
+    },
+    "300 KM QUANTUM DESODORANTE ROLL ON 50ML": {
+      "beneficio_principal": "Desodorante roll-on antitranspirante Quantum: viaje sensorial revitalizante con fragancia de larga duración.",
+      "resultado": "Protección antitranspirante; se integra a la rutina en capas de la línea.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195401"
+    },
+    "300 KM/H MAX TURBO DES ROLLON 50ML": {
+      "beneficio_principal": "Desodorante roll-on antitranspirante Max Turbo: aromas frescos con sensación de energía y velocidad máxima.",
+      "resultado": "Protección contra el mal olor; complementa la perfumación en capas.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195402"
+    },
+    "300 KM/H QUANTUM HBW 90ML": {
+      "beneficio_principal": "Shampoo cabello y cuerpo Quantum: limpieza profunda y acondicionamiento con aroma revitalizante.",
+      "resultado": "Cabello suave, brillante y manejable; piel fresca e hidratada con fragancia duradera.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195394"
+    },
+    "BLACK SUEDE CLASICA 100ML": {
+      "beneficio_principal": "Fragancia masculina de hojas verdes, cuero y maderas cálidas (familia aromática leathery oriental): elegancia y refinamiento.",
+      "resultado": "Huella aromática clásica y sofisticada; frescura herbácea, profundidad ahumada y calidez.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-130791"
+    },
+    "BLACK SUEDE SECRET 100ML": {
+      "beneficio_principal": "Eau de toilette amaderada ambarada con notas de pulpa de manzana roja, tonkalactona y acorde cui velours DL.",
+      "resultado": "Aroma enigmático y seductor de carácter robusto y sofisticado.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158891"
+    },
+    "AVON CARE CR MANOS COCO 75G": {
+      "beneficio_principal": "Crema para manos con humectación intensiva y aroma a coco; beneficio 6 en 1.",
+      "resultado": "24 h de humectación, piel nutrida, rápida absorción, no grasosa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-167523"
+    },
+    "AVON CARE CR MANOS GLICERINA 75G": {
+      "beneficio_principal": "Crema para manos con glicerina y almendras; nutrición con beneficio 6 en 1.",
+      "resultado": "24 h de humectación; rápida absorción; no grasosa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-196467"
+    },
+    "AVON CARE CR MANOS JALEA REAL 75G": {
+      "beneficio_principal": "Crema para manos Doble Humectación con jalea real; beneficio 6 en 1.",
+      "resultado": "24 h de humectación; piel nutrida de aspecto saludable.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191096"
+    },
+    "AVON CARE CREMA COCO 1L": {
+      "beneficio_principal": "Crema corporal restauración con aceite de coco; beneficio 6 en 1.",
+      "resultado": "24 h de humectación, hidratación refrescante, rápida absorción, no grasosa.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191109"
+    },
+    "AVON CARE CREMA GLICERINA 1L": {
+      "beneficio_principal": "Crema corporal con glicerina y aceite de almendras; 6 en 1, día y noche para todo tipo de piel.",
+      "resultado": "24 horas de humectación para cuerpo y rostro; se absorbe rápido sin residuos grasos.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191113"
+    },
+    "AVON CARE COLD CREAM HIDRATANTE CREMA FACIAL 3 EN 1 100G": {
+      "beneficio_principal": "Crema facial 3 en 1 con vitamina E, aceite de soja y complejo Vita-E que hidrata y suaviza.",
+      "resultado": "Piel nutrida y radiante (estudio de percepción).",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158884"
+    },
+    "AVON CARE CREMA FACIAL MULTIVITAMINAS 100G": {
+      "beneficio_principal": "Crema facial 5 en 1 con Vitamina B3, Vitamina E y extracto de cítricos.",
+      "resultado": "Ilumina, suaviza, revitaliza, mejora textura e hidrata 24 h.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191143"
+    },
+    "AVON CARE SERUM FACIAL HIDRATANTE 6 EN 1 30G": {
+      "beneficio_principal": "Sérum multibeneficios 6 en 1: 72 h de hidratación, fortalece la barrera, revitaliza y rellena líneas.",
+      "resultado": "Mejora la textura y refresca la piel; úsalo antes de la crema hidratante.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191120"
+    },
+    "AVON CARE JABON EN BARRA NEUTRO 90 GR": {
+      "beneficio_principal": "Jabón corporal neutro sin fragancia ni colorantes; limpieza delicada.",
+      "resultado": "Piel limpia y humectada para toda la familia.",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191154"
+    }
+  }
+}

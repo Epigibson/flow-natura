@@ -1,0 +1,2633 @@
+{
+  "families": {
+    "300kmh_boost": {
+      "match": [
+        "300 km/h boost",
+        "300km/h boost",
+        "300 km boost",
+        "kit 300 km boost"
+      ],
+      "line": "300 km/h Boost",
+      "family_olfativa": "Fougère aromática",
+      "notas_salida": "Pimientos, aceite de naranja roja de Sicilia y Ambermor",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario, deportivo, ocasiones que piden energía; uso masculino",
+      "sensacion": "Adrenalina, enfoque y energía imparable; revitaliza la mente",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201766"
+    },
+    "300kmh_maxturbo": {
+      "match": [
+        "300 km/h max turbo",
+        "300km/h max turbo",
+        "300 km/h turbo",
+        "300kmh turbo",
+        "kit 300 km 5",
+        "kit 300 km original"
+      ],
+      "line": "300 km/h Max Turbo",
+      "family_olfativa": "Fougère maderosa",
+      "notas_salida": "Manzana helada (México) / Bergamota fresca, acorde de Oxígeno Líquido y Maçã Congelada (Avon Brasil)",
+      "notas_corazon": "Acorde de adrenalina (México) / Jengibre, acorde Adrenaline y salvia (Avon Brasil)",
+      "notas_fondo": "Cuero y madera fougère (México) / Bracing Skin Musk, Couro Luxe y Ámbar Extreme (Avon Brasil)",
+      "estilo_ocasion": "Diario y ocasiiones audaces; oficina y ocio",
+      "sensacion": "Velocidad máxima, emoción y audacia; estela prolongada",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201768 ; https://www.avon.com.br/p/300km-h-max-turbo-deo-colonia-100-ml/AVNBRA-135849"
+    },
+    "300kmh_electric": {
+      "match": [
+        "300 km/h electric",
+        "300km/h electric",
+        "kit 300 km 2"
+      ],
+      "line": "300 km/h Electric",
+      "family_olfativa": "Fougère fresco (México) / Ervas (Avon Brasil)",
+      "notas_salida": "Manzana, hoja de pimienta y aceite de hoja de azafrán (Avon Brasil)",
+      "notas_corazon": "Acorde Electric, cachemira y lavanda (Avon Brasil)",
+      "notas_fondo": "",
+      "estilo_ocasion": "Actividades al aire libre y ocasiones especiales",
+      "sensacion": "Choque de adrenalina, energía e intensidad; frescor que dura",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195398 ; https://www.avon.com.br/p/300km-h-electric-deo-colonia-100-ml/AVNBRA-135843"
+    },
+    "300kmh_nitrogen": {
+      "match": [
+        "300 km/h nitrogen",
+        "300km/h nitrogen",
+        "300 km/h nitro",
+        "kit 300 km 1"
+      ],
+      "line": "300 km/h Nitrogen",
+      "family_olfativa": "Fresca aromática (México) / Ervas, subfamilia amaderada (Avon Brasil)",
+      "notas_salida": "Cardamomo helado (México) / Pimienta rosa, cardamomo helado y salvia congelada (Avon Brasil)",
+      "notas_corazon": "Acorde Nitro Bullet (ambos) / nuez moscada y raíz de jengibre (Avon Brasil)",
+      "notas_fondo": "Madera de ámbar (México) / Ámbar, vetiver y cachemira (Avon Brasil)",
+      "estilo_ocasion": "Del día a la noche; vida intensa",
+      "sensacion": "Contraste de notas frías y cálidas; adrenalina y superación",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195397 ; https://www.avon.com.br/p/300km-h-nitro-deo-colonia-100-ml/AVNBRA-135844"
+    },
+    "300kmh_pulse": {
+      "match": [
+        "300 km/h pulse",
+        "300km/h pulse",
+        "kit 300 km 6"
+      ],
+      "line": "300 km/h Pulse",
+      "family_olfativa": "Fougère spicy",
+      "notas_salida": "Corazón de limón; lúpulo supra-reciclado y acorde musical",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario, juvenil, musical",
+      "sensacion": "Felicidad, ritmo y frescura cítrica",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201769"
+    },
+    "300kmh_quantum": {
+      "match": [
+        "300 km/h quantum",
+        "300km/h quantum",
+        "kit 300 km 3"
+      ],
+      "line": "300 km/h Quantum",
+      "family_olfativa": "Fougère acuosa (México) / Ervas, subfamilia amaderada (Avon Brasil)",
+      "notas_salida": "Notas ozónicas (México) / Notas ozónicas frescas, bergamota y acorde Space (Avon Brasil)",
+      "notas_corazon": "Geranio (México) / Elemi, geranio y notas florales acuosas (Avon Brasil)",
+      "notas_fondo": "Ámbar seco y aceite de madera de cedro (México) / Cedro, pachulí y almizcle (Avon Brasil)",
+      "estilo_ocasion": "Diario; inspirado en el espacio y la exploración",
+      "sensacion": "El cielo no es el límite; frescura herbal y confianza",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195399 ; https://www.avon.com.br/p/300km-h-quantum-deo-colonia-100ml/AVNBRA-135846"
+    },
+    "300kmh_surfer": {
+      "match": [
+        "300 km/h surfer",
+        "300km/h surfer",
+        "kit 300 km 4"
+      ],
+      "line": "300 km/h Surfer",
+      "family_olfativa": "Fougère maderosa / Aromático amaderado (México) / Ervas, amaderada (Avon Brasil)",
+      "notas_salida": "Notas ozónicas, lima y Viaje de Fragancias®/ScentTrek de la playa de Junquillal (México y Brasil)",
+      "notas_corazon": "Menta (México) / Aceite de menta de China, cardamomo de la India y pimienta negra del Perú (Avon Brasil)",
+      "notas_fondo": "Vetiver (México) / Labdanum de España, vetiver de Haití y pachulí de Indonesia (Avon Brasil)",
+      "estilo_ocasion": "Días cálidos, playa, aire libre",
+      "sensacion": "Libertad, ligereza y espíritu aventurero; esencia fresca de aplicar con generosidad",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195400 ; https://www.avon.com.br/p/300km-h-surfer-deo-colonia-100ml/AVNBRA-135847"
+    },
+    "300kmh": {
+      "match": [
+        "300 km/h",
+        "300km/h",
+        "300km",
+        "colonia 300km",
+        "kit 300 km"
+      ],
+      "line": "300 km/h (Original/Clásica)",
+      "family_olfativa": "Fougère aromática, acorde Vodka Tonic",
+      "notas_salida": "Acorde Vodka Tonic (México) / Acorde Energy Drink, aceite de jengibre y pimienta de Sichuan (Avon Brasil 'Virtual Adrenaline')",
+      "notas_corazon": "Ciprés (México) / Enebro, operanídeo y lavanda (Avon Brasil)",
+      "notas_fondo": "Sándalo (México) / Ambertónico, efecto de tabaco y caramelo caliente (Avon Brasil)",
+      "estilo_ocasion": "Diario, nocturno, cuando se busca velocidad y adrenalina",
+      "sensacion": "Sentirse vivo; estela fresca, vibrante y energizante",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201767 ; https://www.avon.com.br/p/300km-h-virtual-adrenaline-deo-colonia-100ml/AVNBRA-135842"
+    },
+    "attraction_awaken_him": {
+      "match": [
+        "attraction awaken para él",
+        "attraction awaken para el",
+        "kit attraction awaken"
+      ],
+      "line": "Attraction Awaken para Él",
+      "family_olfativa": "Oriental amaderada",
+      "notas_salida": "Acorde Poción de la Pasión (ambos mercados)",
+      "notas_corazon": "Cuero, almizcle de ámbar y maderas empapadas en ron",
+      "notas_fondo": "",
+      "estilo_ocasion": "Nocturno, ocasiones especiales, reavivar la pasión",
+      "sensacion": "Seductor; despierta la pasión y la emoción",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201772 ; https://avonstore.es/para-el/4741-eau-de-toilette-attraction-awaken-para-el.html"
+    },
+    "attraction_awaken_her": {
+      "match": [
+        "attraction awaken para ella"
+      ],
+      "line": "Attraction Awaken para Ella",
+      "family_olfativa": "Oriental amaderada",
+      "notas_salida": "Grosellas y acorde Poción de la Pasión (México)",
+      "notas_corazon": "Nardos (México)",
+      "notas_fondo": "Cuero, almizcle de ámbar y maderas empapadas en ron (avonstore.es)",
+      "estilo_ocasion": "Otoño-invierno, eventos nocturnos y ocasiones especiales",
+      "sensacion": "Calidez inolvidable; dulce, floral y afrutada; recupera la pasión",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201771 ; https://avonstore.es/para-ella/4739-eau-de-parfum-attraction-awaken-para-ella.html"
+    },
+    "attraction_closer_him": {
+      "match": [
+        "attraction closer para él",
+        "attraction closer para el",
+        "attraction closer for him"
+      ],
+      "line": "Attraction Closer para Él",
+      "family_olfativa": "Oriental maderosa picante",
+      "notas_salida": "Pera jugosa con granos de pimienta rosa",
+      "notas_corazon": "Acorde Piel a Piel (maderas cremosas y almizcle aterciopelado)",
+      "notas_fondo": "Haba tonka y dulce ámbar",
+      "estilo_ocasion": "Momentos especiales, cercanía y seducción",
+      "sensacion": "Pasión, abrazo ardiente; dos cuerpos en danza",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201774 ; https://avonstore.es/para-el/5050-eau-de-toilette-attraction-closer-para-el.html"
+    },
+    "attraction_closer_her": {
+      "match": [
+        "attraction closer para ella"
+      ],
+      "line": "Attraction Closer para Ella",
+      "family_olfativa": "Oriental dulce",
+      "notas_salida": "Peras jugosas",
+      "notas_corazon": "Néctar de miel sobre acorde Piel a Piel",
+      "notas_fondo": "",
+      "estilo_ocasion": "Citas y momentos de cercanía",
+      "sensacion": "Atracción irresistible; baile de almas sincronizadas",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201773 ; https://avonstore.es/para-ella/286-eau-de-parfum-attraction-closer-para-ella.html"
+    },
+    "attraction_game_him": {
+      "match": [
+        "attraction game para él",
+        "attraction game para el",
+        "kit attraction the game"
+      ],
+      "line": "Attraction Game para Él",
+      "family_olfativa": "Oriental amaderada",
+      "notas_salida": "Pimienta picante",
+      "notas_corazon": "Chocolate negro",
+      "notas_fondo": "Maderas pulidas",
+      "estilo_ocasion": "Juego de seducción; noche y ocasiones especiales",
+      "sensacion": "Estimula la mente y juega con los sentidos",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158868 ; https://avonstore.es/para-el/341-eau-de-toilette-en-spray-attraction-game-para-el.html"
+    },
+    "attraction_game_her": {
+      "match": [
+        "attraction game para ella"
+      ],
+      "line": "Attraction Game para Ella",
+      "family_olfativa": "Ámbar amaderada",
+      "notas_salida": "Pimienta rosa picante",
+      "notas_corazon": "Chocolate negro intenso",
+      "notas_fondo": "Maderas lujosas",
+      "estilo_ocasion": "Juego de seducción; noche",
+      "sensacion": "Placer innegable; estimula las neuronas sensoriales",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158867 ; https://avonstore.es/para-ella/1907-eau-de-parfum-en-spray-attraction-game-para-ella.html"
+    },
+    "attraction_him": {
+      "match": [
+        "attraction clasico para él",
+        "attraction clasico para el",
+        "attraction para él",
+        "attraction para el",
+        "kit attraction"
+      ],
+      "line": "Attraction Original para Él",
+      "family_olfativa": "Maderosa ambarada",
+      "notas_salida": "Raíz de jengibre (avonstore.es)",
+      "notas_corazon": "Almizcle magnético y maderas ahumadas (avonstore.es)",
+      "notas_fondo": "Jengibre, almizcle y maderas (avon.mx)",
+      "estilo_ocasion": "Diario y ocasiones especiales; larga duración",
+      "sensacion": "Seducción magnética e irresistible; intriga",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158859 ; https://avonstore.es/perfumes/336-avon-attraction-para-el-eau-de-toilette-en-spray.html"
+    },
+    "attraction_her": {
+      "match": [
+        "attraction para ella",
+        "attraction original para ella"
+      ],
+      "line": "Attraction Original para Ella",
+      "family_olfativa": "Maderosa frutal almizclada",
+      "notas_salida": "Mora (avonstore.es)",
+      "notas_corazon": "Zarzamora (avon.mx)",
+      "notas_fondo": "Almizcle magnético y ámbar de vainilla (avonstore.es)",
+      "estilo_ocasion": "Del día a la noche; feminidad y misterio",
+      "sensacion": "Cautivadora, magnética y seductora; impresión imborrable",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158971 ; https://avonstore.es/perfumes-y-fragancias-para-mujer/5111-avon-attraction-para-ella-eau-de-parfum-en-spray.html"
+    },
+    "blacksuede_real_intense": {
+      "match": [
+        "black suede real intense",
+        "black suede real intende",
+        "black essential real intense"
+      ],
+      "line": "Black Suede Real Intense",
+      "family_olfativa": "Oriental (Avon Brasil) / Maderosa aromática",
+      "notas_salida": "Pimienta de Sichuan, pimienta rosa y salvia francesa (Avon Brasil)",
+      "notas_corazon": "Violeta egipcia, geranio y canela (Avon Brasil)",
+      "notas_fondo": "Madera caliente, cashmeran y cuero (Avon Brasil)",
+      "estilo_ocasion": "Día a día y ocasiones especiales",
+      "sensacion": "Seducción intensa y audaz",
+      "publico": "masculino",
+      "fuente": "https://www.avon.com.br/p/black-essential-real-intense-deo-colonia-100-ml/AVNBRA-175093"
+    },
+    "blacksuede_real": {
+      "match": [
+        "black suede real",
+        "black essential real"
+      ],
+      "line": "Black Suede Real",
+      "family_olfativa": "Maderosa aromática",
+      "notas_salida": "Pimienta de Sichuan (México) / Pimienta de Sichuan, salvia francesa y pimienta rosa (Avon Brasil)",
+      "notas_corazon": "Geranio (México) / Geranio rosa, violeta egipcia y bergamota (Avon Brasil)",
+      "notas_fondo": "Molécula veramoss y musgo de roble (México) / Musgo, ámbar y pachulí (Avon Brasil)",
+      "estilo_ocasion": "Diario y ocasiones especiales",
+      "sensacion": "Confianza auténtica; aura de misterio y poder de seducción",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185911 ; https://www.avon.com.br/p/black-essential-real-deo-colonia-100-ml/AVNBRA-175586"
+    },
+    "blacksuede_dark": {
+      "match": [
+        "black suede dark",
+        "black essential dark"
+      ],
+      "line": "Black Suede Dark",
+      "family_olfativa": "Oriental amaderada",
+      "notas_salida": "Mangostán (México) / Cosmofruit (avonstore.es)",
+      "notas_corazon": "Cuero Saffiano",
+      "notas_fondo": "Vetiver duradero",
+      "estilo_ocasion": "Diario, misterio nocturno; duración ~8 h",
+      "sensacion": "Misterio y estela fascinante; vive quién eres",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185909 ; https://avonstore.es/para-el/3395-black-suede-dark-eau-de-toilette-en-spray-para-el.html"
+    },
+    "blacksuede_intense": {
+      "match": [
+        "black suede intense",
+        "black essential intense"
+      ],
+      "line": "Black Suede Intense",
+      "family_olfativa": "Maderosa oriental",
+      "notas_salida": "Pimienta negra",
+      "notas_corazon": "Acorde Intenso con ládano (ámbar y pimienta)",
+      "notas_fondo": "Leña / maderas",
+      "estilo_ocasion": "Ocasiones que piden presencia; masculinidad enigmática",
+      "sensacion": "Calidez resinosa, profundidad y misterio elegante",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185913"
+    },
+    "blacksuede_secret": {
+      "match": [
+        "black suede secret",
+        "black essential secret"
+      ],
+      "line": "Black Suede Secret",
+      "family_olfativa": "Maderosa ambarada",
+      "notas_salida": "Pulpa de manzana roja (México) / Toranja, manzana roja y pimienta negra (Avon Brasil)",
+      "notas_corazon": "Tonkalactona (México) / Lavanda, cardamomo y tonka cremosa (Avon Brasil)",
+      "notas_fondo": "Acorde cuir velours DL (México) / Flor negra misteriosa, camurça y vetiver de Madagascar (Avon Brasil)",
+      "estilo_ocasion": "Diario y noche; lado magnético",
+      "sensacion": "Encanto sin esfuerzo, confianza y atractivo",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185914 ; https://www.avon.com.br/p/black-essential-secret-deo-colonia-100-ml/AVNBRA-175089"
+    },
+    "blacksuede": {
+      "match": [
+        "black suede",
+        "black essential",
+        "kit black suede"
+      ],
+      "line": "Black Suede Original",
+      "family_olfativa": "Leathery Oriental / Oriental cuero",
+      "notas_salida": "Herbales frescas (avonstore.es)",
+      "notas_corazon": "Acorde de cuero (avonstore.es)",
+      "notas_fondo": "Maderas cálidas envolventes (avon.mx y avonstore.es)",
+      "estilo_ocasion": "Diario; duración probada ~8 h; caballero seguro",
+      "sensacion": "Seductora e inolvidable; huella imborrable de cuero y maderas",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187686 ; https://avonstore.es/perfumes/344-black-suede-eau-de-toilette-en-spray.html"
+    },
+    "faraway_shine": {
+      "match": [
+        "far away shine"
+      ],
+      "line": "Far Away Shine",
+      "family_olfativa": "Floral",
+      "notas_salida": "Frambuesa, lichi y pimienta rosa",
+      "notas_corazon": "Gardenia, rosa y violeta",
+      "notas_fondo": "Vainilla, haba tonka y almizcle",
+      "estilo_ocasion": "Diario y ocasiones especiales; perfumación en capas con la línea",
+      "sensacion": "Brillo interior; ilumina el mundo (rosa de Ispahan y musgo dorado)",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195428 ; https://avonstore.es/perfumes/5008-eau-de-parfum-far-away-shine.html"
+    },
+    "faraway_beyondmoon": {
+      "match": [
+        "far away beyond the moon",
+        "far away beyond moon"
+      ],
+      "line": "Far Away Beyond The Moon",
+      "family_olfativa": "Oriental floral",
+      "notas_salida": "Cereza salvaje",
+      "notas_corazon": "Flor Belle de Nuit (dama de noche)",
+      "notas_fondo": "Sándalo australiano y vainilla de Madagascar",
+      "estilo_ocasion": "Noche y ocasiones especiales; misterio lunar",
+      "sensacion": "Misterio de la luna; mayor concentración y duración",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201777 ; https://avonstore.es/perfumes/4668-perfume-far-away-beyond-the-moon-para-ella.html"
+    },
+    "faraway_beyond": {
+      "match": [
+        "far away beyond"
+      ],
+      "line": "Far Away Beyond",
+      "family_olfativa": "Dulce floral de vainilla de Madagascar",
+      "notas_salida": "Pera",
+      "notas_corazon": "Jazmín",
+      "notas_fondo": "Vainilla de Madagascar reciclada y sándalo",
+      "estilo_ocasion": "Diario y noche; sofisticación y misterio",
+      "sensacion": "Aroma intenso y duradero; salir fuera de lo común",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191435 ; https://avonstore.es/para-ella/5046-far-away-beyond-eau-de-parfum-en-spray.html"
+    },
+    "faraway_glamour": {
+      "match": [
+        "far away glamour"
+      ],
+      "line": "Far Away Glamour",
+      "family_olfativa": "Dulce floral oriental amaderada",
+      "notas_salida": "Pimienta rosa radiante, brote de grosella negra y néctar de pomelo",
+      "notas_corazon": "Iris blanco, flor de naranjo e intensa flor de vainilla",
+      "notas_fondo": "Almizcle negro y vainilla blanca",
+      "estilo_ocasion": "Noche y ocasiones glamurosas",
+      "sensacion": "Glamour, presencia imponente; brillo interior",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191434 ; https://avonstore.es/perfumes/2667-far-away-glamour-eau-de-parfum-en-spray-.html"
+    },
+    "faraway_splendora": {
+      "match": [
+        "far away splendora",
+        "far away splendoria",
+        "far away splendoria",
+        "far away spledoria"
+      ],
+      "line": "Far Away Splendoria",
+      "family_olfativa": "Dulce floral oriental",
+      "notas_salida": "Ciruela",
+      "notas_corazon": "Bouquet blanco de gardenias",
+      "notas_fondo": "Oud blanco y vainilla de Madagascar",
+      "estilo_ocasion": "Noche y ocasiones especiales",
+      "sensacion": "Oro líquido de la perfumería; calidez, complejidad y dulzura",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195425 ; https://avonstore.es/para-ella/5045-eau-de-parfum-far-away-splendoria.html"
+    },
+    "faraway": {
+      "match": [
+        "far away",
+        "kit far away"
+      ],
+      "line": "Far Away Original",
+      "family_olfativa": "Dulce floral oriental / Oriental y floral",
+      "notas_salida": "Melocotón y fresia (avonstore.es) / Fresia y pétalos de jazmín de alta calidad (avon.mx)",
+      "notas_corazon": "Jazmín, osmanthus y flor de naranjo (avonstore.es)",
+      "notas_fondo": "Almizcle de vainilla, madera de sándalo y ámbar (avonstore.es) / Vainilla de Madagascar (avon.mx)",
+      "estilo_ocasion": "Diario y escapismo; icónico de Avon",
+      "sensacion": "Exótica, soñadora; viaje tan lejos como desees",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201776 ; https://avonstore.es/perfumes/316-far-away-eau-de-parfum-en-spray.html"
+    },
+    "imari_queen": {
+      "match": [
+        "imari queen"
+      ],
+      "line": "Imari Queen",
+      "family_olfativa": "Floral afrutada chypre",
+      "notas_salida": "Jugosas moras",
+      "notas_corazon": "Acorde de rosas",
+      "notas_fondo": "Esencia de almizcle anisado",
+      "estilo_ocasion": "Noche y celebración de la sensualidad",
+      "sensacion": "Dominio, orgullo y sensualidad; explosión jugosa",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195432 ; https://avonstore.es/para-ella/4673-eau-de-toilette-imari-queen-para-ella.html"
+    },
+    "imari_corset": {
+      "match": [
+        "imari corset"
+      ],
+      "line": "Imari Corset",
+      "family_olfativa": "Chypre frutal oriental",
+      "notas_salida": "Grosella negra (avonstore.es)",
+      "notas_corazon": "Rosa (avonstore.es)",
+      "notas_fondo": "Sándalo, mantequilla de cacao y cuero (avon.mx)",
+      "estilo_ocasion": "Noche y seducción",
+      "sensacion": "Sensualidad con estructura; sofisticación",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191440 ; https://avonstore.es/para-ella/4669-eau-de-toilette-imari-corset-para-ella.html"
+    },
+    "imari_eclipse": {
+      "match": [
+        "imari eclipse"
+      ],
+      "line": "Imari Eclipse",
+      "family_olfativa": "Chypre frutal floral",
+      "notas_salida": "Pimienta rosa",
+      "notas_corazon": "Nardo",
+      "notas_fondo": "Sándalo",
+      "estilo_ocasion": "Noche; misterio y feminidad",
+      "sensacion": "Eclipse de luz y sombra; cautivadora",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191441"
+    },
+    "imari_free": {
+      "match": [
+        "imari free"
+      ],
+      "line": "Imari Free",
+      "family_olfativa": "Chypre floral fresco",
+      "notas_salida": "Aceite de bergamota italiana, pera fresca Delight y absoluto de abeto balsámico",
+      "notas_corazon": "Algas laminarias MD France Orpur®, pimienta rosa e CO2 India Orpur",
+      "notas_fondo": "Ámbar",
+      "estilo_ocasion": "Diario y momentos libres; sensualidad salvaje",
+      "sensacion": "Libertad como las olas del mar; frescura duradera",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185906 ; https://avonstore.es/para-ella/5208-eau-de-toilette-imari-free-para-ella.html"
+    },
+    "imari_naturelle": {
+      "match": [
+        "imari naturelle"
+      ],
+      "line": "Imari Naturelle",
+      "family_olfativa": "Chypre floral",
+      "notas_salida": "Durazno/melocotón",
+      "notas_corazon": "Agua de rosas suprareciclada (upcycled)",
+      "notas_fondo": "Almizcles cálidos",
+      "estilo_ocasion": "Diario; sensualidad natural",
+      "sensacion": "Belleza natural y sensualidad que perdura",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201778 ; https://avonstore.es/para-ella/4909-eau-de-toilette-imari-naturelle-para-ella.html"
+    },
+    "imari": {
+      "match": [
+        "imari"
+      ],
+      "line": "Imari Original / Imari Classic",
+      "family_olfativa": "Chypre floral",
+      "notas_salida": "",
+      "notas_corazon": "Rosas",
+      "notas_fondo": "Vainilla",
+      "estilo_ocasion": "Noche y ocasiones especiales; clásico atemporal",
+      "sensacion": "Equilibrio entre misterio y seducción",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-174849 ; https://www.avon.mx/p/x/AVNMEX-248750"
+    },
+    "musk_air": {
+      "match": [
+        "musk air"
+      ],
+      "line": "Musk Air",
+      "family_olfativa": "Frescura masculina moderna",
+      "notas_salida": "Jengibre",
+      "notas_corazon": "",
+      "notas_fondo": "Sándalo",
+      "estilo_ocasion": "Diario, oficina y encuentros; hombre moderno y dinámico",
+      "sensacion": "Brisa de frescura inquebrantable (Tecnología Ultra Fresh); vitalidad",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176933"
+    },
+    "musk_freeze": {
+      "match": [
+        "musk freeze"
+      ],
+      "line": "Musk Freeze",
+      "family_olfativa": "Amaderado aromático fougère",
+      "notas_salida": "Albahaca fría, menta, hierbas y mandarina",
+      "notas_corazon": "Acorde alpino / acorde Ice",
+      "notas_fondo": "Musgo de roble",
+      "estilo_ocasion": "Diario, casual o deportivo",
+      "sensacion": "Ráfaga de aire helado (Tecnología Hivernal); frescura extrema y espíritu libre",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191452"
+    },
+    "musk_instinct": {
+      "match": [
+        "musk instinct"
+      ],
+      "line": "Musk Instinct",
+      "family_olfativa": "Maderosa floral",
+      "notas_salida": "Acorde de selva tropical",
+      "notas_corazon": "Hojas de cedro",
+      "notas_fondo": "Patchouli",
+      "estilo_ocasion": "Diario y aventura; naturaleza",
+      "sensacion": "Energía de la naturaleza que recarga",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191453"
+    },
+    "musk_marine": {
+      "match": [
+        "musk marine",
+        "kit musk marine"
+      ],
+      "line": "Musk Marine",
+      "family_olfativa": "Fougère aromática",
+      "notas_salida": "Cardamomo y menta",
+      "notas_corazon": "Lavanda",
+      "notas_fondo": "Sándalo",
+      "estilo_ocasion": "Diario y actividad; energía del mar",
+      "sensacion": "Sensación refrescante y energética; ola de seducción",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201789"
+    },
+    "musk_metropolitano": {
+      "match": [
+        "musk metropolitano",
+        "musk metropolinato"
+      ],
+      "line": "Musk Metropolitano",
+      "family_olfativa": "Aromático amaderado",
+      "notas_salida": "Hojas de cedro",
+      "notas_corazon": "Aceite de ciprés",
+      "notas_fondo": "Vetiver",
+      "estilo_ocasion": "Ciudad, oficina y vida urbana",
+      "sensacion": "Poder en medio de la agitada ciudad",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201790"
+    },
+    "musk_rain": {
+      "match": [
+        "musk rain"
+      ],
+      "line": "Musk Rain",
+      "family_olfativa": "Aromático fougère",
+      "notas_salida": "Mandarina cítrica",
+      "notas_corazon": "",
+      "notas_fondo": "Cedro y GEOGAIATM (acorde de tierra mojada por la lluvia)",
+      "estilo_ocasion": "Diario; calma después de la tormenta",
+      "sensacion": "Frescura del aire y olor a tierra mojada; renovación",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195452"
+    },
+    "musk": {
+      "match": [
+        "musk"
+      ],
+      "line": "Musk (línea masculina)",
+      "family_olfativa": "Aromática/fougère masculina (según variante)",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario; frescura masculina",
+      "sensacion": "",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176933"
+    },
+    "wildcountry_freedom": {
+      "match": [
+        "wild country freedom"
+      ],
+      "line": "Wild Country Freedom",
+      "family_olfativa": "Fougère maderosa",
+      "notas_salida": "Ladendín (labdanum) y falso índigo",
+      "notas_corazon": "",
+      "notas_fondo": "Acorde Petrichor",
+      "estilo_ocasion": "Aire libre, aventura y libertad",
+      "sensacion": "Sobredosis de libertad; espíritu indomable",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195549 ; https://avonstore.es/para-el/335-wild-country-freedom-eau-de-toilette-en-spray.html"
+    },
+    "wildcountry_musk": {
+      "match": [
+        "wild country musk"
+      ],
+      "line": "Wild Country Musk",
+      "family_olfativa": "Fougère ambarada",
+      "notas_salida": "Artemisa y lavanda",
+      "notas_corazon": "",
+      "notas_fondo": "Musk (almizcle)",
+      "estilo_ocasion": "Diario y noche; elegancia bravía",
+      "sensacion": "Elegantemente bravío",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195551"
+    },
+    "wildcountry_nights": {
+      "match": [
+        "wild country nights"
+      ],
+      "line": "Wild Country Nights",
+      "family_olfativa": "Fougère oriental",
+      "notas_salida": "Acorde de cielo azul cobalto",
+      "notas_corazon": "Madera ahumada",
+      "notas_fondo": "Cuero de hoguera",
+      "estilo_ocasion": "Noche; domina la noche",
+      "sensacion": "Espíritu indomable que no duerme",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195552"
+    },
+    "wildcountry_rush": {
+      "match": [
+        "wild country rush"
+      ],
+      "line": "Wild Country Rush",
+      "family_olfativa": "Maderosa aromática",
+      "notas_salida": "Lavandín",
+      "notas_corazon": "Akigalawood",
+      "notas_fondo": "Patchouli",
+      "estilo_ocasion": "Diario y actividad; potencial feroz",
+      "sensacion": "Potencial sin límites",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195550"
+    },
+    "wildcountry": {
+      "match": [
+        "wild country",
+        "kit wild country"
+      ],
+      "line": "Wild Country Original",
+      "family_olfativa": "Fougère con lavanda, geranio y sándalo",
+      "notas_salida": "Lavanda fresca y geranio",
+      "notas_corazon": "",
+      "notas_fondo": "Madera de sándalo intensa y profunda",
+      "estilo_ocasion": "Diario; estilo auténtico y aventurero",
+      "sensacion": "Tu esencia deja huella; combinación salvaje, relajante y calmante",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202914 ; https://avonstore.es/para-el/2730-wild-country-eau-de-toilette-en-spray.html"
+    },
+    "oslo_instinct": {
+      "match": [
+        "oslo instict",
+        "oslo instinct"
+      ],
+      "line": "Oslo Instinct",
+      "family_olfativa": "Maderosa especiada",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario; seducción clásica",
+      "sensacion": "Instinto caballeroso",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202917"
+    },
+    "oslo": {
+      "match": [
+        "oslo",
+        "kit oslo"
+      ],
+      "line": "Oslo Original",
+      "family_olfativa": "Chypre maderosa",
+      "notas_salida": "Mandarina y bergamota",
+      "notas_corazon": "",
+      "notas_fondo": "Musk (almizcle)",
+      "estilo_ocasion": "Diario; caballero clásico",
+      "sensacion": "La fragancia de los verdaderos caballeros; seduce y conquista",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202934"
+    },
+    "latinattitude_festival": {
+      "match": [
+        "latin attitude festival"
+      ],
+      "line": "Latin Attitude Festival",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Festival, música y tribu; uso femenino",
+      "sensacion": "Mi música, mi tribu, mi outfit",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250767"
+    },
+    "latinattitude_adventure": {
+      "match": [
+        "latin attitude adventure"
+      ],
+      "line": "Latin Attitude Adventure",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Aventura y actitud latina",
+      "sensacion": "",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250720"
+    },
+    "latinattitude_mystic": {
+      "match": [
+        "latin attitude mystic"
+      ],
+      "line": "Latin Attitude Mystic",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Uso femenino; misterio latino",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195439"
+    },
+    "latinattitude_wishes": {
+      "match": [
+        "latin attitude wishes"
+      ],
+      "line": "Latin Attitude Wishes",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Uso femenino; lista de deseos",
+      "sensacion": "Inspiración para mi lista de deseos",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250728"
+    },
+    "latinattitude": {
+      "match": [
+        "latin attitude"
+      ],
+      "line": "Latin Attitude Original",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Actitud latina; música y festival",
+      "sensacion": "Conquista con tu actitud",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248754"
+    },
+    "sensus_absolute_santal_her": {
+      "match": [
+        "sensus absolute santal ella",
+        "sensus her absolute santal",
+        "sensus abbsolute santal ella"
+      ],
+      "line": "Sensus Her Absolute Santal",
+      "family_olfativa": "Oriental maderosa",
+      "notas_salida": "Zarzamora",
+      "notas_corazon": "Jazmín",
+      "notas_fondo": "Sándalo australiano",
+      "estilo_ocasion": "Día y noche; éxito que llega con el tiempo",
+      "sensacion": "Feminidad, profundidad y misterio",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201804"
+    },
+    "sensus_absolute_santal_him": {
+      "match": [
+        "sensus absolute santal para el",
+        "sensus absolute santal para él",
+        "absolute santal"
+      ],
+      "line": "Sensus Absolute Santal para Él",
+      "family_olfativa": "Maderosa (sándalo australiano)",
+      "notas_salida": "Cardamomo y hojas de violeta",
+      "notas_corazon": "Jazmín",
+      "notas_fondo": "Sándalo australiano",
+      "estilo_ocasion": "Día y noche; alta concentración (~5-6 h)",
+      "sensacion": "Declaración de personalidad; audacia e impresión duradera",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201803"
+    },
+    "sensus_admirable_her": {
+      "match": [
+        "sensus admirable para ella",
+        "sensus admirable for her"
+      ],
+      "line": "Sensus Admirable para Ella",
+      "family_olfativa": "",
+      "notas_salida": "Frambuesa",
+      "notas_corazon": "Solar bouquet",
+      "notas_fondo": "Vetiver",
+      "estilo_ocasion": "Diario y ocasiones especiales",
+      "sensacion": "Impactas al mundo; fragancia impactante",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201801"
+    },
+    "sensus_admirable_him": {
+      "match": [
+        "sensus admirable para él",
+        "sensus admirable para el",
+        "sensus admirable ult"
+      ],
+      "line": "Sensus Admirable para Él",
+      "family_olfativa": "",
+      "notas_salida": "Nuez moscada",
+      "notas_corazon": "Orris",
+      "notas_fondo": "Vetiver",
+      "estilo_ocasion": "Diario; la esencia de los admirable",
+      "sensacion": "Sofisticación y carácter",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201800"
+    },
+    "sensus_casual": {
+      "match": [
+        "sensus casual",
+        "sensus untailored"
+      ],
+      "line": "Sensus Casual / Untailored",
+      "family_olfativa": "Aromática fresca",
+      "notas_salida": "Albahaca thai",
+      "notas_corazon": "Ciprés fresco y ahumado",
+      "notas_fondo": "Maderas de cashmere",
+      "estilo_ocasion": "Relajado pero con estilo y sofisticación",
+      "sensacion": "Sofisticación relajada",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202933"
+    },
+    "sensus_complicity": {
+      "match": [
+        "sensus complicity"
+      ],
+      "line": "Sensus Complicity",
+      "family_olfativa": "Aromática amaderada",
+      "notas_salida": "Aceite de cardamomo",
+      "notas_corazon": "Aceite de salvia",
+      "notas_fondo": "Pachulí",
+      "estilo_ocasion": "Diario; conexión profunda",
+      "sensacion": "Apertura fresca y especiada que evoluciona a un fondo cálido y amaderado",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195458"
+    },
+    "sensus_inblack": {
+      "match": [
+        "sensus in black"
+      ],
+      "line": "Sensus in Black",
+      "family_olfativa": "Chypre maderosa con especias, madera y ámbar",
+      "notas_salida": "Aguja de pino",
+      "notas_corazon": "Hierbabuena",
+      "notas_fondo": "Patchoulí",
+      "estilo_ocasion": "Diario y noche; hombre conquistador",
+      "sensacion": "Aroma que deja huella; triunfo y ambición",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191479"
+    },
+    "sensus_magnetic": {
+      "match": [
+        "sensus magnetic"
+      ],
+      "line": "Sensus Magnetic",
+      "family_olfativa": "",
+      "notas_salida": "Sandía",
+      "notas_corazon": "Geranio africano",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario; atracción magnética",
+      "sensacion": "",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202925"
+    },
+    "sensus_quest": {
+      "match": [
+        "sensus quest"
+      ],
+      "line": "Sensus Quest",
+      "family_olfativa": "",
+      "notas_salida": "Jengibre vigorizante",
+      "notas_corazon": "Aceite de café tostado",
+      "notas_fondo": "Madera de cedro",
+      "estilo_ocasion": "Diario; búsqueda y logro",
+      "sensacion": "Intensidad deliciosa y refinada; acabado robusto",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191480"
+    },
+    "sensus_unlimited_her": {
+      "match": [
+        "sensus unlimited para ella",
+        "sensus unlimited for her"
+      ],
+      "line": "Sensus Unlimited para Ella",
+      "family_olfativa": "Floral verde acuosa",
+      "notas_salida": "Sorbete de limón",
+      "notas_corazon": "Notas del Mar Mediterráneo",
+      "notas_fondo": "Dewy musks",
+      "estilo_ocasion": "Diario; frescura luminosa",
+      "sensacion": "Ligereza mediterránea",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201806"
+    },
+    "sensus_unlimited_him": {
+      "match": [
+        "sensus unlimited para él",
+        "sensus unlimited para el"
+      ],
+      "line": "Sensus Unlimited para Él",
+      "family_olfativa": "Aromática fresca frutal / Amaderado",
+      "notas_salida": "Notas marinas florales y pulpa de arándano",
+      "notas_corazon": "Acorde de la costa Amalfitana",
+      "notas_fondo": "Driftwood (madera a la deriva)",
+      "estilo_ocasion": "Diario; costa y éxito sin límites",
+      "sensacion": "Viaje refrescante que activa los sentidos; elegancia de la costa italiana",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201805"
+    },
+    "sensus_her": {
+      "match": [
+        "sensus para ella",
+        "sensus her fragancia",
+        "sensus her"
+      ],
+      "line": "Sensus Her",
+      "family_olfativa": "Floral oriental frutal",
+      "notas_salida": "Frambuesa",
+      "notas_corazon": "Magnolia",
+      "notas_fondo": "Sándalo",
+      "estilo_ocasion": "Diario y noche; mujer que va por todo",
+      "sensacion": "Fragancia de larga duración",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201807"
+    },
+    "sensus": {
+      "match": [
+        "sensus"
+      ],
+      "line": "Sensus Ultra Original",
+      "family_olfativa": "Chypre maderosa con especias, madera y ámbar",
+      "notas_salida": "Aguja de pino",
+      "notas_corazon": "Hierbabuena",
+      "notas_fondo": "Patchoulí",
+      "estilo_ocasion": "Diario y ocasiones de logro; vegano",
+      "sensacion": "Mezcla de especias que lleva a la cima; declaración de éxito",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201802"
+    },
+    "secretfantasy_black": {
+      "match": [
+        "secret fantasy black"
+      ],
+      "line": "Secret Fantasy Black",
+      "family_olfativa": "Floriental frutal",
+      "notas_salida": "Grosellas negras",
+      "notas_corazon": "Jazmín caleidoscopio",
+      "notas_fondo": "Acorde de cristales de azúcar negra",
+      "estilo_ocasion": "Teen/juvenil; misterio y secretos",
+      "sensacion": "Soy audaz y desafío mis propios límites; misteriosa",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201793"
+    },
+    "secretfantasy_white": {
+      "match": [
+        "secret fantasy white"
+      ],
+      "line": "Secret Fantasy White",
+      "family_olfativa": "Floral frutal",
+      "notas_salida": "Grosellas blancas",
+      "notas_corazon": "Jazmín caleidoscopio",
+      "notas_fondo": "Cedro",
+      "estilo_ocasion": "Teen/juvenil; autenticidad",
+      "sensacion": "Soy auténtica y conecto con mi intuición",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201794"
+    },
+    "secretfantasy_devil": {
+      "match": [
+        "secret fantasy devil",
+        "fantasy devil"
+      ],
+      "line": "Secret Fantasy Devil",
+      "family_olfativa": "Oriental avainillada frutal (EDT) / Floral frutal almizclada (colonia)",
+      "notas_salida": "Frambuesa (EDT) / Pera (colonia)",
+      "notas_corazon": "Flor de grosella negra (EDT) / Peonias (colonia)",
+      "notas_fondo": "Haba tonka (EDT) / Sándalo (colonia)",
+      "estilo_ocasion": "Noche; desafío y rebeldía",
+      "sensacion": "Cautiva desafíos; decide quién quieres ser",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201798 ; https://www.avon.mx/p/x/AVNMEX-191466"
+    },
+    "secretfantasy_dare": {
+      "match": [
+        "secret fantasy dare"
+      ],
+      "line": "Secret Fantasy Dare",
+      "family_olfativa": "Amaderada frutal",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Teen; atrevimiento",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191465"
+    },
+    "secretfantasy_angel": {
+      "match": [
+        "secret fantasy angel"
+      ],
+      "line": "Secret Fantasy Angel",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Teen/juvenil",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191463"
+    },
+    "secretfantasy_dreams": {
+      "match": [
+        "secret fantasy dreams"
+      ],
+      "line": "Secret Fantasy Dreams",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Teen/juvenil; sueños",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248746"
+    },
+    "secretfantasy": {
+      "match": [
+        "secret fantasy"
+      ],
+      "line": "Secret Fantasy Original",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Teen/juvenil; fantasía y secretos",
+      "sensacion": "Haz tus sueños realidad; mis secretos, mis historias",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201795"
+    },
+    "sweethonesty_forever": {
+      "match": [
+        "sweet honesty forever"
+      ],
+      "line": "Sweet Honesty Forever",
+      "family_olfativa": "Floral frutal",
+      "notas_salida": "",
+      "notas_corazon": "Rosas y orquídeas",
+      "notas_fondo": "Vainilla",
+      "estilo_ocasion": "Diario; romance",
+      "sensacion": "Vuelve a enamorarte",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198408"
+    },
+    "sweethonesty_treasures": {
+      "match": [
+        "sweet honesty treasures",
+        "sweet honesty treasure",
+        "sweet honesty tresures"
+      ],
+      "line": "Sweet Honesty Treasures",
+      "family_olfativa": "Floral frutal acuoso",
+      "notas_salida": "",
+      "notas_corazon": "Lirio del valle y jazmín",
+      "notas_fondo": "Ámbar",
+      "estilo_ocasion": "Diario; ternura",
+      "sensacion": "Celebra los tesoros del amor",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198407"
+    },
+    "sweethonesty_butterflies": {
+      "match": [
+        "sweet honesty butterflies"
+      ],
+      "line": "Sweet Honesty Butterflies",
+      "family_olfativa": "",
+      "notas_salida": "Bergamota espumosa",
+      "notas_corazon": "Flor de la mariposa (buddleia)",
+      "notas_fondo": "Maderas cálidas y claras",
+      "estilo_ocasion": "Diario; ligereza",
+      "sensacion": "Ternura y libertad",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-161763"
+    },
+    "sweethonesty": {
+      "match": [
+        "sweet honesty"
+      ],
+      "line": "Sweet Honesty Original",
+      "family_olfativa": "Floral aldehídica",
+      "notas_salida": "",
+      "notas_corazon": "Miel y jacinto",
+      "notas_fondo": "Madera",
+      "estilo_ocasion": "Diario; clásico dulce y tierno",
+      "sensacion": "Tan dulce y tierna como la mujer que la usa; verdadera fantasía de miel, madera y jacinto",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201824"
+    },
+    "exoticwaters_tulum": {
+      "match": [
+        "exotic waters magic tulum",
+        "exotic waters tulum"
+      ],
+      "line": "Exotic Waters Magic Tulum",
+      "family_olfativa": "Floral oriental afrutada",
+      "notas_salida": "Exóticas frambuesas",
+      "notas_corazon": "Femeninas notas de flores de magnolia",
+      "notas_fondo": "Acorde de brisa caribeña",
+      "estilo_ocasion": "Verano, playa, vacaciones",
+      "sensacion": "Aguas turquesa, naturaleza y elementos ancestrales de la Riviera Maya; un nuevo comienzo",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195419"
+    },
+    "exoticwaters_havana": {
+      "match": [
+        "exotic waters havana"
+      ],
+      "line": "Exotic Waters Havana Nights",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Noche caribeña; Habana",
+      "sensacion": "",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248757"
+    },
+    "exoticwaters_blue": {
+      "match": [
+        "exotic waters blue"
+      ],
+      "line": "Exotic Waters Blue",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Fresco, acuático",
+      "sensacion": "",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248758"
+    },
+    "exoticwaters": {
+      "match": [
+        "exotic waters"
+      ],
+      "line": "Exotic Waters",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Caribe, Riviera Maya",
+      "sensacion": "",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248758"
+    },
+    "tta_everlasting": {
+      "match": [
+        "today tomorrow always everlasting",
+        "tta everlasting",
+        "kit tta everlasting"
+      ],
+      "line": "Today Tomorrow Always Everlasting",
+      "family_olfativa": "",
+      "notas_salida": "Dúo de notas de almendra",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Día y noche; elegancia duradera",
+      "sensacion": "Elegante y sofisticada; dura todo el día",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-171980"
+    },
+    "tta_radiance": {
+      "match": [
+        "today tomorrow always radiance",
+        "tta radiance"
+      ],
+      "line": "Today Tomorrow Always Radiance",
+      "family_olfativa": "Floral frutal amaderada",
+      "notas_salida": "Fresa",
+      "notas_corazon": "Rosa absoluta y flor de azahar",
+      "notas_fondo": "",
+      "estilo_ocasion": "Diario; verano e invierno",
+      "sensacion": "Belleza de amar y ser amado; suave y romántica",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195463"
+    },
+    "tta_wonder": {
+      "match": [
+        "today tomorrow always wonder",
+        "tta wonder"
+      ],
+      "line": "Today Tomorrow Always Wonder",
+      "family_olfativa": "Floral musk",
+      "notas_salida": "Bergamota y capullos de neroli",
+      "notas_corazon": "Neroli (millones de capullos)",
+      "notas_fondo": "Madera de cedro",
+      "estilo_ocasion": "Diario; mujeres románticas",
+      "sensacion": "Frescura y emociones; celebrar el amor",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158901"
+    },
+    "tta_today": {
+      "match": [
+        "today tomorrow always",
+        "tta clasica",
+        "tta today",
+        "kit tta"
+      ],
+      "line": "Today Tomorrow Always (Today / Clásica)",
+      "family_olfativa": "Floral blanca",
+      "notas_salida": "Fresias (avon.mx) / Flor mariposa (avonstore.es)",
+      "notas_corazon": "Pimienta blanca (avon.mx) / Pétalos de hibisco (avonstore.es)",
+      "notas_fondo": "Musk / almizcle sedoso",
+      "estilo_ocasion": "Diario; esencia de amor",
+      "sensacion": "Captura el momento, rodéate de amor",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201808 ; https://avonstore.es/para-ella/322-today-para-ella-eau-de-parfum-en-spray.html"
+    },
+    "lovu_connected": {
+      "match": [
+        "lov u connected",
+        "lov|u connected",
+        "kit lov u connected"
+      ],
+      "line": "Lov U Connected",
+      "family_olfativa": "Floral afrutada",
+      "notas_salida": "Mandarina y limón",
+      "notas_corazon": "Rosa, iris y lirio de agua",
+      "notas_fondo": "Sándalo y ámbar",
+      "estilo_ocasion": "Diario y citas; lazos que perduran",
+      "sensacion": "Conexión inolvidable; cerca o lejos, seguimos conectados",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201788"
+    },
+    "lovu_datenight": {
+      "match": [
+        "lov u date night",
+        "kit lov u date night"
+      ],
+      "line": "Lov U Date Night",
+      "family_olfativa": "Floral frutal amaderada",
+      "notas_salida": "Cereza oscura",
+      "notas_corazon": "Rosa de la noche (capturada con tecnología sustentable)",
+      "notas_fondo": "Sándalo",
+      "estilo_ocasion": "Cita nocturna",
+      "sensacion": "Emoción de una cita inesperada",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201787"
+    },
+    "lovu_together": {
+      "match": [
+        "love u together",
+        "lov u together",
+        "kit lov u together"
+      ],
+      "line": "Lov U Together",
+      "family_olfativa": "",
+      "notas_salida": "Corazón de limón",
+      "notas_corazon": "Flores de arroz (flor de arroz amarilla)",
+      "notas_fondo": "Aceite de cedro y campo de vainillas",
+      "estilo_ocasion": "Diario; amor duradero",
+      "sensacion": "El amor vibra cuando estamos juntos; alegría efervescente",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195449"
+    },
+    "lovu": {
+      "match": [
+        "lov u",
+        "lovu",
+        "kit lov u"
+      ],
+      "line": "Lov U Original",
+      "family_olfativa": "Floral frutal",
+      "notas_salida": "Frambuesa",
+      "notas_corazon": "Risas (acorde lúdico de la campaña)",
+      "notas_fondo": "Madera de cashmere",
+      "estilo_ocasion": "Noches de invierno y encuentros inolvidables",
+      "sensacion": "Un amor destinado a durar; promesa de amor que perdura",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201786"
+    },
+    "nightmagic": {
+      "match": [
+        "night magic"
+      ],
+      "line": "Night Magic",
+      "family_olfativa": "Chypre floral",
+      "notas_salida": "Neroli (fresco)",
+      "notas_corazon": "Jazmín rico",
+      "notas_fondo": "Musk seductor",
+      "estilo_ocasion": "Noche; Avon Classics Collection",
+      "sensacion": "Siempre hermosa",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198403"
+    },
+    "celebrity": {
+      "match": [
+        "colonia celebrity",
+        "celebrity"
+      ],
+      "line": "Celebrity",
+      "family_olfativa": "Fougère fresca",
+      "notas_salida": "Especias",
+      "notas_corazon": "Maderas",
+      "notas_fondo": "Vetiver",
+      "estilo_ocasion": "Diario; celebrar la vida",
+      "sensacion": "Celebra las pequeñas cosas de la vida",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198401"
+    },
+    "charisma": {
+      "match": [
+        "charisma"
+      ],
+      "line": "Iconic Collection Charisma Magnetic",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245999"
+    },
+    "topaze": {
+      "match": [
+        "topaze"
+      ],
+      "line": "Iconic Collection Topaze Elegant",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245993"
+    },
+    "toquedeamor": {
+      "match": [
+        "toque de amor"
+      ],
+      "line": "Iconic Collection Toque de Amor Lovely",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245995"
+    },
+    "tresele": {
+      "match": [
+        "treselle",
+        "tresele"
+      ],
+      "line": "Tresele",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250736"
+    },
+    "xnob_tokyo": {
+      "match": [
+        "xnob tokyo"
+      ],
+      "line": "XNOB Tokyo",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Masculino urbano",
+      "sensacion": "",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202921"
+    },
+    "xnob": {
+      "match": [
+        "xnob"
+      ],
+      "line": "XNOB Original",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Masculino",
+      "sensacion": "",
+      "publico": "masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202906"
+    },
+    "senses_arandano": {
+      "match": [
+        "senses arándano",
+        "senses arandano",
+        "arandano y orquidea"
+      ],
+      "line": "Avon Senses Arándano y Orquídea",
+      "family_olfativa": "Floral frutal (notas de la fragancia)",
+      "notas_salida": "Arándano",
+      "notas_corazon": "Orquídea",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Splash refrescante y delicioso aroma",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191473"
+    },
+    "senses_cerezo": {
+      "match": [
+        "senses flor de cerezo",
+        "flor de cerezo"
+      ],
+      "line": "Avon Senses Flor de Cerezo y Orquídea (Cherry Blossoming)",
+      "family_olfativa": "Floral (notas de la fragancia)",
+      "notas_salida": "Flor de cerezo",
+      "notas_corazon": "Orquídea",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Splash refrescante y delicioso aroma",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191471"
+    },
+    "senses_flores": {
+      "match": [
+        "senses flores solares",
+        "flores solares y pera"
+      ],
+      "line": "Avon Senses Flores Solares y Pera (Escape)",
+      "family_olfativa": "Floral frutal (notas de la fragancia)",
+      "notas_salida": "Pera",
+      "notas_corazon": "Flores solares",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Frescura de las flores solares y pera",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191472"
+    },
+    "senses_frambuesa": {
+      "match": [
+        "senses frambuesa",
+        "frambuesa y cassis"
+      ],
+      "line": "Avon Senses Frambuesa y Cassis (Raspberry Delight)",
+      "family_olfativa": "Frutal (notas de la fragancia)",
+      "notas_salida": "Frambuesa",
+      "notas_corazon": "Cassis",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Splash refrescante y delicioso aroma",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191475"
+    },
+    "senses_maracuya": {
+      "match": [
+        "senses maracuyá",
+        "senses maracuya",
+        "maracuyá y lima",
+        "maracuya y lima"
+      ],
+      "line": "Avon Senses Maracuyá y Lima (Summer Fiesta)",
+      "family_olfativa": "Cítrico frutal (notas de la fragancia)",
+      "notas_salida": "Lima",
+      "notas_corazon": "Maracuyá",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; verano",
+      "sensacion": "Frescura cítrica y tropical",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191476"
+    },
+    "senses_violeta": {
+      "match": [
+        "senses violeta",
+        "violeta y lichi"
+      ],
+      "line": "Avon Senses Violeta y Lichi (Oriental Garden)",
+      "family_olfativa": "Floral (notas de la fragancia)",
+      "notas_salida": "Lichi",
+      "notas_corazon": "Violeta",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Splash refrescante",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191474"
+    },
+    "senses": {
+      "match": [
+        "senses"
+      ],
+      "line": "Avon Senses (colonias corporales)",
+      "family_olfativa": "Según variante",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "sensacion": "Splash refrescante y delicioso aroma",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191473"
+    },
+    "disney_bella": {
+      "match": [
+        "princesa bella",
+        "colonia bella"
+      ],
+      "line": "Disney Princesa Bella Colonia",
+      "family_olfativa": "Floral frutal infantil",
+      "notas_salida": "Frutos rojos",
+      "notas_corazon": "Peonía",
+      "notas_fondo": "Vainilla",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; dermatológicamente probada",
+      "sensacion": "Dulce y princesa",
+      "publico": "infantil",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201809"
+    },
+    "kids_avengers": {
+      "match": [
+        "marvel",
+        "avengers"
+      ],
+      "line": "Marvel Avengers Colonia",
+      "family_olfativa": "Amaderado (aroma infantil)",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; dermatológicamente probada",
+      "sensacion": "Aroma amaderado",
+      "publico": "infantil",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-208531"
+    },
+    "kids_topsy": {
+      "match": [
+        "topsy"
+      ],
+      "line": "Avon Kids Colonia Topsy",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; sin parabenos; no testeada en animales",
+      "sensacion": "Un toque de nostalgia",
+      "publico": "infantil",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-208522"
+    },
+    "kids_disney": {
+      "match": [
+        "disney",
+        "kids",
+        "mickey",
+        "minnie",
+        "stitch",
+        "spiderman",
+        "spider-man",
+        "dinosaurio",
+        "unicornio",
+        "moana",
+        "aurora",
+        "cenicienta",
+        "princesa"
+      ],
+      "line": "Avon Kids / Disney Colonia",
+      "family_olfativa": "Infantil (según personaje)",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "sensacion": "Aroma suave de personaje",
+      "publico": "infantil",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "perceive": {
+      "match": [
+        "perceive"
+      ],
+      "line": "Perceive",
+      "family_olfativa": "Fresca floral luminosa (ella) / Chypre fresco (él)",
+      "notas_salida": "Pera (ella) / Cítricas (él)",
+      "notas_corazon": "Gardenia cremosa (ella) / Salvia (él)",
+      "notas_fondo": "Almizcle suave (ella) / Madera de cedro (él)",
+      "estilo_ocasion": "Diario; revitalizante",
+      "sensacion": "Revitalizante, segura y espiritual (ella) / Auténtico, moderno, seguro (él)",
+      "publico": "unisex",
+      "fuente": "https://avonstore.es/para-ella/309-perceive-eau-de-parfum-en-spray.html"
+    },
+    "incandessence": {
+      "match": [
+        "incandessence"
+      ],
+      "line": "Incandessence",
+      "family_olfativa": "Floral",
+      "notas_salida": "Bergamota, lirio del valle y melocotón blanco",
+      "notas_corazon": "Lirio, rosa y mimosa",
+      "notas_fondo": "Madera de teca, clavo y almizcle cremoso",
+      "estilo_ocasion": "Diario; luminosidad",
+      "sensacion": "Luz y feminidad",
+      "publico": "femenino",
+      "fuente": "https://avonstore.es/perfumes/263-incandessence-eau-de-parfum-en-spray.html"
+    },
+    "desodorante": {
+      "match": [
+        "desodorante",
+        "roll on",
+        "roll-on",
+        "antitranspirante",
+        "des rollon",
+        "avon care neutro",
+        "sin/sem perfume",
+        "sin perfume"
+      ],
+      "line": "Desodorante / antitranspirante Avon",
+      "family_olfativa": "Según línea asociada",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Cuidado diario; versión complementaria de la fragancia",
+      "sensacion": "Protección y frescura",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/c/desodorantes"
+    },
+    "locion": {
+      "match": [
+        "crema perfumada",
+        "cr perfumada",
+        "loción",
+        "locion",
+        "crema suavizante"
+      ],
+      "line": "Loción / crema perfumada Avon",
+      "family_olfativa": "Según línea asociada",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Perfumación en capas; hidratación",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.avon.mx/c/cuerpo"
+    },
+    "kit": {
+      "match": [
+        "kit ",
+        "combo ",
+        "promo "
+      ],
+      "line": "Kit / set Avon",
+      "family_olfativa": "Según línea incluida",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "sensacion": "",
+      "publico": "unisex",
+      "fuente": "https://www.avon.mx/c/kits"
+    }
+  },
+  "products": {
+    "300 KM/H BOOST EDT 100ML": {
+      "notas_salida": "Pimientos, aceite de naranja roja de Sicilia y Ambermor",
+      "estilo_ocasion": "Enfoque y energía imparable para vivir el día al máximo; regalo Día del Padre",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201766"
+    },
+    "300 KM/H CLASICA EDT 100ML": {
+      "notas_salida": "Acorde Vodka Tonic, ciprés y sándalo (fougère aromática)",
+      "estilo_ocasion": "Cuando aceleras te sientes vivo; velocidad y adrenalina",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201767"
+    },
+    "300 KM/H ELECTRIC EDT 100ML": {
+      "notas_salida": "Manzana, hoja de pimienta y aceite de hoja de azafrán (Avon Brasil)",
+      "estilo_ocasion": "Actividades al aire libre y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195398 ; https://www.avon.com.br/p/300km-h-electric-deo-colonia-100-ml/AVNBRA-135843"
+    },
+    "300 KM/H MAX TURBO EDT 100 ML": {
+      "notas_salida": "Manzana helada y acorde de adrenalina (con cuero y madera fougère)",
+      "estilo_ocasion": "Velocidad máxima; oficina y ocio audaz",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201768"
+    },
+    "300 KM/H NITROGEN EDT 100ML": {
+      "notas_salida": "Cardamomo helado (México) / Pimienta rosa, cardamomo helado y salvia congelada (Avon Brasil)",
+      "estilo_ocasion": "Del día a la noche; vida intensa",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195397 ; https://www.avon.com.br/p/300km-h-nitro-deo-colonia-100-ml/AVNBRA-135844"
+    },
+    "300 KM/H PULSE EDT 100ML": {
+      "notas_salida": "Corazón de limón; lúpulo supra-reciclado y acorde musical",
+      "estilo_ocasion": "Diario, juvenil, musical",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201769"
+    },
+    "300 KM/H QUANTUM EDT 100ML": {
+      "notas_salida": "Notas ozónicas (México) / Notas ozónicas frescas, bergamota y acorde Space (Avon Brasil)",
+      "estilo_ocasion": "Diario; inspirado en el espacio y la exploración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195399 ; https://www.avon.com.br/p/300km-h-quantum-deo-colonia-100ml/AVNBRA-135846"
+    },
+    "300 KM/H SURFER EDT 100ML": {
+      "notas_salida": "Ozónicas y lima (con menta y vetiver)",
+      "estilo_ocasion": "Días cálidos, playa y aventura; esencia ligera",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195400"
+    },
+    "300 KM/H TURBO EDT 100ML": {
+      "notas_salida": "Manzana helada (México) / Bergamota fresca, acorde de Oxígeno Líquido y Maçã Congelada (Avon Brasil)",
+      "estilo_ocasion": "Diario y ocasiiones audaces; oficina y ocio",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201768 ; https://www.avon.com.br/p/300km-h-max-turbo-deo-colonia-100-ml/AVNBRA-135849"
+    },
+    "300KM/H PULSE EDT 100ML": {
+      "notas_salida": "Corazón de limón; lúpulo supra-reciclado y acorde musical",
+      "estilo_ocasion": "Diario, juvenil, musical",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201769"
+    },
+    "300KM/H QUANTUM EDT 100ML": {
+      "notas_salida": "Notas ozónicas (México) / Notas ozónicas frescas, bergamota y acorde Space (Avon Brasil)",
+      "estilo_ocasion": "Diario; inspirado en el espacio y la exploración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195399 ; https://www.avon.com.br/p/300km-h-quantum-deo-colonia-100ml/AVNBRA-135846"
+    },
+    "ATTRACTION AWAKEN PARA ÉL EDT 75ML": {
+      "notas_salida": "Acorde Poción de la Pasión (ambos mercados)",
+      "estilo_ocasion": "Nocturno, ocasiones especiales, reavivar la pasión",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201772 ; https://avonstore.es/para-el/4741-eau-de-toilette-attraction-awaken-para-el.html"
+    },
+    "ATTRACTION AWAKEN PARA ELLA EDP 50ML": {
+      "notas_salida": "Grosellas y acorde Poción de la Pasión (México)",
+      "estilo_ocasion": "Otoño-invierno, eventos nocturnos y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201771 ; https://avonstore.es/para-ella/4739-eau-de-parfum-attraction-awaken-para-ella.html"
+    },
+    "ATTRACTION CLASICO PARA ÉL EDT 75ML": {
+      "notas_salida": "Raíz de jengibre (avonstore.es)",
+      "estilo_ocasion": "Diario y ocasiones especiales; larga duración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158859 ; https://avonstore.es/perfumes/336-avon-attraction-para-el-eau-de-toilette-en-spray.html"
+    },
+    "ATTRACTION CLOSER PARA EL EDT 75ML": {
+      "notas_salida": "Pera jugosa con granos de pimienta rosa",
+      "estilo_ocasion": "Momentos especiales, cercanía y seducción",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201774 ; https://avonstore.es/para-el/5050-eau-de-toilette-attraction-closer-para-el.html"
+    },
+    "ATTRACTION CLOSER PARA ELLA EDP 50ML": {
+      "notas_salida": "Peras jugosas",
+      "estilo_ocasion": "Citas y momentos de cercanía",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201773 ; https://avonstore.es/para-ella/286-eau-de-parfum-attraction-closer-para-ella.html"
+    },
+    "ATTRACTION GAME PARA ÉL EDT 75ML": {
+      "notas_salida": "Pimienta picante",
+      "estilo_ocasion": "Juego de seducción; noche y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158868 ; https://avonstore.es/para-el/341-eau-de-toilette-en-spray-attraction-game-para-el.html"
+    },
+    "ATTRACTION GAME PARA ELLA EDP 50ML": {
+      "notas_salida": "Pimienta rosa picante",
+      "estilo_ocasion": "Juego de seducción; noche",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158867 ; https://avonstore.es/para-ella/1907-eau-de-parfum-en-spray-attraction-game-para-ella.html"
+    },
+    "Avon Care Neutro Sin/Sem Perfume 3 en 1 48h de Protección Desodorante Roll On Antitranspirante": {
+      "notas_salida": "",
+      "estilo_ocasion": "Cuidado diario; versión complementaria de la fragancia",
+      "fuente": "https://www.avon.mx/c/desodorantes"
+    },
+    "AVON DISNEY MICKEY COLONIA 150 ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "AVON DISNEY MINNIE COLONIA 150 ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "AVON KIDS COLONIA DINOSAURIO 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "AVON KIDS COLONIA TOPSY 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; sin parabenos; no testeada en animales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-208522"
+    },
+    "AVON KIDS UNICORNIO COLONIA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "Avon Latin Attitude Adventure Eau de Toilette Spray": {
+      "notas_salida": "",
+      "estilo_ocasion": "Aventura y actitud latina",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250720"
+    },
+    "Avon Latin Attitude Festival Eau de Toilette Fragancia Spray para Ella": {
+      "notas_salida": "",
+      "estilo_ocasion": "Festival, música y tribu; uso femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250767"
+    },
+    "BLACK SUEDE CLASICO EDT 100ML": {
+      "notas_salida": "Herbales frescas (avonstore.es)",
+      "estilo_ocasion": "Diario; duración probada ~8 h; caballero seguro",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187686 ; https://avonstore.es/perfumes/344-black-suede-eau-de-toilette-en-spray.html"
+    },
+    "BLACK SUEDE DARK EDT 100ML": {
+      "notas_salida": "Mangostán",
+      "estilo_ocasion": "Duración ~8 h; misterio y estela fascinante",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185909"
+    },
+    "BLACK SUEDE INTENSE EDT 100ML": {
+      "notas_salida": "Pimienta negra y acorde Intenso",
+      "estilo_ocasion": "Masculinidad enigmática; presencia memorable",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185913"
+    },
+    "BLACK SUEDE REAL EDT 100ML": {
+      "notas_salida": "Pimienta de Sichuan y geranio",
+      "estilo_ocasion": "Liberar el verdadero poder de seducción",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185911"
+    },
+    "BLACK SUEDE REAL INTENSE EDT 100ML": {
+      "notas_salida": "Pimienta de Sichuan, pimienta rosa y salvia francesa (Avon Brasil)",
+      "estilo_ocasion": "Día a día y ocasiones especiales",
+      "fuente": "https://www.avon.com.br/p/black-essential-real-intense-deo-colonia-100-ml/AVNBRA-175093"
+    },
+    "BLACK SUEDE SECRET EDT 100ML": {
+      "notas_salida": "Pulpa de manzana roja, tonkalactona y acorde cuir velours DL",
+      "estilo_ocasion": "Lado magnético; huella perdurable",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185914"
+    },
+    "CHARISMA DES EDP ORIG F 100ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245999"
+    },
+    "COLONIA 300KM CLASICO 75ML": {
+      "notas_salida": "Acorde Vodka Tonic (México) / Acorde Energy Drink, aceite de jengibre y pimienta de Sichuan (Avon Brasil 'Virtual Adrenaline')",
+      "estilo_ocasion": "Diario, nocturno, cuando se busca velocidad y adrenalina",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201767 ; https://www.avon.com.br/p/300km-h-virtual-adrenaline-deo-colonia-100ml/AVNBRA-135842"
+    },
+    "COLONIA BLACK SUEDE CLASICO 75 ML": {
+      "notas_salida": "Herbales frescas (avonstore.es)",
+      "estilo_ocasion": "Diario; duración probada ~8 h; caballero seguro",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-187686 ; https://avonstore.es/perfumes/344-black-suede-eau-de-toilette-en-spray.html"
+    },
+    "COLONIA CELEBRITY 100ML": {
+      "notas_salida": "Especias",
+      "estilo_ocasion": "Diario; celebrar la vida",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198401"
+    },
+    "COLONIA OSLO CLASICO 168ML": {
+      "notas_salida": "Mandarina y bergamota",
+      "estilo_ocasion": "Diario; caballero clásico",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202934"
+    },
+    "COLONIA OSLO CLASICO PARA EL 75ML": {
+      "notas_salida": "Mandarina y bergamota",
+      "estilo_ocasion": "Diario; caballero clásico",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202934"
+    },
+    "COLONIA OSLO INSTICT 75ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Diario; seducción clásica",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202917"
+    },
+    "COLONIA STITCH 75ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "COLONIA WILD COUNTRY CLASICO 75ML": {
+      "notas_salida": "Lavanda fresca y geranio",
+      "estilo_ocasion": "Fragancia clásica con toque moderno; sándalo para profundidad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202914"
+    },
+    "COLONIA WILD COUNTRY FREEDOM 75 ML": {
+      "notas_salida": "Ladendín (labdanum) y falso índigo",
+      "estilo_ocasion": "Aire libre, aventura y libertad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195549 ; https://avonstore.es/para-el/335-wild-country-freedom-eau-de-toilette-en-spray.html"
+    },
+    "COLONIA WILD COUNTRY MUSK 75ML": {
+      "notas_salida": "Artemisa y lavanda",
+      "estilo_ocasion": "Diario y noche; elegancia bravía",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195551"
+    },
+    "COLONIA WILD COUNTRY NIGHTS 75ML": {
+      "notas_salida": "Acorde de cielo azul cobalto",
+      "estilo_ocasion": "Noche; domina la noche",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195552"
+    },
+    "COLONIA WILD COUNTRY RUSH 75ML": {
+      "notas_salida": "Lavandín",
+      "estilo_ocasion": "Diario y actividad; potencial feroz",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195550"
+    },
+    "COMBO AROMAS CON HISTORIA": {
+      "notas_salida": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "fuente": "https://www.avon.mx/c/kits"
+    },
+    "DISNEY COLONIA MOANA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY COLONIA SPIDERMAN 75ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY COLONIA STITCH 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY MINNIE COLONIA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY MINNIE CORAZON COLONIA 70ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY PRINCESA AURORA COLONIA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "DISNEY PRINCESA BELLA COLONIA 150ML": {
+      "notas_salida": "Frutos rojos",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201809"
+    },
+    "DISNEY PRINCESA CENICIENTA COLONIA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    },
+    "EXOTIC WATERS BLUE COLONIA 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Fresco, acuático",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248758"
+    },
+    "EXOTIC WATERS HAVANA NIGHTS 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Noche caribeña; Habana",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248757"
+    },
+    "EXOTIC WATERS MAGIC TULUM  EDT 50ML": {
+      "notas_salida": "Exóticas frambuesas",
+      "estilo_ocasion": "Verano, playa, vacaciones",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195419"
+    },
+    "EXOTIC WATERS TULUM COLONIA 50ML": {
+      "notas_salida": "Exóticas frambuesas",
+      "estilo_ocasion": "Verano, playa, vacaciones",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195419"
+    },
+    "FAR AWAY BEYOND THE MOON FRAGANCIA 50ML": {
+      "notas_salida": "Cereza salvaje",
+      "estilo_ocasion": "Noche y ocasiones especiales; misterio lunar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201777 ; https://avonstore.es/perfumes/4668-perfume-far-away-beyond-the-moon-para-ella.html"
+    },
+    "FAR AWAY SHINE CR PERFUMADA CUERPO 90ML": {
+      "notas_salida": "Frambuesa, lichi y pimienta rosa",
+      "estilo_ocasion": "Diario y ocasiones especiales; perfumación en capas con la línea",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195428 ; https://avonstore.es/perfumes/5008-eau-de-parfum-far-away-shine.html"
+    },
+    "FAR AWAY SHINE EDP 50ML": {
+      "notas_salida": "Frambuesa, lichi y pimienta rosa",
+      "estilo_ocasion": "Floral para mujer; ilumina el mundo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195428"
+    },
+    "FAR AWAY SPLENDORIA 50ML": {
+      "notas_salida": "Ciruela",
+      "estilo_ocasion": "Noche y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195425 ; https://avonstore.es/para-ella/5045-eau-de-parfum-far-away-splendoria.html"
+    },
+    "IMARI CORSET EDT 50ML": {
+      "notas_salida": "Grosella negra (avonstore.es)",
+      "estilo_ocasion": "Noche y seducción",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191440 ; https://avonstore.es/para-ella/4669-eau-de-toilette-imari-corset-para-ella.html"
+    },
+    "IMARI ECLIPSE EDT 50ML": {
+      "notas_salida": "Pimienta rosa",
+      "estilo_ocasion": "Noche; misterio y feminidad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191441"
+    },
+    "IMARI FRAGANCIA SPRAY PARA ELLA 50ML": {
+      "notas_salida": "Corazón: Rosas; Fondo: Vainilla",
+      "estilo_ocasion": "Chypre floral con rosas y vainilla; misterio y seducción",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-174849"
+    },
+    "IMARI FREE EDT 50ML": {
+      "notas_salida": "Aceite de bergamota italiana, pera fresca Delight y absoluto de abeto balsámico",
+      "estilo_ocasion": "Diario y momentos libres; sensualidad salvaje",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-185906 ; https://avonstore.es/para-ella/5208-eau-de-toilette-imari-free-para-ella.html"
+    },
+    "IMARI NATURELLE EDT 50ML": {
+      "notas_salida": "Durazno/melocotón",
+      "estilo_ocasion": "Diario; sensualidad natural",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201778 ; https://avonstore.es/para-ella/4909-eau-de-toilette-imari-naturelle-para-ella.html"
+    },
+    "IMARI QUEEN CR PERFUMADA CUERPO 90ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Perfumación en capas; hidratación",
+      "fuente": "https://www.avon.mx/c/cuerpo"
+    },
+    "IMARI QUEEN EDT 50ML": {
+      "notas_salida": "Jugosas moras",
+      "estilo_ocasion": "Noche y celebración de la sensualidad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195432 ; https://avonstore.es/para-ella/4673-eau-de-toilette-imari-queen-para-ella.html"
+    },
+    "KIT 300 KM BOOST": {
+      "notas_salida": "Pimientos, aceite de naranja roja de Sicilia y Ambermor",
+      "estilo_ocasion": "Diario, deportivo, ocasiones que piden energía; uso masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201766"
+    },
+    "KIT 300 KM ORIGINAL": {
+      "notas_salida": "Manzana helada (México) / Bergamota fresca, acorde de Oxígeno Líquido y Maçã Congelada (Avon Brasil)",
+      "estilo_ocasion": "Diario y ocasiiones audaces; oficina y ocio",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201768 ; https://www.avon.com.br/p/300km-h-max-turbo-deo-colonia-100-ml/AVNBRA-135849"
+    },
+    "KIT ATTRACTION CLASICA": {
+      "notas_salida": "Raíz de jengibre (avonstore.es)",
+      "estilo_ocasion": "Diario y ocasiones especiales; larga duración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158859 ; https://avonstore.es/perfumes/336-avon-attraction-para-el-eau-de-toilette-en-spray.html"
+    },
+    "KIT ATTRACTION CLOSER MX": {
+      "notas_salida": "Raíz de jengibre (avonstore.es)",
+      "estilo_ocasion": "Diario y ocasiones especiales; larga duración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158859 ; https://avonstore.es/perfumes/336-avon-attraction-para-el-eau-de-toilette-en-spray.html"
+    },
+    "KIT ATTRACTION ORIGINAL MX": {
+      "notas_salida": "Raíz de jengibre (avonstore.es)",
+      "estilo_ocasion": "Diario y ocasiones especiales; larga duración",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158859 ; https://avonstore.es/perfumes/336-avon-attraction-para-el-eau-de-toilette-en-spray.html"
+    },
+    "KIT ATTRACTION THE GAME": {
+      "notas_salida": "Pimienta picante",
+      "estilo_ocasion": "Juego de seducción; noche y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158868 ; https://avonstore.es/para-el/341-eau-de-toilette-en-spray-attraction-game-para-el.html"
+    },
+    "KIT FAR AWAY": {
+      "notas_salida": "Melocotón y fresia (avonstore.es) / Fresia y pétalos de jazmín de alta calidad (avon.mx)",
+      "estilo_ocasion": "Diario y escapismo; icónico de Avon",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201776 ; https://avonstore.es/perfumes/316-far-away-eau-de-parfum-en-spray.html"
+    },
+    "KIT FAR AWAY BEYOND": {
+      "notas_salida": "Pera",
+      "estilo_ocasion": "Diario y noche; sofisticación y misterio",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191435 ; https://avonstore.es/para-ella/5046-far-away-beyond-eau-de-parfum-en-spray.html"
+    },
+    "KIT FAR AWAY BEYOND THE MOON": {
+      "notas_salida": "Cereza salvaje",
+      "estilo_ocasion": "Noche y ocasiones especiales; misterio lunar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201777 ; https://avonstore.es/perfumes/4668-perfume-far-away-beyond-the-moon-para-ella.html"
+    },
+    "KIT FAR AWAY GLAMOUR": {
+      "notas_salida": "Pimienta rosa radiante, brote de grosella negra y néctar de pomelo",
+      "estilo_ocasion": "Noche y ocasiones glamurosas",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191434 ; https://avonstore.es/perfumes/2667-far-away-glamour-eau-de-parfum-en-spray-.html"
+    },
+    "KIT FAR AWAY SHINE": {
+      "notas_salida": "Frambuesa, lichi y pimienta rosa",
+      "estilo_ocasion": "Diario y ocasiones especiales; perfumación en capas con la línea",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195428 ; https://avonstore.es/perfumes/5008-eau-de-parfum-far-away-shine.html"
+    },
+    "KIT IMARI NATURELLE": {
+      "notas_salida": "Durazno/melocotón",
+      "estilo_ocasion": "Diario; sensualidad natural",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201778 ; https://avonstore.es/para-ella/4909-eau-de-toilette-imari-naturelle-para-ella.html"
+    },
+    "KIT LATIN ATTITUDE ADVENTURE": {
+      "notas_salida": "",
+      "estilo_ocasion": "Aventura y actitud latina",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250720"
+    },
+    "KIT LATIN ATTITUDE FESTIVAL": {
+      "notas_salida": "",
+      "estilo_ocasion": "Festival, música y tribu; uso femenino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250767"
+    },
+    "KIT LATIN ATTITUDE WISHES": {
+      "notas_salida": "",
+      "estilo_ocasion": "Uso femenino; lista de deseos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250728"
+    },
+    "KIT LOV U CONNECTED": {
+      "notas_salida": "Mandarina y limón",
+      "estilo_ocasion": "Diario y citas; lazos que perduran",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201788"
+    },
+    "KIT LOV U DATE NIGHT": {
+      "notas_salida": "Cereza oscura",
+      "estilo_ocasion": "Cita nocturna",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201787"
+    },
+    "KIT LOV U TOGETHER": {
+      "notas_salida": "Corazón de limón",
+      "estilo_ocasion": "Diario; amor duradero",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195449"
+    },
+    "KIT MADRES ELEGANTE MX": {
+      "notas_salida": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "fuente": "https://www.avon.mx/c/kits"
+    },
+    "KIT MUSK MARINE": {
+      "notas_salida": "Cardamomo y menta",
+      "estilo_ocasion": "Diario y actividad; energía del mar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201789"
+    },
+    "KIT NIGHT MAGIC": {
+      "notas_salida": "Neroli (fresco)",
+      "estilo_ocasion": "Noche; Avon Classics Collection",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198403"
+    },
+    "KIT NIGHT MAGIC MX": {
+      "notas_salida": "Neroli (fresco)",
+      "estilo_ocasion": "Noche; Avon Classics Collection",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198403"
+    },
+    "KIT OPORTUNIDAD 180 PTS MX": {
+      "notas_salida": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "fuente": "https://www.avon.mx/c/kits"
+    },
+    "KIT OPORTUNIDAD 320 PTS": {
+      "notas_salida": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "fuente": "https://www.avon.mx/c/kits"
+    },
+    "KIT OSLO MX": {
+      "notas_salida": "Mandarina y bergamota",
+      "estilo_ocasion": "Diario; caballero clásico",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202934"
+    },
+    "KIT SECRET FANTASY CRUSH": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; fantasía y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201795"
+    },
+    "KIT SECRET FANTASY DREAMS": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; sueños",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248746"
+    },
+    "KIT SECRET FANTASY ORIGINAL": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; fantasía y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201795"
+    },
+    "KIT SECRET FANTASY STORIES": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; fantasía y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201795"
+    },
+    "KIT SENSUS ORIGINAL": {
+      "notas_salida": "Aguja de pino",
+      "estilo_ocasion": "Diario y ocasiones de logro; vegano",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201802"
+    },
+    "KIT SWEET HONESTY FOREVER": {
+      "notas_salida": "Corazón: Rosas y orquídeas; Fondo: Vainilla",
+      "estilo_ocasion": "Diario; romance",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198408"
+    },
+    "KIT TTA CLÁSICA": {
+      "notas_salida": "Fresias (avon.mx) / Flor mariposa (avonstore.es)",
+      "estilo_ocasion": "Diario; esencia de amor",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201808 ; https://avonstore.es/para-ella/322-today-para-ella-eau-de-parfum-en-spray.html"
+    },
+    "KIT TTA EVERLASTING MX": {
+      "notas_salida": "Dúo de notas de almendra",
+      "estilo_ocasion": "Día y noche; elegancia duradera",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-171980"
+    },
+    "KIT TTA RADIANCE": {
+      "notas_salida": "Fresa",
+      "estilo_ocasion": "Diario; verano e invierno",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195463"
+    },
+    "KIT TTA RADIANCE MX": {
+      "notas_salida": "Fresa",
+      "estilo_ocasion": "Diario; verano e invierno",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195463"
+    },
+    "KIT TTA WONDER": {
+      "notas_salida": "Bergamota y capullos de neroli",
+      "estilo_ocasion": "Diario; mujeres románticas",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158901"
+    },
+    "KIT TTA WONDER MX": {
+      "notas_salida": "Bergamota y capullos de neroli",
+      "estilo_ocasion": "Diario; mujeres románticas",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158901"
+    },
+    "KIT WILD COUNTRY ORIGINAL": {
+      "notas_salida": "Lavanda fresca y geranio",
+      "estilo_ocasion": "Diario; estilo auténtico y aventurero",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202914 ; https://avonstore.es/para-el/2730-wild-country-eau-de-toilette-en-spray.html"
+    },
+    "KIT XNOB 1 MX": {
+      "notas_salida": "",
+      "estilo_ocasion": "Masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202906"
+    },
+    "KIT XNOB 2 MX": {
+      "notas_salida": "",
+      "estilo_ocasion": "Masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202906"
+    },
+    "Latin Attitude Mystic Eau de Toilette Fragancia para Ella": {
+      "notas_salida": "",
+      "estilo_ocasion": "Uso femenino; misterio latino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195439"
+    },
+    "LATIN ATTITUDE MYSTIC EDT 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Uso femenino; misterio latino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195439"
+    },
+    "LATIN ATTITUDE ORIGINAL FRAGANCIA EN SPRAY 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Actitud latina; música y festival",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248754"
+    },
+    "LOV U CLASICA EDP 50 ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Noches de invierno y encuentros inolvidables",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201786"
+    },
+    "LOV U CONNECTED EDP 50ML": {
+      "notas_salida": "Mandarina y limón",
+      "estilo_ocasion": "Diario y citas; lazos que perduran",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201788"
+    },
+    "LOV U DATE NIGHT EDP 50ML": {
+      "notas_salida": "Cereza oscura",
+      "estilo_ocasion": "Cita nocturna",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201787"
+    },
+    "LOVE U TOGETHER EDP 50ML": {
+      "notas_salida": "Corazón de limón",
+      "estilo_ocasion": "Diario; amor duradero",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195449"
+    },
+    "MARVEL AVENGERS COLONIA 150ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-208531"
+    },
+    "MARVEL AVENGERS COLONIA 75 ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-208531"
+    },
+    "MUSK AIR COLONIA 15OML": {
+      "notas_salida": "Jengibre",
+      "estilo_ocasion": "Diario, oficina y encuentros; hombre moderno y dinámico",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176933"
+    },
+    "MUSK AIR EDT": {
+      "notas_salida": "Jengibre",
+      "estilo_ocasion": "Diario, oficina y encuentros; hombre moderno y dinámico",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-176933"
+    },
+    "MUSK FREEZE COLONIA 150ML": {
+      "notas_salida": "Albahaca fría, menta, hierbas y mandarina",
+      "estilo_ocasion": "Diario, casual o deportivo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191452"
+    },
+    "MUSK FREEZE EDT": {
+      "notas_salida": "Albahaca fría, menta, hierbas y mandarina",
+      "estilo_ocasion": "Diario, casual o deportivo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191452"
+    },
+    "MUSK INSTINCT COLONIA 15OML": {
+      "notas_salida": "Acorde de selva tropical",
+      "estilo_ocasion": "Diario y aventura; naturaleza",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191453"
+    },
+    "MUSK INSTINCT EDT": {
+      "notas_salida": "Acorde de selva tropical",
+      "estilo_ocasion": "Diario y aventura; naturaleza",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191453"
+    },
+    "MUSK MARINE COLONIA 15OML": {
+      "notas_salida": "Cardamomo y menta",
+      "estilo_ocasion": "Diario y actividad; energía del mar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201789"
+    },
+    "MUSK MARINE EDT 75ML": {
+      "notas_salida": "Cardamomo y menta",
+      "estilo_ocasion": "Diario y actividad; energía del mar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201789"
+    },
+    "MUSK METROPOLITANO EDT": {
+      "notas_salida": "Hojas de cedro",
+      "estilo_ocasion": "Ciudad, oficina y vida urbana",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201790"
+    },
+    "MUSK RAIN EDT": {
+      "notas_salida": "Mandarina cítrica",
+      "estilo_ocasion": "Calma renovadora después de la tormenta; olor a tierra mojada (GEOGAIATM)",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195452"
+    },
+    "NIGHT MAGIC EDT 50ML": {
+      "notas_salida": "Neroli (fresco)",
+      "estilo_ocasion": "Noche; Avon Classics Collection",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198403"
+    },
+    "PERFUME FAR AWAY BEYOND 50ML": {
+      "notas_salida": "Pera",
+      "estilo_ocasion": "Diario y noche; sofisticación y misterio",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191435 ; https://avonstore.es/para-ella/5046-far-away-beyond-eau-de-parfum-en-spray.html"
+    },
+    "PERFUME FAR AWAY BEYOND THE MOON 50ML": {
+      "notas_salida": "Cereza salvaje",
+      "estilo_ocasion": "Noche y ocasiones especiales; misterio lunar",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201777 ; https://avonstore.es/perfumes/4668-perfume-far-away-beyond-the-moon-para-ella.html"
+    },
+    "PERFUME FAR AWAY CLASICA 50ML": {
+      "notas_salida": "Melocotón y fresia",
+      "estilo_ocasion": "Exótico oriental floral; escapismo",
+      "fuente": "https://avonstore.es/perfumes/316-far-away-eau-de-parfum-en-spray.html"
+    },
+    "PERFUME FAR AWAY GLAMOUR 50ML": {
+      "notas_salida": "Pimienta rosa radiante, brote de grosella negra y néctar de pomelo",
+      "estilo_ocasion": "Noche y ocasiones glamurosas",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191434 ; https://avonstore.es/perfumes/2667-far-away-glamour-eau-de-parfum-en-spray-.html"
+    },
+    "PERFUME FAR AWAY SHINE 50ML": {
+      "notas_salida": "Frambuesa, lichi y pimienta rosa",
+      "estilo_ocasion": "Diario y ocasiones especiales; perfumación en capas con la línea",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195428 ; https://avonstore.es/perfumes/5008-eau-de-parfum-far-away-shine.html"
+    },
+    "PERFUME FAR AWAY SPLENDORA 50ML": {
+      "notas_salida": "Ciruela",
+      "estilo_ocasion": "Noche y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195425 ; https://avonstore.es/para-ella/5045-eau-de-parfum-far-away-splendoria.html"
+    },
+    "PROMO MIXICIDAD MX": {
+      "notas_salida": "",
+      "estilo_ocasion": "Regalo / set de la línea",
+      "fuente": "https://www.avon.mx/c/kits"
+    },
+    "SECRET FANTASY ANGEL COLONIA SPRAY 125ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191463"
+    },
+    "SECRET FANTASY BLACK COLONIA SPRAY 125ML": {
+      "notas_salida": "Grosellas negras",
+      "estilo_ocasion": "Teen/juvenil; misterio y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201793"
+    },
+    "SECRET FANTASY BLACK EDT 50ML": {
+      "notas_salida": "Grosellas negras",
+      "estilo_ocasion": "Teen/juvenil; misterio y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201793"
+    },
+    "SECRET FANTASY DARE COLONIA SPRAY 125ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen; atrevimiento",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191465"
+    },
+    "SECRET FANTASY DEVIL COLONIA SPRAY 125ML": {
+      "notas_salida": "Frambuesa (EDT) / Pera (colonia)",
+      "estilo_ocasion": "Noche; desafío y rebeldía",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201798 ; https://www.avon.mx/p/x/AVNMEX-191466"
+    },
+    "SECRET FANTASY DEVIL EDT 50ML": {
+      "notas_salida": "Frambuesa (EDT) / Pera (colonia)",
+      "estilo_ocasion": "Noche; desafío y rebeldía",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201798 ; https://www.avon.mx/p/x/AVNMEX-191466"
+    },
+    "SECRET FANTASY DREAMS FRAGANCIA 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; sueños",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-248746"
+    },
+    "SECRET FANTASY ORIGINAL FRAGANCIA 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Teen/juvenil; fantasía y secretos",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201795"
+    },
+    "SECRET FANTASY WHITE COLONIA SPRAY 125ML": {
+      "notas_salida": "Grosellas blancas",
+      "estilo_ocasion": "Teen/juvenil; autenticidad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201794"
+    },
+    "SECRET FANTASY WHITE EDT 50ML": {
+      "notas_salida": "Grosellas blancas",
+      "estilo_ocasion": "Teen/juvenil; autenticidad",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201794"
+    },
+    "SENSES ARÁNDANO Y ORQUÍDEA COLONIA 200ML": {
+      "notas_salida": "Arándano",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191473"
+    },
+    "SENSES FLOR DE CEREZO COLONIA 200ML": {
+      "notas_salida": "Flor de cerezo",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191471"
+    },
+    "SENSES FLORES SOLARES Y PERA COLONIA 200ML": {
+      "notas_salida": "Pera",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191472"
+    },
+    "SENSES FRAMBUESA Y CASSIS COLONIA 200ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191475"
+    },
+    "SENSES MARACUYÁ Y LIMA COLONIA 200ML": {
+      "notas_salida": "Lima",
+      "estilo_ocasion": "Colonia corporal refrescante; verano",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191476"
+    },
+    "SENSES VIOLETA Y LICHI COLONIA 200ML": {
+      "notas_salida": "Lichi",
+      "estilo_ocasion": "Colonia corporal refrescante; uso diario",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191474"
+    },
+    "SENSUS ABSOLUTE PARA EL EDT 100ML": {
+      "notas_salida": "Aguja de pino",
+      "estilo_ocasion": "Diario y ocasiones de logro; vegano",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201802"
+    },
+    "SENSUS ABSOLUTE SANTAL ELLA EDT 100ML": {
+      "notas_salida": "Zarzamora",
+      "estilo_ocasion": "Día y noche; éxito que llega con el tiempo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201804"
+    },
+    "SENSUS ABSOLUTE SANTAL PARA EL EDT 100ML": {
+      "notas_salida": "Cardamomo y hojas de violeta",
+      "estilo_ocasion": "Día y noche; alta concentración (~5-6 h)",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201803"
+    },
+    "SENSUS ADMIRABLE FOR HER FRAGANCIA 100ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Diario y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201801"
+    },
+    "SENSUS ADMIRABLE PARA ÉL EDT 100ML": {
+      "notas_salida": "Nuez moscada",
+      "estilo_ocasion": "Diario; la esencia de los admirable",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201800"
+    },
+    "SENSUS ADMIRABLE PARA ELLA EDT 100ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Diario y ocasiones especiales",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201801"
+    },
+    "SENSUS CASUAL PARA EL EDT 100ML": {
+      "notas_salida": "Albahaca thai",
+      "estilo_ocasion": "Relajado pero con estilo y sofisticación",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202933"
+    },
+    "SENSUS CLASICA EDT 100ML": {
+      "notas_salida": "Aguja de pino, hierbabuena y patchoulí",
+      "estilo_ocasion": "Mezcla de especias que te lleva a la cima; vegano",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201802"
+    },
+    "SENSUS COMPLICITY PARA EL EDT 100ML": {
+      "notas_salida": "Aceite de cardamomo",
+      "estilo_ocasion": "Diario; conexión profunda",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195458"
+    },
+    "SENSUS HER ABSOLUTE SANTAL FRAGANCIA 100ML": {
+      "notas_salida": "Zarzamora",
+      "estilo_ocasion": "Día y noche; éxito que llega con el tiempo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201804"
+    },
+    "SENSUS HER FRAGANCIA 100ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Diario y noche; mujer que va por todo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201807"
+    },
+    "SENSUS IN BLACK EDT100ML": {
+      "notas_salida": "Aguja de pino",
+      "estilo_ocasion": "Diario y noche; hombre conquistador",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191479"
+    },
+    "SENSUS MAGNETIC PARA EL EDT 100ML": {
+      "notas_salida": "Sandía",
+      "estilo_ocasion": "Diario; atracción magnética",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202925"
+    },
+    "SENSUS PARA ELLA EDT 100ML": {
+      "notas_salida": "Frambuesa",
+      "estilo_ocasion": "Diario y noche; mujer que va por todo",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201807"
+    },
+    "SENSUS QUEST EDT100ML": {
+      "notas_salida": "Jengibre vigorizante",
+      "estilo_ocasion": "Diario; búsqueda y logro",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-191480"
+    },
+    "SENSUS UNLIMITED FOR HER FRAGANCIA 100ML": {
+      "notas_salida": "Sorbete de limón",
+      "estilo_ocasion": "Diario; frescura luminosa",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201806"
+    },
+    "SENSUS UNLIMITED PARA ÉL EDT 100ML": {
+      "notas_salida": "Notas marinas florales y pulpa de arándano",
+      "estilo_ocasion": "Diario; costa y éxito sin límites",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201805"
+    },
+    "SENSUS UNLIMITED PARA ELLA EDT 100ML": {
+      "notas_salida": "Sorbete de limón",
+      "estilo_ocasion": "Diario; frescura luminosa",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201806"
+    },
+    "SWEET HONESTY BUTTERFLIES EDT 50ML": {
+      "notas_salida": "Bergamota espumosa",
+      "estilo_ocasion": "Flor de la mariposa (buddleia) y maderas cálidas; ligereza",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-161763"
+    },
+    "SWEET HONESTY DES EDP ORIG F 100ML": {
+      "notas_salida": "Corazón: Miel y jacinto; Fondo: Madera",
+      "estilo_ocasion": "Diario; clásico dulce y tierno",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201824"
+    },
+    "SWEET HONESTY FOREVER EDT 50ML": {
+      "notas_salida": "Corazón: Rosas y orquídeas; Fondo: Vainilla",
+      "estilo_ocasion": "Diario; romance",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198408"
+    },
+    "SWEET HONESTY TREASURE FRAGANCIA SPRAY PARA ELLA 50ML": {
+      "notas_salida": "Corazón: Lirio del valle y jazmín; Fondo: Ámbar",
+      "estilo_ocasion": "Diario; ternura",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198407"
+    },
+    "SWEET HONESTY TRESURES EDT 50ML": {
+      "notas_salida": "Corazón: Lirio del valle y jazmín; Fondo: Ámbar",
+      "estilo_ocasion": "Diario; ternura",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-198407"
+    },
+    "TODAY TOMORROW ALWAYS EDP 50ML": {
+      "notas_salida": "Fresias (avon.mx) / Flor mariposa (avonstore.es)",
+      "estilo_ocasion": "Diario; esencia de amor",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-201808 ; https://avonstore.es/para-ella/322-today-para-ella-eau-de-parfum-en-spray.html"
+    },
+    "TODAY TOMORROW ALWAYS EVERLASTING EDP 50ML": {
+      "notas_salida": "Dúo de notas de almendra",
+      "estilo_ocasion": "Día y noche; elegancia duradera",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-171980"
+    },
+    "TODAY TOMORROW ALWAYS RADIANCE EDP 50ML": {
+      "notas_salida": "Fresa",
+      "estilo_ocasion": "Diario; verano e invierno",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-195463"
+    },
+    "TODAY TOMORROW ALWAYS WONDER EDP 50ML": {
+      "notas_salida": "Bergamota y capullos de neroli",
+      "estilo_ocasion": "Floral musk con madera de cedro; mujeres románticas",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-158901"
+    },
+    "TOPAZE DES EDP ORIG F 100ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245993"
+    },
+    "TOQUE DE AMOR DES EDP ORIG F 100ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-245995"
+    },
+    "TRESELLE PERFUME CON ATOMIZADOR 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-250736"
+    },
+    "XNOB CLASICO PARA ÉL EDT 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Masculino",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202906"
+    },
+    "XNOB TOKYO PARA ÉL EDT 50ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Masculino urbano",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-202921"
+    },
+    "COLONIA SPIDERMAN 150 ML": {
+      "notas_salida": "",
+      "estilo_ocasion": "Colonia infantil; recomendada a partir de 3 años; dermatológicamente probada",
+      "fuente": "https://www.avon.mx/p/x/AVNMEX-216738"
+    }
+  }
+}

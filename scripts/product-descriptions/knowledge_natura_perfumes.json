@@ -1,0 +1,1817 @@
+{
+  "families": {
+    "kaiak_clasico_masc": {
+      "match": [
+        "kaiak eau de toilette masculino clasico",
+        "kaiak eau de toilette masculino clásico",
+        "kaiak clasico masculino",
+        "kaiak clásico masculino",
+        "kaiak clasico masc",
+        "kaiak classico masc",
+        "kaiak clasico 100 ml",
+        "kaiak eau de toilette 25 ml",
+        "kaiak body splash masculino",
+        "kit kaiak eau de toilette masculino clasico",
+        "kit kaiak eau de toilette masculino clásico",
+        "kaiak clas masc",
+        "natura kaiak 25 ml",
+        "kaiak clásico"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Fougère",
+      "notas_salida": "bergamota, limón de Amalfi (lima de Amalfi), casis (grosellero negro) y gálbano",
+      "notas_corazon": "flor del naranjo africano, geranio, jazmín, lirio de los valles (muguete) y Maderas transparentes",
+      "notas_fondo": "musgo de roble, almizcle, ámbar y sándalo",
+      "estilo_ocasion": "firma diaria, oficina o estudio, todo el año; día a día, para salir",
+      "sensacion": "frescura cítrica limpia con toque herbal y base amaderada suave; sensación de aire limpio, liviano y energizante",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.natura.com.mx/p/kaiak-clasico-eau-de-toilette-masculino/NATMEX-111171 | https://www.fragrantica.es/perfume/Natura/Kaiak-13237.html"
+    },
+    "kaiak_clasico_fem": {
+      "match": [
+        "kaiak eau de toilette femenina clasico",
+        "kaiak eau de toilette femenina clásico",
+        "kaiak clasico femenina",
+        "kaiak clásico femenina",
+        "kaiak clasico fem",
+        "kaiak classico fem",
+        "kaiak clasico femenino",
+        "kit kaiak eau de toilette femenina",
+        "kaiak eau de toilette femenina toil",
+        "kaiak eau de toilette femenina toilette",
+        "kaiak eau de toilette femenina"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "naranja amarga, bergamota, mandarina, notas verdes, tamarindo, ciruela y grosellas negras",
+      "notas_corazon": "jazmín, lirio de los valles (muguete), pimienta rosa y orquídea",
+      "notas_fondo": "almizcle, cedro de Virginia, sándalo y heliotropo",
+      "estilo_ocasion": "rutina diaria, oficina, todo el año",
+      "sensacion": "cítricos crujientes con toque floral-verde y base amaderada suave, limpio y luminoso",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-12384.html"
+    },
+    "kaiak_oceano_masc": {
+      "match": [
+        "kaiak eau de toilette masculino oceano",
+        "kaiak oceano masc",
+        "kaiak océano masc",
+        "kaiak eau de toilette masculino océano",
+        "kaiak oceano masculino",
+        "kaiak océano masculino",
+        "kit kaiak eau de toilette masculino oceano",
+        "kaiak oceano mini",
+        "natura kaiak oceano",
+        "kaiak oceano",
+        "kaiak eau de toilette masculino oceano 100"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Acuática",
+      "notas_salida": "notas acuosas, algas marinas y Pataqueira",
+      "notas_corazon": "sal de mar y Notas aromáticas",
+      "notas_fondo": "ámbar gris, cedro, musgo, pachulí, haba tonka y flor de cuaba blanca (madera de amyris)",
+      "estilo_ocasion": "verano, aire libre, deporte",
+      "sensacion": "perfil marino luminoso con acorde salino y sensación de aire cristalino sobre fondo limpio",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Oceano-63020.html"
+    },
+    "kaiak_oceano_fem": {
+      "match": [
+        "kaiak eau de toilette femenina oceano",
+        "kaiak eau de toilette femenina océano",
+        "kaiak oceano fem",
+        "kaiak océano fem",
+        "kaiak oceano femenina",
+        "kaiak océano femenina",
+        "kit kaiak eau de toilette femenina oceano",
+        "kaiak eau de toilette femenina oceano 25"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Floral Acuática",
+      "notas_salida": "notas acuosas, notas afrutadas, algas marinas, Frutas rojas, durazno (melocotón) y Pataqueira",
+      "notas_corazon": "notas acuáticas, jazmín sambac (sampaguita) y ylang-ylang",
+      "notas_fondo": "almizcle, cachemira, cedro, ámbar y sándalo",
+      "estilo_ocasion": "calor, playa, paseos al aire libre",
+      "sensacion": "acuático cristalino con cítricos acuosos y sensación de piel salina sobre fondo ligero",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Oceano-64961.html"
+    },
+    "kaiak_urbe": {
+      "match": [
+        "kaiak urbe",
+        "kaiak eau de toilette masculino urbe",
+        "100 ml urbe"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Fougère",
+      "notas_salida": "notas verdes, menta, manzana, limón (lima ácida), bergamota, mandarina y Dihidromircenol",
+      "notas_corazon": "nuez moscada, lavanda, albahaca y geranio",
+      "notas_fondo": "maderas exóticas, almizcle, cedro, sándalo, ámbar y haba tonka",
+      "estilo_ocasion": "reuniones, ciudad, look fresco con actitud",
+      "sensacion": "frescura moderna: cítricos nítidos, corazón herbal-aromático y fondo amaderado seco con actitud urbana; frescura acuática con notas amaderadas y modernas",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.natura.com.mx/c/kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Urbe-26136.html"
+    },
+    "kaiak_aventura_masc": {
+      "match": [
+        "kaiak aventura masc",
+        "kaiak eau de toilette masculino aventura",
+        "kaiak aventura masculino",
+        "natura kaiak aventura",
+        "kaiak aventura"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática",
+      "notas_salida": "bergamota, abrótano y casis (grosellero negro)",
+      "notas_corazon": "pimienta negra, lirio de los valles (muguete) y Dihidromircenol",
+      "notas_fondo": "almizcle, ámbar y sándalo",
+      "estilo_ocasion": "viajes, fines de semana, actividades al aire libre",
+      "sensacion": "salida cítrica vibrante con corazón herbal-especiado y fondo amaderado limpio, dinámico y vital; fragancia vibrante y llamativa",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.natura.com.mx/c/kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Aventura-26137.html"
+    },
+    "kaiak_aventura_fem": {
+      "match": [
+        "kaiak aventura fem",
+        "kaiak eau de toilette femenina aventura",
+        "kaiak aventura femenina",
+        "kaiak eau de toilette femenina aventura floral"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Floral",
+      "notas_salida": "bergamota, mandarina, notas verdes, notas ozónicas, toronja (pomelo) y pimienta rosa",
+      "notas_corazon": "peonía, jazmín, rosa, lirio de los valles (muguete) y azucena",
+      "notas_fondo": "almizcle, sándalo, cedro y ámbar",
+      "estilo_ocasion": "días de mucho movimiento, viajes, finde",
+      "sensacion": "estallido cítrico con corazón herbal-verde y base amaderada limpia, activo y vibrante",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Aventura-43623.html"
+    },
+    "kaiak_aero_masc": {
+      "match": [
+        "kaiak aero masc",
+        "kaiak aero masculino",
+        "kaiak aero eau de toilette masculino",
+        "kaiak aero"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Acuática",
+      "notas_salida": "ruibarbo, enebro y cardamomo",
+      "notas_corazon": "notas marinas, geranio y hojas de violeta",
+      "notas_fondo": "Ambrocenide, almizcle, cedro y madera de sándalo",
+      "estilo_ocasion": "todo el día, quienes buscan bienestar y ligereza",
+      "sensacion": "ligero y refrescante como la brisa del mar; acompaña con energía y disposición a lo largo del día",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Aero-48944.html"
+    },
+    "kaiak_aero_fem": {
+      "match": [
+        "kaiak aero fem",
+        "kaiak aero femenina",
+        "kaiak aero eau de toilette femenina"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Floral Acuática",
+      "notas_salida": "pera, sal y pimienta rosa",
+      "notas_corazon": "fresia, peonía, jazmín, notas florales, lavanda, lirio de los valles (muguete), salvia y rosa",
+      "notas_fondo": "almizcle, cachemira, vetiver de Haití, ámbar, cipriol (nagarmota) y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kaiak-Aero-52025.html"
+    },
+    "kaiak_sonar_masc": {
+      "match": [
+        "kaiak sonar masc",
+        "kaiak sonar masculino",
+        "kaiak sonar eau de toilette masculino",
+        "kaia sonar edt masc",
+        "kaiak sonar edt masc"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Acuática",
+      "notas_salida": "sal, algas marinas, calone, lavanda, romero, limón (lima ácida), baya de enebro, esclarea, Poleo, tomillo, cardamomo, manzana, pimienta negra, nuez moscada y Pimienta de Bengala",
+      "notas_corazon": "notas metálicas, Floralozona, ciprés, geranio, lirio de los valles (muguete), ciclamen (violeta persa), cipriol (nagarmota) y violeta",
+      "notas_fondo": "cedro del Atlas, ámbar, vetiver, musgo, abeto balsámico, pachulí, Breu-Branco, sándalo, almizcle, Incienso y ládano",
+      "estilo_ocasion": "de día a noche, frescor con carácter",
+      "sensacion": "aromático limpio con toque especiado-herbal y base amaderado-mineral, fresco con carácter; tecnología VibraScent",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.natura.com.mx/c/kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Sonar-97372.html"
+    },
+    "kaiak_sonar_fem": {
+      "match": [
+        "kaiak sonar fem",
+        "kaiak sonar femenina",
+        "kaiak sonar eau de toilette femenina",
+        "kaia sonar edt fem",
+        "kaiak sonar edt fem"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "notas acuosas, algas marinas, sal, limón (lima ácida), calone, pera, lavanda, Pitanga, jengibre, bergamota, menta, toronja (pomelo), lima (limón verde), manzana, hierba limón (zacate limón), casis (grosellero negro), naranja tangerina, naranja, durazno (melocotón), nuez moscada, mango, anís y frambuesa",
+      "notas_corazon": "peonía, notas metálicas, flor de azahar del naranjo, magnolia, jazmín sambac (sampaguita), rosa, nardos, Floralozona, azucena, violeta, raíz de lirio y cempasúchil (tagete, clavelón)",
+      "notas_fondo": "almizcle, vetiver, ámbar, pachulí, sándalo, Breu-Branco y benjuí",
+      "estilo_ocasion": "día a día con toque distintivo",
+      "sensacion": "fresco envolvente: cítricos vibrantes, guiño herbal-floral y base amaderado-musgosa delicada",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Sonar-97373.html"
+    },
+    "kaiak_pulso": {
+      "match": [
+        "kaiak pulso",
+        "kaiak eau de toilette masculino pulso"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática",
+      "notas_salida": "lima (limón verde), limón (lima ácida) y bergamota",
+      "notas_corazon": "rosa, cilantro y lirio de los valles (muguete)",
+      "notas_fondo": "almizcle, cedro y maderas exóticas",
+      "estilo_ocasion": "after office, salidas, climas templados",
+      "sensacion": "chispa cítrica con giro aromático-especiado y base amaderado-ambarada sutil; frescura impactante y revitalizante con notas acuáticas, especias frescas, sándalo y cedro",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/blog/perfumeria/guia-de-perfumes-frescos-kaiak | https://www.natura.com.mx/c/kaiak | https://www.fragrantica.es/perfume/Natura/Kaiak-Pulso-26135.html"
+    },
+    "kaiak_vibe": {
+      "match": [
+        "kaiak vibe"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Frutal",
+      "notas_salida": "contiene: frutas y Notas aromáticas",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "frutas y notas aromáticas",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kaiak-Vibe-122948.html"
+    },
+    "humor_beijo_fem": {
+      "match": [
+        "beijo de humor femenina",
+        "beijo de humor femenino",
+        "beijo de humor eau de toilette femenina",
+        "beijo de humor eau de toilette",
+        "beijo de humor"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "canela, cardamomo, jengibre, pera, Priprioca y mandarina",
+      "notas_corazon": "ciruela, leche y jazmín",
+      "notas_fondo": "sándalo, caramelo, vainilla, musgo y cachemira",
+      "estilo_ocasion": "",
+      "sensacion": "frutal sensual y atrevido (posicionamiento oficial); canela, cardamomo, jengibre, pera, priprioca y mandarina con ciruela, leche y jazmín sobre sándalo, vainilla, caramelo y cachemira",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Beijo-de-Humor-60811.html"
+    },
+    "humor_beijo_masc": {
+      "match": [
+        "beijo de humor masculino",
+        "beijo de humor eau de toilette masculino"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Oriental Especiada",
+      "notas_salida": "piña, manzana, canela, mandarina, nuez moscada, Priprioca y lavanda",
+      "notas_corazon": "ciruela, geranio y jazmín",
+      "notas_fondo": "sándalo, cachemira, pachulí y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "piña, manzana, canela, mandarina, nuez moscada, priprioca y lavanda (oriental especiada)",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Beijo-de-Humor-60812.html"
+    },
+    "humor_conexao": {
+      "match": [
+        "conexao de humor",
+        "conexión de humor",
+        "festival de conexión",
+        "festival de conexao",
+        "humor conexao",
+        "humor conexión"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Amaderada Aromática",
+      "notas_salida": "coco y piña",
+      "notas_corazon": "especias",
+      "notas_fondo": "Priprioca",
+      "estilo_ocasion": "",
+      "sensacion": "coco y piña",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Conexao-de-Humor-93130.html"
+    },
+    "humor_liberta": {
+      "match": [
+        "humor liberta"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Aromática Especiada",
+      "notas_salida": "pimienta rosa, bergamota y manzana",
+      "notas_corazon": "lirio de los valles (muguete), geranio, jazmín y iris",
+      "notas_fondo": "Bálsamo de Copaiba, vetiver de Tahití, almizcle, pachulí, ámbar y gamuza",
+      "estilo_ocasion": "para disfrutar de tu libertad y vivir la vida a tu manera (oficial)",
+      "sensacion": "vibrante y moderno: acordes frutales con fondo amaderado; pimienta rosa, copaiba y notas frutales con toque alegre y fluido; fijación expresiva hasta 8 horas",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/p/humor-liberta/NATMEX-20834 | https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-Liberta-71736.html"
+    },
+    "humor_proprio": {
+      "match": [
+        "humor próprio",
+        "humor proprio"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "Jarabe de cereza, fresa y manzana",
+      "notas_corazon": "rosa, lirio de los valles (muguete) y jazmín",
+      "notas_fondo": "vainilla, ámbar, almizcle y cedro",
+      "estilo_ocasion": "celebra tu autenticidad y deja tu huella donde pasas (oficial)",
+      "sensacion": "floral que resalta la autenticidad; cereza en almíbar con bouquet floral sobre fondo ambarado superdulce (versión EDT oficial); fijación hasta 8 horas",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/p/humor-proprio-eau-de-toilette-femenina/NATMEX-64749 | https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-Proprio-Body-Splash-94406.html"
+    },
+    "humor_meu_primeiro": {
+      "match": [
+        "meu primeiro humor",
+        "humor primeiro",
+        "meu primeiro",
+        "humor! meu primeiro",
+        "humor favorito de natura humor on-line meu primeiro"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "casis (grosellero negro), pera y cítricos",
+      "notas_corazon": "jazmín, lirio de los valles (muguete) y Macadamia",
+      "notas_fondo": "ámbar, almizcle y sándalo",
+      "estilo_ocasion": "diario, para revivir mejores recuerdos",
+      "sensacion": "notas frutales y cítricas (casis, pera, cítricos); energía inolvidable y alegre",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Meu-Primeiro-Humor-Rock-in-Rio-62566.html"
+    },
+    "humor_envolve": {
+      "match": [
+        "humor envolve",
+        "humor envolver",
+        "humor edt envolve"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Floral",
+      "notas_salida": "aldehídos, zarzamora (frambuesa negra), pera, ciruela, manzana, melón, durazno (melocotón), bergamota, romero y naranja",
+      "notas_corazon": "violeta, rosa, lirio de los valles (muguete), geranio, iris y jazmín",
+      "notas_fondo": "almizcle, sándalo, ámbar, cedro y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "calor, cariño y cercanía en cada nota floral; una fragancia que acoge (oficial)",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-Envolve-106203.html"
+    },
+    "humor_transforma": {
+      "match": [
+        "humor transforma"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Amaderada Especiada",
+      "notas_salida": "toronja (pomelo), notas acuosas, bergamota, pera, piña, limón (lima ácida), cardamomo, Priprioca y Timur",
+      "notas_corazon": "lavanda, geranio, salvia y violeta",
+      "notas_fondo": "cedro, almizcle, ámbar, musgo, praliné y pachulí",
+      "estilo_ocasion": "diario, ligero; para cambiar y experimentar",
+      "sensacion": "amaderada especiada con frescura cítrica-acuosa; inspira a crear nuevas versiones de ti mismo con ligereza",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-Transforma-81848.html"
+    },
+    "humor_paz": {
+      "match": [
+        "paz e humor",
+        "humor paz"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Aromática Fougère",
+      "notas_salida": "bergamota, flor de azahar del naranjo, mandarina y naranja",
+      "notas_corazon": "lavanda, jazmín y geranio",
+      "notas_fondo": "almizcle, sándalo, ámbar y cedro",
+      "estilo_ocasion": "diario, para vivir con ligereza y serenidad",
+      "sensacion": "amaderado suave que transmite calma; frescura cítrica con flor de azahar",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-6-Paz-e-Humor-26110.html"
+    },
+    "humor_online_fem": {
+      "match": [
+        "humor on-line femenina",
+        "humor on-line femenino",
+        "humor online femenina",
+        "kit humor online eau de toilette femenina",
+        "natura humor on-line",
+        "humor on-line"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Cítrica Aromática",
+      "notas_salida": "casis (grosellero negro), naranja, toronja (pomelo), pimienta rosa, bergamota, ruibarbo, hierba limón (zacate limón), menta y pimienta negra",
+      "notas_corazon": "rosa y geranio",
+      "notas_fondo": "ámbar, almizcle, Maderas rubias, musgo y vetiver",
+      "estilo_ocasion": "diario, fresco y contemporáneo",
+      "sensacion": "cítrica aromática con casis, hierba limón y menta; alegre y vibrante",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-On-line-68230.html"
+    },
+    "humor_online_masc": {
+      "match": [
+        "humor on-line masculino",
+        "humor online masculino",
+        "humor on-line masculina"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Aromática Especiada",
+      "notas_salida": "cítricos y especias",
+      "notas_corazon": "toronja (pomelo) y pimienta rosa",
+      "notas_fondo": "Pitanga y cumarina",
+      "estilo_ocasion": "diario, con actitud positiva",
+      "sensacion": "cítricos y especias; frescura vibrante",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/humor | https://www.fragrantica.es/perfume/Natura/Humor-On-line-68231.html"
+    },
+    "humor_a_dois": {
+      "match": [
+        "humor a dois",
+        "humor a dois eau de toilette masculino"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "bergamota, pimienta negra y aldehídos",
+      "notas_corazon": "geranio, jazmín y violeta",
+      "notas_fondo": "almizcle, vetiver y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado con bergamota, pimienta negra y aldehídos",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Humor-a-Dois-78483.html"
+    },
+    "humor_da_minha_vida": {
+      "match": [
+        "humor da minha vida",
+        "humor da minha vida eau de toilette"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Floral Frutal Gourmand",
+      "notas_salida": "manzana roja, bergamota y pimienta rosa",
+      "notas_corazon": "fresia, lirio de los valles (muguete) y rosa",
+      "notas_fondo": "vainilla, ámbar y sándalo",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal gourmand con manzana roja, bergamota y pimienta rosa; dulce y envolvente",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Humor-da-Minha-Vida-43620.html"
+    },
+    "humor_animo": {
+      "match": [
+        "humor +ânimo",
+        "humor animo",
+        "humor ânimo",
+        "+ânimo"
+      ],
+      "line": "Humor",
+      "family_olfativa": "Cítrica Aromática",
+      "notas_salida": "Frutas amarillas, mandarina y bergamota",
+      "notas_corazon": "fresia, violeta y lirio de los valles (muguete)",
+      "notas_fondo": "almizcle, ámbar y sándalo",
+      "estilo_ocasion": "",
+      "sensacion": "cítrica aromática con frutas amarillas, mandarina y bergamota; energía luminosa",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Humor-Animo-135458.html"
+    },
+    "essencial_exclusivo_masc": {
+      "match": [
+        "essencial eau de parfum masculino exclusivo",
+        "essencial exclusivo masc",
+        "natura essencial exclusivo 100 ml",
+        "natura essencial exclusivo",
+        "repuesto essencial eau de parfum masculino exclusivo",
+        "essencial exclu masc"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada Aromática",
+      "notas_salida": "coñac, manzana Granny Smith, cardamomo, jengibre y albahaca",
+      "notas_corazon": "pimienta rosa, lavanda, geranio y abrótano",
+      "notas_fondo": "cedro, almizcle, pachulí, musgo y Notas aceitosas",
+      "estilo_ocasion": "ocasiones especiales y uso diario",
+      "sensacion": "fragancia sofisticada y marcada, notas amaderadas; elegancia y fuerza; coñac, manzana, cardamomo, jengibre y albahaca con fondo ámbar, almizcle y sándalo; perfumación prolongada",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/p/essencial-exclusivo-eau-de-parfum-masculino/NATMEX-93617 | https://www.natura.com.mx/c/essencial | https://www.fragrantica.es/perfume/Natura/Essencial-Exclusivo-12099.html"
+    },
+    "essencial_exclusivo_fem": {
+      "match": [
+        "essencial eau de parfum femenina exclusivo 50",
+        "essencial exclusivo fem",
+        "repuesto essencial eau de parfum femenina exclusivo"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "notas afrutadas, mandarina y naranja",
+      "notas_corazon": "magnolia, fresia y rosa",
+      "notas_fondo": "almizcle, sándalo y vetiver",
+      "estilo_ocasion": "ocasiones especiales y uso cotidiano",
+      "sensacion": "elegancia y personalidad; fragancia sofisticada y distintiva; bouquet floral de rosa, fresia y magnolia realzado con cassis y mandarina; perfumación de larga duración",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/p/essencial-eau-de-parfum-femenina-exclusivo/NATMEX-93622 | https://www.natura.com.mx/c/essencial | https://www.fragrantica.es/perfume/Natura/Essencial-Exclusivo-26140.html"
+    },
+    "essencial_exclusivo_floral": {
+      "match": [
+        "essencial eau de parfum femenina exclusivo floral",
+        "repuesto essencial eau de parfum femenina exclusivo floral",
+        "essencial exclusivo floral"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Floral",
+      "notas_salida": "cítricos, manzana, notas verdes y mandarina",
+      "notas_corazon": "jazmín, jazmín egipcio, fresia, azucena, gardenia, lirio de los valles (muguete), nardos, durazno (melocotón), Notas aceitosas, rosa, violeta, ylang-ylang, jengibre, jacinto y clavel",
+      "notas_fondo": "almizcle, caramelo, Iso E Super, sándalo, cedro y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "floral luminoso con cítricos, manzana, notas verdes y mandarina",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/essencial | https://www.fragrantica.es/perfume/Natura/Essencial-Exclusivo-Floral-33919.html"
+    },
+    "essencial_unico_fem": {
+      "match": [
+        "essencial único",
+        "essencial unico fem",
+        "essencial eau de parfum femenina único",
+        "essencial eau de parfum femenina unico",
+        "essencial único 90"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Floral",
+      "notas_salida": "pimienta negra, chabacano, Ishpink, Ocotea Quixos y cardamomo",
+      "notas_corazon": "jazmín egipcio, iris, osmanto (olivo oloroso), Paramela, rosa, fresia y lirio de los valles (muguete)",
+      "notas_fondo": "Bálsamo de Copaiba, vainilla, ámbar, sándalo, cedro y vetiver",
+      "estilo_ocasion": "",
+      "sensacion": "floral exclusivo con chabacano, Ishpink y Ocotea Quixos",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Unico-72416.html"
+    },
+    "essencial_unico_masc": {
+      "match": [
+        "essencial unico masc",
+        "essencial eau de parfum masculino único",
+        "essencial eau de parfum masculino unico",
+        "essencial unico 90"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "nuez moscada, Ishpink, Ocotea Quixos, azafrán, pimienta rosa y toronja (pomelo)",
+      "notas_corazon": "Bálsamo de Copaiba, cedro, vetiver y fresia",
+      "notas_fondo": "ámbar, mirra, vainilla, benjuí, cumarina, opopónaco, ládano y almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado con nuez moscada, Ishpink, Ocotea Quixos y azafrán",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Unico-72417.html"
+    },
+    "essencial_oud_fem": {
+      "match": [
+        "essencial oud fem",
+        "essencial eau de parfum femenina oud",
+        "essencial eau de parfum femenina oud 50",
+        "repuesto essencial oud eau de parfum femenina",
+        "essencial oud eau de parfum 50 ml",
+        "natura essencial oud",
+        "essencial oud"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Almizcle Floral Amaderado",
+      "notas_salida": "pimienta rosa, pimienta negra, frutas secas y chabacano",
+      "notas_corazon": "rosa, Priprioca, jazmín, praliné, bálsamo de Gurjum, cipriol (nagarmota) y Loukhoum",
+      "notas_fondo": "madera de oud, Bálsamo de Copaiba, sándalo, vainilla, cedro, ámbar gris, pachulí, cachemira, almizcle y ambroxan",
+      "estilo_ocasion": "día; elegancia intensa para ocasiones que piden presencia",
+      "sensacion": "fragancia poderosa y envolvente que combina sofisticación floral con la intensidad del oud; moderadamente dulce; exhala elegancia y fuerza",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/p/essencial-oud-eau-de-parfum-femenino/NATMEX-93623 | https://www.fragrantica.es/perfume/Natura/Essencial-Oud-52564.html"
+    },
+    "essencial_oud_masc": {
+      "match": [
+        "essencial oud masc",
+        "essencial eau de parfum masculino oud",
+        "essencial eau de parfum masculino oud 100",
+        "repuesto essencial oud eau de parfum masculino",
+        "essencial rf oud edp masc",
+        "essencial oud masc edt"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "azafrán, cardamomo, elemí y bergamota",
+      "notas_corazon": "canela, praliné, geranio, cipriol (nagarmota) y bálsamo de Gurjum",
+      "notas_fondo": "madera de oud, Bálsamo de Copaiba, sándalo, cedro, pachulí, ámbar, almizcle, cachemira, Ambrocenide y abeto",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado intenso con azafrán, cardamomo, elemí y bergamota; origen árabe especiado e intenso",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/essencial | https://www.natura.com.mx/c/hombre | https://www.fragrantica.es/perfume/Natura/Essencial-Oud-52563.html"
+    },
+    "essencial_atrai_fem": {
+      "match": [
+        "essencial atrai fem",
+        "essencial eau parfum atrai fem",
+        "essencial atrai eau de parfum 50 ml"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Floral",
+      "notas_salida": "frambuesa, pimienta rosa, casis (grosellero negro), manzana, pera, mandarina, bergamota, piña y toronja (pomelo)",
+      "notas_corazon": "violeta, jazmín, rosa y lirio de los valles (muguete)",
+      "notas_fondo": "chocolate, vainilla, praliné, ámbar, dulce de leche, benjuí, sándalo, almizcle, pachulí, cedro, ládano y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "floral afrutado con frambuesa, cassis, manzana y pera",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Atrai-104268.html"
+    },
+    "essencial_atrai_masc": {
+      "match": [
+        "essencial atrai masc",
+        "essencial eau parfum atrai mas",
+        "essencial atrai eau de parfum 100ml"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada Especiada",
+      "notas_salida": "pimienta rosa, cardamomo, nuez moscada, lavanda, canela, manzana, pimienta negra, salvia, bergamota, mandarina y albahaca",
+      "notas_corazon": "Lías de vino, frambuesa, Crema de leche y violeta",
+      "notas_fondo": "cacao, vainilla, ámbar, benjuí, sándalo, pachulí, cedro, almizcle, vetiver y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado especiado con pimienta rosa, cardamomo, nuez moscada y lavanda",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Atrai-105701.html"
+    },
+    "essencial_ato_fem": {
+      "match": [
+        "essencial ato edp fem",
+        "promo exclusiva ato fem",
+        "essencial ato fem"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "Priprioca, frambuesa, manzana, pimienta rosa, notas acuosas, mandarina, limón (lima ácida) y casis (grosellero negro)",
+      "notas_corazon": "rosa, Flor de secuoya, notas solares, jazmín sambac (sampaguita), lirio de los valles (muguete), osmanto (olivo oloroso) y flor de azahar del naranjo",
+      "notas_fondo": "pachulí, almizcle, vainilla y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal con priprioca, frambuesa, manzana y pimienta rosa",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Ato-80079.html"
+    },
+    "essencial_ato_masc": {
+      "match": [
+        "essencial ato edp masc",
+        "essencial ato masc",
+        "promo exclusiva ato masc"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada Especiada",
+      "notas_salida": "Priprioca, naranja, pimienta negra, Pataqueira, bergamota, notas acuosas y cardamomo",
+      "notas_corazon": "Flor de secuoya, flor de azahar del naranjo, notas solares, jazmín sambac (sampaguita), osmanto (olivo oloroso) y lirio de los valles (muguete)",
+      "notas_fondo": "sándalo, ámbar, vetiver, cedro, madera de gaiac, musgo y almizcle",
+      "estilo_ocasion": "para quienes buscan un aroma más amaderado",
+      "sensacion": "poderosa combinación de notas amaderadas y especiadas; priprioca, pimienta negra, pataqueira y cardamomo",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/essencial | https://www.fragrantica.es/perfume/Natura/Essencial-Ato-81874.html"
+    },
+    "essencial_sentir_fem": {
+      "match": [
+        "essencial sentir fem",
+        "essencial sentir exclusivo floral frutal",
+        "repuesto essencial eau de parfum femenina sentir",
+        "essencial sentir"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Floral",
+      "notas_salida": "contiene: nardos, jazmín, pera, Pataqueira y frambuesa",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "floral con nardos, jazmín, pera, pataqueira y frambuesa",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Sentir-98845.html"
+    },
+    "essencial_sentir_masc": {
+      "match": [
+        "essencial sentir masc",
+        "repuesto henrique klopsch essencial eau de parfum masculino sentir"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Amaderada Aromática",
+      "notas_salida": "contiene: bergamota, pachulí, Pimienta de espiga, lavanda y sándalo",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado aromático con bergamota, pachulí, pimienta de espiga, lavanda y sándalo",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Sentir-98848.html"
+    },
+    "essencial_mirra_fem": {
+      "match": [
+        "essencial mirra fem"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "elemí, pimienta rosa, pimienta negra y mandarina",
+      "notas_corazon": "pimienta, jazmín y rosa",
+      "notas_fondo": "mirra, bálsamo de Tolú, incienso, ámbar, pachulí, cachemira, cedro y vetiver",
+      "estilo_ocasion": "",
+      "sensacion": "oriental floral con elemí, pimienta rosa y mandarina",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Mirra-63632.html"
+    },
+    "essencial_mirra_masc": {
+      "match": [
+        "essencial mirra masc",
+        "essencial mirra 50 ml",
+        "regalo essencial mirra masculino"
+      ],
+      "line": "Essencial",
+      "family_olfativa": "Oriental",
+      "notas_salida": "elemí, pimienta negra, cardamomo, Cilantro, bergamota y limón (lima ácida)",
+      "notas_corazon": "trigo, zanahoria, ciruela y Davana",
+      "notas_fondo": "mirra, tabaco, ámbar, vainilla, bálsamo de Tolú, haba tonka, bálsamo del Perú, ládano, cachemira y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "oriental especiado con elemí, pimienta negra, cardamomo y cilantro",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Essencial-Mirra-63631.html"
+    },
+    "ekos_frescor_pitanga": {
+      "match": [
+        "frescor eau de toilette pitanga",
+        "ekos frescor pitanga",
+        "ekos frescor eau de toilette pitanga",
+        "natura ekos frescor pitanga",
+        "eau de toilette pitanga frutal",
+        "kit eau de toilette pitanga",
+        "ekos col edt pitanga",
+        "natura ekos pitanga preta"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "bergamota, Pitanga, toronja (pomelo), mandarina, naranja, lima (limón verde), limón (lima ácida) y albahaca",
+      "notas_corazon": "durazno (melocotón), casis (grosellero negro) y jazmín",
+      "notas_fondo": "sándalo, almizcle y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "desodorante colonia con notas olfativas suaves y frescas; bergamota, pitanga y cítricos con albahaca",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/ekos | https://www.fragrantica.es/perfume/Natura/Frescor-de-Pitanga-25976.html"
+    },
+    "ekos_frescor_pitanga_preta": {
+      "match": [
+        "pitanga preta",
+        "frescor eau de toilette pitanga preta",
+        "frescor eau de toilette 150 ml pitanga preta",
+        "ekos frescor pitanga preta",
+        "repuesto ekos pitanga frescor eau de toilette pitanga preta",
+        "ekos nectar para el cuerpo pitanga preta"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "manzana, limón (lima ácida), bayas rojas, mandarina, toronja (pomelo), notas verdes, cereza y naranja",
+      "notas_corazon": "jazmín, rosa y lirio de los valles (muguete)",
+      "notas_fondo": "almizcle, sándalo y notas amaderadas",
+      "estilo_ocasion": "",
+      "sensacion": "frutal vibrante con manzana, bayas rojas, cereza y cítricos sobre notas verdes",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Frescor-de-Pitanga-Preta-25985.html"
+    },
+    "ekos_frescor_maracuya": {
+      "match": [
+        "frescor eau de toilette 150 ml maracuyá",
+        "natura ekos frescor maracuyá",
+        "ekos frescor maracuya",
+        "repuesto ekos maracuya frescor eau de toilette",
+        "ritual calma y bienestar ekos maracuya",
+        "frescor eau de toilette maracuyá"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Chipre Frutal",
+      "notas_salida": "maracuyá (fruta de la pasión), bergamota, mandarina, romero, anís y manzana",
+      "notas_corazon": "violeta, lirio de los valles (muguete), rosa y jazmín",
+      "notas_fondo": "almizcle, sándalo, cedro y musgo de roble",
+      "estilo_ocasion": "",
+      "sensacion": "maracuyá: aporta frescor inmediato e hidratación ligera, con aroma vibrante y relajante",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/ekos | https://www.fragrantica.es/perfume/Natura/Frescor-de-Maracuja-25975.html"
+    },
+    "ekos_frescor_castana": {
+      "match": [
+        "ekos castaña frescor eau de toilette",
+        "natura ekos frescor castaña",
+        "ekos frescor castana",
+        "repuesto ekos castaña frescor eau de toilette",
+        "frescor de castaña"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "lavanda, bergamota, notas verdes, naranja, limón (lima ácida) y mandarina",
+      "notas_corazon": "jazmín, lirio de los valles (muguete) y ylang-ylang",
+      "notas_fondo": "nuez del Brasil, almizcle, sándalo, cedro y musgo de roble",
+      "estilo_ocasion": "",
+      "sensacion": "castaña ofrece nutrición e hidratación; aroma con lavanda, bergamota y cítricos, suave y reconfortante",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/ekos | https://www.fragrantica.es/perfume/Natura/Frescor-de-Castanha-25962.html"
+    },
+    "ekos_frescor_ishpink": {
+      "match": [
+        "frescor eau de toilette ishpink",
+        "frescor ishpink"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Floral",
+      "notas_salida": "pimienta rosa, canela, azafrán, pera, pimienta negra, manzana, naranja y toronja (pomelo)",
+      "notas_corazon": "rosa, durazno (melocotón), jazmín, salvia y lirio de los valles (muguete)",
+      "notas_fondo": "Ishpink, Ocotea Quixos, madera de gaiac, sándalo, incienso de olíbano (franquincienso), cedro, pachulí y almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "floral especiado con pimienta rosa, canela, azafrán y frutas",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Frescor-Ishpink-68797.html"
+    },
+    "ekos_ryo_festa": {
+      "match": [
+        "ryos edt festa",
+        "ryos festa",
+        "rio festa",
+        "ryo festa"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Amaderada Acuática",
+      "notas_salida": "Notas de río, toronja (pomelo) y salvia",
+      "notas_corazon": "hojas de violeta, jazmín sambac (sampaguita) y rosa",
+      "notas_fondo": "Siriúba, bálsamo de copaiba, almizcle, vetiver y Breu-Branco",
+      "estilo_ocasion": "",
+      "sensacion": "amaderada acuática con notas de río, toronja y salvia",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ryo-Festa-98412.html"
+    },
+    "ekos_ryo_lluvia": {
+      "match": [
+        "ryos edt lluvia",
+        "ryos lluvia",
+        "ryo chuva",
+        "ryos chuva",
+        "ryos lluvia"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Aromática Acuática",
+      "notas_salida": "Notas de río, Notas de lluvias y mandarina",
+      "notas_corazon": "hojas de violeta, jazmín sambac (sampaguita) y rosa",
+      "notas_fondo": "almizcle, vetiver, bálsamo de copaiba y Breu-Branco",
+      "estilo_ocasion": "",
+      "sensacion": "aromática acuática con notas de río, notas de lluvia y mandarina",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ryo-Chuva-95475.html"
+    },
+    "ekos_ryo_vivo": {
+      "match": [
+        "ryos edt vivo",
+        "ryos vivo",
+        "ryo vivo",
+        "natura ekos rkos vivo"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Floral Acuática",
+      "notas_salida": "naranja, toronja (pomelo), Priprioca y Pataqueira",
+      "notas_corazon": "Cascada (Headspace), flor de azahar del naranjo, Flor de Jarana, rosa y jazmín",
+      "notas_fondo": "bálsamo de copaiba, cedro y Breu-Branco",
+      "estilo_ocasion": "",
+      "sensacion": "floral acuática con naranja, toronja, priprioca y pataqueira",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ryo-Vivo-95474.html"
+    },
+    "ekos_ryo_floresta": {
+      "match": [
+        "ryos edt floresta",
+        "ryos floresta",
+        "ryo floresta",
+        "ekos ryo floresta aromático verde",
+        "natura ekos ryos floresta"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Aromática Verde",
+      "notas_salida": "contiene: Breu-Branco, Estoraque y Pataqueira",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "aromática verde con breu-branco, estoraque y pataqueira",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ryo-Floresta-117144.html"
+    },
+    "ekos_alma_pedra": {
+      "match": [
+        "alma pedra",
+        "deo parfum alma pedra",
+        "ekos pedra",
+        "natura ekos pedra eau de parfum"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Amaderada Aromática",
+      "notas_salida": "Breu-Branco, lavanda, bergamota y abrótano",
+      "notas_corazon": "Notas minerales, geranio y ciprés",
+      "notas_fondo": "musgo, ámbar y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "amaderada aromática con breu-branco, lavanda, bergamota y abrótano",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ekos-Pedra-109345.html"
+    },
+    "ekos_alma_raiz": {
+      "match": [
+        "alma raiz",
+        "alma raíz",
+        "deo parfum alma raiz",
+        "deo parfum alma raíz",
+        "ekos raiz"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "Priprioca, pimienta negra, cardamomo y nuez moscada",
+      "notas_corazon": "hojas verdes, vetiver y palo de rosa de Brasil",
+      "notas_fondo": "musgo de roble, cedro y sándalo",
+      "estilo_ocasion": "",
+      "sensacion": "amaderada con priprioca, pimienta negra, cardamomo y nuez moscada",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ekos-Raiz-109346.html"
+    },
+    "ekos_alma_sopro": {
+      "match": [
+        "alma sopro",
+        "deo parfum alma sopro",
+        "ekos alma eau de parfum unisex",
+        "ekos alma"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Amaderada Especiada",
+      "notas_salida": "Breu-Branco, jazmín, mandarina y limón siciliano (lima siciliana)",
+      "notas_corazon": "Priprioca, flor de pasionaria y lirio de los valles (muguete)",
+      "notas_fondo": "Bálsamo de Copaiba, Priprioca, ámbar y cumarina",
+      "estilo_ocasion": "",
+      "sensacion": "amaderada especiada con breu-branco, jazmín, mandarina y limón siciliano",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ekos-Alma-2025-109347.html"
+    },
+    "una_clasico": {
+      "match": [
+        "una eau de parfum femenino clásico",
+        "una eau de parfum femenino clasico",
+        "natura una eau de parfum femenino",
+        "una artisan edp fem col"
+      ],
+      "line": "Una",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "durazno (melocotón), cereza, naranja tangerina, pimienta rosa y casis (grosellero negro)",
+      "notas_corazon": "magnolia, rosa de Damasco y lirio de los valles (muguete)",
+      "notas_fondo": "vainilla, sándalo y almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "aroma elegante y atemporal con notas dulces de praliné, ganache y matices florales, enriquecido con poejo y paramela (oficial)",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/una | https://www.fragrantica.es/perfume/Natura/Una-26151.html"
+    },
+    "una_artisan": {
+      "match": [
+        "una artisan",
+        "una art"
+      ],
+      "line": "Una",
+      "family_olfativa": "Chipre Floral",
+      "notas_salida": "pera, casis (grosellero negro), mandarina, hojas verdes, pimienta rosa, bergamota y cempasúchil (tagete, clavelón)",
+      "notas_corazon": "rosa, peonía, jazmín, lirio de los valles (muguete) y jacinto",
+      "notas_fondo": "pachulí, almizcle, madera de sándalo, vainilla, madera de cachemira y musgo de roble",
+      "estilo_ocasion": "",
+      "sensacion": "el más dulce de la línea: flores y maderas cálidas con toque cremoso de vainilla y cassis",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/una | https://www.fragrantica.es/perfume/Natura/Una-Artisan-46579.html"
+    },
+    "una_brillo": {
+      "match": [
+        "una brillo",
+        "una eau de parfum femenino brillo"
+      ],
+      "line": "Una",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "pimienta rosa y Priprioca",
+      "notas_corazon": "flores blancas",
+      "notas_fondo": "cumarina y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "oriental floral con pimienta rosa y priprioca",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Una-Brilho-98413.html"
+    },
+    "una_dulce": {
+      "match": [
+        "una dulce oriental floral",
+        "una dulce"
+      ],
+      "line": "Una",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "durazno (melocotón), cereza, naranja tangerina, pimienta rosa y casis (grosellero negro)",
+      "notas_corazon": "magnolia, rosa de Damasco y lirio de los valles (muguete)",
+      "notas_fondo": "vainilla, sándalo y almizcle",
+      "estilo_ocasion": "de día a noche; para quienes aprecian perfumes intensos",
+      "sensacion": "dulce: envolvente con toques de vainilla, caramelo y frutas que transmiten confort y sensualidad",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/una | https://www.fragrantica.es/perfume/Natura/Una-26151.html"
+    },
+    "una_celebrar": {
+      "match": [
+        "una celebrar",
+        "una eau de ultimo parfum femenino ciclo celebrar"
+      ],
+      "line": "Una",
+      "family_olfativa": "Oriental Vainilla",
+      "notas_salida": "contiene: ylang-ylang, Vainilla Bahiana, ámbar, Paramela, pimienta rosa y mandarina",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "oriental vainilla con ylang-ylang, vainilla bahiana, ámbar, paramela y pimienta rosa",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Una-Celebrar-116791.html"
+    },
+    "homem_clasico": {
+      "match": [
+        "homem eau de toilette clásico",
+        "homem eau de toilette clasico",
+        "natura homem class",
+        "homem clásico",
+        "homem clasico"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Aromática Fougère",
+      "notas_salida": "jengibre, bergamota y nuez moscada",
+      "notas_corazon": "manzana, pera y durazno (melocotón)",
+      "notas_fondo": "almizcle, cedro y sándalo",
+      "estilo_ocasion": "",
+      "sensacion": "aromática fougère con jengibre, bergamota y nuez moscada",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/hombre | https://www.fragrantica.es/perfume/Natura/Homem-26088.html"
+    },
+    "homem_tato": {
+      "match": [
+        "homem tato",
+        "natura homem eau de parfum masculino tato"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "pimienta negra, cardamomo, azafrán y Pataqueira",
+      "notas_corazon": "iris, sándalo, cachemira y pachulí",
+      "notas_fondo": "cuero, ámbar, cumarina y almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado con pimienta negra, cardamomo, azafrán y pataqueira",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Homem-Tato-68157.html"
+    },
+    "homem_nos": {
+      "match": [
+        "homem nos",
+        "homem nós",
+        "natura homem eau de parfum masculino nos",
+        "natura homem eau de parfum masculino nós"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Oriental Amaderada",
+      "notas_salida": "contiene: notas amaderadas, pimienta negra, cardamomo, cumarina, ámbar y iris",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "oriental amaderado con notas amaderadas, pimienta negra, cardamomo, cumarina, ámbar e iris",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Homem-Nos-94196.html"
+    },
+    "homem_coragio": {
+      "match": [
+        "homem cor.agio",
+        "homem coragio",
+        "homem corágio",
+        "natura homem cor.agio",
+        "natura homem eau de parfum masculino cor.agio"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "pimienta negra, nuez moscada, pimienta rosa, canela, toronja (pomelo), bergamota, manzana y menta",
+      "notas_corazon": "rosa, cuero, lavanda, lirio de los valles (muguete) y angélica",
+      "notas_fondo": "ámbar, cumarina, bálsamo de copaiba, cedro y ládano",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado con pimienta negra, nuez moscada, canela, toronja, bergamota y menta",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/hombre | https://www.fragrantica.es/perfume/Natura/Homem-Cor-Agio-53469.html"
+    },
+    "homem_elo": {
+      "match": [
+        "homem elo",
+        "natura homem eau de parfum masculino elo"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Amaderada Aromática",
+      "notas_salida": "lavanda, extracto de lavanda, pimienta negra, Estoraque, esclarea, pimienta rosa, cardamomo, bergamota, Pataqueira, toronja (pomelo) y Hoja de cidra",
+      "notas_corazon": "vetiver, cedro, pachulí, sándalo, ciprés y cipriol (nagarmota)",
+      "notas_fondo": "ámbar, benjuí, haba tonka, almizcle, musgo y praliné",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado aromático con lavanda, pimienta negra, estoraque, esclarea y pataqueira",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Homem-Elo-81876.html"
+    },
+    "homem_essence": {
+      "match": [
+        "homem essence",
+        "natura i-homem essence",
+        "natura i homem essence",
+        "natura i•homem essence",
+        "natura i•homem",
+        "natura homem eau de parfum masculino essence"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Aromática Especiada",
+      "notas_salida": "jengibre, toronja (pomelo), bergamota y limón (lima ácida)",
+      "notas_corazon": "cardamomo, pimienta negra, violeta, canela y cilantro",
+      "notas_fondo": "Iso E Super, ámbar, cedro, cachemira, madera de gaiac y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "aromática especiada con jengibre, toronja, bergamota y limón",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Homem-Essence-40309.html"
+    },
+    "homem_neo": {
+      "match": [
+        "homem neo",
+        "natura homem eau de parfum masculino neo"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "Amaderada",
+      "notas_salida": "pimienta negra, pimienta rosa, cardamomo, nuez moscada, Pataqueira, toronja (pomelo) y bergamota",
+      "notas_corazon": "cachemira, bálsamo de copaiba, madera de gaiac, cedro del Atlas y vetiver",
+      "notas_fondo": "ámbar, haba tonka, almizcle, vainilla, cumarina y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "amaderado con pimienta negra, pimienta rosa, cardamomo, nuez moscada y pataqueira",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Homem-Neo-75016.html"
+    },
+    "homem_potence": {
+      "match": [
+        "homem potence",
+        "natura homem eau de parfum masculino potence",
+        "natura homem demonstrador edt potence",
+        "natura homem potence deo corporal",
+        "edt potence"
+      ],
+      "line": "Natura Homem",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/.html"
+    },
+    "luna_original": {
+      "match": [
+        "luna eau de toilette femenina 75 ml",
+        "luna natura luna eau de toilette femenina ilumina",
+        "natura luna girl",
+        "luna girl",
+        "luna body splash",
+        "luna natura luna eau de toilette"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre Floral",
+      "notas_salida": "mandarina italiana, Frutas rojas, pimienta rosa, manzana, durazno (melocotón), ciruela y Extractos de CO2",
+      "notas_corazon": "aceite de rosas, aceite de rosas turco, jazmín sambac (sampaguita), jazmín egipcio, neroli de Túnez y violeta",
+      "notas_fondo": "pachulí, cedro, almizcle, vainilla, notas dulces, ámbar, Maltol y Extractos de CO2",
+      "estilo_ocasion": "",
+      "sensacion": "chipre y frutas rojas; una invitación a la seducción y la elegancia (oficial)",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/luna | https://www.fragrantica.es/perfume/Natura/Luna-31811.html"
+    },
+    "luna_radiante": {
+      "match": [
+        "luna radiante",
+        "natura luna eau de toilette femenina radiante"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre Floral",
+      "notas_salida": "naranja amarga, mandarina y pimienta rosa",
+      "notas_corazon": "Paramela, jazmín sambac (sampaguita) y lirio de los valles (muguete)",
+      "notas_fondo": "pachulí, Priprioca y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "floral y frutal: un aroma luminoso y lleno de vida, radiante y envolvente",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/luna | https://www.fragrantica.es/perfume/Natura/Luna-Radiante-54675.html"
+    },
+    "luna_atitude": {
+      "match": [
+        "luna atitude",
+        "natura luna eau de parfum femenina atitude"
+      ],
+      "line": "Luna",
+      "family_olfativa": "chipre floral",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "chipre floral: inspirada en la flor de metamorfosis combinada con la potencia amaderada del patchouli y priprioca",
+      "publico": "",
+      "fuente": "https://www.natura.com.mx/c/luna | https://www.fragrantica.es/perfume/Natura/.html"
+    },
+    "luna_absoluta": {
+      "match": [
+        "luna absoluta",
+        "natura luna eau de toilette femenina absoluta"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre Floral",
+      "notas_salida": "frambuesa, granada, pera y bergamota",
+      "notas_corazon": "orquídea, rosa, jazmín egipcio, jazmín y hojas de violeta",
+      "notas_fondo": "notas dulces, hojas de pachulí de Indonesia, almizcle, cachemira y cedro",
+      "estilo_ocasion": "para dejar tu marca dondequiera que vayas",
+      "sensacion": "floral oriental impactante que traduce la fuerza y la determinación femenina; chipre dulce con orquídea negra, frutas rojas y cacao",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/luna | https://www.fragrantica.es/perfume/Natura/Luna-Absoluta-62559.html"
+    },
+    "luna_intenso": {
+      "match": [
+        "luna intenso",
+        "natura luna eau de parfum femenina intenso"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Almizcle Floral Amaderado",
+      "notas_salida": "grosellas negras, durazno (melocotón) y pera",
+      "notas_corazon": "rosa, jazmín sambac (sampaguita), violeta, flor de azahar del naranjo y lirio de los valles (muguete)",
+      "notas_fondo": "pachulí, vainilla, sándalo, cedro y almizcle",
+      "estilo_ocasion": "para mujeres que no temen expresar su sensualidad (oficial)",
+      "sensacion": "notas intensas y amaderadas; patchouli potente y puro con notas gourmand de vainilla, florales femeninos y cremosidad de durazno; la más concentrada de la línea",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/luna | https://www.fragrantica.es/perfume/Natura/Luna-Intenso-52570.html"
+    },
+    "luna_viva": {
+      "match": [
+        "luna viva"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre",
+      "notas_salida": "contiene: nardos, flores blancas, jazmín, Breu-Branco y lirio de los valles (muguete)",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "chipre con nardos, flores blancas, jazmín, breu-branco y muguete",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Luna-Viva-79536.html"
+    },
+    "luna_divina": {
+      "match": [
+        "luna divina"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre",
+      "notas_salida": "frambuesa y pimienta rosa",
+      "notas_corazon": "peonía y rosa",
+      "notas_fondo": "pachulí y musgo",
+      "estilo_ocasion": "",
+      "sensacion": "chipre con frambuesa y pimienta rosa",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Luna-Divina-111613.html"
+    },
+    "luna_libertad": {
+      "match": [
+        "luna libertade",
+        "luna libertad",
+        "natura luna eau de toilette femenina libertade"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre",
+      "notas_salida": "manzana acaramelada, pimienta rosa, flor de azahar del naranjo y mandarina",
+      "notas_corazon": "praliné, frambuesa, rosa y jazmín",
+      "notas_fondo": "vainilla, Ishpink, Ocotea Quixos, pachulí, ámbar y cachemira",
+      "estilo_ocasion": "",
+      "sensacion": "chipre con manzana acaramelada, pimienta rosa, flor de azahar y mandarina",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Luna-Liberdade-103023.html"
+    },
+    "luna_rose": {
+      "match": [
+        "luna rosé",
+        "luna rose",
+        "natura luna eau de toilette femenina rosé"
+      ],
+      "line": "Luna",
+      "family_olfativa": "Chipre Floral",
+      "notas_salida": "pimienta rosa, notas verdes, bergamota, notas acuosas, limón siciliano (lima siciliana) y mandarina",
+      "notas_corazon": "rosa, peonía, violeta, lirio de los valles (muguete) y jazmín",
+      "notas_fondo": "almizcle, cachemira, cedro, vetiver, sándalo, hojas de pachulí de Indonesia y haba tonka",
+      "estilo_ocasion": "",
+      "sensacion": "chipre floral con pimienta rosa, notas verdes y acuosas, bergamota y cítricos",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Luna-Rose-34405.html"
+    },
+    "kriska_drama": {
+      "match": [
+        "kriska drama",
+        "kriska eau de toilette femenina drama"
+      ],
+      "line": "Kriska",
+      "family_olfativa": "Oriental Vainilla",
+      "notas_salida": "Frutas rojas, nectarina, pera, mandarina y manzana",
+      "notas_corazon": "praliné, jazmín, flores blancas y peonía",
+      "notas_fondo": "pachulí, caramelo, vainilla, haba tonka, ámbar, sándalo, cedro y almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "oriental vainilla con frutas rojas, nectarina, pera, mandarina y manzana",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kriska-Drama-48721.html"
+    },
+    "kriska_jeans": {
+      "match": [
+        "kriska jeans",
+        "kriska jean",
+        "kriska eau de toilette femenina jean"
+      ],
+      "line": "Kriska",
+      "family_olfativa": "Floral Verde",
+      "notas_salida": "limón (lima ácida), bergamota, notas verdes, toronja (pomelo) y naranja",
+      "notas_corazon": "flor de iris, jengibre, angélica, lirio de los valles (muguete), rosa y jazmín",
+      "notas_fondo": "almizcle, madera de sándalo, ámbar y cedro",
+      "estilo_ocasion": "",
+      "sensacion": "floral verde con limón, bergamota, notas verdes y toronja",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kriska-Jeans-34510.html"
+    },
+    "kriska_shock": {
+      "match": [
+        "kriska shock",
+        "kriska eau de toilette femenina shock"
+      ],
+      "line": "Kriska",
+      "family_olfativa": "Oriental Vainilla",
+      "notas_salida": "Frutas rojas, pimienta rosa, frambuesa y manzana",
+      "notas_corazon": "peonía, orquídea de vainilla, jazmín y rosa",
+      "notas_fondo": "caramelo, notas dulces, vainilla, ámbar, almizcle y Maltol",
+      "estilo_ocasion": "",
+      "sensacion": "oriental vainilla con frutas rojas, pimienta rosa, frambuesa y manzana",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kriska-Shock-48978.html"
+    },
+    "ilia_clasico": {
+      "match": [
+        "ilía clásico",
+        "ilia clasico",
+        "natura ilía eau de parfum femenina clásica",
+        "natura ilía eau de parfum femenina clásico",
+        "ilia eau de parfum 50 ml",
+        "ilía eau de parfum 50 ml"
+      ],
+      "line": "Ilía",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "frambuesa, grosella roja, flor de azahar del naranjo, bergamota, limón (lima ácida) y toronja (pomelo) rosada",
+      "notas_corazon": "jazmín, gardenia, peonía, rosa, fresia y lirio de los valles (muguete)",
+      "notas_fondo": "vainilla, haba tonka, almizcle y notas amaderadas",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal con frambuesa, grosella roja, flor de azahar, bergamota y cítricos rosados",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ilia-42442.html"
+    },
+    "ilia_completa": {
+      "match": [
+        "ilía completa",
+        "ilia completa",
+        "natura ilía eau de parfum femenina completa"
+      ],
+      "line": "Ilía",
+      "family_olfativa": "Floral",
+      "notas_salida": "bergamota, mandarina, Pataqueira y pimienta rosa",
+      "notas_corazon": "rosa, jazmín, peonía, flor de azahar del naranjo y Paramela",
+      "notas_fondo": "almizcle, pachulí, vainilla, cedro, sándalo y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "floral con bergamota, mandarina, pataqueira y pimienta rosa",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ilia-Completa-83524.html"
+    },
+    "ilia_plena": {
+      "match": [
+        "ilia plena",
+        "ilía plena"
+      ],
+      "line": "Ilía",
+      "family_olfativa": "Floral",
+      "notas_salida": "rosa rosada",
+      "notas_corazon": "Pataqueira",
+      "notas_fondo": "almizcle",
+      "estilo_ocasion": "",
+      "sensacion": "floral con rosa rosada",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ilia-Plena-75071.html"
+    },
+    "ilia_secreto": {
+      "match": [
+        "ilía secreto",
+        "ilia secreto",
+        "natura ilía eau de parfum femenina secreto"
+      ],
+      "line": "Ilía",
+      "family_olfativa": "Floral Frutal Gourmand",
+      "notas_salida": "uvas, ciruela, pera y mandarina",
+      "notas_corazon": "jazmín, orquídea, fresia y lirio de los valles (muguete)",
+      "notas_fondo": "haba tonka, café, sándalo, cedro y Ishpink, Ocotea Quixos",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal gourmand con uvas, ciruela, pera y mandarina",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ilia-Secreto-48977.html"
+    },
+    "ilia_flor_laranjeira": {
+      "match": [
+        "flor de laranjeira",
+        "ilía flor de laranjeira",
+        "ilia flor de laranjeira"
+      ],
+      "line": "Ilía",
+      "family_olfativa": "Almizcle Floral Amaderado",
+      "notas_salida": "notas herbales, jazmín y fresia",
+      "notas_corazon": "flor de azahar del naranjo",
+      "notas_fondo": "almizcle blanco, notas amaderadas y extracto de cedro blanco",
+      "estilo_ocasion": "",
+      "sensacion": "almizcle floral amaderado con notas herbales, jazmín y fresia",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ilia-Flor-de-Laranjeira-64960.html"
+    },
+    "nature_corre_corre": {
+      "match": [
+        "corre corre",
+        "colonia corre",
+        "colonia nature corre corre"
+      ],
+      "line": "Nature",
+      "family_olfativa": "Aromática Frutal",
+      "notas_salida": "contiene: Frutas rojas",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "infantil",
+      "sensacion": "aromática frutal con frutas rojas; alegre para niños y niñas",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Corre-Corre-96468.html"
+    },
+    "nature_salta_salta": {
+      "match": [
+        "salta salta",
+        "colonia salta salta",
+        "colonia nature salta salta"
+      ],
+      "line": "Nature",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "infantil",
+      "sensacion": "",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/.html"
+    },
+    "nature_molinos": {
+      "match": [
+        "molinos de viento",
+        "colonia molinos de viento",
+        "colonia nature molinos de viento",
+        "catavento"
+      ],
+      "line": "Nature",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "contiene: frutas, almizcle y flores",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "infantil",
+      "sensacion": "floral frutal con frutas, almizcle y flores; para niños y niñas",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Catavento-97486.html"
+    },
+    "tododia_cereza_avellana": {
+      "match": [
+        "cereza y avellana",
+        "cereja e avela",
+        "tododia body splash cereza",
+        "promo exclusiva tododia avellana y casis",
+        "avellana y casis"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral Frutal Gourmand",
+      "notas_salida": "cereza, granada, pimienta rosa, limón (lima ácida), pera, lichi, zarzamora (frambuesa negra), toronja (pomelo), manzana, chabacano, Yogur y Hielo",
+      "notas_corazon": "avellana, peonía, lirio de los valles (muguete), jazmín, fresia, flor del ciruelo, gardenia y mango",
+      "notas_fondo": "vainilla, ámbar, almendra, almizcle, sándalo, castaña, chocolate, miel, algodón de azúcar y Nutella",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal gourmand: cereza, granada, pimienta rosa, yogur y hielo; dulce y reconfortante",
+      "publico": "femenino",
+      "fuente": "https://www.natura.com.mx/c/tododia | https://www.fragrantica.es/perfume/Natura/Cereja-e-Avela-33500.html"
+    },
+    "tododia_mora_jabuticaba": {
+      "match": [
+        "mora roja y jabuticaba",
+        "amora vermelha e jabuticaba",
+        "mora roja y ciruela"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "Mora roja, cereza, granada, lichi, pera, mandarina brasileña y naranja",
+      "notas_corazon": "zarzamora (frambuesa negra), Jaboticaba, ciruela, falso jazmín, magnolia y lirio de los valles (muguete)",
+      "notas_fondo": "vainilla, almizcle, caramelo, haba tonka, ámbar y sándalo",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal: mora roja, cereza, granada, lichi y jaboticaba con vainilla, caramelo y sándalo",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Amora-Vermelha-e-Jabuticaba-61434.html"
+    },
+    "tododia_mango_coco": {
+      "match": [
+        "mango rosa y agua de coco",
+        "manga rosa e agua de coco"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "jengibre, mandarina, Ralladura de limón, Frutas amarillas, bergamota, hierba limón (zacate limón), coco, toronja (pomelo), piña, pera, manzana, melón, neroli, ciruela y cereza",
+      "notas_corazon": "hibisco (flor de Jamaica, cayena), flor de azahar del naranjo, jazmín, lirio de los valles (muguete), violeta y pétalos de rosa",
+      "notas_fondo": "almizcle, sándalo, cedro, cachemira, ámbar, vainilla y ládano",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal tropical: mango, coco, piña, hierba limón y frutas con neroli",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Manga-Rosa-e-Agua-de-Coco-63430.html"
+    },
+    "tododia_camomila_lavanda": {
+      "match": [
+        "té de manzanilla y lavanda",
+        "te de manzanilla y lavanda",
+        "cha de camomila e lavanda",
+        "tododia todanoite body splash té de manzanilla"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral",
+      "notas_salida": "contiene: manzanilla, lavanda, notas florales y Notas aromáticas",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "floral aromática con manzanilla, lavanda y notas florales; calma y bienestar",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Cha-de-Camomila-e-Lavanda-95751.html"
+    },
+    "tododia_ciruela_vainilla": {
+      "match": [
+        "ciruela y flor de vainilla",
+        "ameixa e flor de baunilha",
+        "ciruela y flor de"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "ciruela",
+      "notas_corazon": "flor de vainilla y flores blancas",
+      "notas_fondo": "notas amaderadas",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal: ciruela con flor de vainilla y flores blancas sobre notas amaderadas",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Ameixa-e-Flor-de-Baunilha-67415.html"
+    },
+    "tododia_frambuesa_pimienta": {
+      "match": [
+        "frambuesa y pimienta",
+        "framboesa e pimenta"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "frambuesa, pimienta rosa y Frutas rojas",
+      "notas_corazon": "notas florales",
+      "notas_fondo": "vainilla",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal: frambuesa, pimienta rosa y frutas rojas",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Framboesa-e-Pimenta-Vermelha-57650.html"
+    },
+    "tododia_macadamia": {
+      "match": [
+        "body splash macadamia",
+        "kit body splash macadamia",
+        "macadamia"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "Floral",
+      "notas_salida": "bergamota, limón (lima ácida), nuez moscada, notas marinas y piña",
+      "notas_corazon": "Macadamia, jazmín, lirio de los valles (muguete), peonía, violeta y durazno (melocotón)",
+      "notas_fondo": "almizcle, sándalo, haba tonka, notas dulces y cedro",
+      "estilo_ocasion": "",
+      "sensacion": "floral con bergamota, limón, nuez moscada, notas marinas y piña; toque cítrico envolvente",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Macadamia-33522.html"
+    },
+    "horus": {
+      "match": [
+        "horus eau de toilette masculino azul marine",
+        "horus",
+        "azul marine"
+      ],
+      "line": "Horus",
+      "family_olfativa": "Aromática Fougère",
+      "notas_salida": "lima (limón verde) y limón (lima ácida)",
+      "notas_corazon": "lavanda, albahaca y salvia",
+      "notas_fondo": "cedro, cuero y ámbar",
+      "estilo_ocasion": "",
+      "sensacion": "aromática fougère marina: lima y limón con lavanda, albahaca y salvia sobre cedro, cuero y ámbar",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Azul-Marine-26104.html"
+    },
+    "srn_clasico": {
+      "match": [
+        "sr n clásico",
+        "sr n clasico",
+        "sr n nox",
+        "natura sr. n nox"
+      ],
+      "line": "Sr. N",
+      "family_olfativa": "Amaderada Chipre",
+      "notas_salida": "limón (lima ácida), gálbano y toronja (pomelo)",
+      "notas_corazon": "lavanda, abrótano y cardamomo",
+      "notas_fondo": "pachulí, vetiver y vainilla",
+      "estilo_ocasion": "clásico y sofisticado con un giro contemporáneo (oficial)",
+      "sensacion": "amaderado chipre con limón, gálbano y toronja; aromas amaderados y especiados adaptables a cualquier ocasión",
+      "publico": "masculino",
+      "fuente": "https://www.natura.com.mx/c/hombre | https://www.fragrantica.es/perfume/Natura/Sr-N-12556.html"
+    },
+    "mama_bebe": {
+      "match": [
+        "mamá y bebé",
+        "mama y bebe",
+        "agua de colonia sin alcohol",
+        "momento sueño"
+      ],
+      "line": "Mamá y bebé",
+      "family_olfativa": "Oriental Floral",
+      "notas_salida": "lavanda, bergamota y mandarina",
+      "notas_corazon": "lila, lirio de los valles (muguete) y jazmín",
+      "notas_fondo": "almizcle, vainilla, sándalo y maderas exóticas",
+      "estilo_ocasion": "infantil, suave y sin alcohol",
+      "sensacion": "oriental floral suave con lavanda, bergamota y mandarina; delicado para bebé",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Mamae-e-Bebe-26182.html"
+    },
+    "naturre": {
+      "match": [
+        "naturé esconde esconde",
+        "naturre esconde esconde",
+        "natura naturé esconde",
+        "naturé pique pega",
+        "pique pega",
+        "natura naturé pique"
+      ],
+      "line": "Naturé",
+      "family_olfativa": "Aromática Frutal",
+      "notas_salida": "contiene: Frutas amarillas y cítricos",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "infantil",
+      "sensacion": "aromática frutal con frutas amarillas y cítricos",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Pique-Pega-112226.html"
+    },
+    "aguas_violeta": {
+      "match": [
+        "natura águas violeta",
+        "natura aguas violeta",
+        "aguas violeta",
+        "colonia femenina 150 ml violeta"
+      ],
+      "line": "Águas",
+      "family_olfativa": "Floral",
+      "notas_salida": "ciruela, grosellas negras, casis (grosellero negro), bergamota y mandarina",
+      "notas_corazon": "jazmín, gardenia, violeta, rosa y ylang-ylang",
+      "notas_fondo": "almizcle, sándalo, cedro, vetiver y pachulí",
+      "estilo_ocasion": "",
+      "sensacion": "floral con ciruela, grosellas negras, casis, bergamota y mandarina",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Violeta-26059.html"
+    },
+    "aguas_frambuesa": {
+      "match": [
+        "natura águas frambuesa",
+        "natura aguas frambuesa",
+        "aguas frambuesa",
+        "body splash frambuesa y pimienta roja",
+        "frambuesa y pimienta roja",
+        "frambuesa y pimienta rosa"
+      ],
+      "line": "Águas",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "frambuesa, pimienta rosa, manzana, pera, durazno (melocotón), naranja, pistacho (pistache), coco, piña, cereza, fresia y notas verdes",
+      "notas_corazon": "lirio de los valles (muguete), magnolia, rosa, jazmín, fresia y violeta",
+      "notas_fondo": "almizcle, notas atalcadas, vainilla, ámbar, sándalo, cedro y Notas balsámicas",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal: frambuesa, pimienta rosa, manzana, pera, durazno y coco",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Framboesa-e-Pimenta-Rosa-34255.html"
+    },
+    "tododia_fresa_vainilla": {
+      "match": [
+        "tododia body splash fresa y vainilla dorada",
+        "fresa y vainilla dorada"
+      ],
+      "line": "Tododia",
+      "family_olfativa": "",
+      "notas_salida": "",
+      "notas_corazon": "",
+      "notas_fondo": "",
+      "estilo_ocasion": "",
+      "sensacion": "",
+      "publico": "",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/.html"
+    },
+    "kaiak_k": {
+      "match": [
+        "k eau de parfum masculino",
+        "k parfum edp",
+        "kaiak k"
+      ],
+      "line": "Kaiak",
+      "family_olfativa": "Aromática Acuática",
+      "notas_salida": "bergamota, melón, jengibre, piña, Dihidromircenol, Notas acuáticas, romero, grosellas negras, lavanda y Poleo",
+      "notas_corazon": "ciclamen (violeta persa), rosa, violeta y Thalassogaia™",
+      "notas_fondo": "almizcle, ámbar, musgo y Breu-Branco",
+      "estilo_ocasion": "",
+      "sensacion": "aromática acuática con bergamota, melón, jengibre, piña y notas acuáticas; fondo de almizcle, ámbar, musgo y breu-branco",
+      "publico": "masculino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Kaiak-21K-141142.html"
+    },
+    "ekos_natureza_sonhos": {
+      "match": [
+        "maracuyá naturaleza",
+        "maracuya naturaleza",
+        "naturaleza eau de de los sueños toilette",
+        "natureza dos sonhos"
+      ],
+      "line": "Ekos",
+      "family_olfativa": "Cítrica",
+      "notas_salida": "palmarosa, limón (lima ácida), maracuyá (fruta de la pasión), bergamota, romero, mandarina, naranja, jengibre, Poleo, neroli, melón, pimienta negra, cardamomo, Pataqueira y gálbano",
+      "notas_corazon": "petit grain, flor de azahar del naranjo, jazmín, violeta, yerba mate y rosa",
+      "notas_fondo": "almizcle, cedro, ámbar, musgo, pachulí, madera de gaiac, elemí y Aceite de cade",
+      "estilo_ocasion": "",
+      "sensacion": "cítrica con maracuyá, palmarosa, limón y bergamota; corazón floral con azahar, jazmín y yerba mate",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Maracuja-Natureza-dos-Sonhos-96536.html"
+    },
+    "aguas_jabuticaba": {
+      "match": [
+        "colonia femenina 150 ml jabuticaba",
+        "jabuticaba"
+      ],
+      "line": "Águas",
+      "family_olfativa": "Floral Frutal",
+      "notas_salida": "Jaboticaba, manzana y bergamota",
+      "notas_corazon": "jazmín, lirio de los valles (muguete) y canela",
+      "notas_fondo": "almizcle y cedro",
+      "estilo_ocasion": "",
+      "sensacion": "floral frutal con jaboticaba, manzana y bergamota; corazón de jazmín, muguete y canela",
+      "publico": "femenino",
+      "fuente": "https://www.fragrantica.es/perfume/Natura/Jabuticaba-26060.html"
+    }
+  },
+  "products": {
+    "Kaiak Clásico Masculino Eau de Toilette": {
+      "notas_salida": "salida: bergamota, mandarina, agujas de pino; corazón: dihidromircenol, muguete, maderas transparentes; fondo: almizcle, musgo de roble, sándalo",
+      "estilo_ocasion": "día a día, para salir (oficial: deo colonia, subfamilia acuosa)",
+      "sensacion": "siente el poder de la frescura que renueva y revigora las energías",
+      "fuente": "https://www.natura.com.mx/p/kaiak-clasico-eau-de-toilette-masculino/NATMEX-111171"
+    },
+    "KAIAK EAU DE TOILETTE MASCULINO CLASICO 100 M": {
+      "notas_salida": "salida: bergamota, mandarina, agujas de pino; corazón: dihidromircenol, muguete, maderas transparentes; fondo: almizcle, musgo de roble, sándalo",
+      "estilo_ocasion": "día a día, para salir",
+      "sensacion": "frescura que renueva y revigora las energías",
+      "fuente": "https://www.natura.com.mx/p/kaiak-clasico-eau-de-toilette-masculino/NATMEX-111171"
+    },
+    "ESSENCIAL EAU DE PARFUM MASCULINO EXCLUSIVO 100 ML": {
+      "notas_salida": "salida: pimienta negra, limón siciliano; corazón/cuerpo: cedro, pachulí; fondo: ámbar, almizcle, sándalo",
+      "estilo_ocasion": "ocasiones especiales y uso diario",
+      "sensacion": "la esencia de la elegancia y la fuerza; sofisticada y marcada, con perfumación prolongada",
+      "fuente": "https://www.natura.com.mx/p/essencial-exclusivo-eau-de-parfum-masculino/NATMEX-93617"
+    },
+    "Natura Essencial Exclusivo 100 ml": {
+      "notas_salida": "salida: pimienta negra, limón siciliano; corazón/cuerpo: cedro, pachulí; fondo: ámbar, almizcle, sándalo",
+      "estilo_ocasion": "ocasiones especiales y uso diario",
+      "sensacion": "la esencia de la elegancia y la fuerza; sofisticada y marcada",
+      "fuente": "https://www.natura.com.mx/p/essencial-exclusivo-eau-de-parfum-masculino/NATMEX-93617"
+    },
+    "ESSENCIAL EAU DE PARFUM FEMENINA EXCLUSIVO 50 ML": {
+      "notas_salida": "bouquet de rosa, fresia y magnolia realzado con cassis y mandarina (notas afrutadas de salida según Fragrantica)",
+      "estilo_ocasion": "ocasiones especiales y uso cotidiano",
+      "sensacion": "elegancia y personalidad en cada nota; sofisticada y distintiva, larga duración",
+      "fuente": "https://www.natura.com.mx/p/essencial-eau-de-parfum-femenina-exclusivo/NATMEX-93622"
+    },
+    "ESSENCIAL EAU DE PARFUM FEMENINA OUD 50 M": {
+      "notas_salida": "salida: pimienta rosa, albaricoque, frutas secas oscuras; corazón: rosa, jazmín, cupriol, praliné y priprioca; fondo: ámbar gris, cedro, sándalo, almizcle, aceite de oud, pachulí, cashmeran, vainilla y copaiba",
+      "estilo_ocasion": "día; elegancia intensa",
+      "sensacion": "elegancia intensa, esencia inolvidable; poderosa y envolvente, moderadamente dulce",
+      "fuente": "https://www.natura.com.mx/p/essencial-oud-eau-de-parfum-femenino/NATMEX-93623"
+    },
+    "Natura Essencial Oud": {
+      "notas_salida": "salida: pimienta rosa, albaricoque, frutas secas oscuras; corazón: rosa, jazmín, cupriol, praliné y priprioca; fondo: ámbar gris, cedro, sándalo, almizcle, aceite de oud, pachulí, cashmeran, vainilla y copaiba (versión femenina oficial)",
+      "estilo_ocasion": "día; elegancia intensa",
+      "sensacion": "poderosa y envolvente; combina sofisticación floral con intensidad de oud",
+      "fuente": "https://www.natura.com.mx/p/essencial-oud-eau-de-parfum-femenino/NATMEX-93623"
+    },
+    "HUMOR LIBERTA EAU DE TOILETTE UNISEX 75 M": {
+      "notas_salida": "pimienta rosa, copaiba y notas frutales (oficial); Fragrantica: pimienta rosa, bergamota y manzana",
+      "estilo_ocasion": "versátil, para vivir la vida a tu manera",
+      "sensacion": "notas vibrantes y libres, toque alegre y fluido; fijación expresiva hasta 8 horas en la piel",
+      "fuente": "https://www.natura.com.mx/p/humor-liberta/NATMEX-20834"
+    },
+    "Humor Liberta Body Splash 200ml": {
+      "notas_salida": "pimienta rosa, copaiba y notas frutales",
+      "estilo_ocasion": "versátil, diario",
+      "sensacion": "vibrante y libre, toque alegre y fluido",
+      "fuente": "https://www.natura.com.mx/p/humor-liberta/NATMEX-20834"
+    },
+    "HUMOR PRÓPRIO EAU DE TOILETTE FEMENINA 75 ML": {
+      "notas_salida": "cereza en almíbar con bouquet floral; fondo ambarado superdulce",
+      "estilo_ocasion": "diario; celebra la autenticidad",
+      "sensacion": "alegre y con personalidad; fijación expresiva hasta 8 horas",
+      "fuente": "https://www.natura.com.mx/p/humor-proprio-eau-de-toilette-femenina/NATMEX-64749"
+    },
+    "Humor Próprio \"En una relación seria con... Conmigo misma\"": {
+      "notas_salida": "cereza en almíbar con bouquet floral; fondo ambarado superdulce",
+      "estilo_ocasion": "diario; celebra la autenticidad",
+      "sensacion": "alegre y con personalidad",
+      "fuente": "https://www.natura.com.mx/p/humor-proprio-eau-de-toilette-femenina/NATMEX-64749"
+    }
+  }
+}
