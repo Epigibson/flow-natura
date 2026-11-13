@@ -122,47 +122,85 @@ import PageLoader from '../components/PageLoader.astro';
       </div>
     </div>
   </dialog>
-  <!-- Product Detail Modal -->
-  <dialog id="product-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-2xl bg-transparent">
-    <div class="bg-surface-container-lowest rounded-2xl overflow-hidden w-full max-h-[88vh] overflow-y-auto">
-      <div class="relative h-64 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center">
-        <img id="pm-img" class="max-h-full max-w-full object-contain p-4 hidden" alt="" />
-        <span id="pm-img-fallback" class="material-symbols-outlined text-primary/20 text-8xl">spa</span>
-        <button id="pm-close" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 flex items-center justify-center text-on-surface-variant hover:text-error transition-colors" title="Cerrar">
+  <!-- Product Detail View (full-screen PDP) -->
+  <div id="product-view" class="fixed inset-0 z-[90] bg-surface overflow-y-auto hidden">
+    <div class="sticky top-0 z-10 bg-surface/90 backdrop-blur-md border-b border-outline-variant/10">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <button id="pv-back" class="flex items-center gap-2 text-on-surface-variant hover:text-primary font-bold text-sm transition-colors">
+          <span class="material-symbols-outlined">arrow_back</span> Volver al catálogo
+        </button>
+        <button id="pv-close" class="w-10 h-10 rounded-full hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-error transition-colors" title="Cerrar">
           <span class="material-symbols-outlined">close</span>
         </button>
-        <span id="pm-brand" class="absolute top-4 left-4 text-[10px] font-bold px-2.5 py-1 rounded-full"></span>
       </div>
-      <div class="p-6">
-        <p id="pm-category" class="text-xs font-bold uppercase tracking-wider text-primary/70"></p>
-        <h3 id="pm-name" class="text-2xl font-display font-bold text-on-surface mt-1"></h3>
-        <p id="pm-code" class="text-xs text-on-surface-variant/50 font-mono mt-1"></p>
-        <div class="flex items-center gap-3 mt-3">
-          <p id="pm-price" class="text-3xl font-display font-bold text-primary"></p>
-          <span id="pm-stock" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-2 gap-10">
+      <!-- Galería -->
+      <div class="pv-anim">
+        <div id="pv-main-wrap" class="relative rounded-3xl bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden h-[360px] sm:h-[520px] cursor-zoom-in group">
+          <img id="pv-img" class="max-h-full max-w-full object-contain p-6 transition-transform duration-500 group-hover:scale-[1.03]" alt="" />
+          <span id="pv-img-fallback" class="material-symbols-outlined text-primary/20 text-9xl hidden">spa</span>
+          <span id="pv-brand" class="absolute top-4 left-4 text-[10px] font-bold px-2.5 py-1 rounded-full"></span>
+          <span class="absolute bottom-4 right-4 text-[10px] font-bold text-on-surface-variant/70 bg-white/85 px-2.5 py-1 rounded-full flex items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined text-sm">zoom_in</span> Clic para ampliar
+          </span>
         </div>
-        <p id="pm-desc" class="text-sm text-on-surface-variant mt-4 leading-6"></p>
-        <div id="pm-variants" class="mt-5 hidden">
-          <p class="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Opciones disponibles</p>
-          <div id="pm-variants-list" class="space-y-2"></div>
+        <div id="pv-thumbs" class="flex gap-3 mt-4 overflow-x-auto pb-2"></div>
+      </div>
+
+      <!-- Info -->
+      <div class="flex flex-col">
+        <p id="pv-category" class="pv-anim pv-d1 text-xs font-bold uppercase tracking-widest text-primary/70"></p>
+        <h2 id="pv-name" class="pv-anim pv-d1 text-3xl sm:text-4xl font-display font-bold text-on-surface mt-2 leading-tight"></h2>
+        <p id="pv-code" class="pv-anim pv-d2 text-xs text-on-surface-variant/50 font-mono mt-2"></p>
+        <div class="pv-anim pv-d2 flex items-center gap-3 mt-5">
+          <p id="pv-price" class="text-4xl font-display font-bold text-primary"></p>
+          <span id="pv-stock" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
         </div>
-        <div class="flex items-center gap-3 mt-6">
-          <div class="flex items-center gap-1 bg-surface-container-highest rounded-xl p-1">
-            <button id="pm-qty-minus" class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
-              <span class="material-symbols-outlined text-lg">remove</span>
+        <p id="pv-desc" class="pv-anim pv-d3 text-base text-on-surface-variant mt-6 leading-7 max-w-[60ch]"></p>
+
+        <div id="pv-variants" class="pv-anim pv-d3 mt-7 hidden">
+          <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">Elige tu opción</p>
+          <div id="pv-variants-list" class="flex flex-wrap gap-2.5"></div>
+        </div>
+
+        <div class="pv-anim pv-d4 flex items-center gap-3 mt-8">
+          <div class="flex items-center gap-1 bg-surface-container-highest rounded-2xl p-1.5">
+            <button id="pv-qty-minus" class="w-11 h-11 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined">remove</span>
             </button>
-            <span id="pm-qty" class="w-9 text-center font-bold text-on-surface">1</span>
-            <button id="pm-qty-plus" class="w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
-              <span class="material-symbols-outlined text-lg">add</span>
+            <span id="pv-qty" class="w-10 text-center font-bold text-on-surface text-lg">1</span>
+            <button id="pv-qty-plus" class="w-11 h-11 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors">
+              <span class="material-symbols-outlined">add</span>
             </button>
           </div>
-          <button id="pm-add" class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold bg-primary text-white shadow-md hover:scale-[1.01] transition-all">
+          <button id="pv-add" class="flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold bg-primary text-white shadow-lg shadow-primary/25 hover:scale-[1.01] active:scale-[0.99] transition-transform">
             <span class="material-symbols-outlined text-lg">add_shopping_cart</span> Agregar al pedido
           </button>
         </div>
+        <p class="pv-anim pv-d4 mt-4 text-xs text-on-surface-variant/70 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">local_shipping</span> Pide por WhatsApp — tu consultora confirma disponibilidad y entrega.
+        </p>
       </div>
     </div>
-  </dialog>
+
+    <!-- Relacionados -->
+    <div id="pv-related-wrap" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 hidden">
+      <div class="border-t border-outline-variant/10 pt-10">
+        <h3 class="text-xl font-display font-bold text-on-surface">También te puede interesar</h3>
+        <div id="pv-related" class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="pv-lightbox" class="fixed inset-0 z-[100] bg-on-surface/95 hidden items-center justify-center cursor-zoom-out">
+    <img id="pv-lightbox-img" class="max-w-[94vw] max-h-[92vh] object-contain transition-transform duration-300 cursor-zoom-in" alt="" />
+    <button id="pv-lightbox-close" class="absolute top-5 right-5 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-colors">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
   <!-- Variants Modal -->
   <dialog id="variants-modal" class="p-0 rounded-2xl shadow-2xl border-none backdrop:bg-on-surface/50 backdrop:backdrop-blur-sm m-auto w-full max-w-md bg-transparent">
     <div class="bg-surface-container-lowest rounded-2xl p-6 w-full border border-outline-variant/20 max-h-[85vh] overflow-y-auto">
@@ -198,6 +236,18 @@ import PageLoader from '../components/PageLoader.astro';
   .variant-chip:hover { transform: scale(1.02); box-shadow: 0 4px 16px rgba(139,90,43,0.12); }
   .variants-badge { animation: pulse-badge 2s infinite; }
   @keyframes pulse-badge { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+  /* PDP product detail view */
+  #pv-img { transition: opacity .25s ease, transform .5s ease; }
+  .pv-anim { animation: pv-fade-up .55s cubic-bezier(.2,.7,.2,1) both; }
+  .pv-d1 { animation-delay: .07s; }
+  .pv-d2 { animation-delay: .14s; }
+  .pv-d3 { animation-delay: .21s; }
+  .pv-d4 { animation-delay: .28s; }
+  @keyframes pv-fade-up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .pv-anim { animation: none; }
+    #pv-img { transition: none; }
+  }
 </style>
 
 <script>
@@ -455,96 +505,212 @@ import PageLoader from '../components/PageLoader.astro';
     bindProductDetail();
   }
 
-  // ---- Product detail modal ----
-  const productModal = document.getElementById('product-modal') as HTMLDialogElement;
-  let pmProduct: any = null;
-  let pmQty = 1;
+  // ---- Product detail view (full-screen PDP) ----
+  const pvView = document.getElementById('product-view') as HTMLElement;
+  const pvLightbox = document.getElementById('pv-lightbox') as HTMLElement;
+  const pvLightboxImg = document.getElementById('pv-lightbox-img') as HTMLImageElement;
+  let pvProduct: any = null;
+  let pvQty = 1;
+  let pvSelectedVariant: Variant | null = null;
+  let pvImages: { url: string; label: string }[] = [];
+  let pvImageIndex = 0;
 
-  function renderPmQty() {
-    (document.getElementById('pm-qty') as HTMLElement).textContent = String(pmQty);
-    const max = Number(pmProduct?.stock) || 1;
-    (document.getElementById('pm-qty-minus') as HTMLButtonElement).disabled = pmQty <= 1;
-    (document.getElementById('pm-qty-plus') as HTMLButtonElement).disabled = pmQty >= max;
+  function pvSetImage(i: number) {
+    if (!pvImages.length) return;
+    pvImageIndex = Math.max(0, Math.min(i, pvImages.length - 1));
+    const img = document.getElementById('pv-img') as HTMLImageElement;
+    const fallback = document.getElementById('pv-img-fallback') as HTMLElement;
+    const url = esc(sanitizeUrl(pvImages[pvImageIndex].url));
+    img.style.opacity = '0';
+    setTimeout(() => {
+      if (url) {
+        img.src = url;
+        img.classList.remove('hidden');
+        fallback.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        fallback.classList.remove('hidden');
+      }
+      img.style.opacity = '1';
+    }, 120);
+    (document.getElementById('pv-thumbs') as HTMLElement).querySelectorAll('button').forEach((b, idx) => {
+      b.className = `shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${idx === pvImageIndex ? 'border-primary shadow-md scale-[1.03]' : 'border-outline-variant/20 opacity-60 hover:opacity-100'}`;
+    });
+  }
+
+  function pvRenderThumbs() {
+    const wrap = document.getElementById('pv-thumbs') as HTMLElement;
+    wrap.innerHTML = '';
+    pvImages.forEach((im, idx) => {
+      const u = esc(sanitizeUrl(im.url));
+      const b = document.createElement('button');
+      b.title = im.label;
+      b.innerHTML = u
+        ? `<img src="${u}" class="w-full h-full object-contain bg-white p-1" alt="${esc(im.label)}"/>`
+        : `<span class="material-symbols-outlined text-on-surface-variant/30 text-xl">spa</span>`;
+      b.addEventListener('click', () => pvSetImage(idx));
+      wrap.appendChild(b);
+    });
+    pvSetImage(0);
+  }
+
+  function pvRenderQty() {
+    (document.getElementById('pv-qty') as HTMLElement).textContent = String(pvQty);
+    const max = Number(pvProduct?.stock) || 1;
+    (document.getElementById('pv-qty-minus') as HTMLButtonElement).disabled = pvQty <= 1;
+    (document.getElementById('pv-qty-plus') as HTMLButtonElement).disabled = pvQty >= max;
+  }
+
+  function pvSelectVariant(v: Variant | null) {
+    pvSelectedVariant = v;
+    const price = Number(v?.price || pvProduct?.price || 0);
+    (document.getElementById('pv-price') as HTMLElement).textContent = `$${price.toFixed(2)}`;
+    if (v && v.imageUrl) pvSetImage(pvImages.findIndex(im => im.url === v.imageUrl && im.label === v.label));
+    (document.getElementById('pv-variants-list') as HTMLElement).querySelectorAll('button').forEach(b => {
+      const active = b.dataset.vid === (v?.id || '');
+      b.className = `flex items-center gap-2 p-2 pr-3 rounded-2xl border transition-all ${active ? 'border-primary bg-primary/5 shadow-md scale-[1.02]' : 'border-outline-variant/15 hover:border-primary/40'}`;
+    });
+  }
+
+  function pvRenderVariants() {
+    const wrap = document.getElementById('pv-variants') as HTMLElement;
+    const list = document.getElementById('pv-variants-list') as HTMLElement;
+    const hasV = pvProduct.hasVariants && pvProduct.variants.length > 0;
+    list.innerHTML = '';
+    if (!hasV) { wrap.classList.add('hidden'); pvSelectVariant(null); return; }
+    wrap.classList.remove('hidden');
+    pvProduct.variants.forEach((v: Variant) => {
+      const u = esc(sanitizeUrl(v.imageUrl || pvProduct.imageUrl));
+      const b = document.createElement('button');
+      b.dataset.vid = v.id;
+      b.innerHTML = `
+        ${u ? `<img src="${u}" class="w-10 h-10 object-contain rounded-xl bg-white shadow-sm"/>` : `<div class="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30 text-lg">spa</span></div>`}
+        <span class="text-xs font-bold text-on-surface">${esc(v.label)}</span>`;
+      b.addEventListener('click', () => pvSelectVariant(v));
+      list.appendChild(b);
+    });
+    pvSelectVariant(pvProduct.variants[0] || null);
+  }
+
+  function pvRenderRelated() {
+    const wrap = document.getElementById('pv-related-wrap') as HTMLElement;
+    const grid = document.getElementById('pv-related') as HTMLElement;
+    const related = allProducts.filter((x: any) => x.id !== pvProduct.id).sort(() => Math.random() - 0.5).slice(0, 4);
+    if (!related.length) { wrap.classList.add('hidden'); return; }
+    wrap.classList.remove('hidden');
+    grid.innerHTML = '';
+    related.forEach((p: any) => {
+      const u = esc(sanitizeUrl(p.imageUrl));
+      const card = document.createElement('button');
+      card.className = 'text-left group';
+      card.innerHTML = `
+        <div class="h-36 rounded-2xl bg-gradient-to-br from-primary-container/10 to-secondary-container/10 flex items-center justify-center overflow-hidden">
+          ${u ? `<img src="${u}" class="max-h-full max-w-full object-contain p-2 transition-transform duration-300 group-hover:scale-105" alt="${esc(p.name)}"/>` : `<span class="material-symbols-outlined text-primary/20 text-5xl">spa</span>`}
+        </div>
+        <p class="font-bold text-on-surface text-xs mt-2 line-clamp-2 group-hover:text-primary transition-colors">${esc(p.name)}</p>
+        <p class="font-display font-bold text-primary text-sm mt-0.5">$${Number(p.price).toFixed(2)}</p>`;
+      card.addEventListener('click', () => openProductDetail(p));
+      grid.appendChild(card);
+    });
   }
 
   function openProductDetail(p: any) {
-    pmProduct = p;
-    pmQty = 1;
-    const sUrl = esc(sanitizeUrl(p.imageUrl));
-    const img = document.getElementById('pm-img') as HTMLImageElement;
-    const fallback = document.getElementById('pm-img-fallback') as HTMLElement;
-    if (sUrl) {
-      img.src = sUrl;
-      img.alt = esc(p.name);
-      img.classList.remove('hidden');
-      fallback.classList.add('hidden');
-    } else {
-      img.classList.add('hidden');
-      fallback.classList.remove('hidden');
+    pvProduct = p;
+    pvQty = 1;
+    pvSelectedVariant = null;
+
+    pvImages = [];
+    if (p.imageUrl) pvImages.push({ url: p.imageUrl, label: p.name });
+    if (p.hasVariants) {
+      p.variants.forEach((v: Variant) => {
+        if (v.imageUrl && !pvImages.some(im => im.url === v.imageUrl)) pvImages.push({ url: v.imageUrl, label: v.label });
+      });
     }
 
     const bc = p.brand === 'Avon' ? 'brand-avon' : p.brand === 'Natura' ? 'brand-natura' : 'brand-default';
-    const brandEl = document.getElementById('pm-brand') as HTMLElement;
+    const brandEl = document.getElementById('pv-brand') as HTMLElement;
     brandEl.className = `absolute top-4 left-4 text-[10px] font-bold px-2.5 py-1 rounded-full ${bc}`;
     brandEl.textContent = p.brand || 'General';
 
-    (document.getElementById('pm-category') as HTMLElement).textContent = p.category || 'General';
-    (document.getElementById('pm-name') as HTMLElement).textContent = p.name;
-    (document.getElementById('pm-code') as HTMLElement).textContent = p.code ? `#${p.code}` : '';
-    (document.getElementById('pm-price') as HTMLElement).textContent = `$${Number(p.price).toFixed(2)}`;
+    (document.getElementById('pv-category') as HTMLElement).textContent = [p.category, p.brand].filter(Boolean).join(' · ') || 'Catálogo Natura';
+    (document.getElementById('pv-name') as HTMLElement).textContent = p.name;
+    (document.getElementById('pv-code') as HTMLElement).textContent = p.code ? `Código #${p.code}` : '';
+    (document.getElementById('pv-price') as HTMLElement).textContent = `$${Number(p.price).toFixed(2)}`;
 
-    const stockEl = document.getElementById('pm-stock') as HTMLElement;
+    const stockEl = document.getElementById('pv-stock') as HTMLElement;
     stockEl.textContent = p.stock > 0 ? `${p.stock} disponibles` : 'Agotado';
     stockEl.className = `text-xs font-bold px-2.5 py-1 rounded-full ${p.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-error/10 text-error'}`;
 
-    const descEl = document.getElementById('pm-desc') as HTMLElement;
-    descEl.textContent = p.description || 'Sin descripción disponible.';
-    descEl.className = `text-sm mt-4 leading-6 ${p.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`;
+    const descEl = document.getElementById('pv-desc') as HTMLElement;
+    descEl.textContent = p.description || 'Sin descripción disponible para este producto.';
+    descEl.className = `text-base mt-6 leading-7 max-w-[60ch] ${p.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`;
 
-    const vWrap = document.getElementById('pm-variants') as HTMLElement;
-    const vList = document.getElementById('pm-variants-list') as HTMLElement;
-    const hasV = p.hasVariants && p.variants.length > 0;
-    vList.innerHTML = '';
-    if (hasV) {
-      vWrap.classList.remove('hidden');
-      p.variants.forEach((v: Variant) => {
-        const vPrice = v.price || p.price;
-        const vImg = esc(sanitizeUrl(v.imageUrl || p.imageUrl));
-        const row = document.createElement('div');
-        row.className = 'flex items-center gap-3 p-3 rounded-xl bg-surface-container border border-outline-variant/10';
-        row.innerHTML = `
-          ${vImg ? `<img src="${vImg}" class="w-12 h-12 object-contain rounded-lg bg-white shadow-sm"/>` : `<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center"><span class="material-symbols-outlined text-on-surface-variant/30">spa</span></div>`}
-          <div class="flex-1 min-w-0">
-            <p class="font-bold text-on-surface text-sm">${esc(v.label)}</p>
-            <p class="text-[10px] text-on-surface-variant font-mono">#${esc(v.code)}</p>
-          </div>
-          <p class="font-display font-bold text-primary text-sm">$${Number(vPrice).toFixed(2)}</p>
-          <button class="btn-pm-add-variant flex items-center gap-1 py-2 px-3 rounded-lg font-bold bg-primary text-white text-xs hover:shadow-md transition-all">
-            <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Agregar
-          </button>`;
-        row.querySelector('.btn-pm-add-variant')!.addEventListener('click', () => {
-          addToCart(p.id, p.name, v.label, Number(vPrice), v.imageUrl || p.imageUrl, pmQty);
-          productModal.close();
-        });
-        vList.appendChild(row);
-      });
-      (document.getElementById('pm-add') as HTMLElement).style.display = 'none';
-    } else {
-      vWrap.classList.add('hidden');
-      (document.getElementById('pm-add') as HTMLElement).style.display = '';
-    }
+    pvRenderThumbs();
+    pvRenderVariants();
+    pvRenderRelated();
+    pvRenderQty();
 
-    renderPmQty();
-    productModal.showModal();
+    // Re-trigger entrance animations
+    pvView.querySelectorAll('.pv-anim').forEach(el => {
+      el.classList.remove('pv-anim');
+      void (el as HTMLElement).offsetWidth;
+      el.classList.add('pv-anim');
+    });
+
+    pvView.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    pvView.scrollTop = 0;
   }
 
-  document.getElementById('pm-close')!.addEventListener('click', () => productModal.close());
-  document.getElementById('pm-qty-minus')!.addEventListener('click', () => { if (pmQty > 1) { pmQty--; renderPmQty(); } });
-  document.getElementById('pm-qty-plus')!.addEventListener('click', () => { if (pmQty < (Number(pmProduct?.stock) || 1)) { pmQty++; renderPmQty(); } });
-  document.getElementById('pm-add')!.addEventListener('click', () => {
-    if (!pmProduct) return;
-    addToCart(pmProduct.id, pmProduct.name, '', Number(pmProduct.price), pmProduct.imageUrl, pmQty);
-    productModal.close();
+  function closeProductDetail() {
+    pvView.classList.add('hidden');
+    pvLightbox.classList.add('hidden');
+    pvLightbox.classList.remove('flex');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('pv-back')!.addEventListener('click', closeProductDetail);
+  document.getElementById('pv-close')!.addEventListener('click', closeProductDetail);
+  document.getElementById('pv-qty-minus')!.addEventListener('click', () => { if (pvQty > 1) { pvQty--; pvRenderQty(); } });
+  document.getElementById('pv-qty-plus')!.addEventListener('click', () => { if (pvQty < (Number(pvProduct?.stock) || 1)) { pvQty++; pvRenderQty(); } });
+  document.getElementById('pv-add')!.addEventListener('click', () => {
+    if (!pvProduct) return;
+    const v = pvSelectedVariant;
+    addToCart(pvProduct.id, pvProduct.name, v?.label || '', Number(v?.price || pvProduct.price), v?.imageUrl || pvProduct.imageUrl, pvQty);
+    const btn = document.getElementById('pv-add') as HTMLElement;
+    btn.innerHTML = '<span class="material-symbols-outlined text-lg">check</span> ¡Agregado!';
+    setTimeout(() => { btn.innerHTML = '<span class="material-symbols-outlined text-lg">add_shopping_cart</span> Agregar al pedido'; }, 1200);
+    updateCartUI();
+  });
+
+  // Lightbox (full image + click zoom)
+  document.getElementById('pv-main-wrap')!.addEventListener('click', () => {
+    const url = esc(sanitizeUrl(pvImages[pvImageIndex]?.url || ''));
+    if (!url) return;
+    pvLightboxImg.src = url;
+    pvLightboxImg.style.transform = 'scale(1)';
+    pvLightbox.classList.remove('hidden');
+    pvLightbox.classList.add('flex');
+  });
+  pvLightbox.addEventListener('click', (e) => {
+    if (e.target === pvLightboxImg) {
+      pvLightboxImg.style.transform = pvLightboxImg.style.transform === 'scale(2)' ? 'scale(1)' : 'scale(2)';
+      return;
+    }
+    pvLightbox.classList.add('hidden');
+    pvLightbox.classList.remove('flex');
+  });
+  document.getElementById('pv-lightbox-close')!.addEventListener('click', () => {
+    pvLightbox.classList.add('hidden');
+    pvLightbox.classList.remove('flex');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !pvLightbox.classList.contains('hidden')) {
+      pvLightbox.classList.add('hidden');
+      pvLightbox.classList.remove('flex');
+    } else if (e.key === 'Escape' && !pvView.classList.contains('hidden')) {
+      closeProductDetail();
+    }
   });
 
   function bindProductDetail() {

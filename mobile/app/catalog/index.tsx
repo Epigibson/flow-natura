@@ -17,6 +17,11 @@ export default function CatalogScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [detailProduct, setDetailProduct] = useState<any | null>(null);
   const [detailVariants, setDetailVariants] = useState<any[]>([]);
+  const [detailImages, setDetailImages] = useState<{ url: string; label: string }[]>([]);
+  const [detailImgIndex, setDetailImgIndex] = useState(0);
+  const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
+  const [lightbox, setLightbox] = useState(false);
+  const [zoomed, setZoomed] = useState(false);
 
   useEffect(() => {
     loadUserId();
@@ -72,6 +77,11 @@ export default function CatalogScreen() {
   async function openDetail(item: any) {
     setDetailProduct(item);
     setDetailVariants([]);
+    setSelectedVariant(null);
+    setDetailImgIndex(0);
+    setZoomed(false);
+    const imgs: { url: string; label: string }[] = [];
+    if (item.image_url) imgs.push({ url: item.image_url, label: item.product_name });
     if (item.has_variants) {
       try {
         const { data } = await supabase
@@ -80,11 +90,16 @@ export default function CatalogScreen() {
           .eq('product_id', item.product_id)
           .is('deleted_at', null)
           .order('sort_order');
-        setDetailVariants(data || []);
+        const variants = data || [];
+        setDetailVariants(variants);
+        variants.forEach((v: any) => {
+          if (v.image_url && !imgs.some(im => im.url === v.image_url)) imgs.push({ url: v.image_url, label: v.variant_label });
+        });
       } catch {
         setDetailVariants([]);
       }
     }
+    setDetailImages(imgs);
   }
 
   async function shareProduct(item: any) {
@@ -199,86 +214,172 @@ export default function CatalogScreen() {
         />
       )}
 
-      {/* Detalle de producto (alineado con el catálogo web público) */}
-      <Modal visible={!!detailProduct} animationType="slide" transparent onRequestClose={() => setDetailProduct(null)}>
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-surface-container-lowest rounded-t-3xl max-h-[88%]">
-            {detailProduct && (
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Imagen + cerrar + marca */}
-                <View className="h-64 bg-gradient-to-br from-primary-container/10 to-secondary-container/10 items-center justify-center relative">
-                  {detailProduct.image_url ? (
-                    <Image source={{ uri: detailProduct.image_url }} className="w-full h-full" resizeMode="contain" />
+      {/* PDP — vista de producto a pantalla completa (alineada con el catálogo web) */}
+      <Modal visible={!!detailProduct} animationType="slide" onRequestClose={() => setDetailProduct(null)}>
+        {detailProduct && (
+          <View className="flex-1 bg-surface-container-lowest">
+            {/* Barra superior */}
+            <View className="flex-row items-center justify-between px-4 h-14 border-b border-outline-variant/10">
+              <TouchableOpacity onPress={() => setDetailProduct(null)} className="flex-row items-center gap-1.5">
+                <MaterialIcons name="arrow-back" size={20} color="#564336" />
+                <Text className="text-on-surface-variant font-bold text-sm">Volver al catálogo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setDetailProduct(null)} className="w-9 h-9 rounded-full items-center justify-center">
+                <MaterialIcons name="close" size={22} color="#8a7b73" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+              {/* Galería */}
+              <TouchableOpacity activeOpacity={0.9} onPress={() => { setZoomed(false); setLightbox(true); }}>
+                <View className="h-[340px] bg-gradient-to-br from-primary-container/10 to-secondary-container/10 items-center justify-center relative">
+                  {detailImages[detailImgIndex]?.url ? (
+                    <Image source={{ uri: detailImages[detailImgIndex].url }} className="w-full h-full" resizeMode="contain" />
                   ) : (
-                    <MaterialIcons name="spa" size={72} color="#e7e0eb" />
+                    <MaterialIcons name="spa" size={80} color="#e7e0eb" />
                   )}
                   <View className="absolute top-4 left-4 px-2.5 py-1 bg-[#e8f5e9] rounded-full">
                     <Text className="text-[#2e7d32] text-[10px] font-bold">{detailProduct.brand || 'General'}</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => setDetailProduct(null)}
-                    className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 items-center justify-center"
-                  >
-                    <MaterialIcons name="close" size={20} color="#564336" />
-                  </TouchableOpacity>
+                  <View className="absolute bottom-4 right-4 px-2.5 py-1 bg-white/85 rounded-full flex-row items-center gap-1">
+                    <MaterialIcons name="zoom-in" size={14} color="#8a7b73" />
+                    <Text className="text-[10px] font-bold text-on-surface-variant/70">Toca para ampliar</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
+              {/* Thumbnails */}
+              {detailImages.length > 1 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-3">
+                  {detailImages.map((im, idx) => (
+                    <TouchableOpacity
+                      key={im.url + idx}
+                      onPress={() => setDetailImgIndex(idx)}
+                      className={`w-16 h-16 rounded-xl overflow-hidden mr-2 border-2 ${idx === detailImgIndex ? 'border-primary' : 'border-outline-variant/20 opacity-60'}`}
+                    >
+                      <Image source={{ uri: im.url }} className="w-full h-full bg-white" resizeMode="contain" />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+
+              {/* Info */}
+              <View className="px-5 pt-5">
+                <Text className="text-[11px] font-bold uppercase tracking-widest text-primary/70">
+                  {[detailProduct.category, detailProduct.brand].filter(Boolean).join(' · ') || 'Catálogo Natura'}
+                </Text>
+                <Text className="text-3xl font-serif font-bold text-on-surface mt-1.5 leading-tight">{detailProduct.product_name}</Text>
+                {detailProduct.product_code ? (
+                  <Text className="text-xs text-on-surface-variant/50 font-mono mt-1.5">Código #{detailProduct.product_code}</Text>
+                ) : null}
+
+                <View className="flex-row items-center gap-3 mt-4">
+                  <Text className="text-4xl font-serif font-bold text-primary">
+                    {formatMoney(Number(selectedVariant?.price ?? detailProduct.price ?? 0))}
+                  </Text>
+                  <View className={`px-2.5 py-1 rounded-full ${detailProduct.quantity > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
+                    <Text className={`text-xs font-bold ${detailProduct.quantity > 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      {detailProduct.quantity > 0 ? `${detailProduct.quantity} disponibles` : 'Agotado'}
+                    </Text>
+                  </View>
                 </View>
 
-                <View className="p-6">
-                  <Text className="text-xs font-bold uppercase tracking-wider text-primary/70">{detailProduct.category || 'General'}</Text>
-                  <Text className="text-2xl font-serif font-bold text-on-surface mt-1">{detailProduct.product_name}</Text>
-                  {detailProduct.product_code ? (
-                    <Text className="text-xs text-on-surface-variant/50 font-mono mt-1">#{detailProduct.product_code}</Text>
-                  ) : null}
+                <Text className={`text-base mt-4 leading-7 ${detailProduct.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`}>
+                  {detailProduct.description || 'Sin descripción disponible para este producto.'}
+                </Text>
 
-                  <View className="flex-row items-center gap-3 mt-3">
-                    <Text className="text-3xl font-serif font-bold text-primary">{formatMoney(Number(detailProduct.price || 0))}</Text>
-                    <View className={`px-2.5 py-1 rounded-full ${detailProduct.quantity > 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                      <Text className={`text-xs font-bold ${detailProduct.quantity > 0 ? 'text-green-700' : 'text-red-600'}`}>
-                        {detailProduct.quantity > 0 ? `${detailProduct.quantity} disponibles` : 'Agotado'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <Text className={`text-sm mt-4 leading-6 ${detailProduct.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`}>
-                    {detailProduct.description || 'Sin descripción disponible.'}
-                  </Text>
-
-                  {detailVariants.length > 0 && (
-                    <View className="mt-5">
-                      <Text className="text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Opciones disponibles</Text>
-                      <View className="space-y-2">
-                        {detailVariants.map((v: any) => (
-                          <View key={v.id} className="flex-row items-center gap-3 p-3 rounded-xl bg-surface-container border border-outline-variant/10">
+                {detailVariants.length > 0 && (
+                  <View className="mt-6">
+                    <Text className="text-[11px] font-bold uppercase tracking-widest text-on-surface-variant mb-3">Elige tu opción</Text>
+                    <View className="flex-row flex-wrap gap-2.5">
+                      {detailVariants.map((v: any) => {
+                        const active = selectedVariant?.id === v.id;
+                        return (
+                          <TouchableOpacity
+                            key={v.id}
+                            onPress={() => {
+                              setSelectedVariant(v);
+                              const idx = detailImages.findIndex(im => im.url === v.image_url);
+                              if (idx >= 0) setDetailImgIndex(idx);
+                            }}
+                            className={`flex-row items-center gap-2 p-2 pr-3 rounded-2xl border ${active ? 'border-primary bg-primary/5' : 'border-outline-variant/15'}`}
+                          >
                             {v.image_url ? (
-                              <Image source={{ uri: v.image_url }} className="w-12 h-12 rounded-lg bg-white" resizeMode="contain" />
+                              <Image source={{ uri: v.image_url }} className="w-10 h-10 rounded-xl bg-white" resizeMode="contain" />
                             ) : (
-                              <View className="w-12 h-12 rounded-lg bg-surface-container-highest items-center justify-center">
-                                <MaterialIcons name="spa" size={20} color="#c9c2ce" />
+                              <View className="w-10 h-10 rounded-xl bg-surface-container-highest items-center justify-center">
+                                <MaterialIcons name="spa" size={18} color="#c9c2ce" />
                               </View>
                             )}
-                            <View className="flex-1 min-w-0">
-                              <Text className="font-bold text-on-surface text-sm">{v.variant_label}</Text>
-                              <Text className="text-[10px] text-on-surface-variant font-mono">#{v.code}</Text>
-                            </View>
-                            <Text className="font-bold text-primary text-sm">{formatMoney(Number(v.price || detailProduct.price || 0))}</Text>
-                          </View>
-                        ))}
-                      </View>
+                            <Text className={`text-xs font-bold ${active ? 'text-primary' : 'text-on-surface'}`}>{v.variant_label}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
-                  )}
+                  </View>
+                )}
 
-                  <TouchableOpacity
-                    onPress={() => { const p = detailProduct; setDetailProduct(null); shareProduct(p); }}
-                    className="flex-row items-center justify-center gap-2 py-4 rounded-xl bg-primary mt-6 mb-4"
-                  >
-                    <MaterialIcons name="share" size={20} color="#fff" />
-                    <Text className="text-white font-bold text-base">Compartir producto</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            )}
+                <TouchableOpacity
+                  onPress={() => { const p = detailProduct; setDetailProduct(null); shareProduct(p); }}
+                  className="flex-row items-center justify-center gap-2 py-4 rounded-2xl bg-primary mt-7"
+                >
+                  <MaterialIcons name="share" size={20} color="#fff" />
+                  <Text className="text-white font-bold text-base">Compartir producto</Text>
+                </TouchableOpacity>
+                <Text className="text-xs text-on-surface-variant/70 text-center mt-3">
+                  Pide por WhatsApp — tu consultora confirma disponibilidad y entrega.
+                </Text>
+              </View>
+
+              {/* Relacionados */}
+              {(() => {
+                const related = items.filter((x: any) => x.product_id !== detailProduct.product_id).slice(0, 4);
+                if (!related.length) return null;
+                return (
+                  <View className="mt-8 px-5">
+                    <View className="border-t border-outline-variant/10 pt-6">
+                      <Text className="text-lg font-serif font-bold text-on-surface">También te puede interesar</Text>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
+                        {related.map((r: any) => (
+                          <TouchableOpacity key={r.product_id} onPress={() => openDetail(r)} className="w-36 mr-3">
+                            <View className="h-32 rounded-2xl bg-gradient-to-br from-primary-container/10 to-secondary-container/10 items-center justify-center overflow-hidden">
+                              {r.image_url ? (
+                                <Image source={{ uri: r.image_url }} className="w-full h-full" resizeMode="contain" />
+                              ) : (
+                                <MaterialIcons name="spa" size={36} color="#e7e0eb" />
+                              )}
+                            </View>
+                            <Text className="text-xs font-bold text-on-surface mt-2" numberOfLines={2}>{r.product_name}</Text>
+                            <Text className="text-sm font-bold text-primary mt-0.5">{formatMoney(Number(r.price || 0))}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </View>
+                );
+              })()}
+            </ScrollView>
           </View>
-        </View>
+        )}
+      </Modal>
+
+      {/* Lightbox — imagen a pantalla completa */}
+      <Modal visible={lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={() => setLightbox(false)} className="flex-1 bg-black/95 items-center justify-center">
+          <TouchableOpacity activeOpacity={1} onPress={() => setZoomed(z => !z)}>
+            {detailImages[detailImgIndex]?.url ? (
+              <Image
+                source={{ uri: detailImages[detailImgIndex].url }}
+                style={{ width: zoomed ? 800 : 380, height: zoomed ? 800 : 380 }}
+                resizeMode="contain"
+              />
+            ) : null}
+          </TouchableOpacity>
+          <Text className="text-white/60 text-xs mt-4">{zoomed ? 'Toca la imagen para reducir' : 'Toca la imagen para ampliar'}</Text>
+          <TouchableOpacity onPress={() => setLightbox(false)} className="absolute top-12 right-6 w-11 h-11 rounded-full bg-white/10 items-center justify-center">
+            <MaterialIcons name="close" size={22} color="#fff" />
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </SecondaryLayout>
   );
