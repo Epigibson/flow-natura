@@ -158,7 +158,7 @@ import PageLoader from '../components/PageLoader.astro';
           <p id="pv-price" class="text-4xl font-display font-bold text-primary"></p>
           <span id="pv-stock" class="text-xs font-bold px-2.5 py-1 rounded-full"></span>
         </div>
-        <p id="pv-desc" class="pv-anim pv-d3 text-base text-on-surface-variant mt-6 leading-7 max-w-[60ch]"></p>
+        <div id="pv-details" class="pv-anim pv-d3 mt-6"></div>
 
         <div id="pv-variants" class="pv-anim pv-d3 mt-7 hidden">
           <p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">Elige tu opción</p>
@@ -312,6 +312,7 @@ import PageLoader from '../components/PageLoader.astro';
         code: p.code || '',
         brand: p.brand || '',
         description: p.description || '',
+        descriptionData: p.description_data || null,
         imageUrl: p.image_url || '',
         hasVariants: p.has_variants || false,
         variants: (p.variants || []).map((v: any) => ({
@@ -335,7 +336,7 @@ import PageLoader from '../components/PageLoader.astro';
       while (true) {
         const { data, error } = await supabase
           .from('inventory')
-          .select('quantity, product_id, variant_id, price, products(id, name, price, category, code, brand, description, image_url, has_variants)')
+          .select('quantity, product_id, variant_id, price, products(id, name, price, category, code, brand, description, description_data, image_url, has_variants)')
           .eq('consultant_id', cid)
           .gt('quantity', 0)
           .range(from, from + BATCH - 1);
@@ -378,6 +379,7 @@ import PageLoader from '../components/PageLoader.astro';
             code: inv.products?.code || '',
             brand: inv.products?.brand || '',
             description: inv.products?.description || '',
+            descriptionData: inv.products?.description_data || null,
             imageUrl: inv.products?.image_url || '',
             hasVariants: inv.products?.has_variants || false,
             variants: variantsMap[pid] || [],
@@ -614,6 +616,100 @@ import PageLoader from '../components/PageLoader.astro';
     });
   }
 
+  // ---- Structured product info (design spec: NoteRow / SpecRow / Chip / HighlightBox) ----
+  function pvChip(text: string, tone: 'primary' | 'muted' = 'primary'): string {
+    const cls = tone === 'primary'
+      ? 'bg-primary/5 text-primary border border-primary/10'
+      : 'bg-surface-container text-on-surface-variant border border-outline-variant/10';
+    return `<span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold ${cls}">${esc(text)}</span>`;
+  }
+
+  function pvNoteRow(icon: string, label: string, value: string): string {
+    return `
+      <div class="flex items-start gap-3 p-3 rounded-2xl bg-surface-container/60 border border-outline-variant/10">
+        <span class="material-symbols-outlined text-primary/80 text-xl mt-0.5">${icon}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">${esc(label)}</p>
+          <p class="text-sm text-on-surface mt-0.5 leading-6">${esc(value)}</p>
+        </div>
+      </div>`;
+  }
+
+  function pvSpecRow(label: string, value: string): string {
+    return `
+      <div class="flex items-start justify-between gap-4 py-2.5 border-b border-outline-variant/10">
+        <p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant pt-0.5 shrink-0">${esc(label)}</p>
+        <p class="text-sm text-on-surface text-right leading-6">${esc(value)}</p>
+      </div>`;
+  }
+
+  function pvHighlight(text: string, icon = 'auto_awesome'): string {
+    return `
+      <div class="flex items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+        <span class="material-symbols-outlined text-primary text-xl mt-0.5">${icon}</span>
+        <p class="text-sm text-on-surface leading-6">${esc(text)}</p>
+      </div>`;
+  }
+
+  function pvRenderDetails(data: any, fallbackText: string) {
+    const wrap = document.getElementById('pv-details') as HTMLElement;
+    const d = data && typeof data === 'object' ? data : null;
+    let html = '';
+
+    if (d && d.type === 'perfume') {
+      const notas = d.notas || {};
+      html += `<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pirámide olfativa</p>`;
+      html += `<div class="grid gap-2.5 mt-3">`;
+      if (notas.salida) html += pvNoteRow('wb_sunny', 'Notas de salida', notas.salida);
+      if (notas.corazon) html += pvNoteRow('local_florist', 'Notas de corazón', notas.corazon);
+      if (notas.fondo) html += pvNoteRow('eco', 'Notas de fondo', notas.fondo);
+      html += `</div>`;
+      if (d.sensacion) html += `<div class="mt-3">${pvHighlight(d.sensacion, 'spa')}</div>`;
+      const chips = [d.family && `Familia ${d.family}`, d.publico, d.estilo && `Estilo: ${d.estilo}`, d.presentacion].filter(Boolean);
+      if (chips.length) html += `<div class="flex flex-wrap gap-2 mt-4">${chips.map((c: string) => pvChip(c)).join('')}</div>`;
+    } else if (d && d.type === 'care') {
+      html += `<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del producto</p>`;
+      if (d.beneficio) html += `<div class="mt-3">${pvHighlight(d.beneficio, 'verified')}</div>`;
+      html += `<div class="mt-3">`;
+      if (d.ingredientes) html += pvSpecRow('Ingredientes clave', d.ingredientes);
+      if (d.textura) html += pvSpecRow('Textura', d.textura);
+      if (d.resultado) html += pvSpecRow('Resultado', d.resultado);
+      if (d.uso) html += pvSpecRow('Cómo usarlo', d.uso);
+      html += `</div>`;
+      const chips = [d.category, d.presentacion].filter(Boolean);
+      if (chips.length) html += `<div class="flex flex-wrap gap-2 mt-4">${chips.map((c: string) => pvChip(c)).join('')}</div>`;
+    } else if (d && d.type === 'home') {
+      html += `<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del producto</p>`;
+      html += `<div class="mt-3">`;
+      if (d.tipo) html += pvSpecRow('Tipo', d.tipo);
+      if (d.uso) html += pvSpecRow('Uso', d.uso);
+      if (d.material) html += pvSpecRow('Material', d.material);
+      if (d.cuidado) html += pvSpecRow('Cuidado', d.cuidado);
+      html += `</div>`;
+      if (d.highlight) html += `<div class="mt-3">${pvHighlight(d.highlight, 'star')}</div>`;
+      const chips = [d.licencia, d.presentacion].filter(Boolean);
+      if (chips.length) html += `<div class="flex flex-wrap gap-2 mt-4">${chips.map((c: string) => pvChip(c, 'muted')).join('')}</div>`;
+    } else if (d && d.type === 'kit') {
+      html += `<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del kit</p>`;
+      if (d.components && d.components.length) {
+        html += `<div class="flex flex-wrap gap-2 mt-3">${d.components.map((c: string) => pvChip('Incluye ' + c, 'muted')).join('')}</div>`;
+      }
+      if (d.facts_text) html += `<div class="mt-3">${pvHighlight(d.facts_text, 'redeem')}</div>`;
+      const chips = [d.presentacion].filter(Boolean);
+      if (chips.length) html += `<div class="flex flex-wrap gap-2 mt-4">${chips.map((c: string) => pvChip(c)).join('')}</div>`;
+    } else if (fallbackText) {
+      html += `<p class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Descripción</p>`;
+      html += `<p class="text-base text-on-surface-variant mt-3 leading-7 max-w-[60ch]">${esc(fallbackText)}</p>`;
+    } else {
+      html += `<p class="text-base text-on-surface-variant/50 italic mt-2">Sin descripción disponible para este producto.</p>`;
+    }
+
+    wrap.innerHTML = html;
+    wrap.classList.remove('pv-anim');
+    void wrap.offsetWidth;
+    wrap.classList.add('pv-anim');
+  }
+
   function openProductDetail(p: any) {
     pvProduct = p;
     pvQty = 1;
@@ -641,9 +737,7 @@ import PageLoader from '../components/PageLoader.astro';
     stockEl.textContent = p.stock > 0 ? `${p.stock} disponibles` : 'Agotado';
     stockEl.className = `text-xs font-bold px-2.5 py-1 rounded-full ${p.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-error/10 text-error'}`;
 
-    const descEl = document.getElementById('pv-desc') as HTMLElement;
-    descEl.textContent = p.description || 'Sin descripción disponible para este producto.';
-    descEl.className = `text-base mt-6 leading-7 max-w-[60ch] ${p.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`;
+    pvRenderDetails(p.descriptionData, p.description);
 
     pvRenderThumbs();
     pvRenderVariants();

@@ -605,6 +605,7 @@ export const inventory = {
       quantity: row.quantity,
       image_url: row.products?.image_url,
       description: row.products?.description,
+      description_data: row.products?.description_data,
       points: row.products?.points,
       has_variants: row.products?.has_variants
     }));

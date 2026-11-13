@@ -121,6 +121,118 @@ export default function CatalogScreen() {
     }
   }
 
+  // ---- Info estructurada del producto (átomos: Chip / NoteRow / SpecRow / HighlightBox) ----
+  const Chip = ({ text, tone = 'primary' }: { text: string; tone?: 'primary' | 'muted' }) => (
+    <View className={`px-3 py-1.5 rounded-full border ${tone === 'primary' ? 'bg-primary/5 border-primary/10' : 'bg-surface-container border-outline-variant/10'}`}>
+      <Text className={`text-xs font-bold ${tone === 'primary' ? 'text-primary' : 'text-on-surface-variant'}`}>{text}</Text>
+    </View>
+  );
+
+  const NoteRow = ({ icon, label, value }: { icon: any; label: string; value: string }) => (
+    <View className="flex-row items-start gap-3 p-3 rounded-2xl bg-surface-container/60 border border-outline-variant/10">
+      <MaterialIcons name={icon} size={20} color="#8a6d3b" style={{ marginTop: 2 }} />
+      <View className="flex-1 min-w-0">
+        <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{label}</Text>
+        <Text className="text-sm text-on-surface mt-0.5 leading-6">{value}</Text>
+      </View>
+    </View>
+  );
+
+  const SpecRow = ({ label, value }: { label: string; value: string }) => (
+    <View className="flex-row items-start justify-between gap-4 py-2.5 border-b border-outline-variant/10">
+      <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant pt-0.5">{label}</Text>
+      <Text className="text-sm text-on-surface text-right flex-1 leading-6">{value}</Text>
+    </View>
+  );
+
+  const Highlight = ({ text, icon = 'auto_awesome' }: { text: string; icon?: any }) => (
+    <View className="flex-row items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
+      <MaterialIcons name={icon} size={20} color="#8a6d3b" style={{ marginTop: 2 }} />
+      <Text className="text-sm text-on-surface flex-1 leading-6">{text}</Text>
+    </View>
+  );
+
+  function renderDetails(data: any, fallbackText: string) {
+    const d = data && typeof data === 'object' ? data : null;
+
+    if (d && d.type === 'perfume') {
+      const notas = d.notas || {};
+      return (
+        <View className="mt-5">
+          <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pirámide olfativa</Text>
+          <View className="gap-2.5 mt-3">
+            {notas.salida ? <NoteRow icon="wb_sunny" label="Notas de salida" value={notas.salida} /> : null}
+            {notas.corazon ? <NoteRow icon="local_florist" label="Notas de corazón" value={notas.corazon} /> : null}
+            {notas.fondo ? <NoteRow icon="eco" label="Notas de fondo" value={notas.fondo} /> : null}
+          </View>
+          {d.sensacion ? <View className="mt-3"><Highlight text={d.sensacion} icon="spa" /></View> : null}
+          <View className="flex-row flex-wrap gap-2 mt-4">
+            {[d.family && `Familia ${d.family}`, d.publico, d.estilo && `Estilo: ${d.estilo}`, d.presentacion].filter(Boolean).map((c: string) => <Chip key={c} text={c} />)}
+          </View>
+        </View>
+      );
+    }
+
+    if (d && d.type === 'care') {
+      return (
+        <View className="mt-5">
+          <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del producto</Text>
+          {d.beneficio ? <View className="mt-3"><Highlight text={d.beneficio} icon="verified" /></View> : null}
+          <View className="mt-3">
+            {d.ingredientes ? <SpecRow label="Ingredientes clave" value={d.ingredientes} /> : null}
+            {d.textura ? <SpecRow label="Textura" value={d.textura} /> : null}
+            {d.resultado ? <SpecRow label="Resultado" value={d.resultado} /> : null}
+            {d.uso ? <SpecRow label="Cómo usarlo" value={d.uso} /> : null}
+          </View>
+          <View className="flex-row flex-wrap gap-2 mt-4">
+            {[d.category, d.presentacion].filter(Boolean).map((c: string) => <Chip key={c} text={c} />)}
+          </View>
+        </View>
+      );
+    }
+
+    if (d && d.type === 'home') {
+      return (
+        <View className="mt-5">
+          <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del producto</Text>
+          <View className="mt-3">
+            {d.tipo ? <SpecRow label="Tipo" value={d.tipo} /> : null}
+            {d.uso ? <SpecRow label="Uso" value={d.uso} /> : null}
+            {d.material ? <SpecRow label="Material" value={d.material} /> : null}
+            {d.cuidado ? <SpecRow label="Cuidado" value={d.cuidado} /> : null}
+          </View>
+          {d.highlight ? <View className="mt-3"><Highlight text={d.highlight} icon="star" /></View> : null}
+          <View className="flex-row flex-wrap gap-2 mt-4">
+            {[d.licencia, d.presentacion].filter(Boolean).map((c: string) => <Chip key={c} text={c} tone="muted" />)}
+          </View>
+        </View>
+      );
+    }
+
+    if (d && d.type === 'kit') {
+      return (
+        <View className="mt-5">
+          <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del kit</Text>
+          {d.components?.length ? (
+            <View className="flex-row flex-wrap gap-2 mt-3">
+              {d.components.map((c: string) => <Chip key={c} text={'Incluye ' + c} tone="muted" />)}
+            </View>
+          ) : null}
+          {d.facts_text ? <View className="mt-3"><Highlight text={d.facts_text} icon="redeem" /></View> : null}
+          {d.presentacion ? (
+            <View className="flex-row flex-wrap gap-2 mt-4"><Chip text={d.presentacion} /></View>
+          ) : null}
+        </View>
+      );
+    }
+
+    return (
+      <Text className={`text-base mt-4 leading-7 ${fallbackText ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`}>
+        {fallbackText || 'Sin descripción disponible para este producto.'}
+      </Text>
+    );
+  }
+
   const renderProduct = ({ item }: { item: any }) => {
     const brandLabel = item.brand || 'General';
     const isOutOfStock = item.quantity <= 0;
@@ -284,9 +396,7 @@ export default function CatalogScreen() {
                   </View>
                 </View>
 
-                <Text className={`text-base mt-4 leading-7 ${detailProduct.description ? 'text-on-surface-variant' : 'text-on-surface-variant/50 italic'}`}>
-                  {detailProduct.description || 'Sin descripción disponible para este producto.'}
-                </Text>
+                {renderDetails(detailProduct.description_data, detailProduct.description)}
 
                 {detailVariants.length > 0 && (
                   <View className="mt-6">
