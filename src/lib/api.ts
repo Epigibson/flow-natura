@@ -605,7 +605,8 @@ export const inventory = {
       quantity: row.quantity,
       image_url: row.products?.image_url,
       description: row.products?.description,
-      points: row.products?.points
+      points: row.products?.points,
+      has_variants: row.products?.has_variants
     }));
   },
   /** "Eliminar" for a consultant: stop carrying the product. Returns the units that were in stock. */
