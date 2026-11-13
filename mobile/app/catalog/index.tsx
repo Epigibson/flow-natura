@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { formatMoney } from '../../../src/lib/orders';
 import { View, Text, FlatList, TextInput, ActivityIndicator, Image, TouchableOpacity, Share, Alert, Modal, ScrollView } from 'react-native';
 import SecondaryLayout from '../../components/SecondaryLayout';
@@ -22,6 +22,7 @@ export default function CatalogScreen() {
   const [selectedVariant, setSelectedVariant] = useState<any | null>(null);
   const [lightbox, setLightbox] = useState(false);
   const [zoomed, setZoomed] = useState(false);
+  const lightboxOpenedAt = useRef(0);
 
   useEffect(() => {
     loadUserId();
@@ -128,9 +129,9 @@ export default function CatalogScreen() {
     </View>
   );
 
-  const NoteRow = ({ icon, label, value }: { icon: any; label: string; value: string }) => (
-    <View className="flex-row items-start gap-3 p-3 rounded-2xl bg-surface-container/60 border border-outline-variant/10">
-      <MaterialIcons name={icon} size={20} color="#8a6d3b" style={{ marginTop: 2 }} />
+  const NoteRow = ({ label, value }: { label: string; value: string }) => (
+    <View className="flex-row items-stretch p-3 rounded-2xl bg-surface-container/60 border border-outline-variant/10 overflow-hidden">
+      <View className="w-1 rounded-full bg-primary/60 mr-3" />
       <View className="flex-1 min-w-0">
         <Text className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{label}</Text>
         <Text className="text-sm text-on-surface mt-0.5 leading-6">{value}</Text>
@@ -145,7 +146,7 @@ export default function CatalogScreen() {
     </View>
   );
 
-  const Highlight = ({ text, icon = 'auto_awesome' }: { text: string; icon?: any }) => (
+  const Highlight = ({ text, icon = 'spa' }: { text: string; icon?: any }) => (
     <View className="flex-row items-start gap-3 p-4 rounded-2xl bg-primary/5 border border-primary/10">
       <MaterialIcons name={icon} size={20} color="#8a6d3b" style={{ marginTop: 2 }} />
       <Text className="text-sm text-on-surface flex-1 leading-6">{text}</Text>
@@ -161,9 +162,9 @@ export default function CatalogScreen() {
         <View className="mt-5">
           <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Pirámide olfativa</Text>
           <View className="gap-2.5 mt-3">
-            {notas.salida ? <NoteRow icon="wb_sunny" label="Notas de salida" value={notas.salida} /> : null}
-            {notas.corazon ? <NoteRow icon="local_florist" label="Notas de corazón" value={notas.corazon} /> : null}
-            {notas.fondo ? <NoteRow icon="eco" label="Notas de fondo" value={notas.fondo} /> : null}
+            {notas.salida ? <NoteRow label="Notas de salida" value={notas.salida} /> : null}
+            {notas.corazon ? <NoteRow label="Notas de corazón" value={notas.corazon} /> : null}
+            {notas.fondo ? <NoteRow label="Notas de fondo" value={notas.fondo} /> : null}
           </View>
           {d.sensacion ? <View className="mt-3"><Highlight text={d.sensacion} icon="spa" /></View> : null}
           <View className="flex-row flex-wrap gap-2 mt-4">
@@ -177,7 +178,7 @@ export default function CatalogScreen() {
       return (
         <View className="mt-5">
           <Text className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Detalles del producto</Text>
-          {d.beneficio ? <View className="mt-3"><Highlight text={d.beneficio} icon="verified" /></View> : null}
+          {d.beneficio ? <View className="mt-3"><Highlight text={d.beneficio} icon="spa" /></View> : null}
           <View className="mt-3">
             {d.ingredientes ? <SpecRow label="Ingredientes clave" value={d.ingredientes} /> : null}
             {d.textura ? <SpecRow label="Textura" value={d.textura} /> : null}
@@ -201,7 +202,7 @@ export default function CatalogScreen() {
             {d.material ? <SpecRow label="Material" value={d.material} /> : null}
             {d.cuidado ? <SpecRow label="Cuidado" value={d.cuidado} /> : null}
           </View>
-          {d.highlight ? <View className="mt-3"><Highlight text={d.highlight} icon="star" /></View> : null}
+          {d.highlight ? <View className="mt-3"><Highlight text={d.highlight} icon="spa" /></View> : null}
           <View className="flex-row flex-wrap gap-2 mt-4">
             {[d.licencia, d.presentacion].filter(Boolean).map((c: string) => <Chip key={c} text={c} tone="muted" />)}
           </View>
@@ -218,7 +219,7 @@ export default function CatalogScreen() {
               {d.components.map((c: string) => <Chip key={c} text={'Incluye ' + c} tone="muted" />)}
             </View>
           ) : null}
-          {d.facts_text ? <View className="mt-3"><Highlight text={d.facts_text} icon="redeem" /></View> : null}
+          {d.facts_text ? <View className="mt-3"><Highlight text={d.facts_text} icon="spa" /></View> : null}
           {d.presentacion ? (
             <View className="flex-row flex-wrap gap-2 mt-4"><Chip text={d.presentacion} /></View>
           ) : null}
@@ -268,9 +269,9 @@ export default function CatalogScreen() {
             <Text className="text-lg font-serif font-bold text-primary">{formatMoney(Number(Number(item.price || 0)))}</Text>
             <TouchableOpacity
               onPress={() => openDetail(item)}
-              className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary"
+              className="w-9 h-9 rounded-full items-center justify-center bg-primary/10 border border-primary/15"
             >
-              <MaterialIcons name="visibility" size={16} color="#fff" />
+              <MaterialIcons name="visibility" size={17} color="#8a6d3b" />
             </TouchableOpacity>
           </View>
         </View>
@@ -343,7 +344,7 @@ export default function CatalogScreen() {
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
               {/* Galería */}
-              <TouchableOpacity activeOpacity={0.9} onPress={() => { setZoomed(false); setLightbox(true); }}>
+              <TouchableOpacity activeOpacity={0.9} onPress={() => { setZoomed(false); lightboxOpenedAt.current = Date.now(); setLightbox(true); }}>
                 <View className="h-[340px] bg-gradient-to-br from-primary-container/10 to-secondary-container/10 items-center justify-center relative">
                   {detailImages[detailImgIndex]?.url ? (
                     <Image source={{ uri: detailImages[detailImgIndex].url }} className="w-full h-full" resizeMode="contain" />
@@ -475,7 +476,7 @@ export default function CatalogScreen() {
 
       {/* Lightbox — imagen a pantalla completa */}
       <Modal visible={lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(false)}>
-        <TouchableOpacity activeOpacity={1} onPress={() => setLightbox(false)} className="flex-1 bg-black/95 items-center justify-center">
+        <TouchableOpacity activeOpacity={1} onPress={() => { if (Date.now() - lightboxOpenedAt.current > 350) setLightbox(false); }} className="flex-1 bg-black/95 items-center justify-center">
           <TouchableOpacity activeOpacity={1} onPress={() => setZoomed(z => !z)}>
             {detailImages[detailImgIndex]?.url ? (
               <Image
